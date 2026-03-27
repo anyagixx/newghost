@@ -12,6 +12,7 @@
 //   config - configuration loading and validation module
 //   obs - observability bootstrap and burst detection module
 //   session - session core state machine and typed effect contracts
+//   socks5 - local SOCKS5 ingress, proxy intent parsing, and reply mapping
 //   auth - handshake authentication and redaction module
 //   transport - shared transport contracts used by transport adapters
 //   tls - TLS material loading and runtime context module
@@ -25,6 +26,7 @@ pub mod config;
 pub mod iroh_adapter;
 pub mod obs;
 pub mod session;
+pub mod socks5;
 pub mod tls;
 pub mod transport;
 pub mod wss_gateway;
