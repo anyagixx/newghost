@@ -179,7 +179,7 @@
       </annotations>
     </M-GITHUB-RELEASE>
 
-    <M-SMOKE-E2E NAME="SmokeE2E" TYPE="INTEGRATION" STATUS="pending">
+    <M-SMOKE-E2E NAME="SmokeE2E" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Add a narrow smoke verification path for startup, one proxied request, and graceful shutdown before external testing begins.</purpose>
       <path>tests/release_smoke.rs</path>
       <depends>M-CLI, M-SOCKS5, M-PROXY-BRIDGE, M-WSS-GATEWAY, M-SESSION</depends>

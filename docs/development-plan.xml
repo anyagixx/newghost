@@ -466,7 +466,7 @@
       </notes>
     </M-GITHUB-RELEASE>
 
-    <M-SMOKE-E2E NAME="SmokeE2E" TYPE="INTEGRATION" LAYER="6" ORDER="4" STATUS="pending">
+    <M-SMOKE-E2E NAME="SmokeE2E" TYPE="INTEGRATION" LAYER="6" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Add a narrow smoke verification path for startup, one proxied request, and graceful shutdown before external testing begins.</purpose>
         <inputs>
@@ -634,7 +634,7 @@
       <step-1 module="M-MARKUP-CLEANUP" status="done" verification="V-M-MARKUP-CLEANUP">Close the remaining minor GRACE markup issues in governed helper files</step-1>
       <step-2 module="M-RELEASE-DOCS" status="done" verification="V-M-RELEASE-DOCS">Prepare README, changelog, and operator-facing release documentation</step-2>
       <step-3 module="M-GITHUB-RELEASE" status="done" verification="V-M-GITHUB-RELEASE">Align GitHub CI and release workflow expectations with the repository state</step-3>
-      <step-4 module="M-SMOKE-E2E" status="pending" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-4>
+      <step-4 module="M-SMOKE-E2E" status="done" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-4>
     </Phase-7>
   </ImplementationOrder>
 
