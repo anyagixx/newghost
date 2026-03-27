@@ -1,0 +1,428 @@
+<VerificationPlan VERSION="0.2.0">
+  <GlobalPolicy>
+    <log-format>[Module][function][BLOCK_NAME] message</log-format>
+    <deterministic-first>true</deterministic-first>
+    <module-level-focus>Fast deterministic checks for config parsing, auth, TLS material loading, SOCKS5 parsing, exact reply mapping, transport selection, state transitions, effect dispatch, and adapter cleanup.</module-level-focus>
+    <wave-level-focus>Checks only merged surfaces touched by the current wave, especially sequential fallback, bounded queue behavior, adapter contract enforcement, sliding-window burst detection, and proxy-path integration.</wave-level-focus>
+    <phase-level-focus>Broader transport, reconnect, shutdown, backpressure, burst observability, and regression confidence.</phase-level-focus>
+    <redaction>Never log secrets, raw tokens, proxy credentials, TLS private keys, or proxied traffic payloads.</redaction>
+    <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
+    <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
+  </GlobalPolicy>
+
+  <CriticalFlows>
+    <VF-001 NAME="ClientBootstrap" USE_CASES="UC-001" DATA_FLOW="DF-CLIENT-BOOT" PRIORITY="high">
+      <scenario>The client starts successfully, exposes a local SOCKS5 endpoint, and initializes lifecycle plus observability control.</scenario>
+      <expected-outcome>The process starts in client mode with validated config, initialized tracing, active limits, active metrics, active burst detection, and a ready local ingress surface.</expected-outcome>
+      <required-signals>
+        <log-marker>[Config][loadConfig][BLOCK_VALIDATE_CONFIGURATION]</log-marker>
+        <log-marker>[Observability][recordBurst][BLOCK_AGGREGATE_REJECTIONS]</log-marker>
+        <trace-sequence>BLOCK_VALIDATE_CONFIGURATION -&gt; BLOCK_AGGREGATE_REJECTIONS -&gt; LISTENER_READY</trace-sequence>
+      </required-signals>
+    </VF-001>
+
+    <VF-002 NAME="SuccessfulProxyRequest" USE_CASES="UC-001,UC-002" DATA_FLOW="DF-SOCKS5-REQUEST" PRIORITY="high">
+      <scenario>A local SOCKS5 client sends a CONNECT request and receives a valid response through a resolved transport stream.</scenario>
+      <expected-outcome>The request reaches the remote target and returns through the tunnel without deadlocking or leaking session state.</expected-outcome>
+      <required-signals>
+        <log-marker>[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE]</log-marker>
+        <log-marker>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</log-marker>
+        <trace-sequence>BLOCK_PARSE_SOCKS5_REQUEST -&gt; BLOCK_SELECT_TRANSPORT -&gt; BLOCK_MAP_REPLY_CODE -&gt; BLOCK_PUMP_BIDIRECTIONAL -&gt; RETURNED</trace-sequence>
+      </required-signals>
+    </VF-002>
+
+    <VF-003 NAME="TransportFallback" USE_CASES="UC-001,UC-002" DATA_FLOW="DF-TRANSPORT-FALLBACK" PRIORITY="high">
+      <scenario>Iroh stream creation fails or times out and TransportSelector falls back to WSS sequentially.</scenario>
+      <expected-outcome>The fallback succeeds cleanly, only one active transport owner remains, and ProxyBridge still receives a generic ResolvedStream.</expected-outcome>
+      <required-signals>
+        <log-marker>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</log-marker>
+        <log-marker>[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
+        <log-marker>[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
+        <trace-sequence>BLOCK_SELECT_TRANSPORT -&gt; BLOCK_ADAPTER_CLEANUP_CONTRACT -&gt; WSS_FALLBACK -&gt; BLOCK_ADAPTER_CLEANUP_CONTRACT</trace-sequence>
+      </required-signals>
+    </VF-003>
+
+    <VF-004 NAME="RejectedHandshake" USE_CASES="UC-002,UC-003" DATA_FLOW="DF-AUTH-REJECT" PRIORITY="high">
+      <scenario>A client presents invalid credentials or an unauthorized handshake.</scenario>
+      <expected-outcome>The request is rejected, no active proxy session exists, and logs contain redacted evidence only.</expected-outcome>
+      <required-signals>
+        <log-marker>[Auth][validateHandshake][BLOCK_VALIDATE_HANDSHAKE]</log-marker>
+        <trace-sequence>BLOCK_LOAD_TLS_MATERIAL -&gt; BLOCK_VALIDATE_HANDSHAKE -&gt; REJECTED -&gt; CONNECTION_CLOSED</trace-sequence>
+      </required-signals>
+    </VF-004>
+
+    <VF-005 NAME="FastQueueFailure" USE_CASES="UC-001,UC-003" DATA_FLOW="DF-BACKPRESSURE" PRIORITY="high">
+      <scenario>Incoming proxy requests exceed bounded queue capacity.</scenario>
+      <expected-outcome>The request receives a client-visible SOCKS5 failure reply quickly, metrics increment, and sliding-window burst metrics capture the spike.</expected-outcome>
+      <required-signals>
+        <log-marker>[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE]</log-marker>
+        <log-marker>[Observability][recordBurst][BLOCK_AGGREGATE_REJECTIONS]</log-marker>
+        <trace-sequence>QUEUE_SATURATED -&gt; BLOCK_MAP_REPLY_CODE -&gt; SOCKS5_REPLY_SENT -&gt; BLOCK_AGGREGATE_REJECTIONS</trace-sequence>
+      </required-signals>
+    </VF-005>
+
+    <VF-006 NAME="ExactPolicyAndTargetReplies" USE_CASES="UC-001,UC-003" DATA_FLOW="DF-REPLY-MAPPING" PRIORITY="high">
+      <scenario>Policy-denied and target-unreachable failures are mapped to distinct SOCKS5 reply codes.</scenario>
+      <expected-outcome>Policy failures map to 0x02, target failures map to 0x04 or 0x05 when appropriate, and infrastructure failures remain 0x01.</expected-outcome>
+      <required-signals>
+        <log-marker>[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE]</log-marker>
+        <trace-sequence>PROXY_ERROR_CLASSIFIED -&gt; BLOCK_MAP_REPLY_CODE -&gt; EXACT_REPLY_CODE_EMITTED</trace-sequence>
+      </required-signals>
+    </VF-006>
+
+    <VF-007 NAME="PostPumpFailureNoReply" USE_CASES="UC-001,UC-003" DATA_FLOW="DF-REPLY-MAPPING" PRIORITY="medium">
+      <scenario>A stream pump fails after a successful SOCKS5 success reply has already been sent.</scenario>
+      <expected-outcome>No second reply is attempted; the transport path closes cleanly and the failure remains observable only in logs and metrics.</expected-outcome>
+      <required-signals>
+        <log-marker>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</log-marker>
+        <trace-sequence>SOCKS5_SUCCESS_SENT -&gt; BLOCK_PUMP_BIDIRECTIONAL -&gt; STREAM_FAILURE -&gt; TCP_CLOSED</trace-sequence>
+      </required-signals>
+    </VF-007>
+
+    <VF-008 NAME="AdapterCleanupContract" USE_CASES="UC-001,UC-002" DATA_FLOW="DF-TRANSPORT-FALLBACK" PRIORITY="high">
+      <scenario>A transport adapter is cancelled, dropped, or forced through an error path while opening a stream.</scenario>
+      <expected-outcome>The adapter returns Err after cancel, leaks no tracked tasks or streams, and violations are surfaced as contract failures.</expected-outcome>
+      <required-signals>
+        <log-marker>[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
+        <log-marker>[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
+        <trace-sequence>CANCELLED -&gt; ERR_RETURNED -&gt; NO_LEAKED_TASKS</trace-sequence>
+      </required-signals>
+    </VF-008>
+
+    <VF-009 NAME="SlidingWindowBurstDetection" USE_CASES="UC-001,UC-003" DATA_FLOW="DF-BACKPRESSURE" PRIORITY="high">
+      <scenario>A short rejection spike occurs within a sub-second interval.</scenario>
+      <expected-outcome>Peak rejection rate is captured for the configured alert window, logs stay rate-limited, and the spike is distinguishable from slower rejection patterns.</expected-outcome>
+      <required-signals>
+        <log-marker>[Observability][recordBurst][BLOCK_AGGREGATE_REJECTIONS]</log-marker>
+        <trace-sequence>REJECTION_RECORDED -&gt; PEAK_RATE_UPDATED -&gt; BURST_ALERT_EMITTED</trace-sequence>
+      </required-signals>
+    </VF-009>
+
+    <VF-010 NAME="ControlledShutdown" USE_CASES="UC-003" DATA_FLOW="DF-SHUTDOWN" PRIORITY="high">
+      <scenario>The process shuts down while active sessions and bridge workers exist.</scenario>
+      <expected-outcome>Listeners stop, sessions drain cleanly, transports close, adapter trackers empty out, and no resources remain leaked.</expected-outcome>
+      <required-signals>
+        <log-marker>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</log-marker>
+        <log-marker>[SessionManager][handleEvent][BLOCK_APPLY_SESSION_EFFECTS]</log-marker>
+        <trace-sequence>STOP_ACCEPT -&gt; DRAIN_STREAMS -&gt; SESSION_CLOSED -&gt; TRACKERS_EMPTY -&gt; TRANSPORT_RELEASED</trace-sequence>
+      </required-signals>
+    </VF-010>
+  </CriticalFlows>
+
+  <ModuleVerification>
+    <V-M-CLI MODULE="M-CLI" PRIORITY="high">
+      <test-files>
+        <file>src/cli/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test cli</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Valid startup arguments route execution into the expected runtime mode.</scenario-1>
+        <scenario-2 kind="failure">Shutdown sequencing stops accepts before draining transports.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</marker-1>
+        <marker-2>[CliApp][run][BLOCK_START_APPLICATION]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Once shutdown begins, no new accepts or registrations are allowed.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Use CLI orchestration in client and server integration tests.</wave-follow-up>
+      <phase-follow-up>Run end-to-end startup and shutdown checks with representative configs.</phase-follow-up>
+    </V-M-CLI>
+
+    <V-M-CONFIG MODULE="M-CONFIG" PRIORITY="high">
+      <test-files>
+        <file>src/config/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test config</check-1>
+        <check-2>cargo clippy --all-targets --all-features</check-2>
+        <check-3>cargo fmt --check</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Valid client and server configuration parses into a stable typed config including limits, timeouts, reply policy, retry settings, and burst thresholds.</scenario-1>
+        <scenario-2 kind="failure">Invalid bind addresses, TLS paths, or limit values fail with deterministic errors.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Config][loadConfig][BLOCK_VALIDATE_CONFIGURATION]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Invalid configuration must not progress into gateway, session, or listener startup.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Use validated config in fallback, bounded queue, timeout, retry, and burst-window tests.</wave-follow-up>
+      <phase-follow-up>Run the full test suite with representative client and server configs.</phase-follow-up>
+    </V-M-CONFIG>
+
+    <V-M-OBS MODULE="M-OBS" PRIORITY="high">
+      <test-files>
+        <file>src/obs/mod.test.rs</file>
+        <file>src/obs/burst_detector.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test obs</check-1>
+        <check-2>cargo clippy --all-targets --all-features</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Tracing, counters, gauges, histograms, and sliding-window burst metrics initialize with stable field propagation and redaction rules.</scenario-1>
+        <scenario-2 kind="failure">Burst spikes update peak-rate gauges correctly while logs remain rate-limited and non-bursty traffic does not trigger alerts.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Observability][recordBurst][BLOCK_AGGREGATE_REJECTIONS]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Metrics reflect queue-full, session-limit, and reply-code outcomes accurately.</assertion-1>
+        <assertion-2>Sliding-window burst detection distinguishes short spikes from slow rejection patterns.</assertion-2>
+        <assertion-3>Peak-rate gauges reset on the configured maintenance interval.</assertion-3>
+        <assertion-4>Burst thresholds remain documented as deployment-time tuning values rather than architectural constants.</assertion-4>
+      </required-trace-assertions>
+      <wave-follow-up>Confirm metrics and aggregation appear in integration path failures.</wave-follow-up>
+      <phase-follow-up>Review alert-friendly observability under burst load.</phase-follow-up>
+    </V-M-OBS>
+
+    <V-M-AUTH MODULE="M-AUTH" PRIORITY="high">
+      <test-files>
+        <file>src/auth/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test auth</check-1>
+        <check-2>cargo clippy --all-targets --all-features</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Valid credentials or ticket metadata are accepted.</scenario-1>
+        <scenario-2 kind="failure">Invalid credentials are rejected and sensitive values are redacted.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Auth][validateHandshake][BLOCK_VALIDATE_HANDSHAKE]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Rejected handshakes must not create a session handle.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Exercise the auth boundary through the WSS gateway.</wave-follow-up>
+      <phase-follow-up>Review logs to verify no secrets are emitted on failure paths.</phase-follow-up>
+    </V-M-AUTH>
+
+    <V-M-TLS MODULE="M-TLS" PRIORITY="high">
+      <test-files>
+        <file>src/tls/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test tls</check-1>
+        <check-2>cargo clippy --all-targets --all-features</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Valid TLS material loads into client and server contexts.</scenario-1>
+        <scenario-2 kind="failure">Missing, malformed, expired, or untrusted material fails deterministically.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[TlsContext][fromConfig][BLOCK_LOAD_TLS_MATERIAL]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>TLS load failure must prevent websocket startup.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Use TLS contexts inside handshake integration tests.</wave-follow-up>
+      <phase-follow-up>Exercise certificate rotation or reload scenarios if added later.</phase-follow-up>
+    </V-M-TLS>
+
+    <V-M-WSS-GATEWAY MODULE="M-WSS-GATEWAY" PRIORITY="high">
+      <test-files>
+        <file>src/wss_gateway/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test wss_gateway</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">A valid TLS plus WSS handshake returns a WSS-backed ResolvedStream.</scenario-1>
+        <scenario-2 kind="failure">Cancel, drop, and timeout paths satisfy the adapter cleanup contract without leaked tracked tasks.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Gateway must not embed transport-selection logic.</assertion-1>
+        <assertion-2>Contract tests must cover cancel-before-open, cancel-during-open, no-leaked-tasks, and drop-cleanup behavior through the adapter task tracker.</assertion-2>
+        <assertion-3>Generic contract tests must include socket-level cleanup checks for partially opened connections.</assertion-3>
+      </required-trace-assertions>
+      <wave-follow-up>Use WSS stream creation in fallback and proxy integration tests.</wave-follow-up>
+      <phase-follow-up>Run shutdown and reconnect tests against both client and server modes.</phase-follow-up>
+    </V-M-WSS-GATEWAY>
+
+    <V-M-IROH-ADAPTER MODULE="M-IROH-ADAPTER" PRIORITY="high">
+      <test-files>
+        <file>src/iroh_adapter/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test iroh_adapter</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The adapter opens a direct or relay-backed stream with stable diagnostics.</scenario-1>
+        <scenario-2 kind="failure">Cancel, drop, timeout, or transport failure surfaces as a deterministic error and leaks no tracked tasks or partial state.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Transport failure must not leave leaked partial state after cancel or timeout.</assertion-1>
+        <assertion-2>Contract tests must cover cancel-before-open, cancel-during-open, no-leaked-tasks, and drop-cleanup behavior through the adapter task tracker.</assertion-2>
+        <assertion-3>Generic contract tests must include socket-level cleanup checks, and adapter-specific tests must cover adapter-owned resource release.</assertion-3>
+      </required-trace-assertions>
+      <wave-follow-up>Pair transport setup with selector fallback integration tests.</wave-follow-up>
+      <phase-follow-up>Validate relay fallback behavior in a constrained network environment.</phase-follow-up>
+    </V-M-IROH-ADAPTER>
+
+    <V-M-SESSION MODULE="M-SESSION" PRIORITY="high">
+      <test-files>
+        <file>src/session/mod.test.rs</file>
+        <file>src/session/registry.test.rs</file>
+        <file>src/session/transport_selector.test.rs</file>
+        <file>src/session/state.test.rs</file>
+        <file>src/session/effects.test.rs</file>
+        <file>src/session/effect_handler.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test session</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">TransportSelector chooses iroh first and falls back to WSS sequentially.</scenario-1>
+        <scenario-2 kind="failure">State transitions, effect dispatch, max-session limits, and contract violations remain deterministic.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[SessionManager][handleEvent][BLOCK_APPLY_SESSION_EFFECTS]</marker-1>
+        <marker-2>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>State transitions are pure and Closing is one-way toward Closed.</assertion-1>
+        <assertion-2>SessionEffect top-level variant count remains bounded and maps only to target components.</assertion-2>
+        <assertion-3>EffectHandler branch count remains stable and new subcommands do not change its top-level routing structure.</assertion-3>
+        <assertion-4>SessionRegistry reserve and remove semantics free capacity deterministically.</assertion-4>
+        <assertion-5>RegistryCommand and TimerCommand variant counts remain within locally defined hygiene limits.</assertion-5>
+      </required-trace-assertions>
+      <wave-follow-up>Connect session lifecycle to proxy, fallback, and shutdown tests.</wave-follow-up>
+      <phase-follow-up>Verify clean shutdown under repeated reconnect attempts.</phase-follow-up>
+    </V-M-SESSION>
+
+    <V-M-SOCKS5 MODULE="M-SOCKS5" PRIORITY="high">
+      <test-files>
+        <file>src/socks5/mod.test.rs</file>
+        <file>src/socks5/reply_mapping.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test socks5</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">A valid SOCKS5 CONNECT request is parsed into a normalized ProxyIntent.</scenario-1>
+        <scenario-2 kind="failure">Malformed requests, saturated intent queue, policy denies, and target failures map to deterministic client-visible replies.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Queue saturation must produce a SOCKS5 failure reply in less than 50ms in local tests.</assertion-1>
+        <assertion-2>Policy failures map to 0x02 and target failures map to exact target-oriented reply codes when possible.</assertion-2>
+        <assertion-3>PumpFailed returns no SOCKS5 reply because success was already emitted.</assertion-3>
+        <assertion-4>ProxyError and TransportError matches remain exhaustive without wildcard arms.</assertion-4>
+        <assertion-5>CI blocks any allow-list override that re-enables wildcard enum match arms for reply mapping.</assertion-5>
+      </required-trace-assertions>
+      <wave-follow-up>Feed normalized ProxyIntent items into bridge integration tests.</wave-follow-up>
+      <phase-follow-up>Exercise concurrent local clients under listener saturation.</phase-follow-up>
+    </V-M-SOCKS5>
+
+    <V-M-PROXY-BRIDGE MODULE="M-PROXY-BRIDGE" PRIORITY="high">
+      <test-files>
+        <file>src/proxy_bridge/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test proxy_bridge</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">A valid ProxyIntent is tunneled successfully over a resolved generic stream.</scenario-1>
+        <scenario-2 kind="failure">Remote disconnect, total timeout, or drain shutdown does not deadlock the client side.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>ProxyBridge must not import WssGateway or IrohAdapter directly.</assertion-1>
+        <assertion-2>Failure paths must close both stream directions and notify SessionManager.</assertion-2>
+        <assertion-3>Total request timeout must bound client-visible failure latency.</assertion-3>
+      </required-trace-assertions>
+      <wave-follow-up>Exercise SOCKS5 traffic over the full tunnel path.</wave-follow-up>
+      <phase-follow-up>Run prolonged transfer, backpressure, and reconnect checks.</phase-follow-up>
+    </V-M-PROXY-BRIDGE>
+  </ModuleVerification>
+
+  <PhaseGates>
+    <Gate-Phase-1 PHASE="Phase-1">
+      <goal>Foundation modules have deterministic local checks for config, redaction, metrics, auth, and TLS setup.</goal>
+      <commands>
+        <command-1>cargo test config obs auth tls</command-1>
+        <command-2>cargo test cli</command-2>
+        <command-3>cargo clippy --all-targets --all-features</command-3>
+        <command-4>cargo fmt --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>Startup, metrics, auth, and TLS boundaries have module-local checks defined.</evidence-1>
+        <evidence-2>Phase-1 anchors exist for BLOCK_VALIDATE_CONFIGURATION, BLOCK_INIT_TRACING, BLOCK_VALIDATE_HANDSHAKE, BLOCK_LOAD_TLS_MATERIAL, and BLOCK_START_APPLICATION.</evidence-2>
+        <evidence-3>No Phase-1 module relies on integration-only transports or end-to-end tunnel setup to prove its local contract.</evidence-3>
+      </required-evidence>
+    </Gate-Phase-1>
+
+    <Gate-Phase-2 PHASE="Phase-2">
+      <goal>Both transport boundaries satisfy the shared adapter cleanup and task-tracking contracts.</goal>
+      <commands>
+        <command-1>cargo test wss_gateway iroh_adapter</command-1>
+      </commands>
+      <required-evidence>
+        <evidence-1>WSS and iroh adapter contract tests pass without leaked tracked tasks.</evidence-1>
+      </required-evidence>
+    </Gate-Phase-2>
+
+    <Gate-Phase-3 PHASE="Phase-3">
+      <goal>Session orchestration, typed effect dispatch, fallback, and state transitions are explicit and verifiable.</goal>
+      <commands>
+        <command-1>cargo test session cli</command-1>
+      </commands>
+      <required-evidence>
+        <evidence-1>Registry, selector, pure transitions, and stable top-level effect routing are automated and green.</evidence-1>
+      </required-evidence>
+    </Gate-Phase-3>
+
+    <Gate-Phase-4 PHASE="Phase-4">
+      <goal>SOCKS5 ingress produces bounded ProxyIntent work items and accurate reply codes.</goal>
+      <commands>
+        <command-1>cargo test socks5</command-1>
+      </commands>
+      <required-evidence>
+        <evidence-1>Bounded queue semantics, deterministic request parsing, and exhaustive reply mapping are covered.</evidence-1>
+      </required-evidence>
+    </Gate-Phase-4>
+
+    <Gate-Phase-5 PHASE="Phase-5">
+      <goal>The bridge carries real traffic over transport-agnostic streams.</goal>
+      <commands>
+        <command-1>cargo test proxy_bridge</command-1>
+      </commands>
+      <required-evidence>
+        <evidence-1>At least one end-to-end SOCKS5-over-tunnel scenario is automated and green.</evidence-1>
+      </required-evidence>
+    </Gate-Phase-5>
+
+    <Gate-Phase-6 PHASE="Phase-6">
+      <goal>Fallback, shutdown, timing, burst handling, and observability are robust enough for broader execution waves.</goal>
+      <commands>
+        <command-1>cargo test</command-1>
+      </commands>
+      <required-evidence>
+        <evidence-1>Controlled shutdown, queue pressure, session limit pressure, sliding-window burst detection, and transport fallback scenarios produce stable evidence.</evidence-1>
+      </required-evidence>
+    </Gate-Phase-6>
+  </PhaseGates>
+
+  <FailurePackets>
+    <packet-template>
+      <expected-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</expected-fields>
+      <phase-1-example>Config invalid-path test expected BLOCK_VALIDATE_CONFIGURATION reject marker but observed panic before marker emission; first divergent block is Config::loadConfig::BLOCK_VALIDATE_CONFIGURATION; next action is harden path validation and add deterministic error assertion.</phase-1-example>
+    </packet-template>
+  </FailurePackets>
+</VerificationPlan>

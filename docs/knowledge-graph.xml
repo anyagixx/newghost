@@ -1,0 +1,154 @@
+<KnowledgeGraph>
+  <Project NAME="n0wss" VERSION="0.2.0">
+    <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
+    <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
+
+    <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Bootstrap the process, choose runtime mode, and coordinate graceful shutdown phases.</purpose>
+      <path>src/cli/mod.rs</path>
+      <depends>M-CONFIG, M-OBS, M-SESSION</depends>
+      <verification-ref>V-M-CLI</verification-ref>
+      <annotations>
+        <fn-run PURPOSE="Parse startup arguments and launch the selected mode." />
+        <fn-coordinateShutdown PURPOSE="Stop accepts, drain work, and release transports in order." />
+        <type-ApplicationRunResult PURPOSE="Represent final startup or shutdown outcomes." />
+      </annotations>
+    </M-CLI>
+
+    <M-CONFIG NAME="Config" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Load runtime configuration, TLS paths, auth material, queue limits, session limits, timeout policy, retry behavior, and burst thresholds.</purpose>
+      <path>src/config/mod.rs</path>
+      <depends>none</depends>
+      <verification-ref>V-M-CONFIG</verification-ref>
+      <annotations>
+        <fn-loadConfig PURPOSE="Load and validate CLI arguments and environment configuration." />
+        <type-AppConfig PURPOSE="Typed runtime configuration for client and server modes." />
+        <export-config PURPOSE="Expose validated immutable configuration to the rest of the application." />
+      </annotations>
+    </M-CONFIG>
+
+    <M-OBS NAME="Observability" TYPE="UTILITY" STATUS="planned">
+      <purpose>Initialize tracing, stable logging fields, metrics, sliding-window burst detection, and peak-rate diagnostics.</purpose>
+      <path>src/obs/mod.rs</path>
+      <depends>M-CONFIG</depends>
+      <verification-ref>V-M-OBS</verification-ref>
+      <annotations>
+        <fn-initObservability PURPOSE="Install tracing, counters, gauges, histograms, and field propagation behavior." />
+        <fn-recordBurst PURPOSE="Record queue rejection timestamps into a sliding-window burst detector." />
+        <fn-resetPeak PURPOSE="Reset peak-rate gauges on the configured maintenance interval." />
+        <type-ProxyMetricsHandle PURPOSE="Holds counters, gauges, and histograms for proxy observability." />
+      </annotations>
+    </M-OBS>
+
+    <M-AUTH NAME="AuthPolicy" TYPE="UTILITY" STATUS="planned">
+      <purpose>Apply connection authentication, token or ticket validation, and secret redaction policy.</purpose>
+      <path>src/auth/mod.rs</path>
+      <depends>M-CONFIG, M-OBS</depends>
+      <verification-ref>V-M-AUTH</verification-ref>
+      <annotations>
+        <fn-validateHandshake PURPOSE="Authorize an incoming or outgoing tunnel handshake." />
+        <fn-redactSecret PURPOSE="Normalize sensitive values before logs or errors are emitted." />
+        <type-AuthDecision PURPOSE="Represent allow or reject outcomes." />
+      </annotations>
+    </M-AUTH>
+
+    <M-TLS NAME="TlsContext" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Load and expose TLS server and client contexts used by the WSS boundary.</purpose>
+      <path>src/tls/mod.rs</path>
+      <depends>M-CONFIG</depends>
+      <verification-ref>V-M-TLS</verification-ref>
+      <annotations>
+        <fn-fromConfig PURPOSE="Load certificate and key material into a deterministic TLS context." />
+        <fn-accept PURPOSE="Wrap a server-side TCP stream in TLS." />
+        <fn-connect PURPOSE="Wrap a client-side TCP stream in TLS with SNI." />
+        <type-TlsContextHandle PURPOSE="Typed holder for TLS materials and runtime context." />
+      </annotations>
+    </M-TLS>
+
+    <M-WSS-GATEWAY NAME="WssGateway" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Compose TCP, TLS, websocket upgrade, and auth validation into WSS-backed transport streams under a shared adapter contract.</purpose>
+      <path>src/wss_gateway/mod.rs</path>
+      <depends>M-TLS, M-AUTH, M-OBS</depends>
+      <verification-ref>V-M-WSS-GATEWAY</verification-ref>
+      <annotations>
+        <fn-runServer PURPOSE="Start the WSS listener and wrap accepted sessions into transport streams." />
+        <fn-openStream PURPOSE="Establish an outbound WSS-backed transport stream." />
+        <fn-taskTracker PURPOSE="Expose adapter-scoped task tracking for tests and shutdown." />
+        <type-ResolvedStream PURPOSE="Represents a transport-agnostic resolved stream plus transport kind metadata." />
+      </annotations>
+    </M-WSS-GATEWAY>
+
+    <M-IROH-ADAPTER NAME="IrohAdapter" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Integrate with iroh/sendme transport primitives for direct or relay-backed stream creation under a shared adapter contract.</purpose>
+      <path>src/iroh_adapter/mod.rs</path>
+      <depends>M-CONFIG, M-OBS</depends>
+      <verification-ref>V-M-IROH-ADAPTER</verification-ref>
+      <annotations>
+        <fn-openStream PURPOSE="Open a direct or relay-backed transport stream to the remote peer." />
+        <fn-taskTracker PURPOSE="Expose adapter-scoped task tracking for tests and shutdown." />
+        <fn-release PURPOSE="Release iroh transport resources for a finished session." />
+        <type-TransportKind PURPOSE="Identify Wss, IrohDirect, or IrohRelay for metrics and diagnostics." />
+      </annotations>
+    </M-IROH-ADAPTER>
+
+    <M-SESSION NAME="SessionManager" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Coordinate session registry, transport selection, pure lifecycle transitions, and stable top-level effect routing without becoming a transport or storage implementation.</purpose>
+      <path>src/session/mod.rs</path>
+      <depends>M-CONFIG, M-AUTH, M-WSS-GATEWAY, M-IROH-ADAPTER, M-OBS</depends>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <annotations>
+        <fn-registerSession PURPOSE="Create and track a new proxy session through the registry." />
+        <fn-resolveStream PURPOSE="Choose iroh first and fall back to WSS sequentially." />
+        <fn-handleEvent PURPOSE="Interpret pure state effects and dispatch them." />
+        <fn-shutdown PURPOSE="Drain registry and close sessions during shutdown." />
+        <type-SessionState PURPOSE="Represent Active, Closing, and Closed states." />
+        <type-SessionRegistry PURPOSE="Concurrent map and semaphore for session storage and capacity control." />
+        <type-TransportSelector PURPOSE="Sequential transport selection strategy with timeout and fallback policy." />
+        <type-EffectHandler PURPOSE="Stable top-level dispatcher for typed SessionEffect values." />
+        <type-RegistryCommand PURPOSE="Local registry command enum with bounded variant count enforced by module tests." />
+      </annotations>
+    </M-SESSION>
+
+    <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Expose a local SOCKS5 ingress surface, normalize requests into ProxyIntent work items, and emit accurate client-visible reply codes on pre-pump failures.</purpose>
+      <path>src/socks5/mod.rs</path>
+      <depends>M-CONFIG, M-OBS</depends>
+      <verification-ref>V-M-SOCKS5</verification-ref>
+      <annotations>
+        <fn-runListener PURPOSE="Bind and accept local SOCKS5 connections." />
+        <fn-parseRequest PURPOSE="Parse SOCKS5 negotiation and CONNECT requests into a normalized ProxyIntent." />
+        <fn-mapReply PURPOSE="Map ProxyError variants to exact SOCKS5 reply codes or no-reply post-pump outcomes." />
+        <type-ProxyIntent PURPOSE="Represents a validated local proxy request ready for queueing and tunnel forwarding." />
+        <type-ErrorCategory PURPOSE="Infrastructure, policy, target, or post-reply classification used for exhaustive reply mapping." />
+      </annotations>
+    </M-SOCKS5>
+
+    <M-PROXY-BRIDGE NAME="ProxyBridge" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Consume ProxyIntent items, ask SessionManager for a generic stream, and relay bytes until completion or drain.</purpose>
+      <path>src/proxy_bridge/mod.rs</path>
+      <depends>M-SOCKS5, M-SESSION, M-OBS</depends>
+      <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
+      <annotations>
+        <fn-runWorker PURPOSE="Consume bounded ProxyIntent queue items and process them." />
+        <fn-pumpBidirectional PURPOSE="Move bytes between local proxy sockets and resolved transport streams." />
+        <fn-drainAll PURPOSE="Drain active proxy streams during shutdown." />
+        <type-ProxyResult PURPOSE="Represents successful completion or failure of a proxied request." />
+      </annotations>
+    </M-PROXY-BRIDGE>
+
+    <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
+    <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
+    <CrossLink from="M-CLI" to="M-SESSION" relation="coordinates shutdown across active sessions" />
+    <CrossLink from="M-OBS" to="M-AUTH" relation="provides redaction-aware logging and metrics policy" />
+    <CrossLink from="M-CONFIG" to="M-TLS" relation="supplies TLS material paths and timeout policy" />
+    <CrossLink from="M-WSS-GATEWAY" to="M-TLS" relation="uses TLS context for websocket security" />
+    <CrossLink from="M-WSS-GATEWAY" to="M-OBS" relation="exports adapter cleanup evidence and task-tracker observability" />
+    <CrossLink from="M-IROH-ADAPTER" to="M-OBS" relation="exports adapter cleanup evidence and task-tracker observability" />
+    <CrossLink from="M-SESSION" to="M-WSS-GATEWAY" relation="uses WSS as fallback transport source" />
+    <CrossLink from="M-SESSION" to="M-IROH-ADAPTER" relation="tries iroh transport before fallback" />
+    <CrossLink from="M-SOCKS5" to="M-PROXY-BRIDGE" relation="forwards normalized ProxyIntent work items" />
+    <CrossLink from="M-PROXY-BRIDGE" to="M-SESSION" relation="requests resolved streams and notifies lifecycle completion" />
+    <CrossLink from="M-SOCKS5" to="M-OBS" relation="emits reply-code and queue-pressure metrics" />
+
+  </Project>
+</KnowledgeGraph>

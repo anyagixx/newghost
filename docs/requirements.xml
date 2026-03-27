@@ -1,0 +1,70 @@
+<RequirementsAnalysis VERSION="0.2.0">
+  <Project>
+    <name>n0wss</name>
+    <annotation>n0wss is a Web Secure Socket (WSS) proxy service based on the sendme/iroh technology stack. The goal is to let a local client connect to a remote WSS endpoint and route outbound internet traffic through it so proxy-aware applications can use the tunnel as a generic upstream proxy.</annotation>
+    <keywords>wss, websocket, secure-websocket, proxy, internet-access, iroh, sendme, nat-traversal</keywords>
+  </Project>
+
+  <Actors>
+    <actor-LocalUser>Runs the client on a local PC and wants selected applications to reach the internet through the remote WSS tunnel.</actor-LocalUser>
+    <actor-RemoteNode>Hosts the WSS endpoint and forwards approved outbound traffic.</actor-RemoteNode>
+    <actor-Operator>Maintains configuration, credentials, relay settings, and access policy.</actor-Operator>
+  </Actors>
+
+  <UseCases>
+    <UC-001>
+      <Actor>LocalUser</Actor>
+      <Action>Configures an application to use the local proxy endpoint.</Action>
+      <Goal>To send outbound internet traffic through the remote WSS service.</Goal>
+      <Preconditions>The local client is configured with a reachable remote WSS endpoint and valid access credentials or ticket material.</Preconditions>
+      <AcceptanceCriteria>A proxy-aware application can complete a remote connection through the tunnel and receive a valid response.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-CLIENT-PROXY-BOOTSTRAP</RelatedFlows>
+    </UC-001>
+
+    <UC-002>
+      <Actor>RemoteNode</Actor>
+      <Action>Accepts a secure websocket handshake and upgrades it into an active proxy session.</Action>
+      <Goal>To create an authenticated encrypted tunnel without exposing raw transport details to the end user.</Goal>
+      <Preconditions>The WSS listener is bound, TLS is configured, and admission policy allows the request.</Preconditions>
+      <AcceptanceCriteria>The session is authenticated, observable, and ready to carry bidirectional traffic.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-WSS-HANDSHAKE</RelatedFlows>
+    </UC-002>
+
+    <UC-003>
+      <Actor>Operator</Actor>
+      <Action>Observes failures and rejects invalid proxy requests.</Action>
+      <Goal>To diagnose tunnel problems without leaking secrets or raw payloads into logs.</Goal>
+      <Preconditions>Structured logging and stable trace markers are enabled.</Preconditions>
+      <AcceptanceCriteria>Critical failures can be correlated by session identifiers and sensitive fields remain redacted.</AcceptanceCriteria>
+      <Priority>high</Priority>
+      <RelatedFlows>DF-AUTH-AND-REJECTION</RelatedFlows>
+    </UC-003>
+  </UseCases>
+
+  <NonGoals>
+    <item-1>No general-purpose VPN client in v1; the first target is proxy-aware applications only.</item-1>
+    <item-2>No anonymous open relay; access control and admission policy are mandatory from the start.</item-2>
+    <item-3>No browser-based control panel in the initial implementation.</item-3>
+  </NonGoals>
+
+  <Constraints>
+    <constraint-1>Transport must preserve encryption in transit and avoid exposing raw credentials or traffic payloads in logs.</constraint-1>
+    <constraint-2>The implementation should reuse the sendme/iroh ecosystem where possible instead of replacing NAT traversal and relay behavior from scratch.</constraint-2>
+    <constraint-3>The first architecture must support generic proxy clients such as SOCKS5 or HTTP CONNECT capable applications.</constraint-3>
+  </Constraints>
+
+  <Risks>
+    <risk-1>WSS framing and proxy byte streams may introduce head-of-line blocking or backpressure bugs if bidirectional pumping is not carefully implemented.</risk-1>
+    <risk-2>Authentication mistakes could turn the remote endpoint into an unintended public proxy.</risk-2>
+    <risk-3>NAT traversal or relay fallback behavior from the underlying transport may differ between platforms and networks.</risk-3>
+    <risk-4>Long-lived sessions may leak resources if shutdown and reconnect paths are not verified early.</risk-4>
+  </Risks>
+
+  <OpenQuestions>
+    <question-1>Should the first client-facing proxy mode be SOCKS5 only, HTTP CONNECT only, or both?</question-1>
+    <question-2>Will the remote WSS endpoint terminate TLS directly or sit behind an existing reverse proxy?</question-2>
+    <question-3>Should authentication be static token based, ticket based, or mTLS based in the first release?</question-3>
+  </OpenQuestions>
+</RequirementsAnalysis>

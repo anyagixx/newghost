@@ -1,0 +1,487 @@
+<DevelopmentPlan VERSION="0.2.0">
+  <ArchitectureNotes>
+    <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
+    <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
+    <risk-1>Transport-specific behavior must stay behind a thin shared stream and adapter contract or ProxyBridge will become tightly coupled to WSS and iroh internals.</risk-1>
+    <risk-2>Shutdown, fallback, backpressure, burst observability, exact reply mapping, and fast-fail SOCKS5 semantics must be first-class architectural concerns rather than postponed hardening tasks.</risk-2>
+  </ArchitectureNotes>
+
+  <Modules>
+    <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" LAYER="0" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Select runtime mode, load configuration, initialize observability, and coordinate graceful shutdown sequencing.</purpose>
+        <inputs>
+          <param name="cliArgs" type="Vec&lt;String&gt;" />
+          <param name="env" type="ProcessEnvironment" />
+        </inputs>
+        <outputs>
+          <param name="runResult" type="ApplicationRunResult" />
+        </outputs>
+        <errors>
+          <error code="CLI_ARGUMENT_INVALID" />
+          <error code="STARTUP_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-run PURPOSE="Bootstrap the process and route execution into client or server mode." />
+        <export-coordinateShutdown PURPOSE="Drive accept-stop, drain, and transport-release shutdown phases." />
+      </interface>
+      <depends>M-CONFIG, M-OBS, M-SESSION</depends>
+      <target>
+        <source>src/cli/mod.rs</source>
+        <tests>src/cli/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[CliApp]</log-prefix>
+        <critical-block>BLOCK_COORDINATE_SHUTDOWN</critical-block>
+      </observability>
+      <verification-ref>V-M-CLI</verification-ref>
+      <notes>
+        <note-1>CLI orchestrates startup and shutdown only; it does not own transport logic or proxy parsing.</note-1>
+      </notes>
+    </M-CLI>
+
+    <M-CONFIG NAME="Config" TYPE="UTILITY" LAYER="0" ORDER="2" STATUS="implemented">
+      <contract>
+        <purpose>Load and validate runtime configuration for client and server modes including bind addresses, TLS paths, auth material, transport policy, queue or session limits, timeout settings, retry policy, and burst detection thresholds.</purpose>
+        <inputs>
+          <param name="cliArgs" type="Vec&lt;String&gt;" />
+          <param name="env" type="ProcessEnvironment" />
+        </inputs>
+        <outputs>
+          <param name="appConfig" type="AppConfig" />
+        </outputs>
+        <errors>
+          <error code="CONFIG_INVALID" />
+        </errors>
+      </contract>
+      <interface>
+        <export-loadConfig PURPOSE="Read and validate configuration into a typed structure." />
+      </interface>
+      <depends>none</depends>
+      <target>
+        <source>src/config/mod.rs</source>
+        <tests>src/config/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[Config]</log-prefix>
+        <critical-block>BLOCK_VALIDATE_CONFIGURATION</critical-block>
+      </observability>
+      <verification-ref>V-M-CONFIG</verification-ref>
+      <notes>
+        <note-1>Limits, timeout policy, retry settings, and burst thresholds belong in config from day one because they shape runtime behavior and tests.</note-1>
+      </notes>
+    </M-CONFIG>
+
+    <M-OBS NAME="Observability" TYPE="UTILITY" LAYER="0" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Initialize tracing, stable field propagation, metrics collection, sliding-window burst detection, peak-rate gauges, and redaction-aware logging behavior.</purpose>
+        <inputs>
+          <param name="observabilityConfig" type="ObservabilityConfig" />
+        </inputs>
+        <outputs>
+          <param name="subscriberHandle" type="TracingSubscriberHandle" />
+          <param name="metricsHandle" type="ProxyMetricsHandle" />
+          <param name="burstDetector" type="BurstDetectorHandle" />
+        </outputs>
+        <errors>
+          <error code="LOGGING_INIT_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-initObservability PURPOSE="Configure structured logging, counters, gauges, histograms, burst detection, and subscriber installation." />
+        <export-recordBurst PURPOSE="Record queue-rejection events into a sliding-window detector and aggregated logs." />
+        <export-resetPeak PURPOSE="Reset peak-rate gauges on the configured maintenance interval." />
+      </interface>
+      <depends>M-CONFIG</depends>
+      <target>
+        <source>src/obs/mod.rs</source>
+        <tests>src/obs/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[Observability]</log-prefix>
+        <critical-block>BLOCK_AGGREGATE_REJECTIONS</critical-block>
+      </observability>
+      <verification-ref>V-M-OBS</verification-ref>
+      <notes>
+        <note-1>Redaction policy and burst observability must be enforced consistently before any auth or transport failure is logged.</note-1>
+      </notes>
+    </M-OBS>
+
+    <M-AUTH NAME="AuthPolicy" TYPE="UTILITY" LAYER="1" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Validate tunnel admission policy for static tokens or tickets and redact sensitive values before logs or errors are emitted.</purpose>
+        <inputs>
+          <param name="handshakeMetadata" type="HandshakeMetadata" />
+          <param name="policy" type="AuthPolicyConfig" />
+        </inputs>
+        <outputs>
+          <param name="decision" type="AuthDecision" />
+        </outputs>
+        <errors>
+          <error code="AUTH_REJECTED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-validateHandshake PURPOSE="Authorize or reject a tunnel handshake." />
+        <export-redactSecret PURPOSE="Normalize sensitive values before they reach logs or user-facing errors." />
+      </interface>
+      <depends>M-CONFIG, M-OBS</depends>
+      <target>
+        <source>src/auth/mod.rs</source>
+        <tests>src/auth/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[Auth]</log-prefix>
+        <critical-block>BLOCK_VALIDATE_HANDSHAKE</critical-block>
+      </observability>
+      <verification-ref>V-M-AUTH</verification-ref>
+      <notes>
+        <note-1>Gateway calls auth but never handles raw tokens beyond boundary parsing.</note-1>
+      </notes>
+    </M-AUTH>
+
+    <M-TLS NAME="TlsContext" TYPE="INTEGRATION" LAYER="1" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Load TLS material and expose accept/connect operations used by the websocket transport boundary.</purpose>
+        <inputs>
+          <param name="tlsConfig" type="TlsConfig" />
+        </inputs>
+        <outputs>
+          <param name="tlsContext" type="TlsContextHandle" />
+        </outputs>
+        <errors>
+          <error code="TLS_CONFIG_INVALID" />
+          <error code="TLS_MATERIAL_LOAD_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-fromConfig PURPOSE="Build a deterministic TLS context from configured certificate material." />
+        <export-accept PURPOSE="Wrap a server-side TCP stream with TLS." />
+        <export-connect PURPOSE="Wrap a client-side TCP stream with TLS and SNI." />
+      </interface>
+      <depends>M-CONFIG</depends>
+      <target>
+        <source>src/tls/mod.rs</source>
+        <tests>src/tls/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[TlsContext]</log-prefix>
+        <critical-block>BLOCK_LOAD_TLS_MATERIAL</critical-block>
+      </observability>
+      <verification-ref>V-M-TLS</verification-ref>
+      <notes>
+        <note-1>TLS handling stays isolated from websocket session logic to keep failures deterministic and auditable.</note-1>
+      </notes>
+    </M-TLS>
+
+    <M-WSS-GATEWAY NAME="WssGateway" TYPE="INTEGRATION" LAYER="2" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Create WSS-backed transport streams by composing TCP, TLS, websocket upgrade, and auth validation under the shared adapter contract without owning transport selection logic.</purpose>
+        <inputs>
+          <param name="gatewayConfig" type="GatewayConfig" />
+          <param name="socket" type="TcpStreamOrTlsStream" />
+        </inputs>
+        <outputs>
+          <param name="resolvedStream" type="ResolvedStream" />
+        </outputs>
+        <errors>
+          <error code="HANDSHAKE_FAILED" />
+          <error code="UPGRADE_FAILED" />
+          <error code="CONTRACT_VIOLATION" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runServer PURPOSE="Run the remote WSS listener and create accepted transport streams." />
+        <export-openStream PURPOSE="Open an outbound WSS transport stream for a resolved target." />
+        <export-taskTracker PURPOSE="Expose adapter-scoped task tracking for tests and shutdown coordination." />
+        <export-stopAccept PURPOSE="Stop accepting new WSS connections during shutdown." />
+      </interface>
+      <depends>M-TLS, M-AUTH, M-OBS</depends>
+      <target>
+        <source>src/wss_gateway/mod.rs</source>
+        <tests>src/wss_gateway/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[WssGateway]</log-prefix>
+        <critical-block>BLOCK_ADAPTER_CLEANUP_CONTRACT</critical-block>
+      </observability>
+      <verification-ref>V-M-WSS-GATEWAY</verification-ref>
+      <notes>
+        <note-1>Gateway is glue only: TCP accept, TLS, WS upgrade, auth invocation, and stream wrapping.</note-1>
+      </notes>
+    </M-WSS-GATEWAY>
+
+    <M-IROH-ADAPTER NAME="IrohAdapter" TYPE="INTEGRATION" LAYER="2" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Open iroh direct or relay-backed transport streams under the shared adapter contract and clean up partial state on cancel or error.</purpose>
+        <inputs>
+          <param name="transportRequest" type="TransportRequest" />
+        </inputs>
+        <outputs>
+          <param name="resolvedStream" type="ResolvedStream" />
+        </outputs>
+        <errors>
+          <error code="TRANSPORT_UNAVAILABLE" />
+          <error code="RELAY_FALLBACK_FAILED" />
+          <error code="CONTRACT_VIOLATION" />
+        </errors>
+      </contract>
+      <interface>
+        <export-openStream PURPOSE="Try to create an iroh direct or relay transport stream for a target peer." />
+        <export-taskTracker PURPOSE="Expose adapter-scoped task tracking for tests and shutdown coordination." />
+        <export-release PURPOSE="Release iroh transport resources during session close or shutdown." />
+      </interface>
+      <depends>M-CONFIG, M-OBS</depends>
+      <target>
+        <source>src/iroh_adapter/mod.rs</source>
+        <tests>src/iroh_adapter/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[IrohAdapter]</log-prefix>
+        <critical-block>BLOCK_ADAPTER_CLEANUP_CONTRACT</critical-block>
+      </observability>
+      <verification-ref>V-M-IROH-ADAPTER</verification-ref>
+      <notes>
+        <note-1>Iroh stays interchangeable only if its direct and relay details remain behind the adapter and stream abstractions.</note-1>
+      </notes>
+    </M-IROH-ADAPTER>
+
+    <M-SESSION NAME="SessionManager" TYPE="CORE_LOGIC" LAYER="3" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Act as a thin orchestrator over session registry, transport selection, pure per-session state transitions, and a top-level typed effect dispatcher.</purpose>
+        <inputs>
+          <param name="sessionRequest" type="SessionRequest" />
+          <param name="proxyIntent" type="ProxyIntent" />
+          <param name="sessionEvent" type="SessionEvent" />
+        </inputs>
+        <outputs>
+          <param name="sessionHandle" type="SessionHandle" />
+          <param name="resolvedStream" type="ResolvedStream" />
+        </outputs>
+        <errors>
+          <error code="SESSION_LIMIT_REACHED" />
+          <error code="SESSION_NOT_FOUND" />
+          <error code="TRANSPORT_RESOLUTION_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-registerSession PURPOSE="Create a session through SessionRegistry after acquiring capacity." />
+        <export-resolveStream PURPOSE="Delegate transport opening to TransportSelector with sequential fallback." />
+        <export-handleEvent PURPOSE="Run StateMachine.transition and dispatch the returned top-level typed effects through EffectHandler." />
+        <export-shutdown PURPOSE="Drain registry and close active sessions during shutdown." />
+      </interface>
+      <depends>M-CONFIG, M-AUTH, M-WSS-GATEWAY, M-IROH-ADAPTER, M-OBS</depends>
+      <target>
+        <source>src/session/mod.rs</source>
+        <tests>src/session/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[SessionManager]</log-prefix>
+        <critical-block>BLOCK_APPLY_SESSION_EFFECTS</critical-block>
+      </observability>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <notes>
+        <note-1>Internal structure is fixed as src/session/registry.rs, src/session/transport_selector.rs, src/session/state.rs, src/session/effects.rs, and src/session/effect_handler.rs within this module.</note-1>
+        <note-2>State machine must be a pure transition function with explicit SessionEffect values and no async or IO.</note-2>
+        <note-3>SessionEffect top-level variants map to target components only; new subcommands must not change EffectHandler branch count.</note-3>
+        <note-4>RegistryCommand and TimerCommand are local enum-hygiene concerns only; enforce small variant counts with module-local tests instead of changing architectural boundaries.</note-4>
+      </notes>
+    </M-SESSION>
+
+    <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" LAYER="4" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Expose a local SOCKS5 endpoint, parse handshake and CONNECT requests, emit normalized ProxyIntent items into a bounded work queue, and return accurate client-visible reply codes on pre-pump failures.</purpose>
+        <inputs>
+          <param name="listenerConfig" type="Socks5ListenerConfig" />
+          <param name="clientSocket" type="TcpStream" />
+          <param name="proxyError" type="ProxyError" />
+        </inputs>
+        <outputs>
+          <param name="proxyIntent" type="ProxyIntent" />
+          <param name="replyCode" type="Option&lt;Socks5Reply&gt;" />
+        </outputs>
+        <errors>
+          <error code="SOCKS5_NEGOTIATION_FAILED" />
+          <error code="TARGET_ADDRESS_INVALID" />
+          <error code="INTENT_QUEUE_SATURATED" />
+          <error code="CLIENT_VISIBLE_REPLY_REQUIRED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runListener PURPOSE="Bind and accept local SOCKS5 connections." />
+        <export-parseRequest PURPOSE="Parse a SOCKS5 request into a normalized ProxyIntent." />
+        <export-mapReply PURPOSE="Map ProxyError to an exact SOCKS5 reply code or no-reply outcome for post-pump failures without wildcard match arms." />
+        <export-stopAccept PURPOSE="Stop accepting new local proxy connections during shutdown." />
+      </interface>
+      <depends>M-CONFIG, M-OBS</depends>
+      <target>
+        <source>src/socks5/mod.rs</source>
+        <tests>src/socks5/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[Socks5Proxy]</log-prefix>
+        <critical-block>BLOCK_MAP_REPLY_CODE</critical-block>
+      </observability>
+      <verification-ref>V-M-SOCKS5</verification-ref>
+      <notes>
+        <note-1>Socks5Proxy knows only SOCKS5 and ProxyIntent; it does not know WSS, iroh, or session fallback policy.</note-1>
+        <note-2>Bounded queue failures use try_send and must return a client-visible SOCKS5 reply immediately instead of blocking.</note-2>
+        <note-3>Reply mapping must distinguish infrastructure failures, policy failures, target failures, and post-reply failures through exhaustive enum matching.</note-3>
+      </notes>
+    </M-SOCKS5>
+
+    <M-PROXY-BRIDGE NAME="ProxyBridge" TYPE="CORE_LOGIC" LAYER="5" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Consume ProxyIntent items, request transport-agnostic resolved streams from SessionManager, and relay bytes bidirectionally with graceful drain behavior.</purpose>
+        <inputs>
+          <param name="proxyIntent" type="ProxyIntent" />
+        </inputs>
+        <outputs>
+          <param name="bridgeResult" type="ProxyResult" />
+        </outputs>
+        <errors>
+          <error code="STREAM_PUMP_FAILED" />
+          <error code="TARGET_RESOLUTION_FAILED" />
+          <error code="TOTAL_REQUEST_TIMEOUT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runWorker PURPOSE="Consume bounded ProxyIntent queue items and process them." />
+        <export-pumpBidirectional PURPOSE="Relay bytes between local proxy sockets and a resolved transport stream." />
+        <export-drainAll PURPOSE="Drain active bridge workers during shutdown." />
+      </interface>
+      <depends>M-SOCKS5, M-SESSION, M-OBS</depends>
+      <target>
+        <source>src/proxy_bridge/mod.rs</source>
+        <tests>src/proxy_bridge/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[ProxyBridge]</log-prefix>
+        <critical-block>BLOCK_PUMP_BIDIRECTIONAL</critical-block>
+      </observability>
+      <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
+      <notes>
+        <note-1>ProxyBridge must never import WssGateway or IrohAdapter directly.</note-1>
+        <note-2>The shared transport contracts live in src/transport/stream.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs, and src/socks5/intent.rs but do not become separate GRACE modules.</note-2>
+        <note-3>Pre-pump failures may produce a SOCKS5 reply; post-pump failures close the TCP path and do not remap reply codes.</note-3>
+      </notes>
+    </M-PROXY-BRIDGE>
+  </Modules>
+
+  <DataFlow>
+    <DF-CLIENT-BOOT NAME="Client bootstrap" TRIGGER="The operator starts n0wss in client mode on a local machine.">
+      <step-1>CliApp parses startup arguments and selects client mode.</step-1>
+      <step-2>Config loads validated proxy bind settings, remote endpoints, auth material, transport limits, timeout policy, retry settings, and burst thresholds.</step-2>
+      <step-3>Observability installs tracing, counters, gauges, histograms, sliding-window burst detection, and peak-rate reset timers.</step-3>
+      <step-4>SessionManager initializes registry, transport selector, typed effect handler, and cancellation-token hierarchy.</step-4>
+      <step-5>Socks5Proxy binds the local listener while WssGateway prepares the remote control surface.</step-5>
+      <evidence>Startup logs, config validation marker, observability init marker, metrics registration, and successful listener bind evidence.</evidence>
+    </DF-CLIENT-BOOT>
+
+    <DF-SOCKS5-INTENT NAME="SOCKS5 request normalization" TRIGGER="A local proxy-aware application sends a SOCKS5 CONNECT request.">
+      <step-1>Socks5Proxy accepts the local connection and parses SOCKS5 negotiation.</step-1>
+      <step-2>Socks5Proxy parses the CONNECT request into a normalized ProxyIntent.</step-2>
+      <step-3>Socks5Proxy attempts try_send into a bounded channel consumed by ProxyBridge.</step-3>
+      <step-4>If the queue is full or closed, Socks5Proxy maps the failure to an immediate client-visible reply code and closes the connection.</step-4>
+      <evidence>Socks5 parse marker, queue submission marker, fast failure timing checks, and deterministic failures for malformed requests.</evidence>
+    </DF-SOCKS5-INTENT>
+
+    <DF-TRANSPORT-FALLBACK NAME="Transport resolution and fallback" TRIGGER="ProxyBridge needs a transport for a target address.">
+      <step-1>ProxyBridge requests SessionManager.resolveStream for the target described by ProxyIntent.</step-1>
+      <step-2>SessionManager delegates to TransportSelector which tries IrohAdapter.openStream with a bounded timeout and adapter cancel contract.</step-2>
+      <step-3>If iroh fails or times out, TransportSelector attempts WssGateway.openStream sequentially.</step-3>
+      <step-4>TransportSelector inspects adapter-scoped TaskTracker state during cleanup-sensitive tests and returns one ResolvedStream or a combined error describing both attempts plus any contract violation.</step-4>
+      <evidence>Transport selection marker, adapter contract marker, fallback marker, and exactly one active transport owner.</evidence>
+    </DF-TRANSPORT-FALLBACK>
+
+    <DF-SOCKS5-REQUEST NAME="SOCKS5 request tunnel" TRIGGER="ProxyBridge receives a valid ProxyIntent.">
+      <step-1>ProxyBridge receives ProxyIntent from the bounded queue.</step-1>
+      <step-2>ProxyBridge asks SessionManager for a ResolvedStream.</step-2>
+      <step-3>ProxyBridge pumps bytes between the local client stream and the resolved transport stream.</step-3>
+      <step-4>ProxyBridge notifies SessionManager when the stream completes or fails.</step-4>
+      <evidence>Queue consumption marker, transport selection marker, pump marker, and end-to-end proxy success test.</evidence>
+    </DF-SOCKS5-REQUEST>
+
+    <DF-SESSION-EFFECTS NAME="Session effect dispatch" TRIGGER="SessionManager receives a session lifecycle event.">
+      <step-1>SessionManager passes the event into the pure StateMachine.transition function.</step-1>
+      <step-2>StateMachine returns the new SessionState and an ordered list of top-level SessionEffect values.</step-2>
+      <step-3>EffectHandler.applyAll forwards each effect to the target component without branching on business logic.</step-3>
+      <evidence>Session effect marker, state transition tests, and effect-handler branch-count assertions.</evidence>
+    </DF-SESSION-EFFECTS>
+
+    <DF-REPLY-MAPPING NAME="SOCKS5 reply mapping" TRIGGER="A proxy request fails before or after pump startup.">
+      <step-1>Socks5Proxy or ProxyBridge classifies ProxyError as infrastructure, policy, target, or post-pump failure.</step-1>
+      <step-2>Pre-pump failures map to an exact SOCKS5 reply code through exhaustive enum matching without wildcard arms.</step-2>
+      <step-3>Post-pump failures produce no new reply and close the transport path cleanly.</step-3>
+      <evidence>Reply mapping marker, exhaustive variant tests, and exact reply-code assertions.</evidence>
+    </DF-REPLY-MAPPING>
+
+    <DF-BACKPRESSURE NAME="Bounded queue and session limit pressure" TRIGGER="Incoming ProxyIntent load exceeds queue or session capacity.">
+      <step-1>Socks5Proxy attempts to enqueue ProxyIntent using try_send.</step-1>
+      <step-2>If the queue is full, Socks5Proxy sends a fast SOCKS5 failure reply and records queue-rejection metrics.</step-2>
+      <step-3>If SessionRegistry is at capacity, ProxyBridge converts the limit error into a fast client-visible reply and records session-limit metrics.</step-3>
+      <step-4>BurstDetector records rejection timestamps in a sliding window, updates peak-rate gauges, and rate-limits alert logs.</step-4>
+      <evidence>Queue saturation marker, session limit marker, metrics assertions, sliding-window peak-rate metrics, and response-time checks below the configured safety budget.</evidence>
+    </DF-BACKPRESSURE>
+
+    <DF-SHUTDOWN NAME="Controlled shutdown" TRIGGER="The operator or runtime sends a stop signal while sessions are active.">
+      <step-1>CliApp cancels accept_token and stops new accepts in Socks5Proxy and WssGateway.</step-1>
+      <step-2>CliApp waits for the configured drain timeout and then cancels bridge_token.</step-2>
+      <step-3>ProxyBridge drains active pumps while SessionState transitions into Closing and Closed states.</step-3>
+      <step-4>CliApp cancels transport_token and SessionManager drains the registry while adapters close their TaskTracker scopes and release resources.</step-4>
+      <step-5>The process exits only after sessions are Closed or forced timeout policy triggers.</step-5>
+      <evidence>Ordered shutdown markers proving no leaked sessions or hanging streams remain.</evidence>
+    </DF-SHUTDOWN>
+  </DataFlow>
+
+  <ImplementationOrder>
+    <Phase-1 name="Foundation" status="pending">
+      <goal>Define startup, config, logging, metrics, auth, TLS, limits, timeout, reply policy, retry, and burst primitives.</goal>
+      <step-1 module="M-CONFIG" status="done" verification="V-M-CONFIG">Initialize configuration module with transport, queue, limit, timeout, retry, and burst settings</step-1>
+      <step-2 module="M-OBS" status="pending" verification="V-M-OBS">Initialize structured observability, metrics, sliding-window burst detection, and peak-rate reset</step-2>
+      <step-3 module="M-AUTH" status="pending" verification="V-M-AUTH">Implement authentication and redaction policy</step-3>
+      <step-4 module="M-TLS" status="pending" verification="V-M-TLS">Build TLS context loading and validation</step-4>
+    </Phase-1>
+
+    <Phase-2 name="Transport Boundaries" status="pending">
+      <goal>Implement both transport boundaries behind shared stream, adapter, and task-tracking contracts.</goal>
+      <step-1 module="M-WSS-GATEWAY" status="pending" verification="V-M-WSS-GATEWAY">Build WSS adapter, task tracker, and contract tests</step-1>
+      <step-2 module="M-IROH-ADAPTER" status="pending" verification="V-M-IROH-ADAPTER">Build iroh adapter, task tracker, and contract tests</step-2>
+    </Phase-2>
+
+    <Phase-3 name="Session Core" status="pending">
+      <goal>Separate state transitions, effect routing, storage, and transport selection before building the orchestrator.</goal>
+      <step-1 module="M-SESSION" status="pending" verification="V-M-SESSION">Implement pure session state machine and effect generation</step-1>
+      <step-2 module="M-SESSION" status="pending" verification="V-M-SESSION">Implement top-level typed SessionEffect contract and stable EffectHandler routing</step-2>
+      <step-3 module="M-SESSION" status="pending" verification="V-M-SESSION">Implement SessionRegistry with semaphore limits and drain support</step-3>
+      <step-4 module="M-SESSION" status="pending" verification="V-M-SESSION">Implement TransportSelector with sequential fallback, safety timeout, and contract-violation handling</step-4>
+      <step-5 module="M-SESSION" status="pending" verification="V-M-SESSION">Implement thin SessionManager orchestrator over registry, selector, state machine, effect handler, and local enum-hygiene tests</step-5>
+      <step-6 module="M-CLI" status="pending" verification="V-M-CLI">Wire startup and graceful shutdown orchestration</step-6>
+    </Phase-3>
+
+    <Phase-4 name="Proxy Ingress" status="pending">
+      <goal>Accept and normalize local SOCKS5 requests into queueable ProxyIntent work items with fast failure semantics and accurate reply mapping.</goal>
+      <step-1 module="M-SOCKS5" status="pending" verification="V-M-SOCKS5">Implement local SOCKS5 ingress listener, bounded intent queue, exact reply mapping without wildcard arms, and exhaustive category mapping</step-1>
+    </Phase-4>
+
+    <Phase-5 name="Bridge" status="pending">
+      <goal>Process normalized proxy requests over transport-agnostic streams.</goal>
+      <step-1 module="M-PROXY-BRIDGE" status="pending" verification="V-M-PROXY-BRIDGE">Implement queue-driven bridge workers, stream pumping, and pre-pump/post-pump error separation</step-1>
+    </Phase-5>
+
+    <Phase-6 name="Hardening" status="pending">
+      <goal>Prove fallback, burst handling, timing, contract compliance, and shutdown behavior under non-ideal conditions.</goal>
+      <step-1 module="M-SESSION" status="pending" verification="V-M-SESSION">Deepen effect-routing, fallback ownership, timeout, max-session tests, and local enum-hygiene checks</step-1>
+      <step-2 module="M-SOCKS5" status="pending" verification="V-M-SOCKS5">Deepen bounded queue saturation timing, reply semantics, exhaustive error mapping tests, and CI lint guards</step-2>
+      <step-3 module="M-PROXY-BRIDGE" status="pending" verification="V-M-PROXY-BRIDGE">Stress backpressure, total timeout, and controlled drain behavior</step-3>
+      <step-4 module="M-OBS" status="pending" verification="V-M-OBS">Validate burst-window accuracy, peak-rate metrics, alert-friendly observability, and deployment tuning guidance</step-4>
+    </Phase-6>
+  </ImplementationOrder>
+
+  <ExecutionPolicy>
+    <default-profile>balanced</default-profile>
+    <controller-owns>docs/development-plan.xml, docs/knowledge-graph.xml, docs/verification-plan.xml</controller-owns>
+    <worker-owns>Only module source files and module-local tests inside the approved write scope.</worker-owns>
+  </ExecutionPolicy>
+</DevelopmentPlan>
