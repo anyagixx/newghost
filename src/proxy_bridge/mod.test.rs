@@ -1,3 +1,24 @@
+// FILE: src/proxy_bridge/mod.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify the queue-driven bridge worker, transport resolution path, timeout behavior, and drain semantics of ProxyBridge.
+//   SCOPE: ProxyIntent processing, bidirectional pump behavior, timeout bounding, client-visible replies, and drain lifecycle checks.
+//   DEPENDS: src/proxy_bridge/mod.rs, src/session/mod.rs, src/socks5/mod.rs, src/transport/adapter_contract.rs, src/transport/stream.rs, src/transport/task_tracker.rs
+//   LINKS: V-M-PROXY-BRIDGE, VF-002, VF-007
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   valid_proxy_intent_is_tunneled_over_resolved_stream - proves one successful proxy request crosses the resolved stream
+//   transport_failure_returns_client_visible_reply - proves pre-pump transport failures map to client-visible reply codes
+//   drain_all_stops_worker_and_waits_for_tasks - proves drain stops the worker loop cleanly
+//   total_request_timeout_bounds_failure_latency_and_notifies_session - proves total timeout remains bounded and emits lifecycle notification
+//   drain_all_completes_active_pump_without_deadlock - proves active pumps drain without hanging shutdown
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so the substantive ProxyBridge integration tests stay navigable for future fix and verification waves.
+// END_CHANGE_SUMMARY
+
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicU64, Ordering};

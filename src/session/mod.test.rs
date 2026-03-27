@@ -1,3 +1,25 @@
+// FILE: src/session/mod.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify the thin SessionManager orchestration surface over registry, selector, state machine, and effect handling.
+//   SCOPE: Session registration, resolved-stream success and failure behavior, event forwarding, shutdown behavior, and module re-export stability.
+//   DEPENDS: src/session/mod.rs, src/session/effect_handler.rs, src/session/registry.rs, src/session/state.rs, src/session/transport_selector.rs, src/transport/adapter_contract.rs, src/transport/stream.rs, src/transport/task_tracker.rs
+//   LINKS: V-M-SESSION, VF-003, VF-009
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   register_session_reserves_capacity - proves registration allocates deterministic capacity
+//   resolve_stream_updates_state_after_successful_transport_selection - proves successful resolution opens state-machine stream tracking
+//   resolve_stream_surfaces_transport_failure_deterministically - proves transport failure stays deterministic at the orchestrator surface
+//   resolve_stream_rejects_sessions_that_stopped_accepting_new_streams - proves draining sessions reject new streams
+//   handle_event_dispatches_effects_for_stream_close - proves top-level effects are applied after one state transition
+//   shutdown_drains_sessions - proves shutdown closes and removes sessions deterministically
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so the SessionManager orchestration tests remain navigable and reviewable after the release wave.
+// END_CHANGE_SUMMARY
+
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::{Arc, Mutex};

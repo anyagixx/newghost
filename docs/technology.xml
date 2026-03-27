@@ -60,6 +60,6 @@
   </Observability>
 
   <DeliveryShape>
-    <shape>Rust binary with at least two modes: local proxy client and remote WSS/iroh relay-capable server.</shape>
+    <shape>Source-first Rust repository with a library target, validated client or server CLI argument surfaces, GitHub release workflows, and deferred standalone binary packaging.</shape>
   </DeliveryShape>
 </TechnologyStack>
