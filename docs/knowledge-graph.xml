@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.0">
+  <Project NAME="n0wss" VERSION="0.2.1">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -189,6 +189,103 @@
       </annotations>
     </M-SMOKE-E2E>
 
+    <M-LIVE-HOST-INVENTORY NAME="LiveHostInventory" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the two-host live-wave inventory including roles, paths, ports, and operator-only access assumptions.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CONFIG, M-RELEASE-DOCS</depends>
+      <verification-ref>V-M-LIVE-HOST-INVENTORY</verification-ref>
+      <annotations>
+        <fn-freezeHostRoles PURPOSE="Assign one remote server host and one remote client host for the first live wave." />
+        <fn-recordPaths PURPOSE="Pin binary, TLS, log, and socket paths on both hosts." />
+        <type-LiveHostInventoryRecord PURPOSE="Carries the approved first-wave host inventory and invariants." />
+        <type-VerifiedHostRoles PURPOSE="Current live inventory binds ghost-srv to 91.99.128.146 as server and ghost-cli to 178.104.104.208 as client." />
+      </annotations>
+    </M-LIVE-HOST-INVENTORY>
+
+    <M-LIVE-BUILD-PACK NAME="LiveBuildPack" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define the release artifact, config payload, TLS assets, and staging layout used on both live hosts.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CLI, M-CONFIG, M-GITHUB-RELEASE</depends>
+      <verification-ref>V-M-LIVE-BUILD-PACK</verification-ref>
+      <annotations>
+        <fn-pinReleaseBinary PURPOSE="Freeze the deployed release artifact identity for both hosts." />
+        <fn-defineStagingLayout PURPOSE="Define the on-host layout for binary, config, certs, and logs." />
+        <type-LiveBuildPackRecord PURPOSE="Describes the approved live deployment bundle and staging shape." />
+      </annotations>
+    </M-LIVE-BUILD-PACK>
+
+    <M-LIVE-TLS-BOOTSTRAP NAME="LiveTlsBootstrap" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the real TLS trust path for the first live WSS server and its client trust shape.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TLS, M-WSS-GATEWAY, M-CONFIG</depends>
+      <verification-ref>V-M-LIVE-TLS-BOOTSTRAP</verification-ref>
+      <annotations>
+        <fn-pinServerTlsPaths PURPOSE="Freeze server-side cert and key paths for the live wave." />
+        <fn-pinClientTrust PURPOSE="Freeze the client trust material and endpoint identity." />
+        <type-LiveTlsBootstrapRecord PURPOSE="Describes the approved live TLS layout and trust assumptions." />
+      </annotations>
+    </M-LIVE-TLS-BOOTSTRAP>
+
+    <M-LIVE-SERVER-LAUNCH NAME="LiveServerLaunch" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the remote server-mode launch procedure, readiness evidence, and shutdown surface for the live WSS host.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CLI, M-CONFIG, M-AUTH, M-TLS, M-WSS-GATEWAY, M-OBS, M-SESSION</depends>
+      <verification-ref>V-M-LIVE-SERVER-LAUNCH</verification-ref>
+      <annotations>
+        <fn-startServer PURPOSE="Launch the live server-mode process on the remote host." />
+        <fn-captureServerReadiness PURPOSE="Capture startup anchors, process identity, and bound-listener proof." />
+        <type-LiveLaunchEvidence PURPOSE="Carries startup and socket evidence for a remote runtime launch." />
+      </annotations>
+    </M-LIVE-SERVER-LAUNCH>
+
+    <M-LIVE-CLIENT-LAUNCH NAME="LiveClientLaunch" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the remote client-mode launch procedure, SOCKS5 readiness evidence, and remote endpoint targeting.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CLI, M-CONFIG, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, M-OBS</depends>
+      <verification-ref>V-M-LIVE-CLIENT-LAUNCH</verification-ref>
+      <annotations>
+        <fn-startClient PURPOSE="Launch the live client-mode process on the remote host." />
+        <fn-captureClientReadiness PURPOSE="Capture startup anchors, process identity, and bound SOCKS5 listener proof." />
+        <type-LiveLaunchEvidence PURPOSE="Carries startup and socket evidence for a remote runtime launch." />
+      </annotations>
+    </M-LIVE-CLIENT-LAUNCH>
+
+    <M-LIVE-PROXY-SMOKE NAME="LiveProxySmoke" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define the first live end-to-end smoke path with one deterministic SOCKS5 request through the real two-host tunnel.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-LIVE-SERVER-LAUNCH, M-LIVE-CLIENT-LAUNCH, M-PROXY-BRIDGE, M-SMOKE-E2E</depends>
+      <verification-ref>V-M-LIVE-PROXY-SMOKE</verification-ref>
+      <annotations>
+        <fn-runLiveSmoke PURPOSE="Execute one deterministic live SOCKS5 request through the two-host tunnel." />
+        <fn-captureTrajectory PURPOSE="Capture the minimum successful live trajectory across selection, reply, and pump." />
+        <type-LiveSmokeEvidence PURPOSE="Carries output and trajectory evidence for the live smoke run." />
+      </annotations>
+    </M-LIVE-PROXY-SMOKE>
+
+    <M-LIVE-OBS-EVIDENCE NAME="LiveObservabilityEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define the bounded logs, trace anchors, socket listings, and output artifacts that make the live wave debuggable.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-OBS, M-LIVE-PROXY-SMOKE, M-RELEASE-DOCS</depends>
+      <verification-ref>V-M-LIVE-OBS-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-captureLogTails PURPOSE="Capture bounded log tails from both live hosts." />
+        <fn-captureSocketState PURPOSE="Capture listener and process state from both live hosts." />
+        <type-LiveEvidencePacket PURPOSE="Carries the small high-signal evidence set for later triage." />
+      </annotations>
+    </M-LIVE-OBS-EVIDENCE>
+
+    <M-LIVE-FAILURE-TRIAGE NAME="LiveFailureTriage" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define the failure-packet workflow for TLS, auth, transport, proxy reply, and shutdown failures in the first live wave.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-LIVE-OBS-EVIDENCE, M-SESSION, M-SOCKS5, M-TLS, M-WSS-GATEWAY</depends>
+      <verification-ref>V-M-LIVE-FAILURE-TRIAGE</verification-ref>
+      <annotations>
+        <fn-buildFailurePacket PURPOSE="Condense live evidence into the canonical GRACE failure packet." />
+        <fn-routeNextAction PURPOSE="Map the first divergent block to the next repair or rerun action." />
+        <type-FailurePacket PURPOSE="Carries expected evidence, observed evidence, first divergent block, and next action." />
+      </annotations>
+    </M-LIVE-FAILURE-TRIAGE>
+
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
     <CrossLink from="M-CLI" to="M-SESSION" relation="coordinates shutdown across active sessions" />
@@ -205,6 +302,13 @@
     <CrossLink from="M-RELEASE-DOCS" to="M-CLI" relation="documents real startup commands and release usage" />
     <CrossLink from="M-GITHUB-RELEASE" to="M-RELEASE-DOCS" relation="keeps GitHub release flow aligned with docs and release notes" />
     <CrossLink from="M-SMOKE-E2E" to="M-PROXY-BRIDGE" relation="exercises the implemented proxy path before public testing" />
+    <CrossLink from="M-LIVE-HOST-INVENTORY" to="M-LIVE-BUILD-PACK" relation="pins the host roles and paths consumed by live staging" />
+    <CrossLink from="M-LIVE-BUILD-PACK" to="M-LIVE-TLS-BOOTSTRAP" relation="supplies the staged TLS assets and release bundle for live deployment" />
+    <CrossLink from="M-LIVE-TLS-BOOTSTRAP" to="M-LIVE-SERVER-LAUNCH" relation="supplies the trust and certificate layout required for live server readiness" />
+    <CrossLink from="M-LIVE-SERVER-LAUNCH" to="M-LIVE-CLIENT-LAUNCH" relation="publishes the real remote WSS endpoint consumed by the client host" />
+    <CrossLink from="M-LIVE-CLIENT-LAUNCH" to="M-LIVE-PROXY-SMOKE" relation="provides the local SOCKS5 ingress used by the live smoke request" />
+    <CrossLink from="M-LIVE-PROXY-SMOKE" to="M-LIVE-OBS-EVIDENCE" relation="produces the trajectory and output artifacts captured for live debugging" />
+    <CrossLink from="M-LIVE-OBS-EVIDENCE" to="M-LIVE-FAILURE-TRIAGE" relation="supplies bounded host-local evidence for failure packets" />
 
   </Project>
 </KnowledgeGraph>

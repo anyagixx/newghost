@@ -1,11 +1,14 @@
-<VerificationPlan VERSION="0.2.0">
+<VerificationPlan VERSION="0.2.2">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
     <module-level-focus>Fast deterministic checks for config parsing, auth, TLS material loading, SOCKS5 parsing, exact reply mapping, transport selection, state transitions, effect dispatch, and adapter cleanup.</module-level-focus>
     <wave-level-focus>Checks only merged surfaces touched by the current wave, especially sequential fallback, bounded queue behavior, adapter contract enforcement, sliding-window burst detection, and proxy-path integration.</wave-level-focus>
     <phase-level-focus>Broader transport, reconnect, shutdown, backpressure, burst observability, and regression confidence.</phase-level-focus>
+    <live-wave-focus>For the first two-host live wave, prove remote server readiness, remote client readiness, one deterministic SOCKS5 smoke request, one deterministic auth rejection, and clean shutdown with host-local evidence captured on both machines.</live-wave-focus>
     <redaction>Never log secrets, raw tokens, proxy credentials, TLS private keys, or proxied traffic payloads.</redaction>
+    <remote-operator-rule>Credentials, passwords, and raw host access details stay outside repository artifacts; verification commands must consume them via operator-provided environment variables or an out-of-band secure channel.</remote-operator-rule>
+    <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
   </GlobalPolicy>
@@ -107,6 +110,58 @@
         <trace-sequence>STOP_ACCEPT -&gt; DRAIN_STREAMS -&gt; SESSION_CLOSED -&gt; TRACKERS_EMPTY -&gt; TRANSPORT_RELEASED</trace-sequence>
       </required-signals>
     </VF-010>
+
+    <VF-LIVE-001 NAME="LiveServerReady" USE_CASES="UC-002,UC-003" DATA_FLOW="DF-LIVE-SERVER-BOOT" PRIORITY="high">
+      <scenario>The remote server host starts n0wss in server mode with real TLS material and a reachable WSS listener.</scenario>
+      <expected-outcome>The server validates config, loads TLS, binds the listener, and leaves stable startup evidence without exposing secrets.</expected-outcome>
+      <required-signals>
+        <log-marker>[Config][loadConfig][BLOCK_VALIDATE_CONFIGURATION]</log-marker>
+        <log-marker>[TlsContext][fromConfig][BLOCK_LOAD_TLS_MATERIAL]</log-marker>
+        <log-marker>[CliApp][run][BLOCK_START_APPLICATION]</log-marker>
+        <trace-sequence>BLOCK_VALIDATE_CONFIGURATION -&gt; BLOCK_LOAD_TLS_MATERIAL -&gt; BLOCK_START_APPLICATION -&gt; SERVER_LISTENER_READY</trace-sequence>
+      </required-signals>
+    </VF-LIVE-001>
+
+    <VF-LIVE-002 NAME="LiveClientReady" USE_CASES="UC-001,UC-003" DATA_FLOW="DF-LIVE-CLIENT-BOOT" PRIORITY="high">
+      <scenario>The remote client host starts n0wss in client mode against the real remote WSS endpoint and exposes a local SOCKS5 listener.</scenario>
+      <expected-outcome>The client validates config, initializes observability, and exposes the local SOCKS5 ingress surface with traceable startup evidence.</expected-outcome>
+      <required-signals>
+        <log-marker>[Config][loadConfig][BLOCK_VALIDATE_CONFIGURATION]</log-marker>
+        <log-marker>[CliApp][run][BLOCK_START_APPLICATION]</log-marker>
+        <trace-sequence>BLOCK_VALIDATE_CONFIGURATION -&gt; BLOCK_START_APPLICATION -&gt; CLIENT_LISTENER_READY</trace-sequence>
+      </required-signals>
+    </VF-LIVE-002>
+
+    <VF-LIVE-003 NAME="LiveFirstProxyRequest" USE_CASES="UC-001,UC-002" DATA_FLOW="DF-LIVE-E2E-SMOKE" PRIORITY="high">
+      <scenario>A SOCKS5-aware client on the remote client host sends one deterministic outbound request through the live tunnel.</scenario>
+      <expected-outcome>The request traverses client SOCKS5 ingress, transport selection, server-side auth and WSS handling, and returns a successful response with stable host-local evidence on both machines.</expected-outcome>
+      <required-signals>
+        <log-marker>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</log-marker>
+        <log-marker>[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE]</log-marker>
+        <log-marker>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</log-marker>
+        <trace-sequence>BLOCK_START_APPLICATION -&gt; BLOCK_SELECT_TRANSPORT -&gt; BLOCK_MAP_REPLY_CODE -&gt; BLOCK_PUMP_BIDIRECTIONAL -&gt; LIVE_RESPONSE_RETURNED</trace-sequence>
+      </required-signals>
+    </VF-LIVE-003>
+
+    <VF-LIVE-004 NAME="LiveAuthReject" USE_CASES="UC-002,UC-003" DATA_FLOW="DF-LIVE-AUTH-REJECT" PRIORITY="high">
+      <scenario>The remote client host retries the live connection with intentionally invalid auth material.</scenario>
+      <expected-outcome>The server rejects the handshake, creates no active session, emits only redacted evidence, and the client observes a deterministic failure.</expected-outcome>
+      <required-signals>
+        <log-marker>[Auth][validateHandshake][BLOCK_VALIDATE_HANDSHAKE]</log-marker>
+        <log-marker>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</log-marker>
+        <trace-sequence>BLOCK_START_APPLICATION -&gt; BLOCK_VALIDATE_HANDSHAKE -&gt; REJECTED -&gt; NO_SESSION_CREATED</trace-sequence>
+      </required-signals>
+    </VF-LIVE-004>
+
+    <VF-LIVE-005 NAME="LiveControlledShutdown" USE_CASES="UC-003" DATA_FLOW="DF-LIVE-SHUTDOWN" PRIORITY="high">
+      <scenario>The live client and live server processes are shut down after the smoke scenarios complete.</scenario>
+      <expected-outcome>Listeners stop, live sessions drain, adapter trackers empty, and both hosts retain enough evidence to diagnose a leak or hung shutdown.</expected-outcome>
+      <required-signals>
+        <log-marker>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</log-marker>
+        <log-marker>[SessionManager][handleEvent][BLOCK_APPLY_SESSION_EFFECTS]</log-marker>
+        <trace-sequence>LIVE_REQUEST_COMPLETE -&gt; STOP_ACCEPT -&gt; DRAIN_STREAMS -&gt; TRACKERS_EMPTY -&gt; PROCESS_EXITED</trace-sequence>
+      </required-signals>
+    </VF-LIVE-005>
   </CriticalFlows>
 
   <ModuleVerification>
@@ -159,7 +214,6 @@
       <test-files>
         <file>src/obs/mod.test.rs</file>
         <file>src/obs/burst_detector.test.rs</file>
-        <file>docs/OPERATORS.md</file>
       </test-files>
       <module-checks>
         <check-1>cargo test obs</check-1>
@@ -308,7 +362,6 @@
       <test-files>
         <file>src/socks5/mod.test.rs</file>
         <file>src/socks5/reply_mapping.test.rs</file>
-        <file>.github/workflows/ci.yml</file>
       </test-files>
       <module-checks>
         <check-1>cargo test socks5</check-1>
@@ -437,7 +490,249 @@
       <wave-follow-up>Extend smoke coverage only after the first external test wave stabilizes.</wave-follow-up>
       <phase-follow-up>Use smoke evidence before GitHub release publication.</phase-follow-up>
     </V-M-SMOKE-E2E>
+
+    <V-M-LIVE-HOST-INVENTORY MODULE="M-LIVE-HOST-INVENTORY" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'hostname &amp;&amp; uname -a'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'hostname &amp;&amp; uname -a'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Exactly one host is fixed as the live server and one host is fixed as the live client with stable ports and file paths.</scenario-1>
+        <scenario-2 kind="failure">Missing or ambiguous host-role information blocks the live wave before deployment starts.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Repository artifacts must never contain raw SSH passwords or unredacted auth tokens.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Carry the same frozen inventory through all live-wave commands and evidence packets.</wave-follow-up>
+      <phase-follow-up>Move host inventory to more durable operator automation if live waves become routine.</phase-follow-up>
+    </V-M-LIVE-HOST-INVENTORY>
+
+    <V-M-LIVE-BUILD-PACK MODULE="M-LIVE-BUILD-PACK" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo build --release</check-1>
+        <check-2>ssh root@$N0WSS_SERVER_HOST 'test -x /opt/n0wss/n0wss'</check-2>
+        <check-3>ssh root@$N0WSS_CLIENT_HOST 'test -x /opt/n0wss/n0wss'</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The same release artifact and runtime layout are staged on both hosts.</scenario-1>
+        <scenario-2 kind="failure">Missing binary, wrong path, or inconsistent staging shape blocks the live wave before startup.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The binary identity or checksum must match across both hosts for one live wave.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Keep the staging layout stable until the first live gate is closed.</wave-follow-up>
+      <phase-follow-up>Replace ad hoc staging with repeatable packaging once the live wave is proven.</phase-follow-up>
+    </V-M-LIVE-BUILD-PACK>
+
+    <V-M-LIVE-TLS-BOOTSTRAP MODULE="M-LIVE-TLS-BOOTSTRAP" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'test -f /opt/n0wss/certs/server.pem &amp;&amp; test -f /opt/n0wss/certs/server.key'</check-1>
+        <check-2>ssh root@$N0WSS_SERVER_HOST 'openssl x509 -in /opt/n0wss/certs/server.pem -noout -subject -issuer -dates'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The live server has usable TLS material and the client targets the matching endpoint identity.</scenario-1>
+        <scenario-2 kind="failure">Missing files, trust mismatch, or endpoint identity mismatch blocks live startup before smoke execution.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[TlsContext][fromConfig][BLOCK_LOAD_TLS_MATERIAL]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The first live wave terminates TLS directly in n0wss and must not silently depend on an undocumented reverse proxy.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Confirm the client trust shape before the first live success-path run.</wave-follow-up>
+      <phase-follow-up>Promote the TLS bootstrap into reusable operator documentation after the first live phase passes.</phase-follow-up>
+    </V-M-LIVE-TLS-BOOTSTRAP>
+
+    <V-M-LIVE-SERVER-LAUNCH MODULE="M-LIVE-SERVER-LAUNCH" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN server --tls-cert-path /opt/n0wss/certs/server.pem --tls-key-path /opt/n0wss/certs/server.key &gt;/var/log/n0wss-server.log 2&gt;&amp;1 &amp;'</check-1>
+        <check-2>ssh root@$N0WSS_SERVER_HOST 'ss -ltnp | grep -E \"(:443|:$N0WSS_WSS_PORT)\" || true'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The remote server host emits config, TLS, and startup anchors and binds the live WSS listener.</scenario-1>
+        <scenario-2 kind="failure">The remote server host fails before readiness and provides enough evidence to isolate the first divergent block.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Config][loadConfig][BLOCK_VALIDATE_CONFIGURATION]</marker-1>
+        <marker-2>[TlsContext][fromConfig][BLOCK_LOAD_TLS_MATERIAL]</marker-2>
+        <marker-3>[CliApp][run][BLOCK_START_APPLICATION]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Readiness requires both startup anchors and bound socket proof from the live host.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Do not start the live smoke path until the server readiness packet is complete.</wave-follow-up>
+      <phase-follow-up>Turn the launch shape into a service unit only after the first live wave is stable.</phase-follow-up>
+    </V-M-LIVE-SERVER-LAUNCH>
+
+    <V-M-LIVE-CLIENT-LAUNCH MODULE="M-LIVE-CLIENT-LAUNCH" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel &gt;/var/log/n0wss-client.log 2&gt;&amp;1 &amp;'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The remote client host emits config and startup anchors and binds the local SOCKS5 ingress port.</scenario-1>
+        <scenario-2 kind="failure">The remote client host fails before readiness and leaves enough evidence to isolate the first divergent block.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Config][loadConfig][BLOCK_VALIDATE_CONFIGURATION]</marker-1>
+        <marker-2>[CliApp][run][BLOCK_START_APPLICATION]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Client readiness requires both startup anchors and bound SOCKS5 listener proof from the live host.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Do not run the live proxy request until the client readiness packet is complete.</wave-follow-up>
+      <phase-follow-up>Promote the launch procedure into reusable operator docs only after the first live wave passes.</phase-follow-up>
+    </V-M-LIVE-CLIENT-LAUNCH>
+
+    <V-M-LIVE-PROXY-SMOKE MODULE="M-LIVE-PROXY-SMOKE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_CLIENT_HOST 'curl --proxy socks5h://127.0.0.1:$N0WSS_SOCKS5_PORT --max-time 15 https://example.com -o /tmp/n0wss-smoke.out -sS'</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">One deterministic SOCKS5-aware request crosses the live tunnel and returns a successful response.</scenario-1>
+        <scenario-2 kind="failure">Transport, auth, routing, or target failure stops the smoke path with enough evidence to identify the first divergent block.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</marker-1>
+        <marker-2>[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE]</marker-2>
+        <marker-3>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The first live smoke must stay narrow and deterministic enough to separate tunnel defects from broad load or concurrency issues.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Run the bad-auth scenario only after a clean success-path evidence packet exists.</wave-follow-up>
+      <phase-follow-up>Expand beyond one smoke request only after the first live gate is green.</phase-follow-up>
+    </V-M-LIVE-PROXY-SMOKE>
+
+    <V-M-LIVE-OBS-EVIDENCE MODULE="M-LIVE-OBS-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'tail -n 200 /var/log/n0wss-server.log'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client.log'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The live wave captures bounded high-signal logs, socket state, and smoke output from both hosts.</scenario-1>
+        <scenario-2 kind="failure">Evidence capture is missing, too noisy, or too secret-heavy to support a follow-up fix.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Evidence packets must stay small enough for follow-up analysis and must redact secrets.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Reuse the same evidence layout for both success and failure packets in the first live phase.</wave-follow-up>
+      <phase-follow-up>Move the evidence procedure into stable operator runbooks after the first live phase passes.</phase-follow-up>
+    </V-M-LIVE-OBS-EVIDENCE>
+
+    <V-M-LIVE-FAILURE-TRIAGE MODULE="M-LIVE-FAILURE-TRIAGE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>printf 'scenario, expected-evidence, observed-evidence, first-divergent-block, next-action\\n'</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Every failed live attempt is condensed into a GRACE failure packet before rerun approval.</scenario-1>
+        <scenario-2 kind="failure">A live rerun is attempted without identifying the first divergent block and next action.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>No repeat live attempt is approved until the first divergent block is identified from bounded evidence.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Route live failures into grace-fix or a human repair plan rather than blind retries.</wave-follow-up>
+      <phase-follow-up>Keep the failure packet template stable across later live phases.</phase-follow-up>
+    </V-M-LIVE-FAILURE-TRIAGE>
   </ModuleVerification>
+
+  <LiveEnvironmentVerification>
+    <LV-001 NAME="RemoteAccessPreparation" PRIORITY="high">
+      <goal>Prepare both clean hosts without storing credentials in repository artifacts.</goal>
+      <commands>
+        <command-1>cargo build --release</command-1>
+        <command-2>ssh root@$N0WSS_SERVER_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash'</command-2>
+        <command-3>ssh root@$N0WSS_CLIENT_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash'</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>The same release binary or checksum is staged for both hosts.</evidence-1>
+        <evidence-2>Host roles are fixed: one machine serves WSS, the other serves client SOCKS5 ingress.</evidence-2>
+        <evidence-3>No command transcript or log artifact stores the SSH password or raw auth token.</evidence-3>
+        <evidence-4>The server host exposes bash, ss, and openssl, and the client host exposes bash, ss, and curl before live staging begins.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=RemoteAccessPreparation; expected-evidence=both hosts reachable and identified; observed-evidence=ssh or staging failure output; first-divergent-block=HOST_CONNECTIVITY; next-action=repair ssh access or package staging before live launch</failure-packet-template>
+    </LV-001>
+
+    <LV-002 NAME="TwoHostSmokeExecution" PRIORITY="high">
+      <goal>Run the first deterministic two-host smoke with one success path and one auth rejection path.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN server --tls-cert-path /opt/n0wss/certs/server.pem --tls-key-path /opt/n0wss/certs/server.key &gt;/var/log/n0wss-server.log 2&gt;&amp;1 &amp;'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel &gt;/var/log/n0wss-client.log 2&gt;&amp;1 &amp;'</command-2>
+        <command-3>ssh root@$N0WSS_CLIENT_HOST 'curl --proxy socks5h://127.0.0.1:$N0WSS_SOCKS5_PORT --max-time 15 https://example.com -o /tmp/n0wss-smoke.out -sS'</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>VF-LIVE-001, VF-LIVE-002, VF-LIVE-003, and VF-LIVE-005 each produce their required log markers or trace sequence evidence.</evidence-1>
+        <evidence-2>The smoke request returns deterministic output metadata such as HTTP status, response headers, or a checksum of a known small payload.</evidence-2>
+        <evidence-3>The success-path evidence packet includes the command exit code, bounded log tails, and bound-socket state from both hosts.</evidence-3>
+      </required-evidence>
+      <failure-packet-template>scenario=TwoHostSmokeExecution; expected-evidence=live startup, one successful proxy request, and clean shutdown; observed-evidence=log excerpts, command exit codes, socket state, and remote process state; first-divergent-block=first missing required marker; next-action=repair the failing module before repeating the live wave</failure-packet-template>
+    </LV-002>
+
+    <LV-003 NAME="LiveAuthRejectExecution" PRIORITY="high">
+      <goal>Run one explicit bad-auth attempt after the success path and prove the server rejects it without creating a live session.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_BAD_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel &gt;/var/log/n0wss-client-bad-auth.log 2&gt;&amp;1 &amp;'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'timeout 15 curl --proxy socks5h://127.0.0.1:$N0WSS_BAD_AUTH_SOCKS5_PORT --max-time 10 https://example.com -o /tmp/n0wss-bad-auth.out -sS || true'</command-2>
+        <command-3>ssh root@$N0WSS_SERVER_HOST 'tail -n 200 /var/log/n0wss-server.log'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client-bad-auth.log'</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>VF-LIVE-004 produces the auth validation anchor and a deterministic reject trajectory.</evidence-1>
+        <evidence-2>The bad-auth attempt leaves no surviving session on the server after the failed request.</evidence-2>
+        <evidence-3>The failure is observable without exposing the invalid token value in logs or saved command transcripts.</evidence-3>
+      </required-evidence>
+      <failure-packet-template>scenario=LiveAuthRejectExecution; expected-evidence=explicit bad-auth attempt rejected with redacted evidence and no surviving session; observed-evidence=server log tail, client log tail, bad-auth command exit code, and session or socket state; first-divergent-block=first missing reject-path marker; next-action=repair auth or handshake handling before any further live rerun</failure-packet-template>
+    </LV-003>
+
+    <LV-004 NAME="LiveEvidenceCollection" PRIORITY="high">
+      <goal>Collect narrow high-signal artifacts from both hosts so another agent can diagnose failure without rerunning blind.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'tail -n 200 /var/log/n0wss-server.log'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client.log'</command-2>
+        <command-3>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client-bad-auth.log 2&gt;/dev/null || true'</command-3>
+        <command-4>ssh root@$N0WSS_SERVER_HOST 'ss -ltnp | grep -E \"(:443|:$N0WSS_WSS_PORT)\" || true'</command-4>
+        <command-5>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-5>
+        <command-6>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_BAD_AUTH_SOCKS5_PORT\" || true'</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>Logs include only anchored high-signal lines and redact secrets.</evidence-1>
+        <evidence-2>Socket listings prove whether listeners were bound at the moment of success or failure.</evidence-2>
+        <evidence-3>Captured evidence is small enough for a follow-up fix packet and identifies the first divergent block.</evidence-3>
+        <evidence-4>The evidence bundle contains separate success-path and bad-auth-path artifacts so the two trajectories are not conflated.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=LiveEvidenceCollection; expected-evidence=both host logs plus socket state plus smoke result; observed-evidence=missing or noisy artifacts; first-divergent-block=EVIDENCE_COLLECTION; next-action=improve log capture or restart with explicit output paths</failure-packet-template>
+    </LV-004>
+  </LiveEnvironmentVerification>
 
   <PhaseGates>
     <Gate-Phase-1 PHASE="Phase-1">
@@ -523,12 +818,35 @@
         <evidence-1>Markup debt is removed, release docs are aligned, CI is current, and the smoke path passes.</evidence-1>
       </required-evidence>
     </Gate-Phase-7>
+
+    <Gate-Live-1 PHASE="Live-Phase-1">
+      <goal>The first two-host live environment proves remote readiness, one successful proxied request, one deterministic auth rejection, and clean shutdown.</goal>
+      <commands>
+        <command-1>cargo build --release</command-1>
+        <command-2>ssh root@$N0WSS_SERVER_HOST 'test -x /opt/n0wss/n0wss'</command-2>
+        <command-3>ssh root@$N0WSS_CLIENT_HOST 'test -x /opt/n0wss/n0wss'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'curl --proxy socks5h://127.0.0.1:$N0WSS_SOCKS5_PORT --max-time 15 https://example.com -o /tmp/n0wss-smoke.out -sS'</command-4>
+        <command-5>ssh root@$N0WSS_CLIENT_HOST 'timeout 15 curl --proxy socks5h://127.0.0.1:$N0WSS_BAD_AUTH_SOCKS5_PORT --max-time 10 https://example.com -o /tmp/n0wss-bad-auth.out -sS || true'</command-5>
+        <command-6>ssh root@$N0WSS_SERVER_HOST 'tail -n 200 /var/log/n0wss-server.log'</command-6>
+        <command-7>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client.log'</command-7>
+        <command-8>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client-bad-auth.log 2&gt;/dev/null || true'</command-8>
+      </commands>
+      <required-evidence>
+        <evidence-1>VF-LIVE-001 proves server readiness with config, TLS, and startup anchors.</evidence-1>
+        <evidence-2>VF-LIVE-002 proves client readiness with config and startup anchors.</evidence-2>
+        <evidence-3>VF-LIVE-003 proves one successful proxied request with transport-selection and pump evidence.</evidence-3>
+        <evidence-4>VF-LIVE-004 proves invalid auth is rejected with redacted server-side evidence.</evidence-4>
+        <evidence-5>VF-LIVE-005 proves shutdown leaves no live listeners or stuck session cleanup.</evidence-5>
+      </required-evidence>
+    </Gate-Live-1>
   </PhaseGates>
 
   <FailurePackets>
     <packet-template>
       <expected-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</expected-fields>
       <phase-1-example>Config invalid-path test expected BLOCK_VALIDATE_CONFIGURATION reject marker but observed panic before marker emission; first divergent block is Config::loadConfig::BLOCK_VALIDATE_CONFIGURATION; next action is harden path validation and add deterministic error assertion.</phase-1-example>
+      <live-example-success-path>LiveFirstProxyRequest expected server and client startup anchors plus BLOCK_SELECT_TRANSPORT and BLOCK_PUMP_BIDIRECTIONAL, but observed client startup only and no server listener evidence; first divergent block is CliApp::run::BLOCK_START_APPLICATION on the server host; next action is repair server launch, TLS paths, or listener bind before repeating the smoke.</live-example-success-path>
+      <live-example-auth-reject>LiveAuthReject expected BLOCK_VALIDATE_HANDSHAKE reject evidence and no surviving session, but observed successful transport selection and no reject marker; first divergent block is AuthPolicy::validateHandshake::BLOCK_VALIDATE_HANDSHAKE; next action is inspect live auth configuration and reject-path handling before any rerun.</live-example-auth-reject>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>

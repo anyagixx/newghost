@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.0">
+<DevelopmentPlan VERSION="0.2.1">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -496,6 +496,277 @@
         <note-1>Smoke coverage must stay deterministic and narrow enough to avoid flaky release gates.</note-1>
       </notes>
     </M-SMOKE-E2E>
+
+    <M-LIVE-HOST-INVENTORY NAME="LiveHostInventory" TYPE="UTILITY" LAYER="7" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Fix the two-host live-wave inventory including host roles, ports, file paths, and operator-only access assumptions.</purpose>
+        <inputs>
+          <param name="hostRoles" type="Vec&lt;HostRole&gt;" />
+          <param name="operatorInputs" type="LiveEnvironmentInputs" />
+        </inputs>
+        <outputs>
+          <param name="inventoryRecord" type="LiveHostInventoryRecord" />
+        </outputs>
+        <errors>
+          <error code="HOST_ROLE_AMBIGUOUS" />
+          <error code="LIVE_ACCESS_MISSING" />
+        </errors>
+      </contract>
+      <interface>
+        <export-freezeHostRoles PURPOSE="Declare one server host and one client host for the first live wave." />
+        <export-recordPaths PURPOSE="Pin binary, TLS, log, and socket paths for both hosts." />
+      </interface>
+      <depends>M-CONFIG, M-RELEASE-DOCS</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveHostInventory]</log-prefix>
+        <critical-block>BLOCK_LIVE_HOST_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-HOST-INVENTORY</verification-ref>
+      <notes>
+        <note-1>Credentials and passwords remain outside repository artifacts and are consumed only through operator-controlled channels.</note-1>
+        <note-2>Verified live host roles: server host 91.99.128.146 reports hostname ghost-srv with bash, ss, and openssl available; client host 178.104.104.208 reports hostname ghost-cli with bash, ss, and curl available.</note-2>
+      </notes>
+    </M-LIVE-HOST-INVENTORY>
+
+    <M-LIVE-BUILD-PACK NAME="LiveBuildPack" TYPE="UTILITY" LAYER="7" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define the release binary, config payload, TLS assets, and staging paths used for the first live deployment.</purpose>
+        <inputs>
+          <param name="releaseBuild" type="ReleaseArtifact" />
+          <param name="runtimeConfig" type="AppConfig" />
+        </inputs>
+        <outputs>
+          <param name="stagingBundle" type="LiveBuildPackRecord" />
+        </outputs>
+        <errors>
+          <error code="BUILD_ARTIFACT_MISSING" />
+          <error code="STAGING_SHAPE_INVALID" />
+        </errors>
+      </contract>
+      <interface>
+        <export-pinReleaseBinary PURPOSE="Freeze the exact release artifact or checksum deployed to both hosts." />
+        <export-defineStagingLayout PURPOSE="Define config, cert, key, and log directory layout on each host." />
+      </interface>
+      <depends>M-CLI, M-CONFIG, M-GITHUB-RELEASE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveBuildPack]</log-prefix>
+        <critical-block>BLOCK_LIVE_BUILD_PACK</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-BUILD-PACK</verification-ref>
+      <notes>
+        <note-1>The same binary identity must be deployed to both hosts to keep failure analysis coherent.</note-1>
+      </notes>
+    </M-LIVE-BUILD-PACK>
+
+    <M-LIVE-TLS-BOOTSTRAP NAME="LiveTlsBootstrap" TYPE="INTEGRATION" LAYER="7" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the minimal real TLS trust path for the first live WSS server and its client trust configuration.</purpose>
+        <inputs>
+          <param name="tlsContext" type="TlsContextHandle" />
+          <param name="remoteEndpoint" type="Url" />
+        </inputs>
+        <outputs>
+          <param name="liveTlsShape" type="LiveTlsBootstrapRecord" />
+        </outputs>
+        <errors>
+          <error code="TLS_TRUST_MISMATCH" />
+          <error code="TLS_FILES_MISSING" />
+        </errors>
+      </contract>
+      <interface>
+        <export-pinServerTlsPaths PURPOSE="Freeze the cert and key paths on the server host." />
+        <export-pinClientTrust PURPOSE="Freeze the trust material and endpoint identity expected by the client host." />
+      </interface>
+      <depends>M-TLS, M-WSS-GATEWAY, M-CONFIG</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveTlsBootstrap]</log-prefix>
+        <critical-block>BLOCK_LIVE_TLS_BOOTSTRAP</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-TLS-BOOTSTRAP</verification-ref>
+      <notes>
+        <note-1>The first live wave assumes direct TLS termination in n0wss rather than behind a reverse proxy.</note-1>
+      </notes>
+    </M-LIVE-TLS-BOOTSTRAP>
+
+    <M-LIVE-SERVER-LAUNCH NAME="LiveServerLaunch" TYPE="ENTRY_POINT" LAYER="8" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Define the live server-mode launch procedure, readiness evidence, and shutdown surface on the remote WSS host.</purpose>
+        <inputs>
+          <param name="serverConfig" type="ServerConfig" />
+          <param name="startupArtifacts" type="StartupArtifacts" />
+        </inputs>
+        <outputs>
+          <param name="serverLaunchEvidence" type="LiveLaunchEvidence" />
+        </outputs>
+        <errors>
+          <error code="SERVER_START_FAILED" />
+          <error code="SERVER_LISTENER_NOT_READY" />
+        </errors>
+      </contract>
+      <interface>
+        <export-startServer PURPOSE="Launch n0wss in server mode on the remote host." />
+        <export-captureServerReadiness PURPOSE="Collect startup logs, socket state, and process identity for readiness proof." />
+      </interface>
+      <depends>M-CLI, M-CONFIG, M-AUTH, M-TLS, M-WSS-GATEWAY, M-OBS, M-SESSION</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveServerLaunch]</log-prefix>
+        <critical-block>BLOCK_LIVE_SERVER_READY</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-SERVER-LAUNCH</verification-ref>
+      <notes>
+        <note-1>Readiness evidence must include both startup anchors and bound-listener proof from the host.</note-1>
+      </notes>
+    </M-LIVE-SERVER-LAUNCH>
+
+    <M-LIVE-CLIENT-LAUNCH NAME="LiveClientLaunch" TYPE="ENTRY_POINT" LAYER="8" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define the live client-mode launch procedure, local SOCKS5 readiness, and remote endpoint targeting on the second host.</purpose>
+        <inputs>
+          <param name="clientConfig" type="ClientConfig" />
+          <param name="startupArtifacts" type="StartupArtifacts" />
+        </inputs>
+        <outputs>
+          <param name="clientLaunchEvidence" type="LiveLaunchEvidence" />
+        </outputs>
+        <errors>
+          <error code="CLIENT_START_FAILED" />
+          <error code="SOCKS5_LISTENER_NOT_READY" />
+        </errors>
+      </contract>
+      <interface>
+        <export-startClient PURPOSE="Launch n0wss in client mode on the remote client host." />
+        <export-captureClientReadiness PURPOSE="Collect startup logs, SOCKS5 socket state, and process identity for readiness proof." />
+      </interface>
+      <depends>M-CLI, M-CONFIG, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, M-OBS</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveClientLaunch]</log-prefix>
+        <critical-block>BLOCK_LIVE_CLIENT_READY</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-CLIENT-LAUNCH</verification-ref>
+      <notes>
+        <note-1>The client host must expose a local SOCKS5 endpoint and target the live WSS server URL with the pinned trust shape.</note-1>
+      </notes>
+    </M-LIVE-CLIENT-LAUNCH>
+
+    <M-LIVE-PROXY-SMOKE NAME="LiveProxySmoke" TYPE="CORE_LOGIC" LAYER="9" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Define the first live end-to-end smoke path with one deterministic SOCKS5 request through the real two-host tunnel.</purpose>
+        <inputs>
+          <param name="proxyIntent" type="ProxyIntent" />
+          <param name="smokeTarget" type="Url" />
+        </inputs>
+        <outputs>
+          <param name="smokeEvidence" type="LiveSmokeEvidence" />
+        </outputs>
+        <errors>
+          <error code="LIVE_PROXY_SMOKE_FAILED" />
+          <error code="LIVE_TARGET_UNREACHABLE" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runLiveSmoke PURPOSE="Execute one deterministic SOCKS5-aware request through the live tunnel." />
+        <export-captureTrajectory PURPOSE="Collect the minimum trajectory evidence across startup, selection, reply mapping, and pump." />
+      </interface>
+      <depends>M-LIVE-SERVER-LAUNCH, M-LIVE-CLIENT-LAUNCH, M-PROXY-BRIDGE, M-SMOKE-E2E</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveProxySmoke]</log-prefix>
+        <critical-block>BLOCK_LIVE_PROXY_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-PROXY-SMOKE</verification-ref>
+      <notes>
+        <note-1>The first live target should stay narrow and deterministic enough to separate internet reachability issues from tunnel defects.</note-1>
+      </notes>
+    </M-LIVE-PROXY-SMOKE>
+
+    <M-LIVE-OBS-EVIDENCE NAME="LiveObservabilityEvidence" TYPE="UTILITY" LAYER="9" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define the high-signal logs, trace anchors, socket listings, and output artifacts that make the live wave debuggable by later agents.</purpose>
+        <inputs>
+          <param name="hostLogs" type="Vec&lt;PathBuf&gt;" />
+          <param name="socketState" type="SocketEvidence" />
+        </inputs>
+        <outputs>
+          <param name="evidencePacket" type="LiveEvidencePacket" />
+        </outputs>
+        <errors>
+          <error code="LIVE_EVIDENCE_MISSING" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureLogTails PURPOSE="Capture bounded log tails from both hosts." />
+        <export-captureSocketState PURPOSE="Capture listener and process state from both hosts." />
+      </interface>
+      <depends>M-OBS, M-LIVE-PROXY-SMOKE, M-RELEASE-DOCS</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveObservabilityEvidence]</log-prefix>
+        <critical-block>BLOCK_LIVE_EVIDENCE_CAPTURE</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-OBS-EVIDENCE</verification-ref>
+      <notes>
+        <note-1>Evidence must remain small enough for a follow-up failure packet and must never include raw secrets.</note-1>
+      </notes>
+    </M-LIVE-OBS-EVIDENCE>
+
+    <M-LIVE-FAILURE-TRIAGE NAME="LiveFailureTriage" TYPE="UTILITY" LAYER="9" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the failure-packet workflow for TLS, auth, transport, proxy reply, and shutdown failures during the first live wave.</purpose>
+        <inputs>
+          <param name="failureEvidence" type="LiveEvidencePacket" />
+          <param name="verificationTarget" type="VerificationRef" />
+        </inputs>
+        <outputs>
+          <param name="failurePacket" type="FailurePacket" />
+        </outputs>
+        <errors>
+          <error code="FIRST_DIVERGENT_BLOCK_UNKNOWN" />
+        </errors>
+      </contract>
+      <interface>
+        <export-buildFailurePacket PURPOSE="Condense live evidence into the canonical GRACE failure packet format." />
+        <export-routeNextAction PURPOSE="Map the first divergent block to the next fix or rerun action." />
+      </interface>
+      <depends>M-LIVE-OBS-EVIDENCE, M-SESSION, M-SOCKS5, M-TLS, M-WSS-GATEWAY</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveFailureTriage]</log-prefix>
+        <critical-block>BLOCK_LIVE_FAILURE_PACKET</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-FAILURE-TRIAGE</verification-ref>
+      <notes>
+        <note-1>Every live failure must identify the first divergent block before another rerun is approved.</note-1>
+      </notes>
+    </M-LIVE-FAILURE-TRIAGE>
   </Modules>
 
   <DataFlow>
@@ -583,6 +854,52 @@
       <step-3>The maintainer shuts the process down and confirms clean drain behavior.</step-3>
       <evidence>Startup, reply mapping, bridge pump, and shutdown anchors all appear in one narrow smoke run.</evidence>
     </DF-LOCAL-SMOKE>
+
+    <DF-LIVE-DEPLOY NAME="Two-host live deployment" TRIGGER="The operator prepares the first live wave on two clean remote hosts.">
+      <step-1>The operator builds the release binary and pins the deployed artifact identity.</step-1>
+      <step-2>The operator stages the binary, config, and TLS assets on the server host.</step-2>
+      <step-3>The operator stages the binary and client config on the client host.</step-3>
+      <step-4>The operator verifies executable paths, log paths, and expected listener ports on both hosts.</step-4>
+      <evidence>Matching binary identity, fixed host roles, and no repository artifact containing raw credentials.</evidence>
+    </DF-LIVE-DEPLOY>
+
+    <DF-LIVE-SERVER-BOOT NAME="Live server bootstrap" TRIGGER="The operator starts n0wss in server mode on the remote WSS host.">
+      <step-1>CliApp starts in server mode and loads validated config.</step-1>
+      <step-2>TlsContext loads the pinned live certificate and key.</step-2>
+      <step-3>Observability initializes and WssGateway binds the live listener.</step-3>
+      <step-4>The host records startup anchors, process identity, and bound socket state.</step-4>
+      <evidence>Config, TLS, and startup anchors plus host-local bound-listener proof.</evidence>
+    </DF-LIVE-SERVER-BOOT>
+
+    <DF-LIVE-CLIENT-BOOT NAME="Live client bootstrap" TRIGGER="The operator starts n0wss in client mode on the remote client host.">
+      <step-1>CliApp starts in client mode and loads validated config for the remote WSS endpoint.</step-1>
+      <step-2>Observability initializes and SessionManager prepares transport selection.</step-2>
+      <step-3>Socks5Proxy binds the local client-facing ingress port.</step-3>
+      <step-4>The host records startup anchors, process identity, and bound SOCKS5 socket state.</step-4>
+      <evidence>Config and startup anchors plus host-local SOCKS5 listener proof.</evidence>
+    </DF-LIVE-CLIENT-BOOT>
+
+    <DF-LIVE-E2E-SMOKE NAME="Live two-host smoke" TRIGGER="A SOCKS5-aware request is sent on the live client host after both sides are ready.">
+      <step-1>The client host sends one deterministic SOCKS5 request through the local ingress port.</step-1>
+      <step-2>SessionManager resolves transport and the live tunnel reaches the server host.</step-2>
+      <step-3>WssGateway and AuthPolicy validate the live remote session and ProxyBridge pumps the stream.</step-3>
+      <step-4>The response returns to the client host and both hosts capture narrow evidence artifacts.</step-4>
+      <evidence>Transport-selection, reply-mapping, and pump anchors plus deterministic smoke output metadata.</evidence>
+    </DF-LIVE-E2E-SMOKE>
+
+    <DF-LIVE-AUTH-REJECT NAME="Live auth rejection" TRIGGER="The operator intentionally launches a bad-auth live attempt after the success path.">
+      <step-1>The client host retries with invalid auth material.</step-1>
+      <step-2>The server host reaches AuthPolicy validation and rejects the handshake.</step-2>
+      <step-3>No active session is created and the client sees a deterministic failure.</step-3>
+      <evidence>Auth validation anchor, redacted failure evidence, and no surviving session proof.</evidence>
+    </DF-LIVE-AUTH-REJECT>
+
+    <DF-LIVE-SHUTDOWN NAME="Live controlled shutdown" TRIGGER="The operator stops both live processes after the smoke paths complete.">
+      <step-1>The operator stops new accepts on the client and server sides.</step-1>
+      <step-2>Active sessions and proxy pumps drain according to the existing shutdown contract.</step-2>
+      <step-3>The operator captures final log tails and socket state to prove no hung listeners remain.</step-3>
+      <evidence>Shutdown anchors, empty listener state, and bounded final evidence artifacts from both hosts.</evidence>
+    </DF-LIVE-SHUTDOWN>
   </DataFlow>
 
   <ImplementationOrder>
@@ -636,6 +953,18 @@
       <step-3 module="M-GITHUB-RELEASE" status="done" verification="V-M-GITHUB-RELEASE">Align GitHub CI and release workflow expectations with the repository state</step-3>
       <step-4 module="M-SMOKE-E2E" status="done" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-4>
     </Phase-7>
+
+    <Phase-8 name="First Live Wave" status="planned">
+      <goal>Prepare and execute the first two-host live verification wave with one success path, one auth rejection, and clean shutdown evidence.</goal>
+      <step-1 module="M-LIVE-HOST-INVENTORY" status="done" verification="V-M-LIVE-HOST-INVENTORY">Freeze host roles, paths, ports, and operator-only access assumptions for the two remote machines</step-1>
+      <step-2 module="M-LIVE-BUILD-PACK" status="planned" verification="V-M-LIVE-BUILD-PACK">Pin the release artifact, staging shape, and runtime assets deployed to both hosts</step-2>
+      <step-3 module="M-LIVE-TLS-BOOTSTRAP" status="planned" verification="V-M-LIVE-TLS-BOOTSTRAP">Fix the real TLS trust path, certificate files, and endpoint identity for the live WSS server</step-3>
+      <step-4 module="M-LIVE-SERVER-LAUNCH" status="planned" verification="V-M-LIVE-SERVER-LAUNCH">Launch the remote server host and prove WSS readiness with startup and socket evidence</step-4>
+      <step-5 module="M-LIVE-CLIENT-LAUNCH" status="planned" verification="V-M-LIVE-CLIENT-LAUNCH">Launch the remote client host and prove SOCKS5 readiness with startup and socket evidence</step-5>
+      <step-6 module="M-LIVE-PROXY-SMOKE" status="planned" verification="V-M-LIVE-PROXY-SMOKE">Run one deterministic live SOCKS5 smoke request through the two-host tunnel</step-6>
+      <step-7 module="M-LIVE-OBS-EVIDENCE" status="planned" verification="V-M-LIVE-OBS-EVIDENCE">Collect narrow high-signal logs, socket state, and smoke output artifacts from both hosts</step-7>
+      <step-8 module="M-LIVE-FAILURE-TRIAGE" status="planned" verification="V-M-LIVE-FAILURE-TRIAGE">Convert any live failure into a GRACE failure packet before reruns</step-8>
+    </Phase-8>
   </ImplementationOrder>
 
   <ExecutionPolicy>
