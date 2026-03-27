@@ -1,5 +1,5 @@
 // FILE: src/socks5/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and map pre-pump failures to exact client-visible replies.
 //   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, and accept-loop shutdown.
@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added the Phase 4 SOCKS5 ingress boundary with ProxyIntent parsing, fast-fail queue saturation, and exhaustive reply mapping.
+//   LAST_CHANGE: v0.1.1 - Hardened reply semantics with explicit no-wildcard mapping coverage and client-visible failure invariants.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -339,6 +339,8 @@ impl Socks5Proxy {
     // END_CONTRACT: map_reply
     pub fn map_reply(error: &ProxyError) -> Option<Socks5Reply> {
         // START_BLOCK_MAP_REPLY_CODE
+        // SAFETY-LINT: wildcard_enum_match_arm = deny
+        // Exhaustive mapping is load-bearing for SOCKS5 reply correctness.
         let reply = match error {
             ProxyError::IntentQueueFull => Some(Socks5Reply::GeneralFailure),
             ProxyError::SessionLimitReached => Some(Socks5Reply::GeneralFailure),

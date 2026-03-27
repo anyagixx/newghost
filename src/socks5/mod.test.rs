@@ -95,3 +95,66 @@ async fn queue_saturation_returns_failure_reply_quickly() {
         .expect("handler result");
     assert!(rx.recv().await.is_some());
 }
+
+#[tokio::test]
+async fn closed_queue_returns_failure_reply_and_closes_stream() {
+    let (tx, rx) = mpsc::channel::<ProxyIntent>(1);
+    let proxy = Socks5Proxy::new(
+        Socks5ProxyConfig {
+            listen_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
+            total_timeout: Duration::from_secs(2),
+        },
+        tx,
+    );
+    drop(rx);
+
+    let (mut client, server) = tcp_pair().await;
+    let handler_task = tokio::spawn({
+        let proxy = proxy.clone();
+        async move { proxy.handle_connection_inner(server).await }
+    });
+
+    let _ = send_no_auth_connect_domain(&mut client, "example.com", 443).await;
+    let mut reply = [0_u8; 10];
+    client
+        .read_exact(&mut reply)
+        .await
+        .expect("read failure reply");
+
+    assert_eq!(reply[1], 0x01);
+    let mut eof = [0_u8; 1];
+    let read = client.read(&mut eof).await.expect("read eof after close");
+    assert_eq!(read, 0);
+
+    handler_task
+        .await
+        .expect("join handler")
+        .expect("handler result");
+}
+
+#[tokio::test]
+async fn success_reply_does_not_close_client_socket() {
+    let (mut client, mut server) = tcp_pair().await;
+
+    let send_task = tokio::spawn(async move {
+        Socks5Proxy::send_reply(&mut server, super::Socks5Reply::Succeeded)
+            .await
+            .expect("send reply");
+
+        let mut trailing = [0_u8; 1];
+        server
+            .read_exact(&mut trailing)
+            .await
+            .expect("read trailing byte");
+        trailing[0]
+    });
+
+    let mut reply = [0_u8; 10];
+    client.read_exact(&mut reply).await.expect("read success reply");
+    assert_eq!(reply[1], 0x00);
+
+    client.write_all(&[0x7f]).await.expect("write trailing byte");
+
+    let trailing = send_task.await.expect("join send task");
+    assert_eq!(trailing, 0x7f);
+}
