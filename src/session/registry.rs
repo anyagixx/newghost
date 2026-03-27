@@ -249,3 +249,10 @@ impl RegistryEffectTarget for SessionRegistry {
         }
     }
 }
+
+#[async_trait]
+impl RegistryEffectTarget for Arc<SessionRegistry> {
+    async fn execute(&self, command: RegistryCommand) {
+        self.as_ref().execute(command).await;
+    }
+}
