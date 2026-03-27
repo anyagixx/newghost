@@ -130,7 +130,7 @@
       </annotations>
     </M-SOCKS5>
 
-    <M-PROXY-BRIDGE NAME="ProxyBridge" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-PROXY-BRIDGE NAME="ProxyBridge" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Consume ProxyIntent items, ask SessionManager for a generic stream, and relay bytes until completion or drain.</purpose>
       <path>src/proxy_bridge/mod.rs</path>
       <depends>M-SOCKS5, M-SESSION, M-OBS</depends>
