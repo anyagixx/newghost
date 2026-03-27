@@ -1,5 +1,6 @@
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -12,8 +13,9 @@ use tokio_util::sync::CancellationToken;
 
 use super::{ProxyBridge, ProxyBridgeConfig, ProxyResult};
 use crate::session::{
-    EffectHandler, MetricEffectTarget, MetricEvent, SessionManager, SessionManagerConfig,
-    SessionRegistry, TimerCommand, TimerEffectTarget, TransportSelector, TransportSelectorConfig,
+    EffectHandler, MetricEffectTarget, MetricEvent, SessionControl, SessionEvent, SessionHandle,
+    SessionManager, SessionManagerConfig, SessionManagerError, SessionRegistry, SessionRequest,
+    TimerCommand, TimerEffectTarget, TransportSelector, TransportSelectorConfig,
 };
 use crate::socks5::{ProxyIntent, ProxyProtocol, TargetAddr};
 use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
@@ -71,6 +73,89 @@ impl TransportAdapter for MockAdapter {
 struct MockStream {
     stream: DuplexStream,
     peer_label: String,
+}
+
+#[derive(Default)]
+struct MockSessionControl {
+    next_session_id: AtomicU64,
+    resolved: Mutex<Option<Result<ResolvedStream, SessionManagerError>>>,
+    resolve_delay: Mutex<Option<Duration>>,
+    events: Mutex<Vec<(u64, SessionEvent)>>,
+}
+
+impl MockSessionControl {
+    fn with_resolved(result: Result<ResolvedStream, SessionManagerError>) -> Self {
+        Self {
+            next_session_id: AtomicU64::new(1),
+            resolved: Mutex::new(Some(result)),
+            resolve_delay: Mutex::new(None),
+            events: Mutex::new(Vec::new()),
+        }
+    }
+
+    fn with_delayed_resolution(delay: Duration) -> Self {
+        Self {
+            next_session_id: AtomicU64::new(1),
+            resolved: Mutex::new(None),
+            resolve_delay: Mutex::new(Some(delay)),
+            events: Mutex::new(Vec::new()),
+        }
+    }
+}
+
+#[async_trait]
+impl SessionControl for MockSessionControl {
+    fn register_session(
+        &self,
+        _request: &SessionRequest,
+    ) -> Result<(u64, SessionHandle), SessionManagerError> {
+        let session_id = self.next_session_id.fetch_add(1, Ordering::Relaxed);
+        let registry = SessionRegistry::new(1);
+        let (id, handle) = registry.insert(
+            registry.try_reserve().expect("reservation"),
+            crate::session::SessionRecord::new(
+                crate::session::SessionState::Active {
+                    since: std::time::Instant::now(),
+                    stream_count: 0,
+                },
+                std::time::Instant::now(),
+            ),
+        );
+        assert_eq!(id, 1);
+        Ok((session_id, handle))
+    }
+
+    async fn resolve_stream(
+        &self,
+        _session_id: u64,
+        _request: &TransportRequest,
+        _cancel: CancellationToken,
+    ) -> Result<ResolvedStream, SessionManagerError> {
+        let delay = *self.resolve_delay.lock().expect("delay lock");
+        if let Some(delay) = delay {
+            tokio::time::sleep(delay).await;
+        }
+
+        self.resolved
+            .lock()
+            .expect("resolved lock")
+            .take()
+            .unwrap_or(Err(SessionManagerError::TransportResolutionFailed(
+                crate::session::TransportSelectError::Cancelled,
+            )))
+    }
+
+    async fn handle_event(
+        &self,
+        session_id: u64,
+        event: SessionEvent,
+    ) -> Result<(), SessionManagerError> {
+        self.events
+            .lock()
+            .expect("events lock")
+            .push((session_id, event));
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -298,4 +383,93 @@ async fn drain_all_stops_worker_and_waits_for_tasks() {
     bridge.drain_all().await;
     drop(tx);
     worker.await.expect("worker join");
+}
+
+#[tokio::test]
+async fn total_request_timeout_bounds_failure_latency_and_notifies_session() {
+    let session = Arc::new(MockSessionControl::with_delayed_resolution(
+        Duration::from_millis(200),
+    ));
+    let bridge = ProxyBridge::new(
+        ProxyBridgeConfig {
+            pump_buffer_bytes: 1024,
+            total_request_timeout: Duration::from_millis(50),
+        },
+        session.clone(),
+    );
+    let (mut client_side, bridge_side) = tcp_pair().await;
+    let intent = ProxyIntent {
+        target: TargetAddr::Domain("example.com".to_string(), 443),
+        client_stream: bridge_side,
+        protocol_kind: ProxyProtocol::Socks5,
+        request_id: 3,
+    };
+
+    let started = std::time::Instant::now();
+    let task = tokio::spawn({
+        let bridge = bridge.clone();
+        async move { bridge.process_intent(intent).await }
+    });
+
+    let mut reply = [0_u8; 10];
+    client_side.read_exact(&mut reply).await.expect("read timeout reply");
+    assert_eq!(reply[1], 0x01);
+    assert!(started.elapsed() < Duration::from_millis(120));
+
+    let result = task.await.expect("join");
+    assert!(matches!(result, ProxyResult::Failed(_)));
+    assert_eq!(
+        session.events.lock().expect("events lock").as_slice(),
+        &[(1, SessionEvent::DeadlineReached)]
+    );
+}
+
+#[tokio::test]
+async fn drain_all_completes_active_pump_without_deadlock() {
+    let (remote_local, _remote_peer) = duplex(1024);
+    let session = Arc::new(MockSessionControl::with_resolved(Ok(ResolvedStream {
+        stream: Box::new(MockStream {
+            stream: remote_local,
+            peer_label: "peer-drain".to_string(),
+        }),
+        transport_kind: TransportKind::IrohDirect,
+    })));
+    let bridge = ProxyBridge::new(
+        ProxyBridgeConfig {
+            pump_buffer_bytes: 1024,
+            total_request_timeout: Duration::from_secs(2),
+        },
+        session.clone(),
+    );
+    let (mut client_side, bridge_side) = tcp_pair().await;
+    let intent = ProxyIntent {
+        target: TargetAddr::Domain("example.com".to_string(), 443),
+        client_stream: bridge_side,
+        protocol_kind: ProxyProtocol::Socks5,
+        request_id: 4,
+    };
+
+    let task = tokio::spawn({
+        let bridge = bridge.clone();
+        async move { bridge.process_intent(intent).await }
+    });
+
+    let mut success_reply = [0_u8; 10];
+    client_side
+        .read_exact(&mut success_reply)
+        .await
+        .expect("read success reply");
+    assert_eq!(success_reply[1], 0x00);
+
+    bridge.drain_all().await;
+
+    let result = tokio::time::timeout(Duration::from_secs(1), task)
+        .await
+        .expect("drain should not deadlock")
+        .expect("join");
+    assert!(matches!(result, ProxyResult::Completed));
+    assert_eq!(
+        session.events.lock().expect("events lock").as_slice(),
+        &[(1, SessionEvent::StreamClosed)]
+    );
 }

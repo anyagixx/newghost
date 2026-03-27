@@ -1,5 +1,5 @@
 // FILE: src/proxy_bridge/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Consume ProxyIntent work items, resolve generic transport streams through SessionManager, and relay bytes bidirectionally with bounded request lifetime and drain behavior.
 //   SCOPE: Worker loop, per-intent orchestration, bidirectional stream pumping, active-task drain, and session lifecycle notification.
@@ -17,7 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added the Phase 5 bridge worker over ProxyIntent and generic transport streams.
+//   LAST_CHANGE: v0.1.1 - Hardened pump shutdown semantics so timeout, drain, and post-reply failures always close both directions and notify session lifecycle handlers.
 // END_CHANGE_SUMMARY
 
 use std::sync::Arc;
@@ -200,34 +200,39 @@ where
         let mut client_buffer = vec![0_u8; self.config.pump_buffer_bytes];
         let mut transport_buffer = vec![0_u8; self.config.pump_buffer_bytes];
 
-        loop {
+        let outcome = loop {
             tokio::select! {
                 read_client = client_stream.read(&mut client_buffer) => {
                     match read_client {
-                        Ok(0) => break,
+                        Ok(0) => break Ok(()),
                         Ok(bytes_read) => {
-                            transport_writer.write_all(&client_buffer[..bytes_read]).await
-                                .map_err(ProxyError::PumpFailed)?;
+                            if let Err(err) = transport_writer.write_all(&client_buffer[..bytes_read]).await {
+                                break Err(ProxyError::PumpFailed(err));
+                            }
                         }
-                        Err(err) => return Err(ProxyError::PumpFailed(err)),
+                        Err(err) => break Err(ProxyError::PumpFailed(err)),
                     }
                 }
                 read_transport = transport_reader.read(&mut transport_buffer) => {
                     match read_transport {
-                        Ok(0) => break,
+                        Ok(0) => break Ok(()),
                         Ok(bytes_read) => {
-                            client_stream.write_all(&transport_buffer[..bytes_read]).await
-                                .map_err(ProxyError::PumpFailed)?;
+                            if let Err(err) = client_stream.write_all(&transport_buffer[..bytes_read]).await {
+                                break Err(ProxyError::PumpFailed(err));
+                            }
                         }
-                        Err(err) => return Err(ProxyError::PumpFailed(err)),
+                        Err(err) => break Err(ProxyError::PumpFailed(err)),
                     }
                 }
                 _ = self.drain_token.cancelled() => {
                     warn!(session_id, peer = %peer_label, "[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL] bridge drain requested");
-                    break;
+                    break Ok(());
                 }
             }
-        }
+        };
+
+        let _ = transport_writer.shutdown().await;
+        let _ = client_stream.shutdown().await;
 
         let _ = self
             .session
@@ -238,7 +243,7 @@ where
             peer = %peer_label,
             "[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL] bridge pump completed"
         );
-        Ok(())
+        outcome
         // END_BLOCK_PUMP_BIDIRECTIONAL
     }
 
