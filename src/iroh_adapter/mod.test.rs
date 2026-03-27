@@ -93,6 +93,8 @@ async fn opens_direct_stream_with_stable_diagnostics() {
         .open_stream(
             &TransportRequest {
                 peer_label: "iroh-peer".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )
@@ -133,6 +135,8 @@ async fn cancel_before_open_returns_err_and_no_tracked_tasks() {
         .open_stream(
             &TransportRequest {
                 peer_label: "iroh-peer".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             cancel,
         )
@@ -163,6 +167,8 @@ async fn failed_open_does_not_leak_tracked_tasks() {
         .open_stream(
             &TransportRequest {
                 peer_label: "iroh-peer".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )

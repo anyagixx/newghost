@@ -108,6 +108,8 @@ impl SessionControl for SmokeSessionControl {
         let mut resolved = self.resolved.lock().expect("resolved lock");
         let stream = resolved.take().expect("single smoke stream");
         assert_eq!(request.peer_label, "request-1");
+        assert_eq!(request.target_host, "example.com");
+        assert_eq!(request.target_port, 443);
         Ok(stream)
     }
 

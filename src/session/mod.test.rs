@@ -269,6 +269,8 @@ async fn resolve_stream_updates_state_after_successful_transport_selection() {
             session_id,
             &TransportRequest {
                 peer_label: "peer-resolve".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )
@@ -386,6 +388,8 @@ async fn resolve_stream_surfaces_transport_failure_deterministically() {
             session_id,
             &TransportRequest {
                 peer_label: "peer-fail".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )
@@ -438,6 +442,8 @@ async fn resolve_stream_rejects_sessions_that_stopped_accepting_new_streams() {
             session_id,
             &TransportRequest {
                 peer_label: "peer-draining".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )

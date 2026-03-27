@@ -78,6 +78,25 @@ fn build_gateway(
 #[tokio::test]
 async fn valid_tls_plus_wss_handshake_returns_resolved_stream() {
     let (_dir, tls) = write_tls_fixture();
+    let upstream_listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("upstream listener should bind");
+    let upstream_addr = upstream_listener
+        .local_addr()
+        .expect("upstream addr should resolve");
+    let upstream_task = tokio::spawn(async move {
+        let (mut upstream_stream, _) = upstream_listener.accept().await.expect("accept upstream");
+        let mut buffer = [0_u8; 9];
+        upstream_stream
+            .read_exact(&mut buffer)
+            .await
+            .expect("upstream should read bytes");
+        assert_eq!(&buffer, b"hello-wss");
+        upstream_stream
+            .write_all(b"hello-wss")
+            .await
+            .expect("upstream should write bytes");
+    });
     let listener = TcpListener::bind("127.0.0.1:0")
         .await
         .expect("listener should bind");
@@ -93,6 +112,8 @@ async fn valid_tls_plus_wss_handshake_returns_resolved_stream() {
         .open_stream(
             &TransportRequest {
                 peer_label: "client-01".to_string(),
+                target_host: upstream_addr.ip().to_string(),
+                target_port: upstream_addr.port(),
             },
             CancellationToken::new(),
         )
@@ -116,6 +137,7 @@ async fn valid_tls_plus_wss_handshake_returns_resolved_stream() {
 
     client_gateway.stop_accept();
     server_gateway.stop_accept();
+    upstream_task.await.expect("upstream task should join");
     assert!(server_task.await.expect("server task should join").is_ok());
 }
 
@@ -130,6 +152,8 @@ async fn cancel_before_open_returns_err_and_spawns_no_tasks() {
         .open_stream(
             &TransportRequest {
                 peer_label: "client-01".to_string(),
+                target_host: "127.0.0.1".to_string(),
+                target_port: 65535,
             },
             cancel,
         )
@@ -175,6 +199,8 @@ async fn cancel_during_open_returns_err_and_socket_closes() {
         .open_stream(
             &TransportRequest {
                 peer_label: "client-01".to_string(),
+                target_host: "127.0.0.1".to_string(),
+                target_port: server_addr.port(),
             },
             cancel,
         )
@@ -196,6 +222,8 @@ async fn failed_open_does_not_leak_tracked_tasks() {
         .open_stream(
             &TransportRequest {
                 peer_label: "client-01".to_string(),
+                target_host: "127.0.0.1".to_string(),
+                target_port: 9,
             },
             CancellationToken::new(),
         )

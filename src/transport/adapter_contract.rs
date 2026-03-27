@@ -1,5 +1,5 @@
 // FILE: src/transport/adapter_contract.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Define the shared adapter contract for transport implementations.
 //   SCOPE: Adapter open_stream behavior, typed transport request, and adapter-scoped task tracker access.
@@ -13,7 +13,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added the missing change summary block so the shared adapter contract satisfies GRACE governed-file markup requirements.
+//   LAST_CHANGE: v0.1.2 - Extended transport requests with target host and port so adapters can open real outbound proxy streams.
 // END_CHANGE_SUMMARY
 
 use async_trait::async_trait;
@@ -25,6 +25,8 @@ use crate::transport::task_tracker::AdapterTaskTracker;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TransportRequest {
     pub peer_label: String,
+    pub target_host: String,
+    pub target_port: u16,
 }
 
 #[async_trait]

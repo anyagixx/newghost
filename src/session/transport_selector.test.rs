@@ -132,6 +132,8 @@ async fn iroh_success_skips_wss_fallback() {
         .open_stream(
             &TransportRequest {
                 peer_label: "peer-a".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )
@@ -168,6 +170,8 @@ async fn iroh_timeout_falls_back_to_wss() {
         .open_stream(
             &TransportRequest {
                 peer_label: "peer-b".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )
@@ -201,6 +205,8 @@ async fn both_attempts_fail_with_combined_diagnostics() {
         .open_stream(
             &TransportRequest {
                 peer_label: "peer-c".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )
@@ -257,6 +263,8 @@ async fn explicit_cancel_stops_selection() {
         .open_stream(
             &TransportRequest {
                 peer_label: "peer-d".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             cancel,
         )
@@ -299,6 +307,8 @@ async fn safety_timeout_surfaces_contract_violation() {
         .open_stream(
             &TransportRequest {
                 peer_label: "peer-safety".to_string(),
+                target_host: "example.com".to_string(),
+                target_port: 443,
             },
             CancellationToken::new(),
         )

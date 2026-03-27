@@ -1,5 +1,5 @@
 // FILE: src/proxy_bridge/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Consume ProxyIntent work items, resolve generic transport streams through SessionManager, and relay bytes bidirectionally with bounded request lifetime and drain behavior.
 //   SCOPE: Worker loop, per-intent orchestration, bidirectional stream pumping, active-task drain, and session lifecycle notification.
@@ -17,7 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Hardened pump shutdown semantics so timeout, drain, and post-reply failures always close both directions and notify session lifecycle handlers.
+//   LAST_CHANGE: v0.1.2 - Propagated proxy target host and port into transport resolution so live WSS sessions can open real outbound destinations.
 // END_CHANGE_SUMMARY
 
 use std::sync::Arc;
@@ -31,7 +31,7 @@ use tokio_util::task::TaskTracker;
 use tracing::{info, warn};
 
 use crate::session::{SessionControl, SessionEvent, SessionManagerError, SessionRequest};
-use crate::socks5::{ProxyError, ProxyIntent, Socks5Proxy, Socks5Reply};
+use crate::socks5::{ProxyError, ProxyIntent, Socks5Proxy, Socks5Reply, TargetAddr};
 use crate::transport::adapter_contract::TransportRequest;
 use crate::transport::stream::ResolvedStream;
 
@@ -134,6 +134,8 @@ where
 
         let resolve_request = TransportRequest {
             peer_label: format!("request-{}", intent.request_id),
+            target_host: target_host(&intent.target),
+            target_port: target_port(&intent.target),
         };
         let cancel = self.drain_token.child_token();
         let resolved = match tokio::time::timeout(
@@ -266,5 +268,19 @@ fn map_session_error(error: SessionManagerError) -> ProxyError {
         SessionManagerError::TransportResolutionFailed(err) => {
             ProxyError::TransportFailed(err.to_string())
         }
+    }
+}
+
+fn target_host(target: &TargetAddr) -> String {
+    match target {
+        TargetAddr::Ip(socket_addr) => socket_addr.ip().to_string(),
+        TargetAddr::Domain(domain, _) => domain.clone(),
+    }
+}
+
+fn target_port(target: &TargetAddr) -> u16 {
+    match target {
+        TargetAddr::Ip(socket_addr) => socket_addr.port(),
+        TargetAddr::Domain(_, port) => *port,
     }
 }

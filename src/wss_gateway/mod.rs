@@ -1,8 +1,8 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Create WSS-backed transport streams by composing TCP, TLS, websocket upgrade, and auth validation under the shared adapter contract without owning transport selection logic.
-//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, adapter-scoped task tracking, and cleanup-sensitive shutdown paths.
+//   PURPOSE: Create WSS-backed transport streams by composing TCP, TLS, websocket upgrade, auth validation, and remote target relay under the shared adapter contract without owning transport selection logic.
+//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, adapter-scoped task tracking, and cleanup-sensitive shutdown paths.
 //   DEPENDS: std, async-trait, futures-util, http, thiserror, tokio, tokio-tungstenite, tokio-util, tracing, src/tls/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/transport/*
 //   LINKS: M-WSS-GATEWAY, M-TLS, M-AUTH, M-OBS, V-M-WSS-GATEWAY, DF-WSS-HANDSHAKE
 // END_MODULE_CONTRACT
@@ -18,7 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Created Phase 2 WSS adapter with shared transport contracts, tracked bridge tasks, and contract tests.
+//   LAST_CHANGE: v0.1.2 - Replaced the placeholder echo server path with a target-aware TCP relay so WSS streams can proxy real outbound traffic.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -75,6 +75,10 @@ pub enum WssError {
     AuthRejected(String),
     #[error("invalid websocket uri: {0}")]
     InvalidWebsocketUri(String),
+    #[error("target connect failed: {0}")]
+    TargetConnectFailed(String),
+    #[error("invalid target request: {0}")]
+    InvalidTargetRequest(String),
 }
 
 #[derive(Clone)]
@@ -117,7 +121,7 @@ impl WssGateway {
     //   PURPOSE: Start the remote WSS listener and wrap accepted sessions into transport streams.
     //   INPUTS: { listener: TcpListener - bound TCP listener used for TLS and websocket accept }
     //   OUTPUTS: { Result<(), WssError> - server loop termination status }
-    //   SIDE_EFFECTS: [accepts TCP connections, performs TLS and websocket handshakes, validates auth, and echoes binary payloads]
+    //   SIDE_EFFECTS: [accepts TCP connections, performs TLS and websocket handshakes, validates auth, connects to the requested target, and relays bytes]
     //   LINKS: [M-WSS-GATEWAY, M-TLS, M-AUTH]
     // END_CONTRACT: run_server
     pub async fn run_server(&self, listener: TcpListener) -> Result<(), WssError> {
@@ -193,7 +197,7 @@ impl WssGateway {
                     peer = %peer_label,
                     "[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT] accepted WSS handshake"
                 );
-                self.server_echo_loop(websocket).await
+                self.server_proxy_loop(websocket).await
             }
             AuthDecision::Reject(rejection) => {
                 let _ = websocket.close(None).await;
@@ -202,29 +206,77 @@ impl WssGateway {
         }
     }
 
-    async fn server_echo_loop<S>(&self, mut websocket: WebSocketStream<S>) -> Result<(), WssError>
+    async fn server_proxy_loop<S>(&self, mut websocket: WebSocketStream<S>) -> Result<(), WssError>
     where
         S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
     {
-        while let Some(message) = websocket.next().await {
-            match message.map_err(|err| WssError::UpgradeFailed(err.to_string()))? {
-                Message::Binary(bytes) => {
-                    websocket
-                        .send(Message::Binary(bytes))
-                        .await
-                        .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
-                }
-                Message::Close(_) => break,
-                Message::Ping(payload) => {
-                    websocket
-                        .send(Message::Pong(payload))
-                        .await
-                        .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
-                }
-                Message::Text(_) | Message::Pong(_) | Message::Frame(_) => {}
-            }
-        }
+        let target_message = websocket
+            .next()
+            .await
+            .ok_or_else(|| WssError::InvalidTargetRequest("missing target request".to_string()))?
+            .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
+        let (target_host, target_port) = parse_target_request(target_message)?;
+        let target_stream = TcpStream::connect((target_host.as_str(), target_port))
+            .await
+            .map_err(|err| WssError::TargetConnectFailed(err.to_string()))?;
 
+        websocket
+            .send(Message::Text("connected".into()))
+            .await
+            .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
+
+        let (mut ws_sink, mut ws_stream) = websocket.split();
+        let (mut target_reader, mut target_writer) = target_stream.into_split();
+
+        let websocket_to_target = async {
+            while let Some(message) = ws_stream.next().await {
+                match message.map_err(|err| WssError::UpgradeFailed(err.to_string()))? {
+                    Message::Binary(bytes) => {
+                        target_writer
+                            .write_all(&bytes)
+                            .await
+                            .map_err(|err| WssError::TargetConnectFailed(err.to_string()))?;
+                    }
+                    Message::Text(text) => {
+                        target_writer
+                            .write_all(text.as_bytes())
+                            .await
+                            .map_err(|err| WssError::TargetConnectFailed(err.to_string()))?;
+                    }
+                    Message::Close(_) => {
+                        let _ = target_writer.shutdown().await;
+                        break;
+                    }
+                    Message::Ping(_) => {}
+                    Message::Pong(_) | Message::Frame(_) => {}
+                }
+            }
+
+            Ok::<(), WssError>(())
+        };
+
+        let target_to_websocket = async {
+            let mut buffer = [0_u8; 8192];
+            loop {
+                let bytes_read = target_reader
+                    .read(&mut buffer)
+                    .await
+                    .map_err(|err| WssError::TargetConnectFailed(err.to_string()))?;
+                if bytes_read == 0 {
+                    let _ = ws_sink.send(Message::Close(None)).await;
+                    break;
+                }
+
+                ws_sink
+                    .send(Message::Binary(buffer[..bytes_read].to_vec().into()))
+                    .await
+                    .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
+            }
+
+            Ok::<(), WssError>(())
+        };
+
+        tokio::try_join!(websocket_to_target, target_to_websocket)?;
         Ok(())
     }
 
@@ -395,6 +447,37 @@ impl TransportAdapter for WssGateway {
             }
         }
 
+        websocket
+            .send(Message::Text(
+                format!("CONNECT {} {}", request.target_host, request.target_port).into(),
+            ))
+            .await
+            .map_err(|err| WssError::HandshakeFailed(err.to_string()))?;
+
+        let target_ack = tokio::select! {
+            _ = cancel.cancelled() => Err(WssError::Cancelled),
+            next = websocket.next() => {
+                next.ok_or_else(|| WssError::HandshakeFailed("missing target ack".to_string()))
+                    .and_then(|frame| frame.map_err(|err| WssError::HandshakeFailed(err.to_string())))
+            }
+        }?;
+
+        match target_ack {
+            Message::Text(text) if text == "connected" => {}
+            Message::Binary(bytes) if bytes.as_ref() == b"connected" => {}
+            Message::Text(text) => return Err(WssError::TargetConnectFailed(text.to_string())),
+            Message::Binary(bytes) => {
+                return Err(WssError::TargetConnectFailed(
+                    String::from_utf8_lossy(&bytes).to_string(),
+                ))
+            }
+            Message::Ping(_) | Message::Pong(_) | Message::Close(_) | Message::Frame(_) => {
+                return Err(WssError::HandshakeFailed(
+                    "unexpected target ack message type".to_string(),
+                ))
+            }
+        }
+
         let (local_stream, bridge_stream) = duplex(32 * 1024);
         let lifecycle = Arc::new(BridgeLifecycle {
             active_tasks: AtomicUsize::new(2),
@@ -429,6 +512,37 @@ impl TransportAdapter for WssGateway {
     fn task_tracker(&self) -> &AdapterTaskTracker {
         self.task_tracker()
     }
+}
+
+fn parse_target_request(message: Message) -> Result<(String, u16), WssError> {
+    let text = match message {
+        Message::Text(text) => text.to_string(),
+        Message::Binary(bytes) => {
+            String::from_utf8(bytes.to_vec()).map_err(|_| {
+                WssError::InvalidTargetRequest("target request must be valid UTF-8".to_string())
+            })?
+        }
+        Message::Ping(_) | Message::Pong(_) | Message::Close(_) | Message::Frame(_) => {
+            return Err(WssError::InvalidTargetRequest(
+                "unsupported target request message type".to_string(),
+            ))
+        }
+    };
+
+    let mut parts = text.splitn(3, ' ');
+    let method = parts.next().unwrap_or_default();
+    let host = parts.next().unwrap_or_default();
+    let port = parts.next().unwrap_or_default();
+
+    if method != "CONNECT" || host.trim().is_empty() || port.trim().is_empty() {
+        return Err(WssError::InvalidTargetRequest(text));
+    }
+
+    let port = port
+        .parse::<u16>()
+        .map_err(|_| WssError::InvalidTargetRequest(text.clone()))?;
+
+    Ok((host.to_string(), port))
 }
 
 fn finish_bridge_task(lifecycle: &Arc<BridgeLifecycle>) {
