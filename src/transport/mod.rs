@@ -1,5 +1,5 @@
 // FILE: src/transport/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Aggregate the governed transport helper modules behind one stable Rust module surface without adding transport logic.
 //   SCOPE: Top-level transport module exports for adapter contracts, transport streams, and adapter task tracking helpers.
