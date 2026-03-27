@@ -1,5 +1,5 @@
 // FILE: src/transport/adapter_contract.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Define the shared adapter contract for transport implementations.
 //   SCOPE: Adapter open_stream behavior, typed transport request, and adapter-scoped task tracker access.

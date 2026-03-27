@@ -1,10 +1,10 @@
 // FILE: src/lib.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Expose the currently implemented GRACE modules for the n0wss crate.
 //   SCOPE: Library module registration and re-exports.
-//   DEPENDS: src/config/mod.rs
-//   LINKS: M-CONFIG
+//   DEPENDS: src/auth/mod.rs, src/cli/mod.rs, src/config/mod.rs, src/iroh_adapter/mod.rs, src/obs/mod.rs, src/proxy_bridge/mod.rs, src/session/mod.rs, src/socks5/mod.rs, src/tls/mod.rs, src/transport/mod.rs, src/wss_gateway/mod.rs
+//   LINKS: M-CRATE-ROOT, V-M-CRATE-ROOT, M-AUTH, M-CLI, M-CONFIG, M-IROH-ADAPTER, M-OBS, M-PROXY-BRIDGE, M-SESSION, M-SOCKS5, M-TLS, M-WSS-GATEWAY
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -22,7 +22,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added a crate-level change summary so GRACE reviewer can track the governed root module cleanly before release.
+//   LAST_CHANGE: v0.1.2 - Reclassified the governed crate root as its own GRACE module so plan, graph, and verification artifacts match the real src/lib.rs surface.
 // END_CHANGE_SUMMARY
 
 pub mod auth;

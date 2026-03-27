@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.1">
+  <Project NAME="n0wss" VERSION="0.2.2">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -131,6 +131,67 @@
       </annotations>
     </M-SESSION>
 
+    <M-SESSION-EFFECT-HANDLER NAME="SessionEffectHandler" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Route top-level SessionEffect values to exactly one target component without embedding business logic.</purpose>
+      <path>src/session/effect_handler.rs</path>
+      <depends>M-SESSION</depends>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <annotations>
+        <fn-apply PURPOSE="Route one SessionEffect to its owning target." />
+        <fn-applyAll PURPOSE="Preserve effect order across a batch." />
+      </annotations>
+    </M-SESSION-EFFECT-HANDLER>
+
+    <M-SESSION-EFFECTS NAME="SessionEffects" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Represent top-level typed session effects and component-scoped command enums consumed by the session orchestrator.</purpose>
+      <path>src/session/effects.rs</path>
+      <depends>M-SESSION</depends>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <annotations>
+        <type-SessionEffect PURPOSE="Represent one top-level typed effect routed by target component." />
+        <type-RegistryCommand PURPOSE="Represent registry-specific commands emitted by pure transitions." />
+        <type-TimerCommand PURPOSE="Represent timer-specific commands emitted by pure transitions." />
+        <type-MetricEvent PURPOSE="Represent observability events emitted by pure transitions." />
+      </annotations>
+    </M-SESSION-EFFECTS>
+
+    <M-SESSION-REGISTRY NAME="SessionRegistry" TYPE="CORE_LOGIC" STATUS="implemented">
+      <purpose>Store session handles, enforce max-session capacity, and execute registry-targeted session effects.</purpose>
+      <path>src/session/registry.rs</path>
+      <depends>M-SESSION</depends>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <annotations>
+        <fn-tryReserve PURPOSE="Reserve one session slot without waiting." />
+        <fn-insert PURPOSE="Register one session handle and consume the reservation." />
+        <fn-remove PURPOSE="Deregister a session and release capacity deterministically." />
+        <fn-drainAll PURPOSE="Clear all tracked sessions and release capacity deterministically." />
+      </annotations>
+    </M-SESSION-REGISTRY>
+
+    <M-SESSION-STATE NAME="SessionStateMachine" TYPE="CORE_LOGIC" STATUS="implemented">
+      <purpose>Provide the pure per-session state machine used by the higher session orchestration layers.</purpose>
+      <path>src/session/state.rs</path>
+      <depends>M-SESSION</depends>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <annotations>
+        <fn-transition PURPOSE="Apply one pure transition and emit ordered typed effects." />
+        <type-SessionState PURPOSE="Represent Active, Closing, and Closed lifecycle states." />
+        <type-SessionEvent PURPOSE="Represent the pure transition input surface." />
+      </annotations>
+    </M-SESSION-STATE>
+
+    <M-SESSION-TRANSPORT-SELECTOR NAME="SessionTransportSelector" TYPE="CORE_LOGIC" STATUS="implemented">
+      <purpose>Choose iroh first and fall back to WSS sequentially under bounded timeouts and explicit cancellation.</purpose>
+      <path>src/session/transport_selector.rs</path>
+      <depends>M-SESSION, M-IROH-ADAPTER, M-WSS-GATEWAY</depends>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <annotations>
+        <fn-openStream PURPOSE="Resolve one transport stream with explicit iroh then WSS fallback behavior." />
+        <type-TransportSelector PURPOSE="Sequential iroh then WSS selection strategy." />
+        <type-TransportSelectError PURPOSE="Describe cancellation, safety-timeout, or combined transport failures." />
+      </annotations>
+    </M-SESSION-TRANSPORT-SELECTOR>
+
     <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Expose a local SOCKS5 ingress surface, normalize requests into ProxyIntent work items, and emit accurate client-visible reply codes on pre-pump failures.</purpose>
       <path>src/socks5/mod.rs</path>
@@ -161,15 +222,49 @@
       </annotations>
     </M-PROXY-BRIDGE>
 
-    <M-MARKUP-CLEANUP NAME="MarkupCleanup" TYPE="UTILITY" STATUS="implemented">
-      <purpose>Close the remaining GRACE markup debt in governed helper files before release.</purpose>
+    <M-TRANSPORT-ADAPTER-CONTRACT NAME="TransportAdapterContract" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Define the shared adapter contract and typed transport request used by WSS and iroh transport implementations.</purpose>
+      <path>src/transport/adapter_contract.rs</path>
+      <depends>M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <verification-ref>V-M-WSS-GATEWAY</verification-ref>
+      <annotations>
+        <type-TransportRequest PURPOSE="Carry peer label plus outbound target host and port for adapter resolution." />
+        <type-TransportAdapter PURPOSE="Expose the shared open_stream contract for transport implementations." />
+      </annotations>
+    </M-TRANSPORT-ADAPTER-CONTRACT>
+
+    <M-TRANSPORT-STREAM NAME="TransportStreamContract" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Define the transport-agnostic stream contract and resolved stream metadata shared by adapters and ProxyBridge.</purpose>
+      <path>src/transport/stream.rs</path>
+      <depends>M-PROXY-BRIDGE, M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
+      <annotations>
+        <type-TransportStream PURPOSE="Expose the minimal transport-agnostic stream trait used by adapter outputs." />
+        <type-ResolvedStream PURPOSE="Carry one transport stream plus transport kind metadata." />
+        <type-TransportKind PURPOSE="Discriminate Wss, IrohDirect, and IrohRelay for diagnostics." />
+      </annotations>
+    </M-TRANSPORT-STREAM>
+
+    <M-TRANSPORT-TASK-TRACKER NAME="TransportTaskTracker" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide adapter-scoped task tracking for cleanup-sensitive tests and shutdown coordination.</purpose>
+      <path>src/transport/task_tracker.rs</path>
+      <depends>M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <verification-ref>V-M-IROH-ADAPTER</verification-ref>
+      <annotations>
+        <type-AdapterTaskTracker PURPOSE="Wrap task tracking with adapter-scoped diagnostics." />
+        <type-TrackerTimeout PURPOSE="Represent bounded close-and-wait timeout failures." />
+      </annotations>
+    </M-TRANSPORT-TASK-TRACKER>
+
+    <M-CRATE-ROOT NAME="CrateRoot" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Expose the governed crate-root export surface and keep top-level module registration synchronized with the implementation.</purpose>
       <path>src/lib.rs</path>
       <depends>none</depends>
-      <verification-ref>V-M-MARKUP-CLEANUP</verification-ref>
+      <verification-ref>V-M-CRATE-ROOT</verification-ref>
       <annotations>
-        <fn-addChangeSummary PURPOSE="Add missing CHANGE_SUMMARY blocks to governed helper files." />
+        <fn-reexportModules PURPOSE="Expose the current governed modules through the crate root without adding runtime logic." />
       </annotations>
-    </M-MARKUP-CLEANUP>
+    </M-CRATE-ROOT>
 
     <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" STATUS="implemented">
       <purpose>Prepare GitHub-facing release documentation, quickstart, changelog, and operator notes that match the current implementation.</purpose>
@@ -321,8 +416,20 @@
     <CrossLink from="M-IROH-ADAPTER" to="M-OBS" relation="exports adapter cleanup evidence and task-tracker observability" />
     <CrossLink from="M-SESSION" to="M-WSS-GATEWAY" relation="uses WSS as fallback transport source" />
     <CrossLink from="M-SESSION" to="M-IROH-ADAPTER" relation="tries iroh transport before fallback" />
+    <CrossLink from="M-SESSION" to="M-SESSION-EFFECTS" relation="owns the top-level typed effect surface used by pure transitions" />
+    <CrossLink from="M-SESSION" to="M-SESSION-EFFECT-HANDLER" relation="dispatches ordered effects through the helper router" />
+    <CrossLink from="M-SESSION" to="M-SESSION-REGISTRY" relation="stores capacity-aware session records through the helper registry" />
+    <CrossLink from="M-SESSION" to="M-SESSION-STATE" relation="delegates pure lifecycle transitions to the helper state machine" />
+    <CrossLink from="M-SESSION" to="M-SESSION-TRANSPORT-SELECTOR" relation="delegates sequential iroh then WSS resolution to the helper selector" />
     <CrossLink from="M-SOCKS5" to="M-PROXY-BRIDGE" relation="forwards normalized ProxyIntent work items" />
     <CrossLink from="M-PROXY-BRIDGE" to="M-SESSION" relation="requests resolved streams and notifies lifecycle completion" />
+    <CrossLink from="M-WSS-GATEWAY" to="M-TRANSPORT-ADAPTER-CONTRACT" relation="implements the shared adapter contract for WSS streams" />
+    <CrossLink from="M-WSS-GATEWAY" to="M-TRANSPORT-STREAM" relation="produces transport-agnostic resolved streams for later bridge use" />
+    <CrossLink from="M-WSS-GATEWAY" to="M-TRANSPORT-TASK-TRACKER" relation="uses adapter-scoped task tracking for cleanup-sensitive tests and shutdown" />
+    <CrossLink from="M-IROH-ADAPTER" to="M-TRANSPORT-ADAPTER-CONTRACT" relation="implements the shared adapter contract for iroh streams" />
+    <CrossLink from="M-IROH-ADAPTER" to="M-TRANSPORT-STREAM" relation="produces transport-agnostic resolved streams for later bridge use" />
+    <CrossLink from="M-IROH-ADAPTER" to="M-TRANSPORT-TASK-TRACKER" relation="uses adapter-scoped task tracking for cleanup-sensitive tests and shutdown" />
+    <CrossLink from="M-PROXY-BRIDGE" to="M-TRANSPORT-STREAM" relation="consumes transport-agnostic resolved streams instead of transport-specific sockets" />
     <CrossLink from="M-SOCKS5" to="M-OBS" relation="emits reply-code and queue-pressure metrics" />
     <CrossLink from="M-RELEASE-DOCS" to="M-CLI" relation="documents real startup commands and release usage" />
     <CrossLink from="M-GITHUB-RELEASE" to="M-RELEASE-DOCS" relation="keeps GitHub release flow aligned with docs and release notes" />

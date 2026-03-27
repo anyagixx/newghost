@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.1">
+<DevelopmentPlan VERSION="0.2.2">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -316,7 +316,7 @@
       </observability>
       <verification-ref>V-M-SESSION</verification-ref>
       <notes>
-        <note-1>Internal structure is fixed as src/session/registry.rs, src/session/transport_selector.rs, src/session/state.rs, src/session/effects.rs, and src/session/effect_handler.rs within this module.</note-1>
+        <note-1>Internal structure is fixed as governed helper files under src/session/* and tracked as first-class graph nodes while remaining covered by the Session execution and verification surfaces.</note-1>
         <note-2>State machine must be a pure transition function with explicit SessionEffect values and no async or IO.</note-2>
         <note-3>SessionEffect top-level variants map to target components only; new subcommands must not change EffectHandler branch count.</note-3>
         <note-4>RegistryCommand and TimerCommand are local enum-hygiene concerns only; enforce small variant counts with module-local tests instead of changing architectural boundaries.</note-4>
@@ -398,27 +398,27 @@
       <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
       <notes>
         <note-1>ProxyBridge must never import WssGateway or IrohAdapter directly.</note-1>
-        <note-2>The shared transport contracts live in src/transport/stream.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs, and src/socks5/mod.rs but do not become separate GRACE modules.</note-2>
+        <note-2>The shared transport contracts live in governed helper files under src/transport/* and are tracked as first-class graph nodes while remaining covered by the transport-boundary and bridge verification surfaces.</note-2>
         <note-3>Pre-pump failures may produce a SOCKS5 reply; post-pump failures close the TCP path and do not remap reply codes.</note-3>
         <note-4>Both timeout and post-reply failure paths must still close local and transport write directions and notify SessionManager.</note-4>
       </notes>
     </M-PROXY-BRIDGE>
 
-    <M-MARKUP-CLEANUP NAME="MarkupCleanup" TYPE="UTILITY" LAYER="6" ORDER="1" STATUS="implemented">
+    <M-CRATE-ROOT NAME="CrateRoot" TYPE="UTILITY" LAYER="6" ORDER="1" STATUS="implemented">
       <contract>
-        <purpose>Close the remaining GRACE markup debt in governed helper files before release.</purpose>
+        <purpose>Expose the governed crate-root export surface and keep top-level module registration synchronized with the implementation.</purpose>
         <inputs>
-          <param name="governedFiles" type="Vec&lt;PathBuf&gt;" />
+          <param name="crateModules" type="Vec&lt;ModuleRef&gt;" />
         </inputs>
         <outputs>
-          <param name="markupState" type="MarkupReviewStatus" />
+          <param name="crateSurface" type="CrateModuleSurface" />
         </outputs>
         <errors>
-          <error code="MARKUP_INCOMPLETE" />
+          <error code="CRATE_ROOT_DRIFT" />
         </errors>
       </contract>
       <interface>
-        <export-addChangeSummary PURPOSE="Add missing CHANGE_SUMMARY blocks to governed files." />
+        <export-reexportModules PURPOSE="Expose the current governed modules through the crate root without adding runtime logic." />
       </interface>
       <depends>none</depends>
       <target>
@@ -426,14 +426,14 @@
         <tests>none</tests>
       </target>
       <observability>
-        <log-prefix>[MarkupCleanup]</log-prefix>
-        <critical-block>BLOCK_MARKUP_ALIGNMENT</critical-block>
+        <log-prefix>[CrateRoot]</log-prefix>
+        <critical-block>BLOCK_CRATE_ROOT_ALIGNMENT</critical-block>
       </observability>
-      <verification-ref>V-M-MARKUP-CLEANUP</verification-ref>
+      <verification-ref>V-M-CRATE-ROOT</verification-ref>
       <notes>
-        <note-1>This wave is intentionally narrow: only the four minor reviewer findings are in scope.</note-1>
+        <note-1>This governed module is the crate root itself, not a leftover markup-cleanup placeholder.</note-1>
       </notes>
-    </M-MARKUP-CLEANUP>
+    </M-CRATE-ROOT>
 
     <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" LAYER="6" ORDER="2" STATUS="implemented">
       <contract>
@@ -996,7 +996,7 @@
 
     <Phase-7 name="Release Readiness" status="done">
       <goal>Close the remaining markup debt, align release docs and GitHub workflows, and add a narrow smoke gate before external testing.</goal>
-      <step-1 module="M-MARKUP-CLEANUP" status="done" verification="V-M-MARKUP-CLEANUP">Close the remaining minor GRACE markup issues in governed helper files</step-1>
+      <step-1 module="M-CRATE-ROOT" status="done" verification="V-M-CRATE-ROOT">Align the governed crate-root export surface with the implemented module set</step-1>
       <step-2 module="M-RELEASE-DOCS" status="done" verification="V-M-RELEASE-DOCS">Prepare README, changelog, and operator-facing release documentation</step-2>
       <step-3 module="M-GITHUB-RELEASE" status="done" verification="V-M-GITHUB-RELEASE">Align GitHub CI and release workflow expectations with the repository state</step-3>
       <step-4 module="M-CLI-BIN" status="done" verification="V-M-CLI-BIN">Expose the deployable n0wss binary target required by release packaging and live staging</step-4>

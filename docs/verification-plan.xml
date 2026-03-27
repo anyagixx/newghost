@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.2">
+<VerificationPlan VERSION="0.2.3">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -320,6 +320,7 @@
         <assertion-1>Gateway must not embed transport-selection logic.</assertion-1>
         <assertion-2>Contract tests must cover cancel-before-open, cancel-during-open, no-leaked-tasks, and drop-cleanup behavior through the adapter task tracker.</assertion-2>
         <assertion-3>Generic contract tests must include socket-level cleanup checks for partially opened connections.</assertion-3>
+        <assertion-4>Governed helper files under src/transport/* that support WSS remain covered even when they are tracked as first-class graph nodes.</assertion-4>
       </required-trace-assertions>
       <wave-follow-up>Use WSS stream creation in fallback and proxy integration tests.</wave-follow-up>
       <phase-follow-up>Run shutdown and reconnect tests against both client and server modes.</phase-follow-up>
@@ -343,6 +344,7 @@
         <assertion-1>Transport failure must not leave leaked partial state after cancel or timeout.</assertion-1>
         <assertion-2>Contract tests must cover cancel-before-open, cancel-during-open, no-leaked-tasks, and drop-cleanup behavior through the adapter task tracker.</assertion-2>
         <assertion-3>Generic contract tests must include socket-level cleanup checks, and adapter-specific tests must cover adapter-owned resource release.</assertion-3>
+        <assertion-4>Governed helper files under src/transport/* that support iroh remain covered even when they are tracked as first-class graph nodes.</assertion-4>
       </required-trace-assertions>
       <wave-follow-up>Pair transport setup with selector fallback integration tests.</wave-follow-up>
       <phase-follow-up>Validate relay fallback behavior in a constrained network environment.</phase-follow-up>
@@ -375,6 +377,7 @@
         <assertion-4>SessionRegistry reserve and remove semantics free capacity deterministically.</assertion-4>
         <assertion-5>RegistryCommand and TimerCommand variant counts remain within locally defined hygiene limits.</assertion-5>
         <assertion-6>SessionManager rejects new stream resolution once a session stops accepting new streams, without invoking transport adapters.</assertion-6>
+        <assertion-7>Governed helper files under src/session/* remain covered by this session verification surface even when they are tracked as first-class graph nodes.</assertion-7>
       </required-trace-assertions>
       <wave-follow-up>Connect session lifecycle to proxy, fallback, and shutdown tests.</wave-follow-up>
       <phase-follow-up>Verify clean shutdown under repeated reconnect attempts.</phase-follow-up>
@@ -429,32 +432,25 @@
       <phase-follow-up>Run prolonged transfer, backpressure, and reconnect checks.</phase-follow-up>
     </V-M-PROXY-BRIDGE>
 
-    <V-M-MARKUP-CLEANUP MODULE="M-MARKUP-CLEANUP" PRIORITY="medium">
+    <V-M-CRATE-ROOT MODULE="M-CRATE-ROOT" PRIORITY="medium">
       <test-files>
         <file>src/lib.rs</file>
-        <file>src/transport/adapter_contract.rs</file>
-        <file>src/transport/stream.rs</file>
-        <file>src/transport/task_tracker.rs</file>
       </test-files>
       <module-checks>
         <check-1>cargo clippy --all-targets --all-features</check-1>
       </module-checks>
       <scenarios>
-        <scenario-1 kind="success">Governed helper files contain complete GRACE markup including CHANGE_SUMMARY.</scenario-1>
+        <scenario-1 kind="success">The governed crate root exposes the implemented module surface without stale exports or placeholder metadata.</scenario-1>
       </scenarios>
       <required-trace-assertions>
-        <assertion-1>The four targeted helper files no longer trigger reviewer findings for missing CHANGE_SUMMARY blocks.</assertion-1>
+        <assertion-1>The crate root contract, module map, and re-export surface stay synchronized with the implemented modules.</assertion-1>
       </required-trace-assertions>
-      <wave-follow-up>Run reviewer after the release wave lands.</wave-follow-up>
-      <phase-follow-up>Keep helper-file markup current during future refactors.</phase-follow-up>
-    </V-M-MARKUP-CLEANUP>
+      <wave-follow-up>Keep the crate root export list aligned with future module additions and removals.</wave-follow-up>
+      <phase-follow-up>Review crate-root metadata whenever the governed module surface changes.</phase-follow-up>
+    </V-M-CRATE-ROOT>
 
     <V-M-RELEASE-DOCS MODULE="M-RELEASE-DOCS" PRIORITY="medium">
-      <test-files>
-        <file>README.md</file>
-        <file>CHANGELOG.md</file>
-        <file>docs/OPERATORS.md</file>
-      </test-files>
+      <test-files />
       <module-checks>
         <check-1>cargo test -- --help</check-1>
       </module-checks>
@@ -470,10 +466,7 @@
     </V-M-RELEASE-DOCS>
 
     <V-M-GITHUB-RELEASE MODULE="M-GITHUB-RELEASE" PRIORITY="medium">
-      <test-files>
-        <file>.github/workflows/ci.yml</file>
-        <file>.github/workflows/release.yml</file>
-      </test-files>
+      <test-files />
       <module-checks>
         <check-1>cargo clippy --all-targets --all-features</check-1>
         <check-2>cargo test</check-2>
@@ -650,10 +643,7 @@
     </V-M-LIVE-PROXY-SMOKE>
 
     <V-M-LIVE-OBS-EVIDENCE MODULE="M-LIVE-OBS-EVIDENCE" PRIORITY="high">
-      <test-files>
-        <file>docs/verification-plan.xml</file>
-        <file>docs/OPERATORS.md</file>
-      </test-files>
+      <test-files />
       <module-checks>
         <check-1>ssh root@$N0WSS_SERVER_HOST 'tail -n 200 /var/log/n0wss-server.log'</check-1>
         <check-2>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client.log'</check-2>
