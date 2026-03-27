@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.3">
+<VerificationPlan VERSION="0.2.4">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -8,6 +8,7 @@
     <live-wave-focus>For the first two-host live wave, prove remote server readiness, remote client readiness, one deterministic SOCKS5 smoke request, one deterministic auth rejection, and clean shutdown with host-local evidence captured on both machines.</live-wave-focus>
     <redaction>Never log secrets, raw tokens, proxy credentials, TLS private keys, or proxied traffic payloads.</redaction>
     <remote-operator-rule>Credentials, passwords, and raw host access details stay outside repository artifacts; verification commands must consume them via operator-provided environment variables or an out-of-band secure channel.</remote-operator-rule>
+    <manual-docs-driven-rule>When a governed module is documentation-only, workflow-only, or evidence-only and has no repo-local test file, its test-files block points at docs/verification-plan.xml as the canonical review anchor and the real checks live in module-checks plus scenarios.</manual-docs-driven-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -450,7 +451,9 @@
     </V-M-CRATE-ROOT>
 
     <V-M-RELEASE-DOCS MODULE="M-RELEASE-DOCS" PRIORITY="medium">
-      <test-files />
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
       <module-checks>
         <check-1>cargo test -- --help</check-1>
       </module-checks>
@@ -461,12 +464,15 @@
       <required-trace-assertions>
         <assertion-1>Release docs reference only paths and commands that exist in the repository.</assertion-1>
       </required-trace-assertions>
+      <assertion-note>Manual/docs-driven verification uses this verification entry as the canonical review anchor because no repo-local test file exists for the docs surface.</assertion-note>
       <wave-follow-up>Use release docs in manual smoke testing.</wave-follow-up>
       <phase-follow-up>Update changelog and quickstart at each release cut.</phase-follow-up>
     </V-M-RELEASE-DOCS>
 
     <V-M-GITHUB-RELEASE MODULE="M-GITHUB-RELEASE" PRIORITY="medium">
-      <test-files />
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
       <module-checks>
         <check-1>cargo clippy --all-targets --all-features</check-1>
         <check-2>cargo test</check-2>
@@ -478,6 +484,7 @@
       <required-trace-assertions>
         <assertion-1>Workflow commands must match the repository's current release gates.</assertion-1>
       </required-trace-assertions>
+      <assertion-note>Manual/docs-driven verification uses this verification entry as the canonical review anchor because workflow validation is command- and artifact-driven rather than test-file-driven.</assertion-note>
       <wave-follow-up>Run the workflow on a branch before cutting a release tag.</wave-follow-up>
       <phase-follow-up>Keep release automation source-first until binary packaging is stabilized.</phase-follow-up>
     </V-M-GITHUB-RELEASE>
@@ -643,7 +650,9 @@
     </V-M-LIVE-PROXY-SMOKE>
 
     <V-M-LIVE-OBS-EVIDENCE MODULE="M-LIVE-OBS-EVIDENCE" PRIORITY="high">
-      <test-files />
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
       <module-checks>
         <check-1>ssh root@$N0WSS_SERVER_HOST 'tail -n 200 /var/log/n0wss-server.log'</check-1>
         <check-2>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client.log'</check-2>
@@ -655,6 +664,7 @@
       <required-trace-assertions>
         <assertion-1>Evidence packets must stay small enough for follow-up analysis and must redact secrets.</assertion-1>
       </required-trace-assertions>
+      <assertion-note>Manual/docs-driven verification uses this verification entry as the canonical review anchor because the evidence surface is produced on remote hosts rather than by a repo-local test file.</assertion-note>
       <wave-follow-up>Reuse the same evidence layout for both success and failure packets in the first live phase.</wave-follow-up>
       <phase-follow-up>Move the evidence procedure into stable operator runbooks after the first live phase passes.</phase-follow-up>
     </V-M-LIVE-OBS-EVIDENCE>

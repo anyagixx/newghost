@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.2">
+<DevelopmentPlan VERSION="0.2.3">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -323,6 +323,173 @@
       </notes>
     </M-SESSION>
 
+    <M-SESSION-EFFECT-HANDLER NAME="SessionEffectHandler" TYPE="UTILITY" LAYER="3" ORDER="5.1" STATUS="implemented">
+      <contract>
+        <purpose>Route top-level SessionEffect values to exactly one target component without embedding business logic.</purpose>
+        <inputs>
+          <param name="sessionEffect" type="SessionEffect" />
+        </inputs>
+        <outputs>
+          <param name="applyResult" type="Unit" />
+        </outputs>
+        <errors>
+          <error code="EFFECT_ROUTING_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-apply PURPOSE="Route one SessionEffect to its owning target." />
+        <export-applyAll PURPOSE="Preserve effect order across a batch." />
+      </interface>
+      <depends>M-SESSION</depends>
+      <target>
+        <source>src/session/effect_handler.rs</source>
+        <tests>src/session/effect_handler.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[SessionEffectHandler]</log-prefix>
+        <critical-block>BLOCK_EFFECT_HANDLER_ROUTING</critical-block>
+      </observability>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
+      </notes>
+    </M-SESSION-EFFECT-HANDLER>
+
+    <M-SESSION-EFFECTS NAME="SessionEffects" TYPE="UTILITY" LAYER="3" ORDER="5.2" STATUS="implemented">
+      <contract>
+        <purpose>Represent top-level typed session effects and component-scoped command enums consumed by the session orchestrator.</purpose>
+        <inputs>
+          <param name="transitionOutputs" type="TransitionOutputs" />
+        </inputs>
+        <outputs>
+          <param name="sessionEffects" type="Vec&lt;SessionEffect&gt;" />
+        </outputs>
+        <errors>
+          <error code="ENUM_SURFACE_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-sessionEffect PURPOSE="Represent one top-level typed effect routed by target component." />
+        <export-registryCommand PURPOSE="Represent registry-specific commands emitted by pure transitions." />
+        <export-timerCommand PURPOSE="Represent timer-specific commands emitted by pure transitions." />
+        <export-metricEvent PURPOSE="Represent observability events emitted by pure transitions." />
+      </interface>
+      <depends>M-SESSION</depends>
+      <target>
+        <source>src/session/effects.rs</source>
+        <tests>src/session/effects.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[SessionEffects]</log-prefix>
+        <critical-block>BLOCK_SESSION_EFFECT_SURFACE</critical-block>
+      </observability>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
+      </notes>
+    </M-SESSION-EFFECTS>
+
+    <M-SESSION-REGISTRY NAME="SessionRegistry" TYPE="CORE_LOGIC" LAYER="3" ORDER="5.3" STATUS="implemented">
+      <contract>
+        <purpose>Store session handles, enforce max-session capacity, and execute registry-targeted session effects.</purpose>
+        <inputs>
+          <param name="sessionRequest" type="SessionRequest" />
+        </inputs>
+        <outputs>
+          <param name="sessionHandle" type="SessionHandle" />
+        </outputs>
+        <errors>
+          <error code="SESSION_LIMIT_REACHED" />
+          <error code="SESSION_NOT_FOUND" />
+        </errors>
+      </contract>
+      <interface>
+        <export-tryReserve PURPOSE="Reserve one session slot without waiting." />
+        <export-insert PURPOSE="Register one session handle and consume the reservation." />
+        <export-remove PURPOSE="Deregister a session and release capacity deterministically." />
+        <export-drainAll PURPOSE="Clear all tracked sessions and release capacity deterministically." />
+      </interface>
+      <depends>M-SESSION</depends>
+      <target>
+        <source>src/session/registry.rs</source>
+        <tests>src/session/registry.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[SessionRegistry]</log-prefix>
+        <critical-block>BLOCK_REGISTRY_CAPACITY</critical-block>
+      </observability>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
+      </notes>
+    </M-SESSION-REGISTRY>
+
+    <M-SESSION-STATE NAME="SessionStateMachine" TYPE="CORE_LOGIC" LAYER="3" ORDER="5.4" STATUS="implemented">
+      <contract>
+        <purpose>Provide the pure per-session state machine used by the higher session orchestration layers.</purpose>
+        <inputs>
+          <param name="sessionState" type="SessionState" />
+          <param name="sessionEvent" type="SessionEvent" />
+        </inputs>
+        <outputs>
+          <param name="transitionResult" type="TransitionResult" />
+        </outputs>
+        <errors>
+          <error code="INVALID_TRANSITION" />
+        </errors>
+      </contract>
+      <interface>
+        <export-transition PURPOSE="Apply one pure transition and emit ordered typed effects." />
+        <export-sessionState PURPOSE="Represent Active, Closing, and Closed session lifecycle states." />
+        <export-sessionEvent PURPOSE="Represent the pure transition input surface." />
+      </interface>
+      <depends>M-SESSION</depends>
+      <target>
+        <source>src/session/state.rs</source>
+        <tests>src/session/state.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[SessionStateMachine]</log-prefix>
+        <critical-block>BLOCK_STATE_TRANSITION</critical-block>
+      </observability>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
+      </notes>
+    </M-SESSION-STATE>
+
+    <M-SESSION-TRANSPORT-SELECTOR NAME="SessionTransportSelector" TYPE="CORE_LOGIC" LAYER="3" ORDER="5.5" STATUS="implemented">
+      <contract>
+        <purpose>Choose iroh first and fall back to WSS sequentially under bounded timeouts and explicit cancellation.</purpose>
+        <inputs>
+          <param name="transportRequest" type="TransportRequest" />
+        </inputs>
+        <outputs>
+          <param name="resolvedStream" type="ResolvedStream" />
+        </outputs>
+        <errors>
+          <error code="TRANSPORT_SELECTION_FAILED" />
+          <error code="CONTRACT_VIOLATION" />
+        </errors>
+      </contract>
+      <interface>
+        <export-openStream PURPOSE="Resolve one transport stream with explicit iroh then WSS fallback behavior." />
+      </interface>
+      <depends>M-SESSION, M-IROH-ADAPTER, M-WSS-GATEWAY</depends>
+      <target>
+        <source>src/session/transport_selector.rs</source>
+        <tests>src/session/transport_selector.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[SessionTransportSelector]</log-prefix>
+        <critical-block>BLOCK_SELECT_TRANSPORT</critical-block>
+      </observability>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
+      </notes>
+    </M-SESSION-TRANSPORT-SELECTOR>
+
     <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" LAYER="4" ORDER="1" STATUS="implemented">
       <contract>
         <purpose>Expose a local SOCKS5 endpoint, parse handshake and CONNECT requests, emit normalized ProxyIntent items into a bounded work queue, and return accurate client-visible reply codes on pre-pump failures.</purpose>
@@ -403,6 +570,103 @@
         <note-4>Both timeout and post-reply failure paths must still close local and transport write directions and notify SessionManager.</note-4>
       </notes>
     </M-PROXY-BRIDGE>
+
+    <M-TRANSPORT-ADAPTER-CONTRACT NAME="TransportAdapterContract" TYPE="UTILITY" LAYER="5" ORDER="1.1" STATUS="implemented">
+      <contract>
+        <purpose>Define the shared adapter contract and typed transport request used by WSS and iroh transport implementations.</purpose>
+        <inputs>
+          <param name="transportRequest" type="TransportRequest" />
+        </inputs>
+        <outputs>
+          <param name="resolvedStream" type="ResolvedStream" />
+        </outputs>
+        <errors>
+          <error code="ADAPTER_CONTRACT_VIOLATION" />
+        </errors>
+      </contract>
+      <interface>
+        <export-transportRequest PURPOSE="Carry peer label plus outbound target host and port for adapter resolution." />
+        <export-transportAdapter PURPOSE="Expose the shared open_stream contract for transport implementations." />
+      </interface>
+      <depends>M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <target>
+        <source>src/transport/adapter_contract.rs</source>
+        <tests>src/wss_gateway/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[TransportAdapterContract]</log-prefix>
+        <critical-block>BLOCK_TRANSPORT_ADAPTER_CONTRACT</critical-block>
+      </observability>
+      <verification-ref>V-M-WSS-GATEWAY</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under the transport-boundary modules and inherits their verification surfaces.</note-1>
+      </notes>
+    </M-TRANSPORT-ADAPTER-CONTRACT>
+
+    <M-TRANSPORT-STREAM NAME="TransportStreamContract" TYPE="UTILITY" LAYER="5" ORDER="1.2" STATUS="implemented">
+      <contract>
+        <purpose>Define the transport-agnostic stream contract and resolved stream metadata shared by adapters and ProxyBridge.</purpose>
+        <inputs>
+          <param name="transportStream" type="TransportStream" />
+        </inputs>
+        <outputs>
+          <param name="resolvedStream" type="ResolvedStream" />
+        </outputs>
+        <errors>
+          <error code="STREAM_CONTRACT_VIOLATION" />
+        </errors>
+      </contract>
+      <interface>
+        <export-transportStream PURPOSE="Expose the minimal transport-agnostic stream trait used by adapter outputs." />
+        <export-resolvedStream PURPOSE="Carry one transport stream plus transport kind metadata." />
+        <export-transportKind PURPOSE="Discriminate Wss, IrohDirect, and IrohRelay for diagnostics." />
+      </interface>
+      <depends>M-PROXY-BRIDGE, M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <target>
+        <source>src/transport/stream.rs</source>
+        <tests>src/proxy_bridge/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[TransportStreamContract]</log-prefix>
+        <critical-block>BLOCK_TRANSPORT_STREAM_CONTRACT</critical-block>
+      </observability>
+      <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under bridge and transport-boundary modules and inherits their verification surfaces.</note-1>
+      </notes>
+    </M-TRANSPORT-STREAM>
+
+    <M-TRANSPORT-TASK-TRACKER NAME="TransportTaskTracker" TYPE="UTILITY" LAYER="5" ORDER="1.3" STATUS="implemented">
+      <contract>
+        <purpose>Provide adapter-scoped task tracking for cleanup-sensitive tests and shutdown coordination.</purpose>
+        <inputs>
+          <param name="trackedTask" type="Future" />
+        </inputs>
+        <outputs>
+          <param name="taskTracker" type="AdapterTaskTracker" />
+        </outputs>
+        <errors>
+          <error code="TRACKER_TIMEOUT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-adapterTaskTracker PURPOSE="Wrap task tracking with adapter-scoped diagnostics." />
+        <export-closeAndWait PURPOSE="Wait for tracked tasks to finish under a bounded timeout." />
+      </interface>
+      <depends>M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <target>
+        <source>src/transport/task_tracker.rs</source>
+        <tests>src/iroh_adapter/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[TransportTaskTracker]</log-prefix>
+        <critical-block>BLOCK_ADAPTER_TASK_TRACKER</critical-block>
+      </observability>
+      <verification-ref>V-M-IROH-ADAPTER</verification-ref>
+      <notes>
+        <note-1>This helper stays execution-scoped under the transport-boundary modules and inherits their verification surfaces.</note-1>
+      </notes>
+    </M-TRANSPORT-TASK-TRACKER>
 
     <M-CRATE-ROOT NAME="CrateRoot" TYPE="UTILITY" LAYER="6" ORDER="1" STATUS="implemented">
       <contract>
