@@ -103,6 +103,7 @@
         <fn-handleEvent PURPOSE="Interpret pure state effects and dispatch them." />
         <fn-shutdown PURPOSE="Drain registry and close sessions during shutdown." />
         <type-SessionManagerConfig PURPOSE="Carry idle and graceful shutdown timing into the thin orchestrator." />
+        <type-SessionManagerError PURPOSE="Report deterministic session-not-found, session-limit, draining-session, and transport-resolution failures." />
         <type-SessionEffect PURPOSE="Route pure state-machine outputs to registry, timer, or metric targets." />
         <type-SessionHandle PURPOSE="Provide cloneable access to one registry-owned session record." />
         <type-SessionRecord PURPOSE="Store mutable state, idle timestamps, and new-stream admission flags per session." />

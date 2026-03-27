@@ -285,7 +285,7 @@
       </module-checks>
       <scenarios>
         <scenario-1 kind="success">TransportSelector chooses iroh first and falls back to WSS sequentially.</scenario-1>
-        <scenario-2 kind="failure">State transitions, effect dispatch, max-session limits, and contract violations remain deterministic.</scenario-2>
+        <scenario-2 kind="failure">State transitions, effect dispatch, max-session limits, draining-session rejection, and contract violations remain deterministic.</scenario-2>
       </scenarios>
       <required-log-markers>
         <marker-1>[SessionManager][handleEvent][BLOCK_APPLY_SESSION_EFFECTS]</marker-1>
@@ -297,6 +297,7 @@
         <assertion-3>EffectHandler branch count remains stable and new subcommands do not change its top-level routing structure.</assertion-3>
         <assertion-4>SessionRegistry reserve and remove semantics free capacity deterministically.</assertion-4>
         <assertion-5>RegistryCommand and TimerCommand variant counts remain within locally defined hygiene limits.</assertion-5>
+        <assertion-6>SessionManager rejects new stream resolution once a session stops accepting new streams, without invoking transport adapters.</assertion-6>
       </required-trace-assertions>
       <wave-follow-up>Connect session lifecycle to proxy, fallback, and shutdown tests.</wave-follow-up>
       <phase-follow-up>Verify clean shutdown under repeated reconnect attempts.</phase-follow-up>
