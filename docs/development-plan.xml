@@ -73,7 +73,7 @@
       </notes>
     </M-CONFIG>
 
-    <M-OBS NAME="Observability" TYPE="UTILITY" LAYER="0" ORDER="3" STATUS="planned">
+    <M-OBS NAME="Observability" TYPE="UTILITY" LAYER="0" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Initialize tracing, stable field propagation, metrics collection, sliding-window burst detection, peak-rate gauges, and redaction-aware logging behavior.</purpose>
         <inputs>
@@ -439,7 +439,7 @@
     <Phase-1 name="Foundation" status="pending">
       <goal>Define startup, config, logging, metrics, auth, TLS, limits, timeout, reply policy, retry, and burst primitives.</goal>
       <step-1 module="M-CONFIG" status="done" verification="V-M-CONFIG">Initialize configuration module with transport, queue, limit, timeout, retry, and burst settings</step-1>
-      <step-2 module="M-OBS" status="pending" verification="V-M-OBS">Initialize structured observability, metrics, sliding-window burst detection, and peak-rate reset</step-2>
+      <step-2 module="M-OBS" status="done" verification="V-M-OBS">Initialize structured observability, metrics, sliding-window burst detection, and peak-rate reset</step-2>
       <step-3 module="M-AUTH" status="pending" verification="V-M-AUTH">Implement authentication and redaction policy</step-3>
       <step-4 module="M-TLS" status="pending" verification="V-M-TLS">Build TLS context loading and validation</step-4>
     </Phase-1>

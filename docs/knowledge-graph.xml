@@ -27,7 +27,7 @@
       </annotations>
     </M-CONFIG>
 
-    <M-OBS NAME="Observability" TYPE="UTILITY" STATUS="planned">
+    <M-OBS NAME="Observability" TYPE="UTILITY" STATUS="implemented">
       <purpose>Initialize tracing, stable logging fields, metrics, sliding-window burst detection, and peak-rate diagnostics.</purpose>
       <path>src/obs/mod.rs</path>
       <depends>M-CONFIG</depends>
