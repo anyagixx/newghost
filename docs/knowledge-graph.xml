@@ -107,6 +107,7 @@
         <type-SessionState PURPOSE="Represent Active, Closing, and Closed states." />
         <type-SessionRegistry PURPOSE="Concurrent map and semaphore for session storage and capacity control." />
         <type-TransportSelector PURPOSE="Sequential transport selection strategy with timeout and fallback policy." />
+        <type-TransportSelectError PURPOSE="Describe cancellation, safety-timeout, or combined iroh and WSS resolution failures." />
         <type-EffectHandler PURPOSE="Stable top-level dispatcher for typed SessionEffect values." />
         <type-RegistryCommand PURPOSE="Local registry command enum with bounded variant count enforced by module tests." />
       </annotations>
