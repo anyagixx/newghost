@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: "Lint guard: exhaustive enum matching"
         run: |
@@ -20,5 +21,5 @@ jobs:
       - name: "Cargo clippy"
         run: cargo clippy --all-targets --all-features
 
-      - name: "SOCKS5 verification"
-        run: cargo test socks5
+      - name: "Cargo test"
+        run: cargo test
