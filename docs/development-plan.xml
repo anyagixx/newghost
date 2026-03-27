@@ -451,14 +451,14 @@
       <step-2 module="M-IROH-ADAPTER" status="done" verification="V-M-IROH-ADAPTER">Build iroh adapter, task tracker, and contract tests</step-2>
     </Phase-2>
 
-    <Phase-3 name="Session Core" status="pending">
+    <Phase-3 name="Session Core" status="done">
       <goal>Separate state transitions, effect routing, storage, and transport selection before building the orchestrator.</goal>
       <step-1 module="M-SESSION" status="done" verification="V-M-SESSION">Implement pure session state machine and effect generation</step-1>
       <step-2 module="M-SESSION" status="done" verification="V-M-SESSION">Implement top-level typed SessionEffect contract and stable EffectHandler routing</step-2>
       <step-3 module="M-SESSION" status="done" verification="V-M-SESSION">Implement SessionRegistry with semaphore limits and drain support</step-3>
       <step-4 module="M-SESSION" status="done" verification="V-M-SESSION">Implement TransportSelector with sequential fallback, safety timeout, and contract-violation handling</step-4>
       <step-5 module="M-SESSION" status="done" verification="V-M-SESSION">Implement thin SessionManager orchestrator over registry, selector, state machine, effect handler, and local enum-hygiene tests</step-5>
-      <step-6 module="M-CLI" status="pending" verification="V-M-CLI">Wire startup and graceful shutdown orchestration</step-6>
+      <step-6 module="M-CLI" status="done" verification="V-M-CLI">Wire startup and graceful shutdown orchestration</step-6>
     </Phase-3>
 
     <Phase-4 name="Proxy Ingress" status="pending">

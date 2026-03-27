@@ -386,7 +386,9 @@
     <Gate-Phase-3 PHASE="Phase-3">
       <goal>Session orchestration, typed effect dispatch, fallback, and state transitions are explicit and verifiable.</goal>
       <commands>
-        <command-1>cargo test session cli</command-1>
+        <command-1>cargo test session</command-1>
+        <command-2>cargo test cli</command-2>
+        <command-3>cargo clippy --all-targets --all-features</command-3>
       </commands>
       <required-evidence>
         <evidence-1>Registry, selector, pure transitions, and stable top-level effect routing are automated and green.</evidence-1>

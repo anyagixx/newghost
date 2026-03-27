@@ -12,6 +12,7 @@
         <fn-run PURPOSE="Parse startup arguments and launch the selected mode." />
         <fn-coordinateShutdown PURPOSE="Stop accepts, drain work, and release transports in order." />
         <type-ApplicationRunResult PURPOSE="Represent final startup or shutdown outcomes." />
+        <type-StartupArtifacts PURPOSE="Carry config, observability, auth policy, session timings, and optional TLS startup handles." />
       </annotations>
     </M-CLI>
 
