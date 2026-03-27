@@ -11,6 +11,7 @@
 //   cli - startup and graceful shutdown orchestration module
 //   config - configuration loading and validation module
 //   obs - observability bootstrap and burst detection module
+//   session - session core state machine and typed effect contracts
 //   auth - handshake authentication and redaction module
 //   transport - shared transport contracts used by transport adapters
 //   tls - TLS material loading and runtime context module
@@ -23,6 +24,7 @@ pub mod cli;
 pub mod config;
 pub mod iroh_adapter;
 pub mod obs;
+pub mod session;
 pub mod tls;
 pub mod transport;
 pub mod wss_gateway;
