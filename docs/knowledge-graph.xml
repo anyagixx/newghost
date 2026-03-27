@@ -227,7 +227,7 @@
       </annotations>
     </M-LIVE-BUILD-PACK>
 
-    <M-LIVE-TLS-BOOTSTRAP NAME="LiveTlsBootstrap" TYPE="INTEGRATION" STATUS="planned">
+    <M-LIVE-TLS-BOOTSTRAP NAME="LiveTlsBootstrap" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define the real TLS trust path for the first live WSS server and its client trust shape.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TLS, M-WSS-GATEWAY, M-CONFIG</depends>
@@ -236,6 +236,7 @@
         <fn-pinServerTlsPaths PURPOSE="Freeze server-side cert and key paths for the live wave." />
         <fn-pinClientTrust PURPOSE="Freeze the client trust material and endpoint identity." />
         <type-LiveTlsBootstrapRecord PURPOSE="Describes the approved live TLS layout and trust assumptions." />
+        <type-LiveTlsCertIdentity PURPOSE="Current first-wave certificate is self-signed for IP 91.99.128.146 and DNS ghost-srv with matching client trust copy." />
       </annotations>
     </M-LIVE-TLS-BOOTSTRAP>
 

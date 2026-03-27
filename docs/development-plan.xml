@@ -598,7 +598,7 @@
       </notes>
     </M-LIVE-BUILD-PACK>
 
-    <M-LIVE-TLS-BOOTSTRAP NAME="LiveTlsBootstrap" TYPE="INTEGRATION" LAYER="7" ORDER="3" STATUS="planned">
+    <M-LIVE-TLS-BOOTSTRAP NAME="LiveTlsBootstrap" TYPE="INTEGRATION" LAYER="7" ORDER="3" STATUS="done">
       <contract>
         <purpose>Define the minimal real TLS trust path for the first live WSS server and its client trust configuration.</purpose>
         <inputs>
@@ -629,6 +629,9 @@
       <verification-ref>V-M-LIVE-TLS-BOOTSTRAP</verification-ref>
       <notes>
         <note-1>The first live wave assumes direct TLS termination in n0wss rather than behind a reverse proxy.</note-1>
+        <note-2>Server host 91.99.128.146 now carries /opt/n0wss/certs/server.pem and /opt/n0wss/certs/server.key with a self-signed certificate valid from 2026-03-27 to 2026-04-26.</note-2>
+        <note-3>Client host 178.104.104.208 trusts the copied /opt/n0wss/certs/server.pem artifact with matching sha256 3ec0bd42367df7496c1361677914654e460defe8096dd5ffc7eb4ce50635f903.</note-3>
+        <note-4>The current certificate exposes SAN entries for IP 91.99.128.146 and DNS ghost-srv so the first live wave can target the real server host directly.</note-4>
       </notes>
     </M-LIVE-TLS-BOOTSTRAP>
 
@@ -991,7 +994,7 @@
       <goal>Prepare and execute the first two-host live verification wave with one success path, one auth rejection, and clean shutdown evidence.</goal>
       <step-1 module="M-LIVE-HOST-INVENTORY" status="done" verification="V-M-LIVE-HOST-INVENTORY">Freeze host roles, paths, ports, and operator-only access assumptions for the two remote machines</step-1>
       <step-2 module="M-LIVE-BUILD-PACK" status="done" verification="V-M-LIVE-BUILD-PACK">Pin the release artifact, staging shape, and runtime assets deployed to both hosts</step-2>
-      <step-3 module="M-LIVE-TLS-BOOTSTRAP" status="planned" verification="V-M-LIVE-TLS-BOOTSTRAP">Fix the real TLS trust path, certificate files, and endpoint identity for the live WSS server</step-3>
+      <step-3 module="M-LIVE-TLS-BOOTSTRAP" status="done" verification="V-M-LIVE-TLS-BOOTSTRAP">Fix the real TLS trust path, certificate files, and endpoint identity for the live WSS server</step-3>
       <step-4 module="M-LIVE-SERVER-LAUNCH" status="planned" verification="V-M-LIVE-SERVER-LAUNCH">Launch the remote server host and prove WSS readiness with startup and socket evidence</step-4>
       <step-5 module="M-LIVE-CLIENT-LAUNCH" status="planned" verification="V-M-LIVE-CLIENT-LAUNCH">Launch the remote client host and prove SOCKS5 readiness with startup and socket evidence</step-5>
       <step-6 module="M-LIVE-PROXY-SMOKE" status="planned" verification="V-M-LIVE-PROXY-SMOKE">Run one deterministic live SOCKS5 smoke request through the two-host tunnel</step-6>
