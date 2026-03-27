@@ -255,7 +255,7 @@
       </annotations>
     </M-LIVE-SERVER-LAUNCH>
 
-    <M-LIVE-CLIENT-LAUNCH NAME="LiveClientLaunch" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-LIVE-CLIENT-LAUNCH NAME="LiveClientLaunch" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Define the remote client-mode launch procedure, SOCKS5 readiness evidence, and remote endpoint targeting.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CLI, M-CONFIG, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, M-OBS</depends>
@@ -264,6 +264,7 @@
         <fn-startClient PURPOSE="Launch the live client-mode process on the remote host." />
         <fn-captureClientReadiness PURPOSE="Capture startup anchors, process identity, and bound SOCKS5 listener proof." />
         <type-LiveLaunchEvidence PURPOSE="Carries startup and socket evidence for a remote runtime launch." />
+        <type-LiveClientReadiness PURPOSE="Current first-wave readiness confirms startup anchors and a bound SOCKS5 listener on 127.0.0.1:1080 at 178.104.104.208." />
       </annotations>
     </M-LIVE-CLIENT-LAUNCH>
 

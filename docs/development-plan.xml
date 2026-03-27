@@ -674,7 +674,7 @@
       </notes>
     </M-LIVE-SERVER-LAUNCH>
 
-    <M-LIVE-CLIENT-LAUNCH NAME="LiveClientLaunch" TYPE="ENTRY_POINT" LAYER="8" ORDER="2" STATUS="planned">
+    <M-LIVE-CLIENT-LAUNCH NAME="LiveClientLaunch" TYPE="ENTRY_POINT" LAYER="8" ORDER="2" STATUS="done">
       <contract>
         <purpose>Define the live client-mode launch procedure, local SOCKS5 readiness, and remote endpoint targeting on the second host.</purpose>
         <inputs>
@@ -705,6 +705,8 @@
       <verification-ref>V-M-LIVE-CLIENT-LAUNCH</verification-ref>
       <notes>
         <note-1>The client host must expose a local SOCKS5 endpoint and target the live WSS server URL with the pinned trust shape.</note-1>
+        <note-2>Live client startup on 178.104.104.208 emits Observability, client TLS trust, CliApp startup, and CliApp runtime anchors before entering the SOCKS5 listener loop.</note-2>
+        <note-3>Socket proof confirmed a bound listener on 127.0.0.1:1080 owned by n0wss during live client readiness probing.</note-3>
       </notes>
     </M-LIVE-CLIENT-LAUNCH>
 
@@ -1001,7 +1003,7 @@
       <step-2 module="M-LIVE-BUILD-PACK" status="done" verification="V-M-LIVE-BUILD-PACK">Pin the release artifact, staging shape, and runtime assets deployed to both hosts</step-2>
       <step-3 module="M-LIVE-TLS-BOOTSTRAP" status="done" verification="V-M-LIVE-TLS-BOOTSTRAP">Fix the real TLS trust path, certificate files, and endpoint identity for the live WSS server</step-3>
       <step-4 module="M-LIVE-SERVER-LAUNCH" status="done" verification="V-M-LIVE-SERVER-LAUNCH">Launch the remote server host and prove WSS readiness with startup and socket evidence</step-4>
-      <step-5 module="M-LIVE-CLIENT-LAUNCH" status="planned" verification="V-M-LIVE-CLIENT-LAUNCH">Launch the remote client host and prove SOCKS5 readiness with startup and socket evidence</step-5>
+      <step-5 module="M-LIVE-CLIENT-LAUNCH" status="done" verification="V-M-LIVE-CLIENT-LAUNCH">Launch the remote client host and prove SOCKS5 readiness with startup and socket evidence</step-5>
       <step-6 module="M-LIVE-PROXY-SMOKE" status="planned" verification="V-M-LIVE-PROXY-SMOKE">Run one deterministic live SOCKS5 smoke request through the two-host tunnel</step-6>
       <step-7 module="M-LIVE-OBS-EVIDENCE" status="planned" verification="V-M-LIVE-OBS-EVIDENCE">Collect narrow high-signal logs, socket state, and smoke output artifacts from both hosts</step-7>
       <step-8 module="M-LIVE-FAILURE-TRIAGE" status="planned" verification="V-M-LIVE-FAILURE-TRIAGE">Convert any live failure into a GRACE failure packet before reruns</step-8>
