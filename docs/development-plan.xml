@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.3">
+<DevelopmentPlan VERSION="0.2.4">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -667,6 +667,39 @@
         <note-1>This helper stays execution-scoped under the transport-boundary modules and inherits their verification surfaces.</note-1>
       </notes>
     </M-TRANSPORT-TASK-TRACKER>
+
+    <M-TRANSPORT-MOD NAME="TransportModule" TYPE="UTILITY" LAYER="5" ORDER="1.4" STATUS="implemented">
+      <contract>
+        <purpose>Aggregate the governed transport helper modules behind one stable Rust module surface without adding transport logic.</purpose>
+        <inputs>
+          <param name="transportExports" type="TransportExportSet" />
+        </inputs>
+        <outputs>
+          <param name="transportModule" type="TransportModuleSurface" />
+        </outputs>
+        <errors>
+          <error code="TRANSPORT_MODULE_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-adapterContract PURPOSE="Expose the shared adapter contract submodule." />
+        <export-stream PURPOSE="Expose the transport stream contract submodule." />
+        <export-taskTracker PURPOSE="Expose the adapter task tracker submodule." />
+      </interface>
+      <depends>M-TRANSPORT-ADAPTER-CONTRACT, M-TRANSPORT-STREAM, M-TRANSPORT-TASK-TRACKER</depends>
+      <target>
+        <source>src/transport/mod.rs</source>
+        <tests>src/wss_gateway/mod.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[TransportModule]</log-prefix>
+        <critical-block>BLOCK_TRANSPORT_MODULE_EXPORTS</critical-block>
+      </observability>
+      <verification-ref>V-M-TRANSPORT-MOD</verification-ref>
+      <notes>
+        <note-1>This wrapper is now governed explicitly, but it must remain logic-free and only aggregate the transport helper modules.</note-1>
+      </notes>
+    </M-TRANSPORT-MOD>
 
     <M-CRATE-ROOT NAME="CrateRoot" TYPE="UTILITY" LAYER="6" ORDER="1" STATUS="implemented">
       <contract>

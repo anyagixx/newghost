@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.4">
+<VerificationPlan VERSION="0.2.5">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -449,6 +449,25 @@
       <wave-follow-up>Keep the crate root export list aligned with future module additions and removals.</wave-follow-up>
       <phase-follow-up>Review crate-root metadata whenever the governed module surface changes.</phase-follow-up>
     </V-M-CRATE-ROOT>
+
+    <V-M-TRANSPORT-MOD MODULE="M-TRANSPORT-MOD" PRIORITY="medium">
+      <test-files>
+        <file>src/wss_gateway/mod.test.rs</file>
+        <file>src/iroh_adapter/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test wss_gateway</check-1>
+        <check-2>cargo test iroh_adapter</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The governed transport module re-exports the adapter contract, stream contract, and task tracker helpers without introducing transport logic.</scenario-1>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The transport module stays a logic-free aggregator while its exported helpers remain covered by transport-boundary verification.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Keep this wrapper synchronized whenever transport helper modules are added, removed, or renamed.</wave-follow-up>
+      <phase-follow-up>Review the transport module export surface whenever transport-boundary tests or helper contracts change.</phase-follow-up>
+    </V-M-TRANSPORT-MOD>
 
     <V-M-RELEASE-DOCS MODULE="M-RELEASE-DOCS" PRIORITY="medium">
       <test-files>

@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.2">
+  <Project NAME="n0wss" VERSION="0.2.3">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -256,6 +256,18 @@
       </annotations>
     </M-TRANSPORT-TASK-TRACKER>
 
+    <M-TRANSPORT-MOD NAME="TransportModule" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Aggregate the governed transport helper modules behind one stable Rust module surface without adding transport logic.</purpose>
+      <path>src/transport/mod.rs</path>
+      <depends>M-TRANSPORT-ADAPTER-CONTRACT, M-TRANSPORT-STREAM, M-TRANSPORT-TASK-TRACKER</depends>
+      <verification-ref>V-M-TRANSPORT-MOD</verification-ref>
+      <annotations>
+        <export-adapter_contract PURPOSE="Expose the shared adapter contract submodule." />
+        <export-stream PURPOSE="Expose the transport stream contract submodule." />
+        <export-task_tracker PURPOSE="Expose the adapter task tracker submodule." />
+      </annotations>
+    </M-TRANSPORT-MOD>
+
     <M-CRATE-ROOT NAME="CrateRoot" TYPE="UTILITY" STATUS="implemented">
       <purpose>Expose the governed crate-root export surface and keep top-level module registration synchronized with the implementation.</purpose>
       <path>src/lib.rs</path>
@@ -430,6 +442,9 @@
     <CrossLink from="M-IROH-ADAPTER" to="M-TRANSPORT-STREAM" relation="produces transport-agnostic resolved streams for later bridge use" />
     <CrossLink from="M-IROH-ADAPTER" to="M-TRANSPORT-TASK-TRACKER" relation="uses adapter-scoped task tracking for cleanup-sensitive tests and shutdown" />
     <CrossLink from="M-PROXY-BRIDGE" to="M-TRANSPORT-STREAM" relation="consumes transport-agnostic resolved streams instead of transport-specific sockets" />
+    <CrossLink from="M-TRANSPORT-MOD" to="M-TRANSPORT-ADAPTER-CONTRACT" relation="re-exports the shared adapter contract submodule" />
+    <CrossLink from="M-TRANSPORT-MOD" to="M-TRANSPORT-STREAM" relation="re-exports the transport stream contract submodule" />
+    <CrossLink from="M-TRANSPORT-MOD" to="M-TRANSPORT-TASK-TRACKER" relation="re-exports the adapter task tracker submodule" />
     <CrossLink from="M-SOCKS5" to="M-OBS" relation="emits reply-code and queue-pressure metrics" />
     <CrossLink from="M-RELEASE-DOCS" to="M-CLI" relation="documents real startup commands and release usage" />
     <CrossLink from="M-GITHUB-RELEASE" to="M-RELEASE-DOCS" relation="keeps GitHub release flow aligned with docs and release notes" />

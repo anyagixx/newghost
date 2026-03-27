@@ -1,15 +1,20 @@
 // FILE: src/transport/mod.rs
-// VERSION: 0.1.1
-// START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Clarified why this wrapper stays outside first-class GRACE governance while still aggregating the governed transport contracts.
-// END_CHANGE_SUMMARY
+// VERSION: 0.1.2
+// START_MODULE_CONTRACT
+//   PURPOSE: Aggregate the governed transport helper modules behind one stable Rust module surface without adding transport logic.
+//   SCOPE: Top-level transport module exports for adapter contracts, transport streams, and adapter task tracking helpers.
+//   DEPENDS: src/transport/adapter_contract.rs, src/transport/stream.rs, src/transport/task_tracker.rs
+//   LINKS: M-TRANSPORT-MOD, V-M-TRANSPORT-MOD, M-TRANSPORT-ADAPTER-CONTRACT, M-TRANSPORT-STREAM, M-TRANSPORT-TASK-TRACKER
+// END_MODULE_CONTRACT
 //
-// This wrapper intentionally stays outside the GRACE module graph.
-// The governed transport contracts live in:
-// - src/transport/stream.rs
-// - src/transport/adapter_contract.rs
-// - src/transport/task_tracker.rs
-// This file exists only as a Rust module aggregator and should not gain transport logic.
+// START_MODULE_MAP
+//   adapter_contract - shared adapter contract and TransportRequest surface
+//   stream - transport-agnostic stream and resolved-stream surface
+//   task_tracker - adapter-scoped task tracking helpers
+// END_MODULE_MAP
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.3 - Promoted the transport module wrapper into GRACE governance so the exported transport surface is tracked explicitly in plan, graph, and verification artifacts.
+// END_CHANGE_SUMMARY
 
 pub mod adapter_contract;
 pub mod stream;
