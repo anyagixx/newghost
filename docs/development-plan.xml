@@ -436,7 +436,7 @@
   </DataFlow>
 
   <ImplementationOrder>
-    <Phase-1 name="Foundation" status="pending">
+    <Phase-1 name="Foundation" status="done">
       <goal>Define startup, config, logging, metrics, auth, TLS, limits, timeout, reply policy, retry, and burst primitives.</goal>
       <step-1 module="M-CONFIG" status="done" verification="V-M-CONFIG">Initialize configuration module with transport, queue, limit, timeout, retry, and burst settings</step-1>
       <step-2 module="M-OBS" status="done" verification="V-M-OBS">Initialize structured observability, metrics, sliding-window burst detection, and peak-rate reset</step-2>

@@ -356,10 +356,13 @@
     <Gate-Phase-1 PHASE="Phase-1">
       <goal>Foundation modules have deterministic local checks for config, redaction, metrics, auth, and TLS setup.</goal>
       <commands>
-        <command-1>cargo test config obs auth tls</command-1>
-        <command-2>cargo test cli</command-2>
-        <command-3>cargo clippy --all-targets --all-features</command-3>
-        <command-4>cargo fmt --check</command-4>
+        <command-1>cargo test config</command-1>
+        <command-2>cargo test obs</command-2>
+        <command-3>cargo test auth</command-3>
+        <command-4>cargo test tls</command-4>
+        <command-5>cargo test cli</command-5>
+        <command-6>cargo clippy --all-targets --all-features</command-6>
+        <command-7>cargo fmt --check</command-7>
       </commands>
       <required-evidence>
         <evidence-1>Startup, metrics, auth, and TLS boundaries have module-local checks defined.</evidence-1>
