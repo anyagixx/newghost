@@ -12,7 +12,9 @@
 //   config - configuration loading and validation module
 //   obs - observability bootstrap and burst detection module
 //   auth - handshake authentication and redaction module
+//   transport - shared transport contracts used by transport adapters
 //   tls - TLS material loading and runtime context module
+//   wss_gateway - WSS transport adapter and server boundary
 // END_MODULE_MAP
 
 pub mod auth;
@@ -20,3 +22,5 @@ pub mod cli;
 pub mod config;
 pub mod obs;
 pub mod tls;
+pub mod transport;
+pub mod wss_gateway;
