@@ -629,7 +629,7 @@
       <step-4 module="M-OBS" status="done" verification="V-M-OBS">Validate burst-window accuracy, peak-rate metrics, alert-friendly observability, and deployment tuning guidance</step-4>
     </Phase-6>
 
-    <Phase-7 name="Release Readiness" status="in_progress">
+    <Phase-7 name="Release Readiness" status="done">
       <goal>Close the remaining markup debt, align release docs and GitHub workflows, and add a narrow smoke gate before external testing.</goal>
       <step-1 module="M-MARKUP-CLEANUP" status="done" verification="V-M-MARKUP-CLEANUP">Close the remaining minor GRACE markup issues in governed helper files</step-1>
       <step-2 module="M-RELEASE-DOCS" status="done" verification="V-M-RELEASE-DOCS">Prepare README, changelog, and operator-facing release documentation</step-2>
