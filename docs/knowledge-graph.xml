@@ -168,7 +168,7 @@
       </annotations>
     </M-RELEASE-DOCS>
 
-    <M-GITHUB-RELEASE NAME="GithubReleaseSurface" TYPE="INTEGRATION" STATUS="pending">
+    <M-GITHUB-RELEASE NAME="GithubReleaseSurface" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Define the GitHub CI and release automation surface used to validate and publish the first release candidate.</purpose>
       <path>.github/workflows/ci.yml</path>
       <depends>M-RELEASE-DOCS, M-OBS</depends>
