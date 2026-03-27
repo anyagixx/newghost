@@ -91,7 +91,7 @@
       </annotations>
     </M-IROH-ADAPTER>
 
-    <M-SESSION NAME="SessionManager" TYPE="CORE_LOGIC" STATUS="in_progress">
+    <M-SESSION NAME="SessionManager" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Coordinate session registry, transport selection, pure lifecycle transitions, and stable top-level effect routing without becoming a transport or storage implementation.</purpose>
       <path>src/session/mod.rs</path>
       <depends>M-CONFIG, M-AUTH, M-WSS-GATEWAY, M-IROH-ADAPTER, M-OBS</depends>
@@ -101,6 +101,7 @@
         <fn-resolveStream PURPOSE="Choose iroh first and fall back to WSS sequentially." />
         <fn-handleEvent PURPOSE="Interpret pure state effects and dispatch them." />
         <fn-shutdown PURPOSE="Drain registry and close sessions during shutdown." />
+        <type-SessionManagerConfig PURPOSE="Carry idle and graceful shutdown timing into the thin orchestrator." />
         <type-SessionEffect PURPOSE="Route pure state-machine outputs to registry, timer, or metric targets." />
         <type-SessionHandle PURPOSE="Provide cloneable access to one registry-owned session record." />
         <type-SessionRecord PURPOSE="Store mutable state, idle timestamps, and new-stream admission flags per session." />

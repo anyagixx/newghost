@@ -247,7 +247,7 @@
       </notes>
     </M-IROH-ADAPTER>
 
-    <M-SESSION NAME="SessionManager" TYPE="CORE_LOGIC" LAYER="3" ORDER="1" STATUS="in_progress">
+    <M-SESSION NAME="SessionManager" TYPE="CORE_LOGIC" LAYER="3" ORDER="1" STATUS="implemented">
       <contract>
         <purpose>Act as a thin orchestrator over session registry, transport selection, pure per-session state transitions, and a top-level typed effect dispatcher.</purpose>
         <inputs>
@@ -457,7 +457,7 @@
       <step-2 module="M-SESSION" status="done" verification="V-M-SESSION">Implement top-level typed SessionEffect contract and stable EffectHandler routing</step-2>
       <step-3 module="M-SESSION" status="done" verification="V-M-SESSION">Implement SessionRegistry with semaphore limits and drain support</step-3>
       <step-4 module="M-SESSION" status="done" verification="V-M-SESSION">Implement TransportSelector with sequential fallback, safety timeout, and contract-violation handling</step-4>
-      <step-5 module="M-SESSION" status="pending" verification="V-M-SESSION">Implement thin SessionManager orchestrator over registry, selector, state machine, effect handler, and local enum-hygiene tests</step-5>
+      <step-5 module="M-SESSION" status="done" verification="V-M-SESSION">Implement thin SessionManager orchestrator over registry, selector, state machine, effect handler, and local enum-hygiene tests</step-5>
       <step-6 module="M-CLI" status="pending" verification="V-M-CLI">Wire startup and graceful shutdown orchestration</step-6>
     </Phase-3>
 
