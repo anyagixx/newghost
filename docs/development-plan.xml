@@ -562,7 +562,7 @@
       </notes>
     </M-LIVE-HOST-INVENTORY>
 
-    <M-LIVE-BUILD-PACK NAME="LiveBuildPack" TYPE="UTILITY" LAYER="7" ORDER="2" STATUS="planned">
+    <M-LIVE-BUILD-PACK NAME="LiveBuildPack" TYPE="UTILITY" LAYER="7" ORDER="2" STATUS="done">
       <contract>
         <purpose>Define the release binary, config payload, TLS assets, and staging paths used for the first live deployment.</purpose>
         <inputs>
@@ -593,6 +593,8 @@
       <verification-ref>V-M-LIVE-BUILD-PACK</verification-ref>
       <notes>
         <note-1>The same binary identity must be deployed to both hosts to keep failure analysis coherent.</note-1>
+        <note-2>Release artifact target/release/n0wss was staged to /opt/n0wss/n0wss on both live hosts with matching sha256 88f680bbba85fa02c23af4391c61dbf91512d60c3fd8ff645cd520ecf69ad6e3.</note-2>
+        <note-3>The first live wave uses CLI flags as runtime config payload; /opt/n0wss/certs is pre-created on both hosts and log capture remains under /var/log.</note-3>
       </notes>
     </M-LIVE-BUILD-PACK>
 
@@ -988,7 +990,7 @@
     <Phase-8 name="First Live Wave" status="planned">
       <goal>Prepare and execute the first two-host live verification wave with one success path, one auth rejection, and clean shutdown evidence.</goal>
       <step-1 module="M-LIVE-HOST-INVENTORY" status="done" verification="V-M-LIVE-HOST-INVENTORY">Freeze host roles, paths, ports, and operator-only access assumptions for the two remote machines</step-1>
-      <step-2 module="M-LIVE-BUILD-PACK" status="planned" verification="V-M-LIVE-BUILD-PACK">Pin the release artifact, staging shape, and runtime assets deployed to both hosts</step-2>
+      <step-2 module="M-LIVE-BUILD-PACK" status="done" verification="V-M-LIVE-BUILD-PACK">Pin the release artifact, staging shape, and runtime assets deployed to both hosts</step-2>
       <step-3 module="M-LIVE-TLS-BOOTSTRAP" status="planned" verification="V-M-LIVE-TLS-BOOTSTRAP">Fix the real TLS trust path, certificate files, and endpoint identity for the live WSS server</step-3>
       <step-4 module="M-LIVE-SERVER-LAUNCH" status="planned" verification="V-M-LIVE-SERVER-LAUNCH">Launch the remote server host and prove WSS readiness with startup and socket evidence</step-4>
       <step-5 module="M-LIVE-CLIENT-LAUNCH" status="planned" verification="V-M-LIVE-CLIENT-LAUNCH">Launch the remote client host and prove SOCKS5 readiness with startup and socket evidence</step-5>

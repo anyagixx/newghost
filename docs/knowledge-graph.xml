@@ -212,7 +212,7 @@
       </annotations>
     </M-LIVE-HOST-INVENTORY>
 
-    <M-LIVE-BUILD-PACK NAME="LiveBuildPack" TYPE="UTILITY" STATUS="planned">
+    <M-LIVE-BUILD-PACK NAME="LiveBuildPack" TYPE="UTILITY" STATUS="done">
       <purpose>Define the release artifact, config payload, TLS assets, and staging layout used on both live hosts.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CLI, M-CONFIG, M-GITHUB-RELEASE</depends>
@@ -221,6 +221,7 @@
         <fn-pinReleaseBinary PURPOSE="Freeze the deployed release artifact identity for both hosts." />
         <fn-defineStagingLayout PURPOSE="Define the on-host layout for binary, config, certs, and logs." />
         <type-LiveBuildPackRecord PURPOSE="Describes the approved live deployment bundle and staging shape." />
+        <type-LiveBuildChecksum PURPOSE="Current first-wave binary checksum is 88f680bbba85fa02c23af4391c61dbf91512d60c3fd8ff645cd520ecf69ad6e3 on both hosts at /opt/n0wss/n0wss." />
       </annotations>
     </M-LIVE-BUILD-PACK>
 
