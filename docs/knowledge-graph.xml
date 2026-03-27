@@ -225,7 +225,7 @@
         <fn-pinReleaseBinary PURPOSE="Freeze the deployed release artifact identity for both hosts." />
         <fn-defineStagingLayout PURPOSE="Define the on-host layout for binary, config, certs, and logs." />
         <type-LiveBuildPackRecord PURPOSE="Describes the approved live deployment bundle and staging shape." />
-        <type-LiveBuildChecksum PURPOSE="Current first-wave binary checksum is 88f680bbba85fa02c23af4391c61dbf91512d60c3fd8ff645cd520ecf69ad6e3 on both hosts at /opt/n0wss/n0wss." />
+        <type-LiveBuildChecksum PURPOSE="Current first-wave binary checksum is 12fdeb6fd94b2835d8705936e1fe728edfb471d13faae837af5de506d5158ec2 on both hosts at /opt/n0wss/n0wss." />
       </annotations>
     </M-LIVE-BUILD-PACK>
 
@@ -268,7 +268,7 @@
       </annotations>
     </M-LIVE-CLIENT-LAUNCH>
 
-    <M-LIVE-PROXY-SMOKE NAME="LiveProxySmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-LIVE-PROXY-SMOKE NAME="LiveProxySmoke" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define the first live end-to-end smoke path with one deterministic SOCKS5 request through the real two-host tunnel.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-LIVE-SERVER-LAUNCH, M-LIVE-CLIENT-LAUNCH, M-PROXY-BRIDGE, M-SMOKE-E2E</depends>
@@ -277,10 +277,11 @@
         <fn-runLiveSmoke PURPOSE="Execute one deterministic live SOCKS5 request through the two-host tunnel." />
         <fn-captureTrajectory PURPOSE="Capture the minimum successful live trajectory across selection, reply, and pump." />
         <type-LiveSmokeEvidence PURPOSE="Carries output and trajectory evidence for the live smoke run." />
+        <type-LiveSmokeSuccess PURPOSE="Current first-wave smoke returned Example Domain through socks5h://127.0.0.1:1080 on 178.104.104.208 with BLOCK_SELECT_TRANSPORT and BLOCK_PUMP_BIDIRECTIONAL evidence." />
       </annotations>
     </M-LIVE-PROXY-SMOKE>
 
-    <M-LIVE-OBS-EVIDENCE NAME="LiveObservabilityEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-LIVE-OBS-EVIDENCE NAME="LiveObservabilityEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Define the bounded logs, trace anchors, socket listings, and output artifacts that make the live wave debuggable.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-OBS, M-LIVE-PROXY-SMOKE, M-RELEASE-DOCS</depends>
@@ -289,10 +290,11 @@
         <fn-captureLogTails PURPOSE="Capture bounded log tails from both live hosts." />
         <fn-captureSocketState PURPOSE="Capture listener and process state from both live hosts." />
         <type-LiveEvidencePacket PURPOSE="Carries the small high-signal evidence set for later triage." />
+        <type-LiveEvidenceSuccess PURPOSE="Current first-wave evidence includes bounded server, client, and bad-auth log tails plus socket-state checks and smoke output metadata without raw secrets." />
       </annotations>
     </M-LIVE-OBS-EVIDENCE>
 
-    <M-LIVE-FAILURE-TRIAGE NAME="LiveFailureTriage" TYPE="UTILITY" STATUS="planned">
+    <M-LIVE-FAILURE-TRIAGE NAME="LiveFailureTriage" TYPE="UTILITY" STATUS="done">
       <purpose>Define the failure-packet workflow for TLS, auth, transport, proxy reply, and shutdown failures in the first live wave.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-LIVE-OBS-EVIDENCE, M-SESSION, M-SOCKS5, M-TLS, M-WSS-GATEWAY</depends>
@@ -301,6 +303,7 @@
         <fn-buildFailurePacket PURPOSE="Condense live evidence into the canonical GRACE failure packet." />
         <fn-routeNextAction PURPOSE="Map the first divergent block to the next repair or rerun action." />
         <type-FailurePacket PURPOSE="Carries expected evidence, observed evidence, first divergent block, and next action." />
+        <type-LiveTriageOutcome PURPOSE="Current first-wave triage closed the earlier binary, TLS, runtime, tracing, and WSS relay failures before the final green gate, so no new failure packet remained open." />
       </annotations>
     </M-LIVE-FAILURE-TRIAGE>
 

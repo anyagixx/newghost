@@ -596,7 +596,7 @@
       <verification-ref>V-M-LIVE-BUILD-PACK</verification-ref>
       <notes>
         <note-1>The same binary identity must be deployed to both hosts to keep failure analysis coherent.</note-1>
-        <note-2>Release artifact target/release/n0wss was staged to /opt/n0wss/n0wss on both live hosts with matching sha256 88f680bbba85fa02c23af4391c61dbf91512d60c3fd8ff645cd520ecf69ad6e3.</note-2>
+        <note-2>Release artifact target/release/n0wss was staged to /opt/n0wss/n0wss on both live hosts with matching sha256 12fdeb6fd94b2835d8705936e1fe728edfb471d13faae837af5de506d5158ec2.</note-2>
         <note-3>The first live wave uses CLI flags as runtime config payload; /opt/n0wss/certs is pre-created on both hosts and log capture remains under /var/log.</note-3>
       </notes>
     </M-LIVE-BUILD-PACK>
@@ -710,7 +710,7 @@
       </notes>
     </M-LIVE-CLIENT-LAUNCH>
 
-    <M-LIVE-PROXY-SMOKE NAME="LiveProxySmoke" TYPE="CORE_LOGIC" LAYER="9" ORDER="1" STATUS="planned">
+    <M-LIVE-PROXY-SMOKE NAME="LiveProxySmoke" TYPE="CORE_LOGIC" LAYER="9" ORDER="1" STATUS="done">
       <contract>
         <purpose>Define the first live end-to-end smoke path with one deterministic SOCKS5 request through the real two-host tunnel.</purpose>
         <inputs>
@@ -741,10 +741,12 @@
       <verification-ref>V-M-LIVE-PROXY-SMOKE</verification-ref>
       <notes>
         <note-1>The first live target should stay narrow and deterministic enough to separate internet reachability issues from tunnel defects.</note-1>
+        <note-2>On 2026-03-27 the client host 178.104.104.208 returned Example Domain through socks5h://127.0.0.1:1080 with output size 528 bytes and exit code 0.</note-2>
+        <note-3>The successful live trajectory included BLOCK_SELECT_TRANSPORT on the client host, BLOCK_PUMP_BIDIRECTIONAL on the client host, and accepted WSS plus auth evidence on the server host.</note-3>
       </notes>
     </M-LIVE-PROXY-SMOKE>
 
-    <M-LIVE-OBS-EVIDENCE NAME="LiveObservabilityEvidence" TYPE="UTILITY" LAYER="9" ORDER="2" STATUS="planned">
+    <M-LIVE-OBS-EVIDENCE NAME="LiveObservabilityEvidence" TYPE="UTILITY" LAYER="9" ORDER="2" STATUS="done">
       <contract>
         <purpose>Define the high-signal logs, trace anchors, socket listings, and output artifacts that make the live wave debuggable by later agents.</purpose>
         <inputs>
@@ -774,10 +776,12 @@
       <verification-ref>V-M-LIVE-OBS-EVIDENCE</verification-ref>
       <notes>
         <note-1>Evidence must remain small enough for a follow-up failure packet and must never include raw secrets.</note-1>
+        <note-2>The first live evidence packet preserved bounded tails for /var/log/n0wss-server.log, /var/log/n0wss-client.log, and /var/log/n0wss-client-bad-auth.log plus socket-state probes and smoke output metadata.</note-2>
+        <note-3>The evidence remained redacted: the reject path kept the invalid credential masked as in***en and no repository artifact stored the SSH password or raw auth token.</note-3>
       </notes>
     </M-LIVE-OBS-EVIDENCE>
 
-    <M-LIVE-FAILURE-TRIAGE NAME="LiveFailureTriage" TYPE="UTILITY" LAYER="9" ORDER="3" STATUS="planned">
+    <M-LIVE-FAILURE-TRIAGE NAME="LiveFailureTriage" TYPE="UTILITY" LAYER="9" ORDER="3" STATUS="done">
       <contract>
         <purpose>Define the failure-packet workflow for TLS, auth, transport, proxy reply, and shutdown failures during the first live wave.</purpose>
         <inputs>
@@ -807,6 +811,8 @@
       <verification-ref>V-M-LIVE-FAILURE-TRIAGE</verification-ref>
       <notes>
         <note-1>Every live failure must identify the first divergent block before another rerun is approved.</note-1>
+        <note-2>The first live wave used failure packets to isolate the missing binary target, missing client TLS bootstrap, missing long-lived runtime launch, missing process-wide tracing propagation, and WSS echo semantics before the final green run.</note-2>
+        <note-3>The final green run required no new failure packet because success-path evidence, bad-auth rejection evidence, and controlled shutdown evidence all satisfied Gate-Live-1.</note-3>
       </notes>
     </M-LIVE-FAILURE-TRIAGE>
   </Modules>
@@ -997,16 +1003,16 @@
       <step-5 module="M-SMOKE-E2E" status="done" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-5>
     </Phase-7>
 
-    <Phase-8 name="First Live Wave" status="planned">
+    <Phase-8 name="First Live Wave" status="done">
       <goal>Prepare and execute the first two-host live verification wave with one success path, one auth rejection, and clean shutdown evidence.</goal>
       <step-1 module="M-LIVE-HOST-INVENTORY" status="done" verification="V-M-LIVE-HOST-INVENTORY">Freeze host roles, paths, ports, and operator-only access assumptions for the two remote machines</step-1>
       <step-2 module="M-LIVE-BUILD-PACK" status="done" verification="V-M-LIVE-BUILD-PACK">Pin the release artifact, staging shape, and runtime assets deployed to both hosts</step-2>
       <step-3 module="M-LIVE-TLS-BOOTSTRAP" status="done" verification="V-M-LIVE-TLS-BOOTSTRAP">Fix the real TLS trust path, certificate files, and endpoint identity for the live WSS server</step-3>
       <step-4 module="M-LIVE-SERVER-LAUNCH" status="done" verification="V-M-LIVE-SERVER-LAUNCH">Launch the remote server host and prove WSS readiness with startup and socket evidence</step-4>
       <step-5 module="M-LIVE-CLIENT-LAUNCH" status="done" verification="V-M-LIVE-CLIENT-LAUNCH">Launch the remote client host and prove SOCKS5 readiness with startup and socket evidence</step-5>
-      <step-6 module="M-LIVE-PROXY-SMOKE" status="planned" verification="V-M-LIVE-PROXY-SMOKE">Run one deterministic live SOCKS5 smoke request through the two-host tunnel</step-6>
-      <step-7 module="M-LIVE-OBS-EVIDENCE" status="planned" verification="V-M-LIVE-OBS-EVIDENCE">Collect narrow high-signal logs, socket state, and smoke output artifacts from both hosts</step-7>
-      <step-8 module="M-LIVE-FAILURE-TRIAGE" status="planned" verification="V-M-LIVE-FAILURE-TRIAGE">Convert any live failure into a GRACE failure packet before reruns</step-8>
+      <step-6 module="M-LIVE-PROXY-SMOKE" status="done" verification="V-M-LIVE-PROXY-SMOKE">Run one deterministic live SOCKS5 smoke request through the two-host tunnel</step-6>
+      <step-7 module="M-LIVE-OBS-EVIDENCE" status="done" verification="V-M-LIVE-OBS-EVIDENCE">Collect narrow high-signal logs, socket state, and smoke output artifacts from both hosts</step-7>
+      <step-8 module="M-LIVE-FAILURE-TRIAGE" status="done" verification="V-M-LIVE-FAILURE-TRIAGE">Convert any live failure into a GRACE failure packet before reruns</step-8>
     </Phase-8>
   </ImplementationOrder>
 
