@@ -65,7 +65,7 @@
       </annotations>
     </M-TLS>
 
-    <M-WSS-GATEWAY NAME="WssGateway" TYPE="INTEGRATION" STATUS="planned">
+    <M-WSS-GATEWAY NAME="WssGateway" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Compose TCP, TLS, websocket upgrade, and auth validation into WSS-backed transport streams under a shared adapter contract.</purpose>
       <path>src/wss_gateway/mod.rs</path>
       <depends>M-TLS, M-AUTH, M-OBS</depends>
