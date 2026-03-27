@@ -1,0 +1,141 @@
+// FILE: src/config/mod.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify deterministic configuration parsing and validation for the config module.
+//   SCOPE: Success and failure cases for client and server configuration.
+//   DEPENDS: src/config/mod.rs
+//   LINKS: V-M-CONFIG, VF-001
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   parses_valid_client_config - validates a complete client configuration
+//   parses_valid_server_config - validates a complete server configuration
+//   rejects_zero_limits - validates non-zero limits
+//   rejects_empty_auth_token - validates token requirements
+//   rejects_non_wss_remote_url - validates remote URL scheme
+//   rejects_invalid_shutdown_ordering - validates graceful vs force timeouts
+// END_MODULE_MAP
+
+use super::{load_config_from, ConfigError, RuntimeMode};
+
+fn base_args() -> Vec<&'static str> {
+    vec!["n0wss", "--auth-token", "secret-token"]
+}
+
+#[test]
+fn parses_valid_client_config() {
+    let mut args = base_args();
+    args.extend([
+        "client",
+        "--listen-addr",
+        "127.0.0.1:1081",
+        "--remote-wss-url",
+        "wss://edge.example.com/tunnel",
+    ]);
+
+    let config = load_config_from(args).expect("client config must parse");
+
+    match config.runtime_mode {
+        RuntimeMode::Client(client) => {
+            assert_eq!(client.listen_addr.to_string(), "127.0.0.1:1081");
+            assert_eq!(
+                client.remote_wss_url.as_str(),
+                "wss://edge.example.com/tunnel"
+            );
+        }
+        RuntimeMode::Server(_) => panic!("expected client mode"),
+    }
+
+    assert_eq!(config.limits.max_pending_intents, 128);
+    assert_eq!(config.timeouts.iroh_connect_timeout.as_secs(), 2);
+}
+
+#[test]
+fn parses_valid_server_config() {
+    let mut args = base_args();
+    args.extend([
+        "server",
+        "--listen-addr",
+        "0.0.0.0:7443",
+        "--tls-cert-path",
+        "certs/server.pem",
+        "--tls-key-path",
+        "certs/server.key",
+    ]);
+
+    let config = load_config_from(args).expect("server config must parse");
+
+    match config.runtime_mode {
+        RuntimeMode::Server(server) => {
+            assert_eq!(server.listen_addr.to_string(), "0.0.0.0:7443");
+            assert_eq!(server.tls_cert_path.to_string_lossy(), "certs/server.pem");
+            assert_eq!(server.tls_key_path.to_string_lossy(), "certs/server.key");
+        }
+        RuntimeMode::Client(_) => panic!("expected server mode"),
+    }
+}
+
+#[test]
+fn rejects_zero_limits() {
+    let mut args = base_args();
+    args.extend([
+        "--max-pending-intents",
+        "0",
+        "client",
+        "--remote-wss-url",
+        "wss://edge.example.com/tunnel",
+    ]);
+
+    let err = load_config_from(args).expect_err("zero queue limit must fail");
+    assert_eq!(
+        err,
+        ConfigError::NonPositiveValue {
+            field: "max_pending_intents"
+        }
+    );
+}
+
+#[test]
+fn rejects_empty_auth_token() {
+    let args = vec![
+        "n0wss",
+        "--auth-token",
+        "   ",
+        "client",
+        "--remote-wss-url",
+        "wss://edge.example.com/tunnel",
+    ];
+
+    let err = load_config_from(args).expect_err("blank auth token must fail");
+    assert_eq!(err, ConfigError::EmptyAuthToken);
+}
+
+#[test]
+fn rejects_non_wss_remote_url() {
+    let mut args = base_args();
+    args.extend([
+        "client",
+        "--remote-wss-url",
+        "https://edge.example.com/tunnel",
+    ]);
+
+    let err = load_config_from(args).expect_err("non-wss scheme must fail");
+    assert_eq!(err, ConfigError::InvalidRemoteWssScheme);
+}
+
+#[test]
+fn rejects_invalid_shutdown_ordering() {
+    let mut args = base_args();
+    args.extend([
+        "--graceful-timeout-secs",
+        "120",
+        "--force-kill-after-secs",
+        "60",
+        "client",
+        "--remote-wss-url",
+        "wss://edge.example.com/tunnel",
+    ]);
+
+    let err = load_config_from(args).expect_err("graceful timeout above force kill must fail");
+    assert_eq!(err, ConfigError::InvalidShutdownOrdering);
+}
