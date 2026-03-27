@@ -115,7 +115,7 @@
       </annotations>
     </M-SESSION>
 
-    <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Expose a local SOCKS5 ingress surface, normalize requests into ProxyIntent work items, and emit accurate client-visible reply codes on pre-pump failures.</purpose>
       <path>src/socks5/mod.rs</path>
       <depends>M-CONFIG, M-OBS</depends>
@@ -125,6 +125,7 @@
         <fn-parseRequest PURPOSE="Parse SOCKS5 negotiation and CONNECT requests into a normalized ProxyIntent." />
         <fn-mapReply PURPOSE="Map ProxyError variants to exact SOCKS5 reply codes or no-reply post-pump outcomes." />
         <type-ProxyIntent PURPOSE="Represents a validated local proxy request ready for queueing and tunnel forwarding." />
+        <type-Socks5Reply PURPOSE="Exact SOCKS5 reply-code enum used for deterministic client-visible failures." />
         <type-ErrorCategory PURPOSE="Infrastructure, policy, target, or post-reply classification used for exhaustive reply mapping." />
       </annotations>
     </M-SOCKS5>

@@ -289,7 +289,7 @@
       </notes>
     </M-SESSION>
 
-    <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" LAYER="4" ORDER="1" STATUS="planned">
+    <M-SOCKS5 NAME="Socks5Proxy" TYPE="ENTRY_POINT" LAYER="4" ORDER="1" STATUS="implemented">
       <contract>
         <purpose>Expose a local SOCKS5 endpoint, parse handshake and CONNECT requests, emit normalized ProxyIntent items into a bounded work queue, and return accurate client-visible reply codes on pre-pump failures.</purpose>
         <inputs>
@@ -463,7 +463,7 @@
 
     <Phase-4 name="Proxy Ingress" status="pending">
       <goal>Accept and normalize local SOCKS5 requests into queueable ProxyIntent work items with fast failure semantics and accurate reply mapping.</goal>
-      <step-1 module="M-SOCKS5" status="pending" verification="V-M-SOCKS5">Implement local SOCKS5 ingress listener, bounded intent queue, exact reply mapping without wildcard arms, and exhaustive category mapping</step-1>
+      <step-1 module="M-SOCKS5" status="done" verification="V-M-SOCKS5">Implement local SOCKS5 ingress listener, bounded intent queue, exact reply mapping without wildcard arms, and exhaustive category mapping</step-1>
     </Phase-4>
 
     <Phase-5 name="Bridge" status="pending">
