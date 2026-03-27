@@ -9,6 +9,7 @@
 //
 // START_MODULE_MAP
 //   SessionId - stable session identifier used by state and effect contracts
+//   registry - session storage, capacity, drain, and registry-command execution
 //   effects - typed session effects and component-targeted commands
 //   effect_handler - stable top-level dispatcher over registry, timer, and metric targets
 //   state - pure state machine transitions and close reasons
@@ -20,6 +21,7 @@
 
 pub mod effect_handler;
 pub mod effects;
+pub mod registry;
 pub mod state;
 
 pub type SessionId = u64;
@@ -28,6 +30,9 @@ pub use effect_handler::{
     EffectHandler, MetricEffectTarget, RegistryEffectTarget, TimerEffectTarget,
 };
 pub use effects::{MetricEvent, RegistryCommand, SessionEffect, TimerCommand};
+pub use registry::{
+    ReservationGuard, SessionHandle, SessionLimitReached, SessionRecord, SessionRegistry,
+};
 pub use state::{CloseReason, SessionEvent, SessionState};
 
 #[cfg(test)]
