@@ -40,7 +40,7 @@
       </annotations>
     </M-OBS>
 
-    <M-AUTH NAME="AuthPolicy" TYPE="UTILITY" STATUS="planned">
+    <M-AUTH NAME="AuthPolicy" TYPE="UTILITY" STATUS="implemented">
       <purpose>Apply connection authentication, token or ticket validation, and secret redaction policy.</purpose>
       <path>src/auth/mod.rs</path>
       <depends>M-CONFIG, M-OBS</depends>
