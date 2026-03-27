@@ -8,6 +8,7 @@
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
+//   cli - startup and graceful shutdown orchestration module
 //   config - configuration loading and validation module
 //   obs - observability bootstrap and burst detection module
 //   auth - handshake authentication and redaction module
@@ -15,6 +16,7 @@
 // END_MODULE_MAP
 
 pub mod auth;
+pub mod cli;
 pub mod config;
 pub mod obs;
 pub mod tls;
