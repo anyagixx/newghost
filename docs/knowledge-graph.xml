@@ -16,6 +16,16 @@
       </annotations>
     </M-CLI>
 
+    <M-CLI-BIN NAME="CliBinary" TYPE="ENTRY_POINT" STATUS="implemented">
+      <purpose>Expose a deployable n0wss executable that forwards process arguments into the governed CLI bootstrap and returns stable exit codes.</purpose>
+      <path>src/main.rs</path>
+      <depends>M-CLI</depends>
+      <verification-ref>V-M-CLI-BIN</verification-ref>
+      <annotations>
+        <fn-main PURPOSE="Forward argv into the library CLI entrypoint and map bootstrap errors to a shell-visible exit code." />
+      </annotations>
+    </M-CLI-BIN>
+
     <M-CONFIG NAME="Config" TYPE="UTILITY" STATUS="implemented">
       <purpose>Load runtime configuration, TLS paths, auth material, queue limits, session limits, timeout policy, retry behavior, and burst thresholds.</purpose>
       <path>src/config/mod.rs</path>
@@ -286,6 +296,7 @@
       </annotations>
     </M-LIVE-FAILURE-TRIAGE>
 
+    <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed startup surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
     <CrossLink from="M-CLI" to="M-SESSION" relation="coordinates shutdown across active sessions" />

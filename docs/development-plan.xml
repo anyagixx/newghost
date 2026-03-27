@@ -41,6 +41,36 @@
       </notes>
     </M-CLI>
 
+    <M-CLI-BIN NAME="CliBinary" TYPE="ENTRY_POINT" LAYER="0" ORDER="1.5" STATUS="implemented">
+      <contract>
+        <purpose>Expose a deployable n0wss executable that forwards process arguments into the governed CLI bootstrap and returns stable exit codes.</purpose>
+        <inputs>
+          <param name="processArgv" type="ProcessArgs" />
+        </inputs>
+        <outputs>
+          <param name="exitCode" type="ProcessExitCode" />
+        </outputs>
+        <errors>
+          <error code="BOOTSTRAP_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-main PURPOSE="Forward argv into the library CLI entrypoint and map startup errors to a shell-visible exit code." />
+      </interface>
+      <depends>M-CLI</depends>
+      <target>
+        <source>src/main.rs</source>
+      </target>
+      <observability>
+        <log-prefix>[CliBinary]</log-prefix>
+        <critical-block>BLOCK_FORWARD_TO_LIBRARY_CLI</critical-block>
+      </observability>
+      <verification-ref>V-M-CLI-BIN</verification-ref>
+      <notes>
+        <note-1>This wrapper exists so release builds emit a deployable executable without duplicating bootstrap logic from M-CLI.</note-1>
+      </notes>
+    </M-CLI-BIN>
+
     <M-CONFIG NAME="Config" TYPE="UTILITY" LAYER="0" ORDER="2" STATUS="implemented">
       <contract>
         <purpose>Load and validate runtime configuration for client and server modes including bind addresses, TLS paths, auth material, transport policy, queue or session limits, timeout settings, retry policy, and burst detection thresholds.</purpose>
@@ -951,7 +981,8 @@
       <step-1 module="M-MARKUP-CLEANUP" status="done" verification="V-M-MARKUP-CLEANUP">Close the remaining minor GRACE markup issues in governed helper files</step-1>
       <step-2 module="M-RELEASE-DOCS" status="done" verification="V-M-RELEASE-DOCS">Prepare README, changelog, and operator-facing release documentation</step-2>
       <step-3 module="M-GITHUB-RELEASE" status="done" verification="V-M-GITHUB-RELEASE">Align GitHub CI and release workflow expectations with the repository state</step-3>
-      <step-4 module="M-SMOKE-E2E" status="done" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-4>
+      <step-4 module="M-CLI-BIN" status="done" verification="V-M-CLI-BIN">Expose the deployable n0wss binary target required by release packaging and live staging</step-4>
+      <step-5 module="M-SMOKE-E2E" status="done" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-5>
     </Phase-7>
 
     <Phase-8 name="First Live Wave" status="planned">

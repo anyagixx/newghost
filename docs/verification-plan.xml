@@ -187,6 +187,24 @@
       <phase-follow-up>Run end-to-end startup and shutdown checks with representative configs.</phase-follow-up>
     </V-M-CLI>
 
+    <V-M-CLI-BIN MODULE="M-CLI-BIN" PRIORITY="high">
+      <test-files>
+        <file>src/main.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo build --release</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Release build produces a deployable n0wss executable that forwards process arguments into the governed CLI bootstrap.</scenario-1>
+        <scenario-2 kind="failure">Bootstrap errors surface as a non-zero process exit without duplicating startup logic outside M-CLI.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The release artifact includes a shell-executable binary at target/release/n0wss.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Use the built executable for local release smoke and live host staging.</wave-follow-up>
+      <phase-follow-up>Keep packaging verification in sync with any future CLI entrypoint refactors.</phase-follow-up>
+    </V-M-CLI-BIN>
+
     <V-M-CONFIG MODULE="M-CONFIG" PRIORITY="high">
       <test-files>
         <file>src/config/mod.test.rs</file>
@@ -810,12 +828,13 @@
     <Gate-Phase-7 PHASE="Phase-7">
       <goal>The repository is release-ready for GitHub publication and first-round smoke testing.</goal>
       <commands>
-        <command-1>cargo clippy --all-targets --all-features</command-1>
-        <command-2>cargo test</command-2>
-        <command-3>cargo test release_smoke</command-3>
+        <command-1>cargo build --release</command-1>
+        <command-2>cargo clippy --all-targets --all-features</command-2>
+        <command-3>cargo test</command-3>
+        <command-4>cargo test release_smoke</command-4>
       </commands>
       <required-evidence>
-        <evidence-1>Markup debt is removed, release docs are aligned, CI is current, and the smoke path passes.</evidence-1>
+        <evidence-1>Markup debt is removed, release docs are aligned, CI is current, the release binary is emitted, and the smoke path passes.</evidence-1>
       </required-evidence>
     </Gate-Phase-7>
 
