@@ -9,6 +9,8 @@
 //
 // START_MODULE_MAP
 //   config - configuration loading and validation module
+//   obs - observability bootstrap and burst detection module
 // END_MODULE_MAP
 
 pub mod config;
+pub mod obs;
