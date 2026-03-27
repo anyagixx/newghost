@@ -1,5 +1,5 @@
 // FILE: src/config/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Load and validate runtime configuration for client and server modes.
 //   SCOPE: CLI parsing, typed configuration assembly, deterministic validation, and stable log markers.
@@ -10,6 +10,7 @@
 // START_MODULE_MAP
 //   AppConfig - validated application configuration
 //   RuntimeMode - client or server configuration branch
+//   ClientTlsConfig - client-side trust-anchor and optional endpoint-identity override
 //   LimitsConfig - concurrency and queue limits
 //   TimeoutConfig - transport and shutdown timing knobs
 //   BurstDetectionConfig - observability thresholds for burst detection
@@ -17,7 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Created Phase 1 configuration module with typed validation and tests.
+//   LAST_CHANGE: v0.1.1 - Added client TLS trust-anchor and optional server-name override to unblock live WSS bootstrap.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -53,6 +54,13 @@ pub enum RuntimeMode {
 pub struct ClientConfig {
     pub listen_addr: SocketAddr,
     pub remote_wss_url: Url,
+    pub tls: Option<ClientTlsConfig>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ClientTlsConfig {
+    pub trust_anchor_path: PathBuf,
+    pub server_name_override: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,6 +159,10 @@ enum ModeArgs {
         listen_addr: SocketAddr,
         #[arg(long)]
         remote_wss_url: Url,
+        #[arg(long)]
+        tls_trust_anchor_path: Option<PathBuf>,
+        #[arg(long)]
+        tls_server_name_override: Option<String>,
     },
     Server {
         #[arg(long, default_value = "0.0.0.0:7443")]
@@ -229,6 +241,8 @@ impl TryFrom<CliArgs> for AppConfig {
             ModeArgs::Client {
                 listen_addr,
                 remote_wss_url,
+                tls_trust_anchor_path,
+                tls_server_name_override,
             } => {
                 if remote_wss_url.scheme() != "wss" {
                     error!(
@@ -241,6 +255,10 @@ impl TryFrom<CliArgs> for AppConfig {
                 RuntimeMode::Client(ClientConfig {
                     listen_addr,
                     remote_wss_url,
+                    tls: tls_trust_anchor_path.map(|trust_anchor_path| ClientTlsConfig {
+                        trust_anchor_path,
+                        server_name_override: tls_server_name_override,
+                    }),
                 })
             }
             ModeArgs::Server {

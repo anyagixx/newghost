@@ -1,6 +1,6 @@
 # n0wss
 
-`n0wss` is a GRACE-governed Rust codebase for a WSS-backed proxy tunnel with an optional iroh transport path. The current repository state is source-first: the core modules, tests, and release gates are implemented, while the standalone binary wrapper and public deployment flow are still being finalized.
+`n0wss` is a GRACE-governed Rust codebase for a WSS-backed proxy tunnel with an optional iroh transport path. The current repository state is source-first: the core modules, tests, and release gates are implemented, while the public deployment flow is still being finalized.
 
 ## Current Scope
 
@@ -55,6 +55,12 @@ Client mode:
 n0wss --auth-token <token> client --remote-wss-url wss://example.com/tunnel
 ```
 
+Client mode with pinned live trust:
+
+```text
+n0wss --auth-token <token> client --remote-wss-url wss://example.com/tunnel --tls-trust-anchor-path certs/live-ca.pem --tls-server-name-override edge.example.com
+```
+
 Server mode:
 
 ```text
@@ -65,6 +71,8 @@ Important validated options:
 
 - `--max-pending-intents`
 - `--max-sessions`
+- `--tls-trust-anchor-path`
+- `--tls-server-name-override`
 - `--iroh-connect-timeout-secs`
 - `--wss-connect-timeout-secs`
 - `--socks5-total-timeout-secs`
@@ -75,7 +83,7 @@ Important validated options:
 - `--burst-min-log-interval-secs`
 - `--burst-ring-capacity`
 
-`client` mode requires a `wss://` remote URL. `server` mode requires both TLS paths.
+`client` mode requires a `wss://` remote URL and may pin trust with `--tls-trust-anchor-path`. `server` mode requires both TLS paths.
 
 ## Release Notes
 

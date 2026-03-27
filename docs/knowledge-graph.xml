@@ -34,6 +34,7 @@
       <annotations>
         <fn-loadConfig PURPOSE="Load and validate CLI arguments and environment configuration." />
         <type-AppConfig PURPOSE="Typed runtime configuration for client and server modes." />
+        <type-ClientTlsConfig PURPOSE="Carries optional client trust-anchor material and endpoint-identity override for outbound WSS." />
         <export-config PURPOSE="Expose validated immutable configuration to the rest of the application." />
       </annotations>
     </M-CONFIG>
@@ -71,6 +72,7 @@
       <verification-ref>V-M-TLS</verification-ref>
       <annotations>
         <fn-fromConfig PURPOSE="Load certificate and key material into a deterministic TLS context." />
+        <fn-fromClientConfig PURPOSE="Load client-only trust material into a deterministic outbound TLS context." />
         <fn-accept PURPOSE="Wrap a server-side TCP stream in TLS." />
         <fn-connect PURPOSE="Wrap a client-side TCP stream in TLS with SNI." />
         <type-TlsContextHandle PURPOSE="Typed holder for TLS materials and runtime context." />

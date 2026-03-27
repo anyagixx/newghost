@@ -1,5 +1,5 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Select runtime mode, load configuration, initialize observability, prepare session-aware startup artifacts, and coordinate graceful shutdown sequencing.
 //   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, session-manager timing bootstrap, and local shutdown-state coordination.
@@ -18,7 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Wired session-manager timing bootstrap into CLI startup artifacts for Phase 3 shutdown coordination.
+//   LAST_CHANGE: v0.1.2 - Added client-side TLS bootstrap so live WSS clients can load trust anchors before launch.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -32,7 +32,7 @@ use crate::auth::{AuthPolicy, AuthPolicyConfig};
 use crate::config::{load_config_from, AppConfig, RuntimeMode};
 use crate::obs::{init_observability, ObservabilityConfig, ObservabilityHandles};
 use crate::session::SessionManagerConfig;
-use crate::tls::{TlsConfig, TlsContextHandle, TlsError};
+use crate::tls::{ClientTlsConfig, TlsConfig, TlsContextHandle, TlsError};
 
 #[cfg(test)]
 #[path = "mod.test.rs"]
@@ -157,7 +157,15 @@ where
     };
 
     let tls_context = match &config.runtime_mode {
-        RuntimeMode::Client(_) => None,
+        RuntimeMode::Client(client_config) => client_config
+            .tls
+            .as_ref()
+            .map(|tls| {
+                TlsContextHandle::from_client_config(&ClientTlsConfig {
+                    trust_anchor_path: tls.trust_anchor_path.clone(),
+                })
+            })
+            .transpose()?,
         RuntimeMode::Server(server_config) => Some(TlsContextHandle::from_config(&TlsConfig {
             cert_path: server_config.tls_cert_path.clone(),
             key_path: server_config.tls_key_path.clone(),

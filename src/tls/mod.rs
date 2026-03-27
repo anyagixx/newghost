@@ -1,5 +1,5 @@
 // FILE: src/tls/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Load TLS material and expose accept/connect operations used by the websocket transport boundary.
 //   SCOPE: TLS material parsing, deterministic validation, rustls context construction, and typed accept/connect helpers.
@@ -9,14 +9,16 @@
 //
 // START_MODULE_MAP
 //   TlsConfig - file paths for certificate, key, and trust anchor material
+//   ClientTlsConfig - file path for client trust-anchor material
 //   TlsContextHandle - built server and client TLS runtime context
 //   from_config - load deterministic TLS context from PEM material
+//   from_client_config - load client-only TLS trust material
 //   accept - wrap a server-side TCP stream in TLS
 //   connect - wrap a client-side TCP stream in TLS and validate the server name
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Installed a deterministic rustls crypto provider inside the TLS boundary to avoid cross-module feature drift.
+//   LAST_CHANGE: v0.1.2 - Added client-only TLS bootstrap so client mode can load trust anchors without requiring server certificate keys.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -49,10 +51,15 @@ pub struct TlsConfig {
     pub trust_anchor_path: PathBuf,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ClientTlsConfig {
+    pub trust_anchor_path: PathBuf,
+}
+
 #[derive(Clone)]
 pub struct TlsContextHandle {
-    acceptor: TlsAcceptor,
-    connector: TlsConnector,
+    acceptor: Option<TlsAcceptor>,
+    connector: Option<TlsConnector>,
     pub leaf_subject: String,
 }
 
@@ -76,6 +83,10 @@ pub enum TlsError {
     HandshakeFailed(String),
     #[error("TLS configuration invalid: {0}")]
     ConfigInvalid(String),
+    #[error("server-side TLS acceptor is unavailable in this context")]
+    MissingServerContext,
+    #[error("client-side TLS connector is unavailable in this context")]
+    MissingClientContext,
 }
 
 impl TlsContextHandle {
@@ -129,11 +140,52 @@ impl TlsContextHandle {
         );
 
         Ok(Self {
-            acceptor: TlsAcceptor::from(Arc::new(server_config)),
-            connector: TlsConnector::from(Arc::new(client_config)),
+            acceptor: Some(TlsAcceptor::from(Arc::new(server_config))),
+            connector: Some(TlsConnector::from(Arc::new(client_config))),
             leaf_subject,
         })
         // END_BLOCK_LOAD_TLS_MATERIAL
+    }
+
+    // START_CONTRACT: from_client_config
+    //   PURPOSE: Build a deterministic client-only TLS context from trust-anchor material.
+    //   INPUTS: { config: &ClientTlsConfig - trust-anchor file path used for outbound WSS validation }
+    //   OUTPUTS: { Result<TlsContextHandle, TlsError> - ready client TLS runtime context }
+    //   SIDE_EFFECTS: [reads trust-anchor PEM files from disk and emits structured validation logs]
+    //   LINKS: [M-TLS, V-M-TLS]
+    // END_CONTRACT: from_client_config
+    pub fn from_client_config(config: &ClientTlsConfig) -> Result<Self, TlsError> {
+        // START_BLOCK_LOAD_CLIENT_TRUST_MATERIAL
+        install_crypto_provider();
+
+        let trust_anchor_bytes = read_file(&config.trust_anchor_path)?;
+        let trust_anchors =
+            parse_certificates(&trust_anchor_bytes, TlsError::InvalidTrustAnchorPem)?;
+
+        let mut root_store = RootCertStore::empty();
+        for trust_anchor in &trust_anchors {
+            root_store
+                .add(trust_anchor.clone())
+                .map_err(|err| TlsError::ConfigInvalid(err.to_string()))?;
+        }
+
+        let client_config = ClientConfig::builder()
+            .with_root_certificates(root_store)
+            .with_no_client_auth();
+        let leaf_subject = describe_subject(&trust_anchors[0])?;
+
+        info!(
+            trust_anchor_path = %config.trust_anchor_path.display(),
+            subject = %leaf_subject,
+            "[TlsContext][fromConfig][BLOCK_LOAD_CLIENT_TRUST_MATERIAL] loaded client trust material"
+        );
+
+        Ok(Self {
+            acceptor: None,
+            connector: Some(TlsConnector::from(Arc::new(client_config))),
+            leaf_subject,
+        })
+        // END_BLOCK_LOAD_CLIENT_TRUST_MATERIAL
     }
 
     // START_CONTRACT: accept
@@ -145,6 +197,8 @@ impl TlsContextHandle {
     // END_CONTRACT: accept
     pub async fn accept(&self, stream: TcpStream) -> Result<ServerTlsStream<TcpStream>, TlsError> {
         self.acceptor
+            .as_ref()
+            .ok_or(TlsError::MissingServerContext)?
             .accept(stream)
             .await
             .map_err(|err| TlsError::HandshakeFailed(err.to_string()))
@@ -166,6 +220,8 @@ impl TlsContextHandle {
             .map_err(|_| TlsError::InvalidServerName(domain.to_string()))?;
 
         self.connector
+            .as_ref()
+            .ok_or(TlsError::MissingClientContext)?
             .connect(server_name, stream)
             .await
             .map_err(|err| TlsError::HandshakeFailed(err.to_string()))

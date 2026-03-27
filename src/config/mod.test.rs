@@ -1,5 +1,5 @@
 // FILE: src/config/mod.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify deterministic configuration parsing and validation for the config module.
 //   SCOPE: Success and failure cases for client and server configuration.
@@ -10,6 +10,7 @@
 // START_MODULE_MAP
 //   parses_valid_client_config - validates a complete client configuration
 //   parses_valid_server_config - validates a complete server configuration
+//   parses_valid_client_tls_config - validates client trust-anchor and endpoint-identity overrides
 //   rejects_zero_limits - validates non-zero limits
 //   rejects_empty_auth_token - validates token requirements
 //   rejects_non_wss_remote_url - validates remote URL scheme
@@ -72,6 +73,34 @@ fn parses_valid_server_config() {
             assert_eq!(server.tls_key_path.to_string_lossy(), "certs/server.key");
         }
         RuntimeMode::Client(_) => panic!("expected server mode"),
+    }
+}
+
+#[test]
+fn parses_valid_client_tls_config() {
+    let mut args = base_args();
+    args.extend([
+        "client",
+        "--remote-wss-url",
+        "wss://edge.example.com/tunnel",
+        "--tls-trust-anchor-path",
+        "certs/live-ca.pem",
+        "--tls-server-name-override",
+        "ghost-srv.example.internal",
+    ]);
+
+    let config = load_config_from(args).expect("client tls config must parse");
+
+    match config.runtime_mode {
+        RuntimeMode::Client(client) => {
+            let tls = client.tls.expect("client tls config should be present");
+            assert_eq!(tls.trust_anchor_path.to_string_lossy(), "certs/live-ca.pem");
+            assert_eq!(
+                tls.server_name_override.as_deref(),
+                Some("ghost-srv.example.internal")
+            );
+        }
+        RuntimeMode::Server(_) => panic!("expected client mode"),
     }
 }
 

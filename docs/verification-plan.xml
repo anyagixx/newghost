@@ -173,7 +173,7 @@
         <check-1>cargo test cli</check-1>
       </module-checks>
       <scenarios>
-        <scenario-1 kind="success">Valid startup arguments route execution into the expected runtime mode.</scenario-1>
+        <scenario-1 kind="success">Valid startup arguments route execution into the expected runtime mode and build optional TLS bootstrap surfaces required by that mode.</scenario-1>
         <scenario-2 kind="failure">Shutdown sequencing stops accepts before draining transports.</scenario-2>
       </scenarios>
       <required-log-markers>
@@ -215,7 +215,7 @@
         <check-3>cargo fmt --check</check-3>
       </module-checks>
       <scenarios>
-        <scenario-1 kind="success">Valid client and server configuration parses into a stable typed config including limits, timeouts, reply policy, retry settings, and burst thresholds.</scenario-1>
+        <scenario-1 kind="success">Valid client and server configuration parses into a stable typed config including limits, timeouts, optional client TLS trust overrides, reply policy, retry settings, and burst thresholds.</scenario-1>
         <scenario-2 kind="failure">Invalid bind addresses, TLS paths, or limit values fail with deterministic errors.</scenario-2>
       </scenarios>
       <required-log-markers>
@@ -290,9 +290,11 @@
       </scenarios>
       <required-log-markers>
         <marker-1>[TlsContext][fromConfig][BLOCK_LOAD_TLS_MATERIAL]</marker-1>
+        <marker-2>[TlsContext][fromConfig][BLOCK_LOAD_CLIENT_TRUST_MATERIAL]</marker-2>
       </required-log-markers>
       <required-trace-assertions>
         <assertion-1>TLS load failure must prevent websocket startup.</assertion-1>
+        <assertion-2>Client-mode trust-anchor loading must not require server certificate key material.</assertion-2>
       </required-trace-assertions>
       <wave-follow-up>Use TLS contexts inside handshake integration tests.</wave-follow-up>
       <phase-follow-up>Exercise certificate rotation or reload scenarios if added later.</phase-follow-up>
@@ -604,7 +606,7 @@
         <file>docs/verification-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel &gt;/var/log/n0wss-client.log 2&gt;&amp;1 &amp;'</check-1>
+        <check-1>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel --tls-trust-anchor-path /opt/n0wss/certs/server.pem &gt;/var/log/n0wss-client.log 2&gt;&amp;1 &amp;'</check-1>
         <check-2>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</check-2>
       </module-checks>
       <scenarios>
@@ -705,7 +707,7 @@
       <goal>Run the first deterministic two-host smoke with one success path and one auth rejection path.</goal>
       <commands>
         <command-1>ssh root@$N0WSS_SERVER_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN server --tls-cert-path /opt/n0wss/certs/server.pem --tls-key-path /opt/n0wss/certs/server.key &gt;/var/log/n0wss-server.log 2&gt;&amp;1 &amp;'</command-1>
-        <command-2>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel &gt;/var/log/n0wss-client.log 2&gt;&amp;1 &amp;'</command-2>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel --tls-trust-anchor-path /opt/n0wss/certs/server.pem &gt;/var/log/n0wss-client.log 2&gt;&amp;1 &amp;'</command-2>
         <command-3>ssh root@$N0WSS_CLIENT_HOST 'curl --proxy socks5h://127.0.0.1:$N0WSS_SOCKS5_PORT --max-time 15 https://example.com -o /tmp/n0wss-smoke.out -sS'</command-3>
       </commands>
       <required-evidence>
@@ -719,7 +721,7 @@
     <LV-003 NAME="LiveAuthRejectExecution" PRIORITY="high">
       <goal>Run one explicit bad-auth attempt after the success path and prove the server rejects it without creating a live session.</goal>
       <commands>
-        <command-1>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_BAD_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel &gt;/var/log/n0wss-client-bad-auth.log 2&gt;&amp;1 &amp;'</command-1>
+        <command-1>ssh root@$N0WSS_CLIENT_HOST 'nohup /opt/n0wss/n0wss --auth-token $N0WSS_BAD_AUTH_TOKEN client --remote-wss-url wss://$N0WSS_SERVER_HOST/tunnel --tls-trust-anchor-path /opt/n0wss/certs/server.pem &gt;/var/log/n0wss-client-bad-auth.log 2&gt;&amp;1 &amp;'</command-1>
         <command-2>ssh root@$N0WSS_CLIENT_HOST 'timeout 15 curl --proxy socks5h://127.0.0.1:$N0WSS_BAD_AUTH_SOCKS5_PORT --max-time 10 https://example.com -o /tmp/n0wss-bad-auth.out -sS || true'</command-2>
         <command-3>ssh root@$N0WSS_SERVER_HOST 'tail -n 200 /var/log/n0wss-server.log'</command-3>
         <command-4>ssh root@$N0WSS_CLIENT_HOST 'tail -n 200 /var/log/n0wss-client-bad-auth.log'</command-4>

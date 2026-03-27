@@ -1,10 +1,32 @@
+// FILE: src/tls/mod.test.rs
+// VERSION: 0.1.1
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify deterministic TLS material loading for server and client trust bootstrap surfaces.
+//   SCOPE: Valid, missing, malformed, expired, and untrusted TLS material cases plus client-only trust loading.
+//   DEPENDS: src/tls/mod.rs
+//   LINKS: V-M-TLS
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   loads_valid_tls_material - validates full server-and-client TLS bootstrap
+//   loads_client_trust_anchor_without_server_key_material - validates client-only trust bootstrap
+//   rejects_missing_files - validates deterministic missing-file errors
+//   rejects_malformed_certificate - validates malformed cert rejection
+//   rejects_expired_certificate - validates expiry rejection
+//   rejects_untrusted_self_signed_material - validates trust mismatch rejection
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.1 - Added client-only trust-anchor coverage for live client TLS bootstrap.
+// END_CHANGE_SUMMARY
+
 use std::fs;
 use std::time::{Duration, SystemTime};
 
 use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
 use tempfile::tempdir;
 
-use super::{TlsConfig, TlsContextHandle, TlsError};
+use super::{ClientTlsConfig, TlsConfig, TlsContextHandle, TlsError};
 
 fn write_tls_material(
     cert_pem: &str,
@@ -65,6 +87,19 @@ fn loads_valid_tls_material() {
     let (_dir, config) = write_tls_material(&cert_pem, &key_pem, &cert_pem);
 
     let context = TlsContextHandle::from_config(&config).expect("tls context should load");
+
+    assert!(context.leaf_subject.contains("localhost"));
+}
+
+#[test]
+fn loads_client_trust_anchor_without_server_key_material() {
+    let (cert_pem, _key_pem) = generate_self_signed_material();
+    let dir = tempdir().expect("tempdir should build");
+    let trust_anchor_path = dir.path().join("trust.pem");
+    fs::write(&trust_anchor_path, cert_pem).expect("trust should write");
+
+    let context = TlsContextHandle::from_client_config(&ClientTlsConfig { trust_anchor_path })
+        .expect("client trust context should load");
 
     assert!(context.leaf_subject.contains("localhost"));
 }
