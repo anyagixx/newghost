@@ -353,6 +353,90 @@
       <wave-follow-up>Exercise SOCKS5 traffic over the full tunnel path.</wave-follow-up>
       <phase-follow-up>Run prolonged transfer, backpressure, and reconnect checks.</phase-follow-up>
     </V-M-PROXY-BRIDGE>
+
+    <V-M-MARKUP-CLEANUP MODULE="M-MARKUP-CLEANUP" PRIORITY="medium">
+      <test-files>
+        <file>src/lib.rs</file>
+        <file>src/transport/adapter_contract.rs</file>
+        <file>src/transport/stream.rs</file>
+        <file>src/transport/task_tracker.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo clippy --all-targets --all-features</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Governed helper files contain complete GRACE markup including CHANGE_SUMMARY.</scenario-1>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The four targeted helper files no longer trigger reviewer findings for missing CHANGE_SUMMARY blocks.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Run reviewer after the release wave lands.</wave-follow-up>
+      <phase-follow-up>Keep helper-file markup current during future refactors.</phase-follow-up>
+    </V-M-MARKUP-CLEANUP>
+
+    <V-M-RELEASE-DOCS MODULE="M-RELEASE-DOCS" PRIORITY="medium">
+      <test-files>
+        <file>README.md</file>
+        <file>CHANGELOG.md</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test -- --help</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">README quickstart and changelog align with the implemented CLI and test surfaces.</scenario-1>
+        <scenario-2 kind="failure">Stale commands, stale file paths, or stale configuration flags are rejected during docs review.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Release docs reference only paths and commands that exist in the repository.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Use release docs in manual smoke testing.</wave-follow-up>
+      <phase-follow-up>Update changelog and quickstart at each release cut.</phase-follow-up>
+    </V-M-RELEASE-DOCS>
+
+    <V-M-GITHUB-RELEASE MODULE="M-GITHUB-RELEASE" PRIORITY="medium">
+      <test-files>
+        <file>.github/workflows/ci.yml</file>
+        <file>.github/workflows/release.yml</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo clippy --all-targets --all-features</check-1>
+        <check-2>cargo test</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">GitHub CI mirrors the required local checks for release readiness.</scenario-1>
+        <scenario-2 kind="failure">Workflow drift, stale commands, or missing release metadata are caught before publication.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Workflow commands must match the repository's current release gates.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Run the workflow on a branch before cutting a release tag.</wave-follow-up>
+      <phase-follow-up>Keep release automation source-first until binary packaging is stabilized.</phase-follow-up>
+    </V-M-GITHUB-RELEASE>
+
+    <V-M-SMOKE-E2E MODULE="M-SMOKE-E2E" PRIORITY="high">
+      <test-files>
+        <file>tests/release_smoke.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test release_smoke</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">A narrow smoke run proves startup, one proxied request, and graceful shutdown.</scenario-1>
+        <scenario-2 kind="failure">Release-candidate regressions fail before external/manual testing begins.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[CliApp][run][BLOCK_START_APPLICATION]</marker-1>
+        <marker-2>[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE]</marker-2>
+        <marker-3>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</marker-3>
+        <marker-4>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</marker-4>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The smoke gate must remain narrow and deterministic enough for release use.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Extend smoke coverage only after the first external test wave stabilizes.</wave-follow-up>
+      <phase-follow-up>Use smoke evidence before GitHub release publication.</phase-follow-up>
+    </V-M-SMOKE-E2E>
   </ModuleVerification>
 
   <PhaseGates>
@@ -427,6 +511,18 @@
         <evidence-1>Controlled shutdown, queue pressure, session limit pressure, sliding-window burst detection, and transport fallback scenarios produce stable evidence.</evidence-1>
       </required-evidence>
     </Gate-Phase-6>
+
+    <Gate-Phase-7 PHASE="Phase-7">
+      <goal>The repository is release-ready for GitHub publication and first-round smoke testing.</goal>
+      <commands>
+        <command-1>cargo clippy --all-targets --all-features</command-1>
+        <command-2>cargo test</command-2>
+        <command-3>cargo test release_smoke</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>Markup debt is removed, release docs are aligned, CI is current, and the smoke path passes.</evidence-1>
+      </required-evidence>
+    </Gate-Phase-7>
   </PhaseGates>
 
   <FailurePackets>

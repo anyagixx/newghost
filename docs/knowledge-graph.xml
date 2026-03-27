@@ -147,6 +147,48 @@
       </annotations>
     </M-PROXY-BRIDGE>
 
+    <M-MARKUP-CLEANUP NAME="MarkupCleanup" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Close the remaining GRACE markup debt in governed helper files before release.</purpose>
+      <path>src/lib.rs</path>
+      <depends>none</depends>
+      <verification-ref>V-M-MARKUP-CLEANUP</verification-ref>
+      <annotations>
+        <fn-addChangeSummary PURPOSE="Add missing CHANGE_SUMMARY blocks to governed helper files." />
+      </annotations>
+    </M-MARKUP-CLEANUP>
+
+    <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" STATUS="pending">
+      <purpose>Prepare GitHub-facing release documentation, quickstart, changelog, and operator notes that match the current implementation.</purpose>
+      <path>README.md</path>
+      <depends>M-CLI, M-CONFIG, M-SOCKS5, M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <verification-ref>V-M-RELEASE-DOCS</verification-ref>
+      <annotations>
+        <fn-writeReadme PURPOSE="Describe project overview, quickstart, and test entry points." />
+        <fn-writeChangelog PURPOSE="Capture the current release scope for GitHub release notes." />
+      </annotations>
+    </M-RELEASE-DOCS>
+
+    <M-GITHUB-RELEASE NAME="GithubReleaseSurface" TYPE="INTEGRATION" STATUS="pending">
+      <purpose>Define the GitHub CI and release automation surface used to validate and publish the first release candidate.</purpose>
+      <path>.github/workflows/ci.yml</path>
+      <depends>M-RELEASE-DOCS, M-OBS</depends>
+      <verification-ref>V-M-GITHUB-RELEASE</verification-ref>
+      <annotations>
+        <fn-verifyCiWorkflow PURPOSE="Keep GitHub CI aligned with local required checks." />
+        <fn-defineReleaseFlow PURPOSE="Describe tag and release-note expectations for GitHub publication." />
+      </annotations>
+    </M-GITHUB-RELEASE>
+
+    <M-SMOKE-E2E NAME="SmokeE2E" TYPE="INTEGRATION" STATUS="pending">
+      <purpose>Add a narrow smoke verification path for startup, one proxied request, and graceful shutdown before external testing begins.</purpose>
+      <path>tests/release_smoke.rs</path>
+      <depends>M-CLI, M-SOCKS5, M-PROXY-BRIDGE, M-WSS-GATEWAY, M-SESSION</depends>
+      <verification-ref>V-M-SMOKE-E2E</verification-ref>
+      <annotations>
+        <fn-runSmoke PURPOSE="Exercise startup, one proxy request, and shutdown over the implemented tunnel path." />
+      </annotations>
+    </M-SMOKE-E2E>
+
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
     <CrossLink from="M-CLI" to="M-SESSION" relation="coordinates shutdown across active sessions" />
@@ -160,6 +202,9 @@
     <CrossLink from="M-SOCKS5" to="M-PROXY-BRIDGE" relation="forwards normalized ProxyIntent work items" />
     <CrossLink from="M-PROXY-BRIDGE" to="M-SESSION" relation="requests resolved streams and notifies lifecycle completion" />
     <CrossLink from="M-SOCKS5" to="M-OBS" relation="emits reply-code and queue-pressure metrics" />
+    <CrossLink from="M-RELEASE-DOCS" to="M-CLI" relation="documents real startup commands and release usage" />
+    <CrossLink from="M-GITHUB-RELEASE" to="M-RELEASE-DOCS" relation="keeps GitHub release flow aligned with docs and release notes" />
+    <CrossLink from="M-SMOKE-E2E" to="M-PROXY-BRIDGE" relation="exercises the implemented proxy path before public testing" />
 
   </Project>
 </KnowledgeGraph>

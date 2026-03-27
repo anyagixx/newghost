@@ -370,6 +370,132 @@
         <note-4>Both timeout and post-reply failure paths must still close local and transport write directions and notify SessionManager.</note-4>
       </notes>
     </M-PROXY-BRIDGE>
+
+    <M-MARKUP-CLEANUP NAME="MarkupCleanup" TYPE="UTILITY" LAYER="6" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Close the remaining GRACE markup debt in governed helper files before release.</purpose>
+        <inputs>
+          <param name="governedFiles" type="Vec&lt;PathBuf&gt;" />
+        </inputs>
+        <outputs>
+          <param name="markupState" type="MarkupReviewStatus" />
+        </outputs>
+        <errors>
+          <error code="MARKUP_INCOMPLETE" />
+        </errors>
+      </contract>
+      <interface>
+        <export-addChangeSummary PURPOSE="Add missing CHANGE_SUMMARY blocks to governed files." />
+      </interface>
+      <depends>none</depends>
+      <target>
+        <source>src/lib.rs</source>
+        <tests>none</tests>
+      </target>
+      <observability>
+        <log-prefix>[MarkupCleanup]</log-prefix>
+        <critical-block>BLOCK_MARKUP_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-MARKUP-CLEANUP</verification-ref>
+      <notes>
+        <note-1>This wave is intentionally narrow: only the four minor reviewer findings are in scope.</note-1>
+      </notes>
+    </M-MARKUP-CLEANUP>
+
+    <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" LAYER="6" ORDER="2" STATUS="pending">
+      <contract>
+        <purpose>Prepare GitHub-facing release documentation, quickstart, changelog, and operator-facing notes that match the current implementation.</purpose>
+        <inputs>
+          <param name="implementedModules" type="Vec&lt;ModuleRef&gt;" />
+        </inputs>
+        <outputs>
+          <param name="releaseDocs" type="DocumentationSet" />
+        </outputs>
+        <errors>
+          <error code="DOCS_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-writeReadme PURPOSE="Describe project overview, quickstart, and test entry points." />
+        <export-writeChangelog PURPOSE="Capture the current release scope for GitHub release notes." />
+      </interface>
+      <depends>M-CLI, M-CONFIG, M-SOCKS5, M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
+      <target>
+        <source>README.md</source>
+        <tests>docs/OPERATORS.md</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleaseDocs]</log-prefix>
+        <critical-block>BLOCK_RELEASE_DOC_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASE-DOCS</verification-ref>
+      <notes>
+        <note-1>Release docs must stay source-first and reflect the actual CLI and workflow commands in the repository.</note-1>
+      </notes>
+    </M-RELEASE-DOCS>
+
+    <M-GITHUB-RELEASE NAME="GithubReleaseSurface" TYPE="INTEGRATION" LAYER="6" ORDER="3" STATUS="pending">
+      <contract>
+        <purpose>Define the GitHub CI and release automation surface used to validate and publish the first release candidate.</purpose>
+        <inputs>
+          <param name="ciConfig" type="WorkflowConfig" />
+        </inputs>
+        <outputs>
+          <param name="workflowState" type="GithubWorkflowState" />
+        </outputs>
+        <errors>
+          <error code="WORKFLOW_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-verifyCiWorkflow PURPOSE="Keep GitHub CI aligned with local required checks." />
+        <export-defineReleaseFlow PURPOSE="Describe tag and release-note expectations for GitHub publication." />
+      </interface>
+      <depends>M-RELEASE-DOCS, M-OBS</depends>
+      <target>
+        <source>.github/workflows/ci.yml</source>
+        <tests>.github/workflows/release.yml</tests>
+      </target>
+      <observability>
+        <log-prefix>[GithubReleaseSurface]</log-prefix>
+        <critical-block>BLOCK_RELEASE_WORKFLOW_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-GITHUB-RELEASE</verification-ref>
+      <notes>
+        <note-1>The first release may stay source-first if binary artifact packaging is not yet stabilized.</note-1>
+      </notes>
+    </M-GITHUB-RELEASE>
+
+    <M-SMOKE-E2E NAME="SmokeE2E" TYPE="INTEGRATION" LAYER="6" ORDER="4" STATUS="pending">
+      <contract>
+        <purpose>Add a narrow smoke verification path for startup, one proxied request, and graceful shutdown before external testing begins.</purpose>
+        <inputs>
+          <param name="runtimeArtifacts" type="StartupArtifacts" />
+        </inputs>
+        <outputs>
+          <param name="smokeResult" type="SmokeRunResult" />
+        </outputs>
+        <errors>
+          <error code="SMOKE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runSmoke PURPOSE="Exercise startup, one proxy request, and shutdown over the implemented tunnel path." />
+      </interface>
+      <depends>M-CLI, M-SOCKS5, M-PROXY-BRIDGE, M-WSS-GATEWAY, M-SESSION</depends>
+      <target>
+        <source>tests/release_smoke.rs</source>
+        <tests>tests/release_smoke.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[SmokeE2E]</log-prefix>
+        <critical-block>BLOCK_RELEASE_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-SMOKE-E2E</verification-ref>
+      <notes>
+        <note-1>Smoke coverage must stay deterministic and narrow enough to avoid flaky release gates.</note-1>
+      </notes>
+    </M-SMOKE-E2E>
   </Modules>
 
   <DataFlow>
@@ -436,6 +562,27 @@
       <step-5>The process exits only after sessions are Closed or forced timeout policy triggers.</step-5>
       <evidence>Ordered shutdown markers proving no leaked sessions or hanging streams remain.</evidence>
     </DF-SHUTDOWN>
+
+    <DF-RELEASE-README NAME="Release quickstart path" TRIGGER="A GitHub visitor opens the repository before testing the project.">
+      <step-1>The user reads README overview and requirements.</step-1>
+      <step-2>The user follows the documented quickstart commands and config examples.</step-2>
+      <step-3>The documented commands align with the current CLI and verification surfaces.</step-3>
+      <evidence>README command review, quickstart alignment, and no stale paths or flags.</evidence>
+    </DF-RELEASE-README>
+
+    <DF-GITHUB-CI NAME="GitHub verification path" TRIGGER="A maintainer pushes a branch or opens a pull request before release.">
+      <step-1>GitHub Actions checks out the repository.</step-1>
+      <step-2>CI runs the repository lint and test commands that match local release gates.</step-2>
+      <step-3>A green workflow becomes the precondition for tagging a release.</step-3>
+      <evidence>Workflow command alignment and green CI status.</evidence>
+    </DF-GITHUB-CI>
+
+    <DF-LOCAL-SMOKE NAME="Local release smoke" TRIGGER="A maintainer prepares the first GitHub release candidate.">
+      <step-1>The maintainer starts the runtime using documented commands.</step-1>
+      <step-2>A single SOCKS5 request crosses the implemented bridge path.</step-2>
+      <step-3>The maintainer shuts the process down and confirms clean drain behavior.</step-3>
+      <evidence>Startup, reply mapping, bridge pump, and shutdown anchors all appear in one narrow smoke run.</evidence>
+    </DF-LOCAL-SMOKE>
   </DataFlow>
 
   <ImplementationOrder>
@@ -481,6 +628,14 @@
       <step-3 module="M-PROXY-BRIDGE" status="done" verification="V-M-PROXY-BRIDGE">Stress backpressure, total timeout, and controlled drain behavior</step-3>
       <step-4 module="M-OBS" status="done" verification="V-M-OBS">Validate burst-window accuracy, peak-rate metrics, alert-friendly observability, and deployment tuning guidance</step-4>
     </Phase-6>
+
+    <Phase-7 name="Release Readiness" status="in_progress">
+      <goal>Close the remaining markup debt, align release docs and GitHub workflows, and add a narrow smoke gate before external testing.</goal>
+      <step-1 module="M-MARKUP-CLEANUP" status="done" verification="V-M-MARKUP-CLEANUP">Close the remaining minor GRACE markup issues in governed helper files</step-1>
+      <step-2 module="M-RELEASE-DOCS" status="pending" verification="V-M-RELEASE-DOCS">Prepare README, changelog, and operator-facing release documentation</step-2>
+      <step-3 module="M-GITHUB-RELEASE" status="pending" verification="V-M-GITHUB-RELEASE">Align GitHub CI and release workflow expectations with the repository state</step-3>
+      <step-4 module="M-SMOKE-E2E" status="pending" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-4>
+    </Phase-7>
   </ImplementationOrder>
 
   <ExecutionPolicy>
