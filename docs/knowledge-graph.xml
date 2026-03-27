@@ -52,7 +52,7 @@
       </annotations>
     </M-AUTH>
 
-    <M-TLS NAME="TlsContext" TYPE="INTEGRATION" STATUS="planned">
+    <M-TLS NAME="TlsContext" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Load and expose TLS server and client contexts used by the WSS boundary.</purpose>
       <path>src/tls/mod.rs</path>
       <depends>M-CONFIG</depends>
