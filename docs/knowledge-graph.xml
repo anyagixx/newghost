@@ -38,6 +38,7 @@
         <fn-recordBurst PURPOSE="Record queue rejection timestamps into a sliding-window burst detector." />
         <fn-resetPeak PURPOSE="Reset peak-rate gauges on the configured maintenance interval." />
         <type-ProxyMetricsHandle PURPOSE="Holds counters, gauges, and histograms for proxy observability." />
+        <type-BurstDetectorHandle PURPOSE="Tracks rejection spikes with peak-rate metrics and rate-limited alert logging." />
       </annotations>
     </M-OBS>
 

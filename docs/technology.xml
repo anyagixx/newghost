@@ -50,6 +50,7 @@
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <required-fields>correlationId, sessionId, peerNodeId, clientAddr</required-fields>
     <redaction>Never log secrets, auth tokens, proxy credentials, or raw proxied payload bytes.</redaction>
+    <tuning-note>Burst thresholds are operational defaults and are tuned after deployment using peak_rate_per_sec, rejection counters, and queue-capacity metrics documented in docs/OPERATORS.md.</tuning-note>
   </Observability>
 
   <DeliveryShape>

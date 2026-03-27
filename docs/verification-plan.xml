@@ -159,6 +159,7 @@
       <test-files>
         <file>src/obs/mod.test.rs</file>
         <file>src/obs/burst_detector.test.rs</file>
+        <file>docs/OPERATORS.md</file>
       </test-files>
       <module-checks>
         <check-1>cargo test obs</check-1>
@@ -178,7 +179,7 @@
         <assertion-4>Burst thresholds remain documented as deployment-time tuning values rather than architectural constants.</assertion-4>
       </required-trace-assertions>
       <wave-follow-up>Confirm metrics and aggregation appear in integration path failures.</wave-follow-up>
-      <phase-follow-up>Review alert-friendly observability under burst load.</phase-follow-up>
+      <phase-follow-up>Review alert-friendly observability under burst load and tune thresholds with docs/OPERATORS.md.</phase-follow-up>
     </V-M-OBS>
 
     <V-M-AUTH MODULE="M-AUTH" PRIORITY="high">
