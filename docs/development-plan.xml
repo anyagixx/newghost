@@ -367,6 +367,7 @@
         <note-1>ProxyBridge must never import WssGateway or IrohAdapter directly.</note-1>
         <note-2>The shared transport contracts live in src/transport/stream.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs, and src/socks5/intent.rs but do not become separate GRACE modules.</note-2>
         <note-3>Pre-pump failures may produce a SOCKS5 reply; post-pump failures close the TCP path and do not remap reply codes.</note-3>
+        <note-4>Both timeout and post-reply failure paths must still close local and transport write directions and notify SessionManager.</note-4>
       </notes>
     </M-PROXY-BRIDGE>
   </Modules>
@@ -477,7 +478,7 @@
       <goal>Prove fallback, burst handling, timing, contract compliance, and shutdown behavior under non-ideal conditions.</goal>
       <step-1 module="M-SESSION" status="done" verification="V-M-SESSION">Deepen effect-routing, fallback ownership, timeout, max-session tests, and local enum-hygiene checks</step-1>
       <step-2 module="M-SOCKS5" status="done" verification="V-M-SOCKS5">Deepen bounded queue saturation timing, reply semantics, exhaustive error mapping tests, and CI lint guards</step-2>
-      <step-3 module="M-PROXY-BRIDGE" status="pending" verification="V-M-PROXY-BRIDGE">Stress backpressure, total timeout, and controlled drain behavior</step-3>
+      <step-3 module="M-PROXY-BRIDGE" status="done" verification="V-M-PROXY-BRIDGE">Stress backpressure, total timeout, and controlled drain behavior</step-3>
       <step-4 module="M-OBS" status="pending" verification="V-M-OBS">Validate burst-window accuracy, peak-rate metrics, alert-friendly observability, and deployment tuning guidance</step-4>
     </Phase-6>
   </ImplementationOrder>

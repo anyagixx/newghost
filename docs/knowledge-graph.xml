@@ -139,6 +139,7 @@
       <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
       <annotations>
         <fn-runWorker PURPOSE="Consume bounded ProxyIntent queue items and process them." />
+        <fn-processIntent PURPOSE="Bound one proxied request by registration, resolution, timeout, reply semantics, and lifecycle notification." />
         <fn-pumpBidirectional PURPOSE="Move bytes between local proxy sockets and resolved transport streams." />
         <fn-drainAll PURPOSE="Drain active proxy streams during shutdown." />
         <type-ProxyResult PURPOSE="Represents successful completion or failure of a proxied request." />
