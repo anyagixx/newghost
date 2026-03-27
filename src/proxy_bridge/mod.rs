@@ -255,6 +255,9 @@ fn map_session_error(error: SessionManagerError) -> ProxyError {
         SessionManagerError::SessionNotFound(_) => {
             ProxyError::TransportFailed("session not found".to_string())
         }
+        SessionManagerError::SessionNotAcceptingNewStreams(_) => {
+            ProxyError::TransportFailed("session not accepting new streams".to_string())
+        }
         SessionManagerError::TransportResolutionFailed(err) => {
             ProxyError::TransportFailed(err.to_string())
         }

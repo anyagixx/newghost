@@ -270,3 +270,43 @@ async fn explicit_cancel_stops_selection() {
     assert_eq!(iroh.calls(), 1);
     assert_eq!(wss.calls(), 0);
 }
+
+#[tokio::test]
+async fn safety_timeout_surfaces_contract_violation() {
+    let iroh = MockAdapter::new(|_request, _cancel| {
+        Box::pin(async move {
+            tokio::time::sleep(Duration::from_millis(250)).await;
+            Err(MockAdapterError::Message("too late".to_string()))
+        })
+    });
+    let wss = MockAdapter::new(|_request, _cancel| {
+        Box::pin(async move {
+            tokio::time::sleep(Duration::from_millis(250)).await;
+            Err(MockAdapterError::Message("too late".to_string()))
+        })
+    });
+    let selector = TransportSelector::new(
+        iroh,
+        wss,
+        TransportSelectorConfig {
+            iroh_timeout: Duration::from_millis(200),
+            wss_timeout: Duration::from_millis(200),
+            safety_timeout: Duration::from_millis(50),
+        },
+    );
+
+    let err = match selector
+        .open_stream(
+            &TransportRequest {
+                peer_label: "peer-safety".to_string(),
+            },
+            CancellationToken::new(),
+        )
+        .await
+    {
+        Ok(_) => panic!("outer safety timeout should trip first"),
+        Err(err) => err,
+    };
+
+    assert_eq!(err, TransportSelectError::ContractViolation);
+}

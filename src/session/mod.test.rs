@@ -383,6 +383,97 @@ async fn resolve_stream_surfaces_transport_failure_deterministically() {
 }
 
 #[tokio::test]
+async fn resolve_stream_rejects_sessions_that_stopped_accepting_new_streams() {
+    let iroh = MockAdapter::new(|request, _cancel| {
+        Box::pin(async move {
+            Ok(resolved_stream(
+                &request.peer_label,
+                TransportKind::IrohDirect,
+            ))
+        })
+    });
+    let wss = MockAdapter::new(|request, _cancel| {
+        Box::pin(async move { Ok(resolved_stream(&request.peer_label, TransportKind::Wss)) })
+    });
+    let manager = build_manager(iroh.clone(), wss.clone(), TimerSpy::default(), MetricSpy::default());
+
+    let (session_id, handle) = manager
+        .register_session(&SessionRequest {
+            started_at: Instant::now(),
+            peer_label: "peer-draining".to_string(),
+        })
+        .expect("registration should succeed");
+    handle.with_record(|record| {
+        record.accepting_new_streams = false;
+        record.state = SessionState::Closing {
+            reason: super::CloseReason::DrainShutdown,
+            deadline: Instant::now() + Duration::from_secs(5),
+        };
+    });
+
+    let err = match manager
+        .resolve_stream(
+            session_id,
+            &TransportRequest {
+                peer_label: "peer-draining".to_string(),
+            },
+            CancellationToken::new(),
+        )
+        .await
+    {
+        Ok(_) => panic!("draining sessions must reject new streams"),
+        Err(err) => err,
+    };
+
+    assert_eq!(
+        err,
+        super::SessionManagerError::SessionNotAcceptingNewStreams(session_id)
+    );
+    assert_eq!(iroh.call_count(), 0);
+    assert_eq!(wss.call_count(), 0);
+}
+
+#[tokio::test]
+async fn shutdown_releases_capacity_for_future_registrations() {
+    let iroh = MockAdapter::new(|request, _cancel| {
+        Box::pin(async move {
+            Ok(resolved_stream(
+                &request.peer_label,
+                TransportKind::IrohDirect,
+            ))
+        })
+    });
+    let wss = MockAdapter::new(|request, _cancel| {
+        Box::pin(async move { Ok(resolved_stream(&request.peer_label, TransportKind::Wss)) })
+    });
+    let manager = build_manager(iroh, wss, TimerSpy::default(), MetricSpy::default());
+
+    let _ = manager
+        .register_session(&SessionRequest {
+            started_at: Instant::now(),
+            peer_label: "peer-1".to_string(),
+        })
+        .expect("first registration should succeed");
+    let _ = manager
+        .register_session(&SessionRequest {
+            started_at: Instant::now(),
+            peer_label: "peer-2".to_string(),
+        })
+        .expect("second registration should succeed");
+
+    assert_eq!(manager.shutdown().await, 2);
+
+    let (new_id, _handle) = manager
+        .register_session(&SessionRequest {
+            started_at: Instant::now(),
+            peer_label: "peer-3".to_string(),
+        })
+        .expect("capacity should be reusable after shutdown");
+
+    assert_eq!(new_id, 3);
+}
+
+#[tokio::test]
 async fn shutdown_drains_sessions() {
     let iroh = MockAdapter::new(|request, _cancel| {
         Box::pin(async move {

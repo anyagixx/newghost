@@ -163,3 +163,24 @@ fn closed_state_is_terminal() {
     assert_eq!(next_state, SessionState::Closed);
     assert!(effects.is_empty());
 }
+
+#[test]
+fn closing_state_is_one_way_and_does_not_reopen_streams() {
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let closing = SessionState::Closing {
+        reason: CloseReason::DrainShutdown,
+        deadline,
+    };
+
+    let (next_state, effects) =
+        closing.transition(77, SessionEvent::StreamOpened, Duration::from_secs(30));
+
+    assert_eq!(
+        next_state,
+        SessionState::Closing {
+            reason: CloseReason::DrainShutdown,
+            deadline,
+        }
+    );
+    assert!(effects.is_empty());
+}

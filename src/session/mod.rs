@@ -1,5 +1,5 @@
 // FILE: src/session/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Define the session core surface and orchestrate registry, transport selection, pure state transitions, and typed effect routing.
 //   SCOPE: Session module wiring, session manager orchestration, stable session identifiers, pure state-transition exports, typed effect exports, and shutdown coordination.
@@ -25,7 +25,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added the thin SessionManager orchestrator over registry, selector, state transitions, and effect routing.
+//   LAST_CHANGE: v0.1.2 - Prevented transport resolution from opening new streams after a session starts draining or closes.
 // END_CHANGE_SUMMARY
 
 use std::sync::Arc;
@@ -76,6 +76,8 @@ pub enum SessionManagerError {
     SessionLimitReached,
     #[error("session not found: {0}")]
     SessionNotFound(SessionId),
+    #[error("session not accepting new streams: {0}")]
+    SessionNotAcceptingNewStreams(SessionId),
     #[error("transport resolution failed: {0}")]
     TransportResolutionFailed(TransportSelectError),
 }
@@ -186,6 +188,13 @@ where
             .registry
             .get(&session_id)
             .ok_or(SessionManagerError::SessionNotFound(session_id))?;
+
+        let accepting_new_streams = handle.snapshot().accepting_new_streams;
+        if !accepting_new_streams {
+            return Err(SessionManagerError::SessionNotAcceptingNewStreams(
+                session_id,
+            ));
+        }
 
         let resolved = self
             .selector
