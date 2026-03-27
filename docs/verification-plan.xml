@@ -307,6 +307,7 @@
       <test-files>
         <file>src/socks5/mod.test.rs</file>
         <file>src/socks5/reply_mapping.test.rs</file>
+        <file>.github/workflows/ci.yml</file>
       </test-files>
       <module-checks>
         <check-1>cargo test socks5</check-1>

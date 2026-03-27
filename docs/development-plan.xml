@@ -329,6 +329,7 @@
         <note-1>Socks5Proxy knows only SOCKS5 and ProxyIntent; it does not know WSS, iroh, or session fallback policy.</note-1>
         <note-2>Bounded queue failures use try_send and must return a client-visible SOCKS5 reply immediately instead of blocking.</note-2>
         <note-3>Reply mapping must distinguish infrastructure failures, policy failures, target failures, and post-reply failures through exhaustive enum matching.</note-3>
+        <note-4>CI must block any allow-list override that weakens exhaustive enum-match enforcement for reply mapping.</note-4>
       </notes>
     </M-SOCKS5>
 
@@ -475,7 +476,7 @@
     <Phase-6 name="Hardening" status="pending">
       <goal>Prove fallback, burst handling, timing, contract compliance, and shutdown behavior under non-ideal conditions.</goal>
       <step-1 module="M-SESSION" status="done" verification="V-M-SESSION">Deepen effect-routing, fallback ownership, timeout, max-session tests, and local enum-hygiene checks</step-1>
-      <step-2 module="M-SOCKS5" status="pending" verification="V-M-SOCKS5">Deepen bounded queue saturation timing, reply semantics, exhaustive error mapping tests, and CI lint guards</step-2>
+      <step-2 module="M-SOCKS5" status="done" verification="V-M-SOCKS5">Deepen bounded queue saturation timing, reply semantics, exhaustive error mapping tests, and CI lint guards</step-2>
       <step-3 module="M-PROXY-BRIDGE" status="pending" verification="V-M-PROXY-BRIDGE">Stress backpressure, total timeout, and controlled drain behavior</step-3>
       <step-4 module="M-OBS" status="pending" verification="V-M-OBS">Validate burst-window accuracy, peak-rate metrics, alert-friendly observability, and deployment tuning guidance</step-4>
     </Phase-6>

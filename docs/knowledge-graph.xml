@@ -125,6 +125,7 @@
         <fn-runListener PURPOSE="Bind and accept local SOCKS5 connections." />
         <fn-parseRequest PURPOSE="Parse SOCKS5 negotiation and CONNECT requests into a normalized ProxyIntent." />
         <fn-mapReply PURPOSE="Map ProxyError variants to exact SOCKS5 reply codes or no-reply post-pump outcomes." />
+        <fn-sendReply PURPOSE="Emit a success or failure SOCKS5 reply without implicitly closing successful client sockets." />
         <type-ProxyIntent PURPOSE="Represents a validated local proxy request ready for queueing and tunnel forwarding." />
         <type-Socks5Reply PURPOSE="Exact SOCKS5 reply-code enum used for deterministic client-visible failures." />
         <type-ErrorCategory PURPOSE="Infrastructure, policy, target, or post-reply classification used for exhaustive reply mapping." />
