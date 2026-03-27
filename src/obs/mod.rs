@@ -1,5 +1,5 @@
 // FILE: src/obs/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Initialize tracing, stable field propagation, metrics collection, sliding-window burst detection, peak-rate gauges, and redaction-aware logging behavior.
 //   SCOPE: Observability bootstrap, in-memory metrics updates, burst detection, peak resets, and secret redaction helpers.
@@ -19,12 +19,13 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added hardening coverage for sustained burst rate limiting and documented burst-threshold tuning as an operational concern.
+//   LAST_CHANGE: v0.1.2 - Installed the tracing subscriber as a process-wide default so startup and runtime anchors from other modules reach the same log sink.
 // END_CHANGE_SUMMARY
 
 use std::collections::{BTreeMap, VecDeque};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+use std::sync::OnceLock;
 
 use thiserror::Error;
 use tracing::{info, warn, Dispatch};
@@ -39,6 +40,8 @@ mod tests;
 #[cfg(test)]
 #[path = "burst_detector.test.rs"]
 mod burst_detector_tests;
+
+static GLOBAL_TRACING_DISPATCH_INSTALLED: OnceLock<()> = OnceLock::new();
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ObservabilityConfig {
@@ -252,7 +255,7 @@ impl BurstDetectorHandle {
 //   PURPOSE: Create tracing, metrics, and burst-detection handles for runtime startup.
 //   INPUTS: { config: ObservabilityConfig - validated observability settings derived from runtime config }
 //   OUTPUTS: { Result<ObservabilityHandles, ObservabilityError> - initialized observability handles }
-//   SIDE_EFFECTS: [emits initialization tracing marker through the local dispatch]
+//   SIDE_EFFECTS: [installs a process-wide tracing subscriber on first successful initialization and emits the initialization marker]
 //   LINKS: [M-OBS, M-CONFIG, V-M-OBS]
 // END_CONTRACT: init_observability
 pub fn init_observability(
@@ -280,14 +283,16 @@ pub fn init_observability(
         mode_label: config.mode_label.clone(),
     };
 
-    tracing::dispatcher::with_default(&dispatch, || {
-        info!(
-            service = %config.service_name,
-            mode = %config.mode_label,
-            peak_reset_interval_secs = config.peak_reset_interval.as_secs(),
-            "[Observability][initObservability][BLOCK_INIT_TRACING] initialized observability"
-        );
+    let _ = GLOBAL_TRACING_DISPATCH_INSTALLED.get_or_init(|| {
+        let _ = tracing::dispatcher::set_global_default(dispatch.clone());
     });
+
+    info!(
+        service = %config.service_name,
+        mode = %config.mode_label,
+        peak_reset_interval_secs = config.peak_reset_interval.as_secs(),
+        "[Observability][initObservability][BLOCK_INIT_TRACING] initialized observability"
+    );
 
     let metrics = ProxyMetricsHandle::new();
     let burst_detector = BurstDetectorHandle {
