@@ -242,7 +242,7 @@
       </annotations>
     </M-LIVE-TLS-BOOTSTRAP>
 
-    <M-LIVE-SERVER-LAUNCH NAME="LiveServerLaunch" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-LIVE-SERVER-LAUNCH NAME="LiveServerLaunch" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Define the remote server-mode launch procedure, readiness evidence, and shutdown surface for the live WSS host.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CLI, M-CONFIG, M-AUTH, M-TLS, M-WSS-GATEWAY, M-OBS, M-SESSION</depends>
@@ -251,6 +251,7 @@
         <fn-startServer PURPOSE="Launch the live server-mode process on the remote host." />
         <fn-captureServerReadiness PURPOSE="Capture startup anchors, process identity, and bound-listener proof." />
         <type-LiveLaunchEvidence PURPOSE="Carries startup and socket evidence for a remote runtime launch." />
+        <type-LiveServerReadiness PURPOSE="Current first-wave readiness confirms startup anchors and a bound listener on 0.0.0.0:7443 at 91.99.128.146." />
       </annotations>
     </M-LIVE-SERVER-LAUNCH>
 

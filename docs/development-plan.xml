@@ -638,7 +638,7 @@
       </notes>
     </M-LIVE-TLS-BOOTSTRAP>
 
-    <M-LIVE-SERVER-LAUNCH NAME="LiveServerLaunch" TYPE="ENTRY_POINT" LAYER="8" ORDER="1" STATUS="planned">
+    <M-LIVE-SERVER-LAUNCH NAME="LiveServerLaunch" TYPE="ENTRY_POINT" LAYER="8" ORDER="1" STATUS="done">
       <contract>
         <purpose>Define the live server-mode launch procedure, readiness evidence, and shutdown surface on the remote WSS host.</purpose>
         <inputs>
@@ -669,6 +669,8 @@
       <verification-ref>V-M-LIVE-SERVER-LAUNCH</verification-ref>
       <notes>
         <note-1>Readiness evidence must include both startup anchors and bound-listener proof from the host.</note-1>
+        <note-2>Live server startup on 91.99.128.146 emits Config, TLS, CliApp startup, and CliApp runtime anchors before entering the listener loop.</note-2>
+        <note-3>Socket proof confirmed a bound listener on 0.0.0.0:7443 owned by n0wss during live readiness probing.</note-3>
       </notes>
     </M-LIVE-SERVER-LAUNCH>
 
@@ -998,7 +1000,7 @@
       <step-1 module="M-LIVE-HOST-INVENTORY" status="done" verification="V-M-LIVE-HOST-INVENTORY">Freeze host roles, paths, ports, and operator-only access assumptions for the two remote machines</step-1>
       <step-2 module="M-LIVE-BUILD-PACK" status="done" verification="V-M-LIVE-BUILD-PACK">Pin the release artifact, staging shape, and runtime assets deployed to both hosts</step-2>
       <step-3 module="M-LIVE-TLS-BOOTSTRAP" status="done" verification="V-M-LIVE-TLS-BOOTSTRAP">Fix the real TLS trust path, certificate files, and endpoint identity for the live WSS server</step-3>
-      <step-4 module="M-LIVE-SERVER-LAUNCH" status="planned" verification="V-M-LIVE-SERVER-LAUNCH">Launch the remote server host and prove WSS readiness with startup and socket evidence</step-4>
+      <step-4 module="M-LIVE-SERVER-LAUNCH" status="done" verification="V-M-LIVE-SERVER-LAUNCH">Launch the remote server host and prove WSS readiness with startup and socket evidence</step-4>
       <step-5 module="M-LIVE-CLIENT-LAUNCH" status="planned" verification="V-M-LIVE-CLIENT-LAUNCH">Launch the remote client host and prove SOCKS5 readiness with startup and socket evidence</step-5>
       <step-6 module="M-LIVE-PROXY-SMOKE" status="planned" verification="V-M-LIVE-PROXY-SMOKE">Run one deterministic live SOCKS5 smoke request through the two-host tunnel</step-6>
       <step-7 module="M-LIVE-OBS-EVIDENCE" status="planned" verification="V-M-LIVE-OBS-EVIDENCE">Collect narrow high-signal logs, socket state, and smoke output artifacts from both hosts</step-7>
