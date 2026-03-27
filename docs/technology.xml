@@ -1,32 +1,38 @@
-<TechnologyStack VERSION="0.2.0">
-  <Runtime>Tokio 1.34.0</Runtime>
-  <Language>Rust 1.89 (edition 2021)</Language>
-  <Framework>iroh/sendme transport stack 0.97/0.32.0</Framework>
+<TechnologyStack VERSION="0.2.1">
+  <Runtime>Tokio 1.48.0</Runtime>
+  <Language>Rust 1.94 (edition 2021)</Language>
+  <Framework>iroh + WSS transport stack 0.97/0.28</Framework>
 
   <Dependencies>
-    <dep name="sendme" version="0.32.0" purpose="Reference implementation and transport patterns for iroh-based secure data movement." />
+    <dep name="async-trait" version="0.1" purpose="Async trait contracts for adapters, streams, and effect targets." />
+    <dep name="clap" version="4.5" purpose="CLI configuration for local client and remote server modes." />
+    <dep name="futures-util" version="0.3" purpose="Stream and sink helpers around websocket and async transport boundaries." />
+    <dep name="http" version="1.3" purpose="HTTP request and response primitives used by the WSS boundary." />
     <dep name="iroh" version="0.97" purpose="Peer transport, NAT traversal, relay fallback, and encrypted connectivity primitives." />
-    <dep name="iroh-blobs" version="0.99" purpose="Reference protocol surface reused from the upstream ecosystem where appropriate." />
-    <dep name="tokio" version="1.34.0" purpose="Async runtime for sockets, tasks, shutdown, and backpressure handling." />
-    <dep name="tracing" version="0.1.40" purpose="Structured logs and span-based diagnostic evidence." />
-    <dep name="tracing-subscriber" version="0.3.20" purpose="Structured log formatting and environment-based filtering." />
-    <dep name="clap" version="4.4.10" purpose="CLI configuration for local client and remote server modes." />
-    <dep name="serde" version="1.x" purpose="Configuration parsing and structured metadata." />
-    <dep name="tokio-tungstenite" version="0.24.x" purpose="WSS client/server framing over Tokio." />
-    <dep name="anyhow" version="1.0.75" purpose="Application-level error composition during early implementation." />
+    <dep name="rustls-pemfile" version="2.2" purpose="Load TLS certificate and private key material from PEM files." />
+    <dep name="rustls-pki-types" version="1.13" purpose="Typed certificate and key representations for rustls loaders." />
+    <dep name="thiserror" version="2.0" purpose="Deterministic project error enums across config, auth, transport, and proxy boundaries." />
+    <dep name="tokio" version="1.48.0" purpose="Async runtime for sockets, tasks, shutdown, timeouts, and backpressure handling." />
+    <dep name="tokio-rustls" version="0.26" purpose="TLS client and server integration on top of Tokio." />
+    <dep name="tokio-tungstenite" version="0.28" purpose="WSS client/server framing over Tokio." />
+    <dep name="tokio-util" version="0.7" purpose="CancellationToken and TaskTracker helpers for shutdown and cleanup guarantees." />
+    <dep name="tracing" version="0.1" purpose="Structured logs and span-based diagnostic evidence." />
+    <dep name="tracing-subscriber" version="0.3" purpose="Structured log formatting and environment-based filtering." />
+    <dep name="url" version="2.5" purpose="Validated remote endpoint parsing for WSS configuration." />
+    <dep name="x509-parser" version="0.18" purpose="Certificate validation helpers such as expiry checks in TLS loading tests." />
   </Dependencies>
 
   <VersionConstraints>
-    <constraint lib="rust" min="1.89.0" max="1.89.x" reason="Keep parity with the current sendme rust-version requirement." />
+    <constraint lib="rust" min="1.94.0" max="1.94.x" reason="Match the rust-version declared in Cargo.toml." />
     <constraint lib="iroh" min="0.97.0" max="0.97.x" reason="Anchor the first implementation to the currently published upstream surface." />
-    <constraint lib="tokio" min="1.34.0" max="1.x" reason="Async runtime compatibility across websocket and transport modules." />
+    <constraint lib="tokio" min="1.48.0" max="1.x" reason="Async runtime compatibility across websocket, proxy, and transport modules." />
   </VersionConstraints>
 
   <Tooling>
-    <tool name="package-manager" value="cargo" version="bundled-with-rust-1.89" />
-    <tool name="formatter" value="rustfmt" version="bundled-with-rust-1.89" />
-    <tool name="linter" value="clippy" version="bundled-with-rust-1.89" />
-    <tool name="test-runner" value="cargo test" version="bundled-with-rust-1.89" />
+    <tool name="package-manager" value="cargo" version="bundled-with-rust-1.94" />
+    <tool name="formatter" value="rustfmt" version="bundled-with-rust-1.94" />
+    <tool name="linter" value="clippy" version="bundled-with-rust-1.94" />
+    <tool name="test-runner" value="cargo test" version="bundled-with-rust-1.94" />
   </Tooling>
 
   <Testing>
@@ -35,8 +41,8 @@
       <focus>Fast deterministic unit and contract checks around config, auth, and session logic.</focus>
     </module-level>
     <wave-level>
-      <command>cargo test --tests proxy_handshake</command>
-      <focus>Integration checks for WSS handshake, session startup, and proxy request flow.</focus>
+      <command>cargo test proxy_bridge</command>
+      <focus>Integration-lean checks for WSS handshake, session startup, timeout handling, and proxy request flow through the current bridge surface.</focus>
     </wave-level>
     <phase-level>
       <command>cargo test</command>

@@ -365,7 +365,7 @@
       <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
       <notes>
         <note-1>ProxyBridge must never import WssGateway or IrohAdapter directly.</note-1>
-        <note-2>The shared transport contracts live in src/transport/stream.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs, and src/socks5/intent.rs but do not become separate GRACE modules.</note-2>
+        <note-2>The shared transport contracts live in src/transport/stream.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs, and src/socks5/mod.rs but do not become separate GRACE modules.</note-2>
         <note-3>Pre-pump failures may produce a SOCKS5 reply; post-pump failures close the TCP path and do not remap reply codes.</note-3>
         <note-4>Both timeout and post-reply failure paths must still close local and transport write directions and notify SessionManager.</note-4>
       </notes>
