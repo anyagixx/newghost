@@ -173,15 +173,17 @@
         <check-1>cargo test cli</check-1>
       </module-checks>
       <scenarios>
-        <scenario-1 kind="success">Valid startup arguments route execution into the expected runtime mode and build optional TLS bootstrap surfaces required by that mode.</scenario-1>
-        <scenario-2 kind="failure">Shutdown sequencing stops accepts before draining transports.</scenario-2>
+        <scenario-1 kind="success">Valid startup arguments route execution into the expected runtime mode, build optional TLS bootstrap surfaces, and bind the selected runtime listener until cancellation.</scenario-1>
+        <scenario-2 kind="failure">Shutdown sequencing stops accepts before draining transports and runtime loops do not exit cleanly before cancellation.</scenario-2>
       </scenarios>
       <required-log-markers>
         <marker-1>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</marker-1>
         <marker-2>[CliApp][run][BLOCK_START_APPLICATION]</marker-2>
+        <marker-3>[CliApp][runRuntime][BLOCK_RUN_SELECTED_MODE]</marker-3>
       </required-log-markers>
       <required-trace-assertions>
         <assertion-1>Once shutdown begins, no new accepts or registrations are allowed.</assertion-1>
+        <assertion-2>Client and server runtime launch paths must stay alive until an explicit cancellation boundary is triggered.</assertion-2>
       </required-trace-assertions>
       <wave-follow-up>Use CLI orchestration in client and server integration tests.</wave-follow-up>
       <phase-follow-up>Run end-to-end startup and shutdown checks with representative configs.</phase-follow-up>
@@ -195,8 +197,8 @@
         <check-1>cargo build --release</check-1>
       </module-checks>
       <scenarios>
-        <scenario-1 kind="success">Release build produces a deployable n0wss executable that forwards process arguments into the governed CLI bootstrap.</scenario-1>
-        <scenario-2 kind="failure">Bootstrap errors surface as a non-zero process exit without duplicating startup logic outside M-CLI.</scenario-2>
+        <scenario-1 kind="success">Release build produces a deployable n0wss executable that forwards process arguments into the governed CLI runtime surface.</scenario-1>
+        <scenario-2 kind="failure">Bootstrap or runtime errors surface as a non-zero process exit without duplicating startup logic outside M-CLI.</scenario-2>
       </scenarios>
       <required-trace-assertions>
         <assertion-1>The release artifact includes a shell-executable binary at target/release/n0wss.</assertion-1>

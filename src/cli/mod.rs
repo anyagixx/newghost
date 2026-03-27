@@ -1,10 +1,10 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Select runtime mode, load configuration, initialize observability, prepare session-aware startup artifacts, and coordinate graceful shutdown sequencing.
-//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, session-manager timing bootstrap, and local shutdown-state coordination.
-//   DEPENDS: std, thiserror, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/session/mod.rs
-//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-SESSION, V-M-CLI, DF-CLIENT-BOOT, DF-SHUTDOWN
+//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing.
+//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, and local shutdown-state coordination.
+//   DEPENDS: std, async-trait, http, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/proxy_bridge/mod.rs, src/session/mod.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs
+//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, V-M-CLI, DF-CLIENT-BOOT, DF-SHUTDOWN
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -13,26 +13,43 @@
 //   StartupArtifacts - initialized foundation handles returned by run_from
 //   SessionManagerConfig - session-aware idle and shutdown timings derived during bootstrap
 //   ShutdownCoordinator - local shutdown state machine for accept-stop and drain phases
-//   run_from - bootstrap config, observability, auth, optional TLS, and startup mode
+//   CliRuntimeError - typed runtime-launch and shutdown surface errors after bootstrap
+//   run_from - bootstrap config, observability, auth, optional TLS, and selected-mode startup artifacts
+//   run_until_shutdown_from - launch the selected runtime surface and keep it alive until cancellation
 //   coordinate_shutdown - drive shutdown phases in deterministic order
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added client-side TLS bootstrap so live WSS clients can load trust anchors before launch.
+//   LAST_CHANGE: v0.1.3 - Added async runtime launch wiring so client and server modes stay alive, bind listeners, and react to shutdown cancellation.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
+use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use async_trait::async_trait;
+use http::Uri;
 use thiserror::Error;
+use tokio::net::{lookup_host, TcpListener};
+use tokio::sync::mpsc;
+use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 use crate::auth::{AuthPolicy, AuthPolicyConfig};
 use crate::config::{load_config_from, AppConfig, RuntimeMode};
 use crate::obs::{init_observability, ObservabilityConfig, ObservabilityHandles};
-use crate::session::SessionManagerConfig;
+use crate::proxy_bridge::{ProxyBridge, ProxyBridgeConfig};
+use crate::session::{
+    EffectHandler, MetricEffectTarget, MetricEvent, SessionManager, SessionManagerConfig,
+    SessionRegistry, TimerCommand, TimerEffectTarget, TransportSelector, TransportSelectorConfig,
+};
+use crate::socks5::{Socks5Proxy, Socks5ProxyConfig};
 use crate::tls::{ClientTlsConfig, TlsConfig, TlsContextHandle, TlsError};
+use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
+use crate::transport::stream::ResolvedStream;
+use crate::transport::task_tracker::AdapterTaskTracker;
+use crate::wss_gateway::{GatewayConfig, WssGateway};
 
 #[cfg(test)]
 #[path = "mod.test.rs"]
@@ -100,6 +117,22 @@ pub enum CliError {
     Tls(#[from] TlsError),
 }
 
+#[derive(Debug, Error)]
+pub enum CliRuntimeError {
+    #[error("{0}")]
+    Bootstrap(#[from] CliError),
+    #[error("invalid remote endpoint: {0}")]
+    InvalidRemoteEndpoint(String),
+    #[error("failed to resolve remote server address: {0}")]
+    RemoteAddressResolution(String),
+    #[error("listener bind failed: {0}")]
+    ListenerBind(String),
+    #[error("server runtime failed: {0}")]
+    ServerRuntime(String),
+    #[error("client runtime failed: {0}")]
+    ClientRuntime(String),
+}
+
 impl ApplicationRunResult {
     pub fn mode_label(&self) -> &'static str {
         match self.mode {
@@ -134,8 +167,55 @@ impl ShutdownCoordinator {
     }
 }
 
+#[derive(Clone, Default)]
+struct NoopTimerTarget;
+
+#[derive(Clone, Default)]
+struct NoopMetricTarget;
+
+#[derive(Clone)]
+struct UnavailableTransportAdapter {
+    task_tracker: Arc<AdapterTaskTracker>,
+}
+
+impl UnavailableTransportAdapter {
+    fn new() -> Self {
+        Self {
+            task_tracker: Arc::new(AdapterTaskTracker::new("unavailable")),
+        }
+    }
+}
+
+#[async_trait]
+impl TransportAdapter for UnavailableTransportAdapter {
+    type Error = std::io::Error;
+
+    async fn open_stream(
+        &self,
+        _request: &TransportRequest,
+        _cancel: CancellationToken,
+    ) -> Result<ResolvedStream, Self::Error> {
+        Err(std::io::Error::other(
+            "iroh runtime transport is not configured for this launch",
+        ))
+    }
+
+    fn task_tracker(&self) -> &AdapterTaskTracker {
+        self.task_tracker.as_ref()
+    }
+}
+
+#[async_trait]
+impl TimerEffectTarget for NoopTimerTarget {
+    async fn execute(&self, _command: TimerCommand) {}
+}
+
+impl MetricEffectTarget for NoopMetricTarget {
+    fn emit(&self, _event: MetricEvent) {}
+}
+
 // START_CONTRACT: run_from
-//   PURPOSE: Bootstrap the process and route execution into client or server mode.
+//   PURPOSE: Bootstrap the process and prepare startup artifacts for the selected runtime mode.
 //   INPUTS: { args: Iterator<Item = OsString> - command-line arguments including binary name }
 //   OUTPUTS: { Result<ApplicationRunResult, CliError> - startup result with initialized foundation artifacts }
 //   SIDE_EFFECTS: [loads config, initializes tracing, auth policy, and optional TLS context]
@@ -201,6 +281,41 @@ where
     // END_BLOCK_START_APPLICATION
 }
 
+// START_CONTRACT: run_until_shutdown_from
+//   PURPOSE: Launch the selected runtime surface and keep it alive until cancellation is requested.
+//   INPUTS: { args: Iterator<Item = OsString> - command-line arguments including binary name, cancel: CancellationToken - process-level shutdown signal boundary }
+//   OUTPUTS: { Result<ApplicationRunResult, CliRuntimeError> - initialized startup artifacts after runtime launch and coordinated shutdown }
+//   SIDE_EFFECTS: [binds runtime listeners, spawns runtime tasks, and coordinates shutdown on cancellation]
+//   LINKS: [M-CLI, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, V-M-CLI]
+// END_CONTRACT: run_until_shutdown_from
+pub async fn run_until_shutdown_from<I, T>(
+    args: I,
+    cancel: CancellationToken,
+) -> Result<ApplicationRunResult, CliRuntimeError>
+where
+    I: IntoIterator<Item = T>,
+    T: Into<OsString> + Clone,
+{
+    // START_BLOCK_RUN_SELECTED_MODE
+    let startup = run_from(args)?;
+    match &startup.startup.config.runtime_mode {
+        RuntimeMode::Server(server_config) => {
+            run_server_mode(&startup, server_config.listen_addr, cancel.clone()).await?;
+        }
+        RuntimeMode::Client(client_config) => {
+            run_client_mode(&startup, client_config.listen_addr, cancel.clone()).await?;
+        }
+    }
+
+    coordinate_shutdown(&startup.shutdown);
+    info!(
+        mode = startup.mode_label(),
+        "[CliApp][runRuntime][BLOCK_RUN_SELECTED_MODE] runtime exited after coordinated shutdown"
+    );
+    Ok(startup)
+    // END_BLOCK_RUN_SELECTED_MODE
+}
+
 // START_CONTRACT: coordinate_shutdown
 //   PURPOSE: Drive accept-stop, drain, and transport-release shutdown phases.
 //   INPUTS: { coordinator: &ShutdownCoordinator - mutable shutdown state holder }
@@ -232,4 +347,209 @@ pub fn coordinate_shutdown(coordinator: &ShutdownCoordinator) -> ShutdownSnapsho
 
     snapshot.clone()
     // END_BLOCK_COORDINATE_SHUTDOWN
+}
+
+async fn run_server_mode(
+    startup: &ApplicationRunResult,
+    listen_addr: SocketAddr,
+    cancel: CancellationToken,
+) -> Result<(), CliRuntimeError> {
+    let gateway = build_server_gateway(startup, listen_addr)?;
+    let listener = TcpListener::bind(listen_addr)
+        .await
+        .map_err(|err| CliRuntimeError::ListenerBind(err.to_string()))?;
+    let server_task = tokio::spawn({
+        let gateway = gateway.clone();
+        async move { gateway.run_server(listener).await }
+    });
+    tokio::pin!(server_task);
+
+    info!(
+        mode = "server",
+        listen_addr = %listen_addr,
+        "[CliApp][runRuntime][BLOCK_RUN_SERVER_MODE] server runtime bound listener"
+    );
+
+    tokio::select! {
+        server_result = &mut server_task => {
+            let joined = server_result
+                .map_err(|err| CliRuntimeError::ServerRuntime(err.to_string()))?;
+            joined.map_err(|err| CliRuntimeError::ServerRuntime(err.to_string()))
+        }
+        _ = cancel.cancelled() => {
+            gateway.stop_accept();
+            let joined = server_task
+                .await
+                .map_err(|err| CliRuntimeError::ServerRuntime(err.to_string()))?;
+            joined.map_err(|err| CliRuntimeError::ServerRuntime(err.to_string()))
+        }
+    }
+}
+
+async fn run_client_mode(
+    startup: &ApplicationRunResult,
+    listen_addr: SocketAddr,
+    cancel: CancellationToken,
+) -> Result<(), CliRuntimeError> {
+    let app_config = &startup.startup.config;
+    let socks5_config = Socks5ProxyConfig::from_app_config(app_config)
+        .ok_or_else(|| CliRuntimeError::ClientRuntime("missing client socks5 config".to_string()))?;
+    let (intent_tx, intent_rx) = mpsc::channel(app_config.limits.max_pending_intents);
+    let proxy = Socks5Proxy::new(socks5_config, intent_tx.clone());
+    let wss_gateway = build_client_gateway(startup).await?;
+    let selector = TransportSelector::new(
+        UnavailableTransportAdapter::new(),
+        wss_gateway,
+        TransportSelectorConfig {
+            iroh_timeout: app_config.timeouts.iroh_connect_timeout,
+            wss_timeout: app_config.timeouts.wss_connect_timeout,
+            safety_timeout: app_config.timeouts.iroh_connect_timeout
+                + app_config.timeouts.wss_connect_timeout
+                + Duration::from_secs(1),
+        },
+    );
+    let registry = Arc::new(SessionRegistry::new(app_config.limits.max_sessions));
+    let effect_handler = EffectHandler::new(
+        registry.clone(),
+        NoopTimerTarget,
+        NoopMetricTarget,
+    );
+    let manager = Arc::new(SessionManager::new(
+        registry,
+        selector,
+        effect_handler,
+        startup.startup.session_config.clone(),
+    ));
+    let bridge = ProxyBridge::new(
+        ProxyBridgeConfig {
+            pump_buffer_bytes: 8 * 1024,
+            total_request_timeout: app_config.timeouts.socks5_total_timeout,
+        },
+        manager.clone(),
+    );
+    let listener_task = tokio::spawn({
+        let proxy = proxy.clone();
+        async move { proxy.run_listener().await }
+    });
+    let worker_task = tokio::spawn({
+        let bridge = bridge.clone();
+        async move { bridge.run_worker(intent_rx).await }
+    });
+    tokio::pin!(listener_task);
+
+    info!(
+        mode = "client",
+        listen_addr = %listen_addr,
+        "[CliApp][runRuntime][BLOCK_RUN_CLIENT_MODE] client runtime bound socks5 listener"
+    );
+
+    let runtime_result = tokio::select! {
+        listener_result = &mut listener_task => {
+            let joined = listener_result
+                .map_err(|err| CliRuntimeError::ClientRuntime(err.to_string()))?;
+            joined.map_err(|err| CliRuntimeError::ClientRuntime(err.to_string()))
+        }
+        _ = cancel.cancelled() => Ok(()),
+    };
+
+    proxy.stop_accept();
+    bridge.stop_accept();
+    drop(intent_tx);
+
+    let listener_joined = listener_task
+        .await
+        .map_err(|err| CliRuntimeError::ClientRuntime(err.to_string()))?;
+    bridge.drain_all().await;
+    let _ = worker_task.await;
+    let _ = manager.shutdown().await;
+
+    runtime_result?;
+    listener_joined.map_err(|err| CliRuntimeError::ClientRuntime(err.to_string()))
+}
+
+fn build_server_gateway(
+    startup: &ApplicationRunResult,
+    listen_addr: SocketAddr,
+) -> Result<WssGateway, CliRuntimeError> {
+    let tls_context = startup
+        .startup
+        .tls_context
+        .clone()
+        .ok_or_else(|| CliRuntimeError::ServerRuntime("server TLS context missing".to_string()))?;
+    let websocket_uri: Uri = "wss://localhost/tunnel"
+        .parse()
+        .map_err(|err: http::uri::InvalidUri| CliRuntimeError::ServerRuntime(err.to_string()))?;
+
+    Ok(WssGateway::new(GatewayConfig {
+        server_addr: listen_addr,
+        server_name: "localhost".to_string(),
+        websocket_uri,
+        auth_token: startup.startup.config.auth_token.clone(),
+        tls_context,
+        auth_policy: startup.startup.auth_policy.clone(),
+        metrics: startup.startup.observability.metrics.clone(),
+    }))
+}
+
+async fn build_client_gateway(
+    startup: &ApplicationRunResult,
+) -> Result<WssGateway, CliRuntimeError> {
+    let client_config = match &startup.startup.config.runtime_mode {
+        RuntimeMode::Client(client_config) => client_config,
+        RuntimeMode::Server(_) => {
+            return Err(CliRuntimeError::ClientRuntime(
+                "client gateway requested in server mode".to_string(),
+            ))
+        }
+    };
+    let remote_socket_addr = resolve_remote_socket_addr(&client_config.remote_wss_url).await?;
+    let server_name = client_config
+        .tls
+        .as_ref()
+        .and_then(|tls| tls.server_name_override.clone())
+        .or_else(|| client_config.remote_wss_url.host_str().map(ToOwned::to_owned))
+        .ok_or_else(|| {
+            CliRuntimeError::InvalidRemoteEndpoint(
+                "remote WSS URL must include a host".to_string(),
+            )
+        })?;
+    let websocket_uri = client_config
+        .remote_wss_url
+        .as_str()
+        .parse()
+        .map_err(|err: http::uri::InvalidUri| CliRuntimeError::InvalidRemoteEndpoint(err.to_string()))?;
+    let tls_context = startup
+        .startup
+        .tls_context
+        .clone()
+        .ok_or_else(|| CliRuntimeError::ClientRuntime("client TLS context missing".to_string()))?;
+
+    Ok(WssGateway::new(GatewayConfig {
+        server_addr: remote_socket_addr,
+        server_name,
+        websocket_uri,
+        auth_token: startup.startup.config.auth_token.clone(),
+        tls_context,
+        auth_policy: startup.startup.auth_policy.clone(),
+        metrics: startup.startup.observability.metrics.clone(),
+    }))
+}
+
+async fn resolve_remote_socket_addr(url: &url::Url) -> Result<SocketAddr, CliRuntimeError> {
+    let host = url.host_str().ok_or_else(|| {
+        CliRuntimeError::InvalidRemoteEndpoint("remote WSS URL must include a host".to_string())
+    })?;
+    let port = url.port_or_known_default().ok_or_else(|| {
+        CliRuntimeError::InvalidRemoteEndpoint(
+            "remote WSS URL must include a known or explicit port".to_string(),
+        )
+    })?;
+    let mut resolved = lookup_host((host, port))
+        .await
+        .map_err(|err| CliRuntimeError::RemoteAddressResolution(err.to_string()))?;
+    resolved.next().ok_or_else(|| {
+        CliRuntimeError::RemoteAddressResolution(format!(
+            "no socket addresses resolved for {host}:{port}"
+        ))
+    })
 }

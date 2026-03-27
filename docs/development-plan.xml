@@ -9,7 +9,7 @@
   <Modules>
     <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" LAYER="0" ORDER="1" STATUS="implemented">
       <contract>
-        <purpose>Select runtime mode, load configuration, initialize observability, and coordinate graceful shutdown sequencing.</purpose>
+        <purpose>Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing.</purpose>
         <inputs>
           <param name="cliArgs" type="Vec&lt;String&gt;" />
           <param name="env" type="ProcessEnvironment" />
@@ -20,13 +20,15 @@
         <errors>
           <error code="CLI_ARGUMENT_INVALID" />
           <error code="STARTUP_FAILED" />
+          <error code="RUNTIME_LAUNCH_FAILED" />
         </errors>
       </contract>
       <interface>
-        <export-run PURPOSE="Bootstrap the process and route execution into client or server mode." />
+        <export-run PURPOSE="Bootstrap the process and prepare startup artifacts for the selected runtime mode." />
+        <export-runUntilShutdown PURPOSE="Launch the selected runtime surface and keep it alive until cancellation." />
         <export-coordinateShutdown PURPOSE="Drive accept-stop, drain, and transport-release shutdown phases." />
       </interface>
-      <depends>M-CONFIG, M-OBS, M-SESSION</depends>
+      <depends>M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION</depends>
       <target>
         <source>src/cli/mod.rs</source>
         <tests>src/cli/mod.test.rs</tests>
@@ -37,13 +39,13 @@
       </observability>
       <verification-ref>V-M-CLI</verification-ref>
       <notes>
-        <note-1>CLI orchestrates startup and shutdown only; it does not own transport logic or proxy parsing.</note-1>
+        <note-1>CLI orchestrates startup, live runtime launch, and shutdown while transport internals stay inside the gateway, bridge, and session modules.</note-1>
       </notes>
     </M-CLI>
 
     <M-CLI-BIN NAME="CliBinary" TYPE="ENTRY_POINT" LAYER="0" ORDER="1.5" STATUS="implemented">
       <contract>
-        <purpose>Expose a deployable n0wss executable that forwards process arguments into the governed CLI bootstrap and returns stable exit codes.</purpose>
+        <purpose>Expose a deployable n0wss executable that forwards process arguments into the governed CLI runtime surface and returns stable exit codes.</purpose>
         <inputs>
           <param name="processArgv" type="ProcessArgs" />
         </inputs>
@@ -52,10 +54,11 @@
         </outputs>
         <errors>
           <error code="BOOTSTRAP_FAILED" />
+          <error code="RUNTIME_FAILED" />
         </errors>
       </contract>
       <interface>
-        <export-main PURPOSE="Forward argv into the library CLI entrypoint and map startup errors to a shell-visible exit code." />
+        <export-main PURPOSE="Forward argv into the library CLI runtime entrypoint and map bootstrap or runtime errors to a shell-visible exit code." />
       </interface>
       <depends>M-CLI</depends>
       <target>

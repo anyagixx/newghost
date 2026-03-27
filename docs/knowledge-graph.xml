@@ -6,23 +6,25 @@
     <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Bootstrap the process, choose runtime mode, and coordinate graceful shutdown phases.</purpose>
       <path>src/cli/mod.rs</path>
-      <depends>M-CONFIG, M-OBS, M-SESSION</depends>
+      <depends>M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION</depends>
       <verification-ref>V-M-CLI</verification-ref>
       <annotations>
-        <fn-run PURPOSE="Parse startup arguments and launch the selected mode." />
+        <fn-run PURPOSE="Parse startup arguments and bootstrap the selected mode." />
+        <fn-runUntilShutdown PURPOSE="Launch the selected runtime surface and keep it alive until cancellation." />
         <fn-coordinateShutdown PURPOSE="Stop accepts, drain work, and release transports in order." />
         <type-ApplicationRunResult PURPOSE="Represent final startup or shutdown outcomes." />
+        <type-CliRuntimeError PURPOSE="Report deterministic runtime-launch and listener-lifecycle failures after bootstrap." />
         <type-StartupArtifacts PURPOSE="Carry config, observability, auth policy, session timings, and optional TLS startup handles." />
       </annotations>
     </M-CLI>
 
     <M-CLI-BIN NAME="CliBinary" TYPE="ENTRY_POINT" STATUS="implemented">
-      <purpose>Expose a deployable n0wss executable that forwards process arguments into the governed CLI bootstrap and returns stable exit codes.</purpose>
+      <purpose>Expose a deployable n0wss executable that forwards process arguments into the governed CLI runtime surface and returns stable exit codes.</purpose>
       <path>src/main.rs</path>
       <depends>M-CLI</depends>
       <verification-ref>V-M-CLI-BIN</verification-ref>
       <annotations>
-        <fn-main PURPOSE="Forward argv into the library CLI entrypoint and map bootstrap errors to a shell-visible exit code." />
+        <fn-main PURPOSE="Forward argv into the library CLI runtime entrypoint and map bootstrap or runtime errors to a shell-visible exit code." />
       </annotations>
     </M-CLI-BIN>
 
@@ -300,9 +302,12 @@
       </annotations>
     </M-LIVE-FAILURE-TRIAGE>
 
-    <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed startup surface" />
+    <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
+    <CrossLink from="M-CLI" to="M-WSS-GATEWAY" relation="launches the live WSS server loop and client-side WSS transport runtime" />
+    <CrossLink from="M-CLI" to="M-SOCKS5" relation="launches the local SOCKS5 ingress runtime in client mode" />
+    <CrossLink from="M-CLI" to="M-PROXY-BRIDGE" relation="launches the bridge worker runtime for proxied requests" />
     <CrossLink from="M-CLI" to="M-SESSION" relation="coordinates shutdown across active sessions" />
     <CrossLink from="M-OBS" to="M-AUTH" relation="provides redaction-aware logging and metrics policy" />
     <CrossLink from="M-CONFIG" to="M-TLS" relation="supplies TLS material paths and timeout policy" />
