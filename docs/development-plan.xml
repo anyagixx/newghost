@@ -402,7 +402,7 @@
       </notes>
     </M-MARKUP-CLEANUP>
 
-    <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" LAYER="6" ORDER="2" STATUS="pending">
+    <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" LAYER="6" ORDER="2" STATUS="implemented">
       <contract>
         <purpose>Prepare GitHub-facing release documentation, quickstart, changelog, and operator-facing notes that match the current implementation.</purpose>
         <inputs>
@@ -632,7 +632,7 @@
     <Phase-7 name="Release Readiness" status="in_progress">
       <goal>Close the remaining markup debt, align release docs and GitHub workflows, and add a narrow smoke gate before external testing.</goal>
       <step-1 module="M-MARKUP-CLEANUP" status="done" verification="V-M-MARKUP-CLEANUP">Close the remaining minor GRACE markup issues in governed helper files</step-1>
-      <step-2 module="M-RELEASE-DOCS" status="pending" verification="V-M-RELEASE-DOCS">Prepare README, changelog, and operator-facing release documentation</step-2>
+      <step-2 module="M-RELEASE-DOCS" status="done" verification="V-M-RELEASE-DOCS">Prepare README, changelog, and operator-facing release documentation</step-2>
       <step-3 module="M-GITHUB-RELEASE" status="pending" verification="V-M-GITHUB-RELEASE">Align GitHub CI and release workflow expectations with the repository state</step-3>
       <step-4 module="M-SMOKE-E2E" status="pending" verification="V-M-SMOKE-E2E">Add a deterministic release smoke path for startup, one proxied request, and shutdown</step-4>
     </Phase-7>

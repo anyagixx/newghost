@@ -157,7 +157,7 @@
       </annotations>
     </M-MARKUP-CLEANUP>
 
-    <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" STATUS="pending">
+    <M-RELEASE-DOCS NAME="ReleaseDocs" TYPE="UTILITY" STATUS="implemented">
       <purpose>Prepare GitHub-facing release documentation, quickstart, changelog, and operator notes that match the current implementation.</purpose>
       <path>README.md</path>
       <depends>M-CLI, M-CONFIG, M-SOCKS5, M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
