@@ -44,6 +44,10 @@ fn selects_client_mode_on_valid_startup() {
 
     assert_eq!(run_result.mode, ApplicationMode::Client);
     assert!(run_result.startup.tls_context.is_none());
+    assert_eq!(
+        run_result.startup.session_config.idle_timeout,
+        std::time::Duration::from_secs(10)
+    );
     assert!(run_result.shutdown.can_accept_new_work());
 }
 
@@ -65,6 +69,10 @@ fn selects_server_mode_and_builds_tls_on_valid_startup() {
 
     assert_eq!(run_result.mode, ApplicationMode::Server);
     assert!(run_result.startup.tls_context.is_some());
+    assert_eq!(
+        run_result.startup.session_config.graceful_shutdown_timeout,
+        std::time::Duration::from_secs(60)
+    );
 }
 
 #[test]

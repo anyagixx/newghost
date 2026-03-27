@@ -1,23 +1,24 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
-//   PURPOSE: Select runtime mode, load configuration, initialize observability, and coordinate graceful shutdown sequencing.
-//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, and local shutdown-state coordination.
-//   DEPENDS: std, thiserror, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs
-//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, V-M-CLI, DF-CLIENT-BOOT, DF-SHUTDOWN
+//   PURPOSE: Select runtime mode, load configuration, initialize observability, prepare session-aware startup artifacts, and coordinate graceful shutdown sequencing.
+//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, session-manager timing bootstrap, and local shutdown-state coordination.
+//   DEPENDS: std, thiserror, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/session/mod.rs
+//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-SESSION, V-M-CLI, DF-CLIENT-BOOT, DF-SHUTDOWN
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   ApplicationRunResult - typed startup output for client or server mode
 //   ApplicationMode - stable runtime mode label
 //   StartupArtifacts - initialized foundation handles returned by run_from
+//   SessionManagerConfig - session-aware idle and shutdown timings derived during bootstrap
 //   ShutdownCoordinator - local shutdown state machine for accept-stop and drain phases
 //   run_from - bootstrap config, observability, auth, optional TLS, and startup mode
 //   coordinate_shutdown - drive shutdown phases in deterministic order
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Created Phase 1 CLI bootstrap and shutdown orchestration with tests.
+//   LAST_CHANGE: v0.1.1 - Wired session-manager timing bootstrap into CLI startup artifacts for Phase 3 shutdown coordination.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -30,6 +31,7 @@ use tracing::info;
 use crate::auth::{AuthPolicy, AuthPolicyConfig};
 use crate::config::{load_config_from, AppConfig, RuntimeMode};
 use crate::obs::{init_observability, ObservabilityConfig, ObservabilityHandles};
+use crate::session::SessionManagerConfig;
 use crate::tls::{TlsConfig, TlsContextHandle, TlsError};
 
 #[cfg(test)]
@@ -47,6 +49,7 @@ pub struct StartupArtifacts {
     pub config: AppConfig,
     pub observability: ObservabilityHandles,
     pub auth_policy: AuthPolicy,
+    pub session_config: SessionManagerConfig,
     pub tls_context: Option<TlsContextHandle>,
 }
 
@@ -166,6 +169,7 @@ where
         graceful_timeout: config.timeouts.graceful_timeout,
         force_kill_after: config.timeouts.force_kill_after,
     });
+    let session_config = SessionManagerConfig::from_app_config(&config);
 
     let result = ApplicationRunResult {
         mode,
@@ -173,6 +177,7 @@ where
             config,
             observability,
             auth_policy,
+            session_config,
             tls_context,
         },
         shutdown,
