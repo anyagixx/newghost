@@ -78,7 +78,7 @@
       </annotations>
     </M-WSS-GATEWAY>
 
-    <M-IROH-ADAPTER NAME="IrohAdapter" TYPE="INTEGRATION" STATUS="planned">
+    <M-IROH-ADAPTER NAME="IrohAdapter" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Integrate with iroh/sendme transport primitives for direct or relay-backed stream creation under a shared adapter contract.</purpose>
       <path>src/iroh_adapter/mod.rs</path>
       <depends>M-CONFIG, M-OBS</depends>

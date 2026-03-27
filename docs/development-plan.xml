@@ -212,7 +212,7 @@
       </notes>
     </M-WSS-GATEWAY>
 
-    <M-IROH-ADAPTER NAME="IrohAdapter" TYPE="INTEGRATION" LAYER="2" ORDER="2" STATUS="planned">
+    <M-IROH-ADAPTER NAME="IrohAdapter" TYPE="INTEGRATION" LAYER="2" ORDER="2" STATUS="implemented">
       <contract>
         <purpose>Open iroh direct or relay-backed transport streams under the shared adapter contract and clean up partial state on cancel or error.</purpose>
         <inputs>
@@ -448,7 +448,7 @@
     <Phase-2 name="Transport Boundaries" status="pending">
       <goal>Implement both transport boundaries behind shared stream, adapter, and task-tracking contracts.</goal>
       <step-1 module="M-WSS-GATEWAY" status="done" verification="V-M-WSS-GATEWAY">Build WSS adapter, task tracker, and contract tests</step-1>
-      <step-2 module="M-IROH-ADAPTER" status="pending" verification="V-M-IROH-ADAPTER">Build iroh adapter, task tracker, and contract tests</step-2>
+      <step-2 module="M-IROH-ADAPTER" status="done" verification="V-M-IROH-ADAPTER">Build iroh adapter, task tracker, and contract tests</step-2>
     </Phase-2>
 
     <Phase-3 name="Session Core" status="pending">
