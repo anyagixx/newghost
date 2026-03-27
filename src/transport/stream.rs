@@ -14,6 +14,10 @@
 //   ResolvedStream - transport stream plus transport kind metadata
 //   TransportKind - Wss, IrohDirect, or IrohRelay discriminator for metrics
 // END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.1 - Added the missing change summary block to keep the shared transport stream contract release-ready under GRACE review.
+// END_CHANGE_SUMMARY
 
 use std::pin::Pin;
 use std::time::Duration;

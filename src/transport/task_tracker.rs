@@ -11,6 +11,10 @@
 //   AdapterTaskTracker - wrapper around tokio_util::task::TaskTracker
 //   TrackerTimeout - timeout error for close_and_wait
 // END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.1 - Added the missing change summary block so adapter cleanup helpers satisfy GRACE governed-file markup rules.
+// END_CHANGE_SUMMARY
 
 use std::future::Future;
 use std::time::Duration;

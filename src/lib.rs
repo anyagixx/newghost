@@ -20,6 +20,10 @@
 //   wss_gateway - WSS transport adapter and server boundary
 //   iroh_adapter - iroh transport adapter and release boundary
 // END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.1 - Added a crate-level change summary so GRACE reviewer can track the governed root module cleanly before release.
+// END_CHANGE_SUMMARY
 
 pub mod auth;
 pub mod cli;

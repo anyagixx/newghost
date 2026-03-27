@@ -11,6 +11,10 @@
 //   TransportRequest - minimal request used by transport adapters
 //   TransportAdapter - shared adapter trait
 // END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.1 - Added the missing change summary block so the shared adapter contract satisfies GRACE governed-file markup requirements.
+// END_CHANGE_SUMMARY
 
 use async_trait::async_trait;
 use tokio_util::sync::CancellationToken;
