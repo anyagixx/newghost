@@ -11,8 +11,10 @@
 //   config - configuration loading and validation module
 //   obs - observability bootstrap and burst detection module
 //   auth - handshake authentication and redaction module
+//   tls - TLS material loading and runtime context module
 // END_MODULE_MAP
 
 pub mod auth;
 pub mod config;
 pub mod obs;
+pub mod tls;
