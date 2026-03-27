@@ -1,5 +1,5 @@
 // FILE: src/tls/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Load TLS material and expose accept/connect operations used by the websocket transport boundary.
 //   SCOPE: TLS material parsing, deterministic validation, rustls context construction, and typed accept/connect helpers.
@@ -16,12 +16,12 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Created Phase 1 TLS context loader with deterministic material validation and tests.
+//   LAST_CHANGE: v0.1.1 - Installed a deterministic rustls crypto provider inside the TLS boundary to avoid cross-module feature drift.
 // END_CHANGE_SUMMARY
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use std::time::SystemTime;
 
 use rustls_pemfile::{certs, pkcs8_private_keys, rsa_private_keys};
@@ -39,6 +39,8 @@ use x509_parser::prelude::FromDer;
 #[cfg(test)]
 #[path = "mod.test.rs"]
 mod tests;
+
+static TLS_CRYPTO_PROVIDER: OnceLock<()> = OnceLock::new();
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TlsConfig {
@@ -86,6 +88,8 @@ impl TlsContextHandle {
     // END_CONTRACT: from_config
     pub fn from_config(config: &TlsConfig) -> Result<Self, TlsError> {
         // START_BLOCK_LOAD_TLS_MATERIAL
+        install_crypto_provider();
+
         let cert_bytes = read_file(&config.cert_path)?;
         let key_bytes = read_file(&config.key_path)?;
         let trust_anchor_bytes = read_file(&config.trust_anchor_path)?;
@@ -166,6 +170,12 @@ impl TlsContextHandle {
             .await
             .map_err(|err| TlsError::HandshakeFailed(err.to_string()))
     }
+}
+
+fn install_crypto_provider() {
+    let _ = TLS_CRYPTO_PROVIDER.get_or_init(|| {
+        let _ = tokio_rustls::rustls::crypto::ring::default_provider().install_default();
+    });
 }
 
 fn read_file(path: &Path) -> Result<Vec<u8>, TlsError> {
