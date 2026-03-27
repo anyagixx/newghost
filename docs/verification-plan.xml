@@ -374,7 +374,9 @@
     <Gate-Phase-2 PHASE="Phase-2">
       <goal>Both transport boundaries satisfy the shared adapter cleanup and task-tracking contracts.</goal>
       <commands>
-        <command-1>cargo test wss_gateway iroh_adapter</command-1>
+        <command-1>cargo test wss_gateway</command-1>
+        <command-2>cargo test iroh_adapter</command-2>
+        <command-3>cargo clippy --all-targets --all-features</command-3>
       </commands>
       <required-evidence>
         <evidence-1>WSS and iroh adapter contract tests pass without leaked tracked tasks.</evidence-1>
