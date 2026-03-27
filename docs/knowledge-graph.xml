@@ -102,6 +102,8 @@
         <fn-handleEvent PURPOSE="Interpret pure state effects and dispatch them." />
         <fn-shutdown PURPOSE="Drain registry and close sessions during shutdown." />
         <type-SessionEffect PURPOSE="Route pure state-machine outputs to registry, timer, or metric targets." />
+        <type-SessionHandle PURPOSE="Provide cloneable access to one registry-owned session record." />
+        <type-SessionRecord PURPOSE="Store mutable state, idle timestamps, and new-stream admission flags per session." />
         <type-SessionState PURPOSE="Represent Active, Closing, and Closed states." />
         <type-SessionRegistry PURPOSE="Concurrent map and semaphore for session storage and capacity control." />
         <type-TransportSelector PURPOSE="Sequential transport selection strategy with timeout and fallback policy." />
