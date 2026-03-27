@@ -7,7 +7,7 @@
   </ArchitectureNotes>
 
   <Modules>
-    <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" LAYER="0" ORDER="1" STATUS="planned">
+    <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" LAYER="0" ORDER="1" STATUS="implemented">
       <contract>
         <purpose>Select runtime mode, load configuration, initialize observability, and coordinate graceful shutdown sequencing.</purpose>
         <inputs>
@@ -442,6 +442,7 @@
       <step-2 module="M-OBS" status="done" verification="V-M-OBS">Initialize structured observability, metrics, sliding-window burst detection, and peak-rate reset</step-2>
       <step-3 module="M-AUTH" status="done" verification="V-M-AUTH">Implement authentication and redaction policy</step-3>
       <step-4 module="M-TLS" status="done" verification="V-M-TLS">Build TLS context loading and validation</step-4>
+      <step-5 module="M-CLI" status="done" verification="V-M-CLI">Wire startup and graceful shutdown orchestration</step-5>
     </Phase-1>
 
     <Phase-2 name="Transport Boundaries" status="pending">

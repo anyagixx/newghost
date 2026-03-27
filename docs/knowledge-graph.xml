@@ -3,7 +3,7 @@
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
-    <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Bootstrap the process, choose runtime mode, and coordinate graceful shutdown phases.</purpose>
       <path>src/cli/mod.rs</path>
       <depends>M-CONFIG, M-OBS, M-SESSION</depends>
