@@ -12,6 +12,7 @@
 //   SessionManagerConfig - idle and shutdown timing derived from validated app config
 //   SessionRequest - deterministic session registration input
 //   SessionManager - thin orchestrator over registry, selector, state machine, and effect handler
+//   SessionControl - bridge-facing contract over registration, resolution, and lifecycle events
 //   register_session - reserve capacity and register a new session
 //   resolve_stream - delegate transport opening then apply the state-machine stream-open event
 //   handle_event - apply one pure state-machine transition and dispatch typed effects
@@ -30,6 +31,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
+use async_trait::async_trait;
 use thiserror::Error;
 use tokio_util::sync::CancellationToken;
 use tracing::info;
@@ -83,6 +85,27 @@ pub struct SessionManager<I, W, T, M> {
     selector: TransportSelector<I, W>,
     effect_handler: EffectHandler<Arc<SessionRegistry>, T, M>,
     config: SessionManagerConfig,
+}
+
+#[async_trait]
+pub trait SessionControl: Send + Sync {
+    fn register_session(
+        &self,
+        request: &SessionRequest,
+    ) -> Result<(SessionId, SessionHandle), SessionManagerError>;
+
+    async fn resolve_stream(
+        &self,
+        session_id: SessionId,
+        request: &TransportRequest,
+        cancel: CancellationToken,
+    ) -> Result<ResolvedStream, SessionManagerError>;
+
+    async fn handle_event(
+        &self,
+        session_id: SessionId,
+        event: SessionEvent,
+    ) -> Result<(), SessionManagerError>;
 }
 
 impl SessionManagerConfig {
@@ -243,6 +266,39 @@ where
         }
 
         drained_count
+    }
+}
+
+#[async_trait]
+impl<I, W, T, M> SessionControl for SessionManager<I, W, T, M>
+where
+    I: crate::transport::adapter_contract::TransportAdapter + Send + Sync,
+    W: crate::transport::adapter_contract::TransportAdapter + Send + Sync,
+    T: TimerEffectTarget + Send + Sync,
+    M: MetricEffectTarget + Send + Sync,
+{
+    fn register_session(
+        &self,
+        request: &SessionRequest,
+    ) -> Result<(SessionId, SessionHandle), SessionManagerError> {
+        SessionManager::register_session(self, request)
+    }
+
+    async fn resolve_stream(
+        &self,
+        session_id: SessionId,
+        request: &TransportRequest,
+        cancel: CancellationToken,
+    ) -> Result<ResolvedStream, SessionManagerError> {
+        SessionManager::resolve_stream(self, session_id, request, cancel).await
+    }
+
+    async fn handle_event(
+        &self,
+        session_id: SessionId,
+        event: SessionEvent,
+    ) -> Result<(), SessionManagerError> {
+        SessionManager::handle_event(self, session_id, event).await
     }
 }
 

@@ -19,6 +19,7 @@
 //   run_listener - bind and accept local SOCKS5 connections
 //   parse_request - parse SOCKS5 handshake and CONNECT request into ProxyIntent
 //   map_reply - map ProxyError to an exact SOCKS5 reply or None after reply emission
+//   send_reply_and_close - send a SOCKS5 reply and close the client socket for pre-pump failures
 //   stop_accept - stop accepting new local connections during shutdown
 // END_MODULE_MAP
 //
@@ -205,7 +206,7 @@ impl Socks5Proxy {
             Ok(()) => Ok(()),
             Err(mpsc::error::TrySendError::Full(returned_intent)) => {
                 let mut stream = returned_intent.client_stream;
-                Self::send_reply(&mut stream, Socks5Reply::GeneralFailure).await?;
+                Self::send_reply_and_close(&mut stream, Socks5Reply::GeneralFailure).await?;
                 warn!(
                     request_id = returned_intent.request_id,
                     "[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE] intent queue full"
@@ -214,7 +215,7 @@ impl Socks5Proxy {
             }
             Err(mpsc::error::TrySendError::Closed(returned_intent)) => {
                 let mut stream = returned_intent.client_stream;
-                Self::send_reply(&mut stream, Socks5Reply::GeneralFailure).await?;
+                Self::send_reply_and_close(&mut stream, Socks5Reply::GeneralFailure).await?;
                 Ok(())
             }
         }
@@ -373,7 +374,14 @@ impl Socks5Proxy {
         stream
             .write_all(&response)
             .await
-            .map_err(|err| Socks5Error::Io(err.to_string()))?;
+            .map_err(|err| Socks5Error::Io(err.to_string()))
+    }
+
+    pub async fn send_reply_and_close(
+        stream: &mut TcpStream,
+        reply: Socks5Reply,
+    ) -> Result<(), Socks5Error> {
+        Self::send_reply(stream, reply).await?;
         stream
             .shutdown()
             .await
