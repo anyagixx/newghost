@@ -64,3 +64,28 @@ fn peak_rate_resets_on_maintenance_interval() {
 
     assert_eq!(handles.metrics.snapshot().peak_rate_per_sec, 0);
 }
+
+#[test]
+fn sustained_burst_logs_are_rate_limited() {
+    let handles = init_observability(detector_config()).expect("observability should initialize");
+
+    for _ in 0..3 {
+        record_burst(&handles.burst_detector, BurstEvent { queue_capacity: 64 });
+    }
+    assert_eq!(handles.burst_detector.log_entries().len(), 1);
+
+    for _ in 0..3 {
+        record_burst(&handles.burst_detector, BurstEvent { queue_capacity: 64 });
+    }
+    assert_eq!(
+        handles.burst_detector.log_entries().len(),
+        1,
+        "min_log_interval should suppress repeated burst logs in the same window"
+    );
+
+    thread::sleep(Duration::from_secs(1));
+    for _ in 0..3 {
+        record_burst(&handles.burst_detector, BurstEvent { queue_capacity: 64 });
+    }
+    assert_eq!(handles.burst_detector.log_entries().len(), 2);
+}

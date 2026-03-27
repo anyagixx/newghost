@@ -1,5 +1,5 @@
 // FILE: src/obs/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Initialize tracing, stable field propagation, metrics collection, sliding-window burst detection, peak-rate gauges, and redaction-aware logging behavior.
 //   SCOPE: Observability bootstrap, in-memory metrics updates, burst detection, peak resets, and secret redaction helpers.
@@ -19,7 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Created Phase 1 observability module with tracing bootstrap, metrics, burst detection, and tests.
+//   LAST_CHANGE: v0.1.1 - Added hardening coverage for sustained burst rate limiting and documented burst-threshold tuning as an operational concern.
 // END_CHANGE_SUMMARY
 
 use std::collections::{BTreeMap, VecDeque};
