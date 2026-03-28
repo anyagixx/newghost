@@ -805,7 +805,7 @@
       </annotations>
     </M-RELEASE-MESSAGING-0-3-2>
 
-    <M-BASELINE-SYNC-0-3-2 NAME="BaselineSync032" TYPE="UTILITY" STATUS="planned">
+    <M-BASELINE-SYNC-0-3-2 NAME="BaselineSync032" TYPE="UTILITY" STATUS="implemented">
       <purpose>Synchronize GRACE shared artifacts with the v0.3.2 release truth before tagging.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-RELEASE-MESSAGING-0-3-2, M-FINAL-SERVICE-READINESS</depends>

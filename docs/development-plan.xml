@@ -2167,7 +2167,7 @@
       </notes>
     </M-RELEASE-MESSAGING-0-3-2>
 
-    <M-BASELINE-SYNC-0-3-2 NAME="BaselineSync032" TYPE="UTILITY" LAYER="18" ORDER="3" STATUS="planned">
+    <M-BASELINE-SYNC-0-3-2 NAME="BaselineSync032" TYPE="UTILITY" LAYER="18" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Synchronize GRACE shared artifacts with the verified v0.3.2 baseline before the release gate runs.</purpose>
         <inputs>
@@ -2195,6 +2195,9 @@
         <critical-block>BLOCK_BASELINE_SYNC_0_3_2</critical-block>
       </observability>
       <verification-ref>V-M-BASELINE-SYNC-0-3-2</verification-ref>
+      <notes>
+        <note-1>Before the v0.3.2 release gate, the local tree was clean and Phase-15 modules stayed aligned across development-plan, verification-plan, and knowledge-graph.</note-1>
+      </notes>
     </M-BASELINE-SYNC-0-3-2>
 
     <M-RELEASE-GATE-0-3-2 NAME="ReleaseGate032" TYPE="ENTRY_POINT" LAYER="18" ORDER="4" STATUS="planned">
@@ -2610,7 +2613,7 @@
       <goal>Publish the current verified local baseline to GitHub as v0.3.2 before planning the UDP-capable Telegram calls architecture.</goal>
       <step-1 module="M-CHANGELOG-0-3-2" status="done" verification="V-M-CHANGELOG-0-3-2">Add the bounded v0.3.2 changelog entry for the current verified baseline</step-1>
       <step-2 module="M-RELEASE-MESSAGING-0-3-2" status="done" verification="V-M-RELEASE-MESSAGING-0-3-2">Align release-facing docs with the verified Telegram Desktop envelope and current limitations</step-2>
-      <step-3 module="M-BASELINE-SYNC-0-3-2" status="pending" verification="V-M-BASELINE-SYNC-0-3-2">Synchronize GRACE artifacts with the v0.3.2 release truth</step-3>
+      <step-3 module="M-BASELINE-SYNC-0-3-2" status="done" verification="V-M-BASELINE-SYNC-0-3-2">Synchronize GRACE artifacts with the v0.3.2 release truth</step-3>
       <step-4 module="M-RELEASE-GATE-0-3-2" status="pending" verification="V-M-RELEASE-GATE-0-3-2">Run the release gate and confirm v0.3.2 is ready to tag</step-4>
       <step-5 module="M-GITHUB-RELEASE-0-3-2" status="pending" verification="V-M-GITHUB-RELEASE-0-3-2">Create and push the v0.3.2 tag through the existing GitHub source-release workflow</step-5>
     </Phase-15>
