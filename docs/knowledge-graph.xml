@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.6">
+  <Project NAME="n0wss" VERSION="0.2.7">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -504,6 +504,62 @@
       </annotations>
     </M-LIVE-WAVE-2>
 
+    <M-TEST-GOVERNANCE-SYNC NAME="TestGovernanceSync" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Commit the prepared GRACE markup for substantive governed test files so release tagging no longer depends on a dirty worktree.</purpose>
+      <path>src/auth/mod.test.rs</path>
+      <depends>M-AUTH, M-IROH-ADAPTER, M-OBS, M-SESSION, M-SOCKS5, M-WSS-GATEWAY</depends>
+      <verification-ref>V-M-TEST-GOVERNANCE-SYNC</verification-ref>
+      <annotations>
+        <fn-syncTestHeaders PURPOSE="Formalize the prepared test-file governance headers in committed source control." />
+        <type-GovernedTestFileSet PURPOSE="Carries the 12 substantive test files whose markup must be committed before release." />
+      </annotations>
+    </M-TEST-GOVERNANCE-SYNC>
+
+    <M-RELEASE-MESSAGING NAME="ReleaseMessaging" TYPE="UTILITY" STATUS="planned">
+      <purpose>Align README and operator-facing release copy with the completed managed deployment posture.</purpose>
+      <path>README.md</path>
+      <depends>M-OPERATOR-RUNBOOK, M-LIVE-WAVE-2</depends>
+      <verification-ref>V-M-RELEASE-MESSAGING</verification-ref>
+      <annotations>
+        <fn-syncReadme PURPOSE="Remove stale release wording from README and align the release posture summary." />
+        <fn-syncOperatorCopy PURPOSE="Keep operator-facing release copy aligned with the current repository state." />
+        <type-ReleaseMessagingRecord PURPOSE="Carries the approved release-facing wording for the v0.3.0 preparation wave." />
+      </annotations>
+    </M-RELEASE-MESSAGING>
+
+    <M-CHANGELOG-0-3-0 NAME="Changelog030" TYPE="UTILITY" STATUS="planned">
+      <purpose>Prepare the v0.3.0 changelog entry so the next GitHub tag matches the implemented managed deployment scope.</purpose>
+      <path>CHANGELOG.md</path>
+      <depends>M-RELEASE-MESSAGING, M-LIVE-WAVE-2</depends>
+      <verification-ref>V-M-CHANGELOG-0-3-0</verification-ref>
+      <annotations>
+        <fn-writeReleaseEntry PURPOSE="Write the v0.3.0 changelog entry for the managed deployment and live-wave scope." />
+        <type-ChangelogRecord PURPOSE="Carries the prepared 0.3.0 release notes for the next GitHub source release." />
+      </annotations>
+    </M-CHANGELOG-0-3-0>
+
+    <M-RELEASE-GATE-0-3-0 NAME="ReleaseGate030" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the release gate that decides whether the repository is ready to tag v0.3.0.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TEST-GOVERNANCE-SYNC, M-CHANGELOG-0-3-0</depends>
+      <verification-ref>V-M-RELEASE-GATE-0-3-0</verification-ref>
+      <annotations>
+        <fn-runReleaseGate PURPOSE="Execute and summarize the release-prep checks before tag creation." />
+        <type-ReleaseGateResult PURPOSE="Carries the release-ready or blocked decision with evidence." />
+      </annotations>
+    </M-RELEASE-GATE-0-3-0>
+
+    <M-GITHUB-RELEASE-0-3-0 NAME="GitHubRelease030" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Align the existing GitHub source-release workflow with the next v0.3.0 tag and changelog entry.</purpose>
+      <path>.github/workflows/release.yml</path>
+      <depends>M-RELEASE-GATE-0-3-0, M-GITHUB-RELEASE</depends>
+      <verification-ref>V-M-GITHUB-RELEASE-0-3-0</verification-ref>
+      <annotations>
+        <fn-prepareTagPath PURPOSE="Confirm that the existing tag workflow will publish the intended v0.3.0 release." />
+        <type-GitHubReleasePlan PURPOSE="Carries the prepared source-release path for the next GitHub tag." />
+      </annotations>
+    </M-GITHUB-RELEASE-0-3-0>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -556,6 +612,20 @@
     <CrossLink from="M-LOG-ROTATION" to="M-OPERATOR-RUNBOOK" relation="supplies the bounded log-retention behavior documented for evidence capture" />
     <CrossLink from="M-OPERATOR-RUNBOOK" to="M-LIVE-WAVE-2" relation="provides the approved operational procedure for the second live verification wave" />
     <CrossLink from="M-SYSTEMD-UNITS" to="M-LIVE-WAVE-2" relation="provides the managed startup and restart surface exercised in the second live wave" />
+    <CrossLink from="M-AUTH" to="M-TEST-GOVERNANCE-SYNC" relation="contributes governed test markup that must be committed before release" />
+    <CrossLink from="M-IROH-ADAPTER" to="M-TEST-GOVERNANCE-SYNC" relation="contributes governed test markup that must be committed before release" />
+    <CrossLink from="M-OBS" to="M-TEST-GOVERNANCE-SYNC" relation="contributes governed test markup that must be committed before release" />
+    <CrossLink from="M-SESSION" to="M-TEST-GOVERNANCE-SYNC" relation="contributes governed test markup that must be committed before release" />
+    <CrossLink from="M-SOCKS5" to="M-TEST-GOVERNANCE-SYNC" relation="contributes governed test markup that must be committed before release" />
+    <CrossLink from="M-WSS-GATEWAY" to="M-TEST-GOVERNANCE-SYNC" relation="contributes governed test markup that must be committed before release" />
+    <CrossLink from="M-OPERATOR-RUNBOOK" to="M-RELEASE-MESSAGING" relation="supplies the operator-facing wording that must stay aligned with release posture" />
+    <CrossLink from="M-LIVE-WAVE-2" to="M-RELEASE-MESSAGING" relation="defines the managed deployment posture described in release-facing docs" />
+    <CrossLink from="M-RELEASE-MESSAGING" to="M-CHANGELOG-0-3-0" relation="supplies the aligned release language used by the v0.3.0 notes" />
+    <CrossLink from="M-LIVE-WAVE-2" to="M-CHANGELOG-0-3-0" relation="supplies the managed live-wave results summarized in the new release notes" />
+    <CrossLink from="M-TEST-GOVERNANCE-SYNC" to="M-RELEASE-GATE-0-3-0" relation="removes the governed dirty-tree blocker checked by the release gate" />
+    <CrossLink from="M-CHANGELOG-0-3-0" to="M-RELEASE-GATE-0-3-0" relation="supplies the versioned release notes required by the release gate" />
+    <CrossLink from="M-RELEASE-GATE-0-3-0" to="M-GITHUB-RELEASE-0-3-0" relation="provides the release-ready decision required before creating the v0.3.0 tag" />
+    <CrossLink from="M-GITHUB-RELEASE" to="M-GITHUB-RELEASE-0-3-0" relation="supplies the existing tag-driven workflow reused for the next source release" />
 
   </Project>
 </KnowledgeGraph>

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.6">
+<DevelopmentPlan VERSION="0.2.7">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -1352,6 +1352,161 @@
         <note-2>On March 28, 2026 the managed wave passed on ghost-srv and ghost-cli: repeated smoke requests returned Example Domain through systemd-managed services, restart recovery preserved readiness, and the bad-auth path rejected with redacted credential evidence.</note-2>
       </notes>
     </M-LIVE-WAVE-2>
+
+    <M-TEST-GOVERNANCE-SYNC NAME="TestGovernanceSync" TYPE="UTILITY" LAYER="13" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Commit the already prepared GRACE markup in substantive test files so release tagging does not proceed from a dirty governed worktree.</purpose>
+        <inputs>
+          <param name="governanceScope" type="GovernedTestFileSet" />
+        </inputs>
+        <outputs>
+          <param name="syncResult" type="GovernanceSyncResult" />
+        </outputs>
+        <errors>
+          <error code="GOVERNANCE_SYNC_INCOMPLETE" />
+        </errors>
+      </contract>
+      <interface>
+        <export-syncTestHeaders PURPOSE="Commit the prepared MODULE_CONTRACT, MODULE_MAP, and CHANGE_SUMMARY headers for substantive test files." />
+      </interface>
+      <depends>M-AUTH, M-IROH-ADAPTER, M-OBS, M-SESSION, M-SOCKS5, M-WSS-GATEWAY</depends>
+      <target>
+        <source>src/auth/mod.test.rs</source>
+        <source>src/iroh_adapter/mod.test.rs</source>
+        <source>src/obs/burst_detector.test.rs</source>
+        <source>src/obs/mod.test.rs</source>
+        <source>src/session/effect_handler.test.rs</source>
+        <source>src/session/effects.test.rs</source>
+        <source>src/session/registry.test.rs</source>
+        <source>src/session/state.test.rs</source>
+        <source>src/session/transport_selector.test.rs</source>
+        <source>src/socks5/mod.test.rs</source>
+        <source>src/socks5/reply_mapping.test.rs</source>
+        <source>src/wss_gateway/mod.test.rs</source>
+      </target>
+      <observability>
+        <log-prefix>[TestGovernanceSync]</log-prefix>
+        <critical-block>BLOCK_TEST_GOVERNANCE_SYNC</critical-block>
+      </observability>
+      <verification-ref>V-M-TEST-GOVERNANCE-SYNC</verification-ref>
+      <notes>
+        <note-1>The prepared test markup already exists locally and must be formalized before any new release tag is cut.</note-1>
+      </notes>
+    </M-TEST-GOVERNANCE-SYNC>
+
+    <M-RELEASE-MESSAGING NAME="ReleaseMessaging" TYPE="UTILITY" LAYER="13" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Align release-facing documentation with the actual managed deployment and live verification posture of the repository.</purpose>
+        <inputs>
+          <param name="releaseState" type="ReleaseReadinessState" />
+        </inputs>
+        <outputs>
+          <param name="messagingResult" type="ReleaseMessagingRecord" />
+        </outputs>
+        <errors>
+          <error code="RELEASE_MESSAGE_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-syncReadme PURPOSE="Update README language so it reflects the current managed deployment and verification surface." />
+        <export-syncOperatorCopy PURPOSE="Keep operator-facing wording aligned with the approved release posture." />
+      </interface>
+      <depends>M-OPERATOR-RUNBOOK, M-LIVE-WAVE-2</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+      </target>
+      <observability>
+        <log-prefix>[ReleaseMessaging]</log-prefix>
+        <critical-block>BLOCK_RELEASE_MESSAGE_SYNC</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASE-MESSAGING</verification-ref>
+    </M-RELEASE-MESSAGING>
+
+    <M-CHANGELOG-0-3-0 NAME="Changelog030" TYPE="UTILITY" LAYER="13" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Prepare the v0.3.0 changelog entry so the next GitHub tag matches the actual implemented scope and verification baseline.</purpose>
+        <inputs>
+          <param name="implementedScope" type="ImplementedReleaseScope" />
+        </inputs>
+        <outputs>
+          <param name="changelogEntry" type="ChangelogRecord" />
+        </outputs>
+        <errors>
+          <error code="CHANGELOG_SCOPE_MISMATCH" />
+        </errors>
+      </contract>
+      <interface>
+        <export-writeReleaseEntry PURPOSE="Add the v0.3.0 release notes entry with managed deployment and live-wave evidence." />
+      </interface>
+      <depends>M-RELEASE-MESSAGING, M-LIVE-WAVE-2</depends>
+      <target>
+        <source>CHANGELOG.md</source>
+      </target>
+      <observability>
+        <log-prefix>[Changelog030]</log-prefix>
+        <critical-block>BLOCK_CHANGELOG_TAG_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-CHANGELOG-0-3-0</verification-ref>
+    </M-CHANGELOG-0-3-0>
+
+    <M-RELEASE-GATE-0-3-0 NAME="ReleaseGate030" TYPE="ENTRY_POINT" LAYER="13" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Close the v0.3.0 release gate with a clean governed tree, synchronized artifacts, green release checks, and explicit tag readiness.</purpose>
+        <inputs>
+          <param name="releaseInputs" type="ReleaseGateInputs" />
+        </inputs>
+        <outputs>
+          <param name="gateResult" type="ReleaseGateResult" />
+        </outputs>
+        <errors>
+          <error code="RELEASE_GATE_FAILED" />
+          <error code="RELEASE_TREE_DIRTY" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runReleaseGate PURPOSE="Execute the release-prep checks and summarize tag readiness for v0.3.0." />
+      </interface>
+      <depends>M-TEST-GOVERNANCE-SYNC, M-CHANGELOG-0-3-0</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleaseGate030]</log-prefix>
+        <critical-block>BLOCK_RELEASE_GATE</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASE-GATE-0-3-0</verification-ref>
+    </M-RELEASE-GATE-0-3-0>
+
+    <M-GITHUB-RELEASE-0-3-0 NAME="GitHubRelease030" TYPE="INTEGRATION" LAYER="13" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Align the existing tag-driven GitHub source release workflow with the v0.3.0 changelog and release gate outcome.</purpose>
+        <inputs>
+          <param name="tagCandidate" type="GitTag" />
+        </inputs>
+        <outputs>
+          <param name="releasePath" type="GitHubReleasePlan" />
+        </outputs>
+        <errors>
+          <error code="GITHUB_RELEASE_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-prepareTagPath PURPOSE="Confirm that the v0.3.0 tag will publish the intended source-first GitHub release." />
+      </interface>
+      <depends>M-RELEASE-GATE-0-3-0, M-GITHUB-RELEASE</depends>
+      <target>
+        <source>.github/workflows/release.yml</source>
+        <source>CHANGELOG.md</source>
+        <source>docs/OPERATORS.md</source>
+      </target>
+      <observability>
+        <log-prefix>[GitHubRelease030]</log-prefix>
+        <critical-block>BLOCK_GITHUB_RELEASE_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-GITHUB-RELEASE-0-3-0</verification-ref>
+    </M-GITHUB-RELEASE-0-3-0>
   </Modules>
 
   <DataFlow>
@@ -1521,6 +1676,39 @@
       <step-4>The operator runs one bounded bad-auth check and captures a separate redacted evidence packet.</step-4>
       <evidence>Service readiness, repeated smoke success, restart-recovery evidence, reject-path evidence, and bounded logs.</evidence>
     </DF-LIVE-WAVE-2>
+
+    <DF-RELEASE-DIRTY-TREE-CLEANUP NAME="Governed release tree cleanup" TRIGGER="The maintainer prepares the next release while governed test files still contain uncommitted GRACE markup updates.">
+      <step-1>TestGovernanceSync reviews the prepared test-file markup changes and ensures they stay inside the approved governed scope.</step-1>
+      <step-2>The maintainer commits the synchronized test governance changes so the release candidate no longer depends on a dirty worktree.</step-2>
+      <evidence>Clean git status for governed test files and committed GRACE markup headers.</evidence>
+    </DF-RELEASE-DIRTY-TREE-CLEANUP>
+
+    <DF-RELEASE-MESSAGE-SYNC NAME="Release-facing message alignment" TRIGGER="The repository reaches managed deployment readiness and release-facing copy must reflect the implemented posture.">
+      <step-1>ReleaseMessaging removes stale wording about deployment still being unfinished.</step-1>
+      <step-2>README and operator-facing release language describe the current managed deployment and source-first release shape consistently.</step-2>
+      <evidence>README and operator docs align with the completed deployment and live-wave phases.</evidence>
+    </DF-RELEASE-MESSAGE-SYNC>
+
+    <DF-CHANGELOG-TAG-ALIGNMENT NAME="Changelog and tag alignment" TRIGGER="The next release candidate is prepared after remote tags already include v0.2.0.">
+      <step-1>Changelog030 determines that the next release version is v0.3.0 from the remote tag baseline.</step-1>
+      <step-2>The changelog entry lists the implemented managed deployment surface and the second managed live wave.</step-2>
+      <step-3>The release notes align with the existing GitHub source-release workflow.</step-3>
+      <evidence>CHANGELOG.md contains a correct 0.3.0 entry and no release scope drift remains.</evidence>
+    </DF-CHANGELOG-TAG-ALIGNMENT>
+
+    <DF-RELEASE-GATE NAME="Release gate closure" TRIGGER="The maintainer asks whether the repository is ready to cut the v0.3.0 tag.">
+      <step-1>The repository reaches a clean release-prep worktree for governed files.</step-1>
+      <step-2>The maintainer runs clippy, cargo test, GRACE review, refresh, and status checks.</step-2>
+      <step-3>The gate produces an explicit release-ready or blocked decision with evidence.</step-3>
+      <evidence>Green release checks, synchronized GRACE artifacts, and a release-ready tag decision.</evidence>
+    </DF-RELEASE-GATE>
+
+    <DF-GITHUB-SOURCE-RELEASE-0-3-0 NAME="GitHub source release v0.3.0" TRIGGER="The release gate passes and the maintainer pushes the v0.3.0 tag.">
+      <step-1>The maintainer creates the v0.3.0 git tag on the release-ready commit.</step-1>
+      <step-2>GitHub Actions publishes the source-first release using the existing workflow.</step-2>
+      <step-3>The published notes match the v0.3.0 changelog entry.</step-3>
+      <evidence>Tag-triggered GitHub release execution and notes aligned with the prepared changelog.</evidence>
+    </DF-GITHUB-SOURCE-RELEASE-0-3-0>
   </DataFlow>
 
   <ImplementationOrder>
@@ -1598,6 +1786,15 @@
       <step-6 module="M-OPERATOR-RUNBOOK" status="done" verification="V-M-OPERATOR-RUNBOOK">Document install, start, stop, update, rollback, and evidence capture for the managed deployment shape</step-6>
       <step-7 module="M-LIVE-WAVE-2" status="done" verification="V-M-LIVE-WAVE-2">Execute the second live wave for service-managed startup, repeated smoke, restart recovery, and bad-auth verification</step-7>
     </Phase-9>
+
+    <Phase-10 name="Release Preparation" status="pending">
+      <goal>Prepare the repository for a coherent v0.3.0 source release by cleaning governed release blockers, synchronizing release-facing docs, and closing the release gate.</goal>
+      <step-1 module="M-TEST-GOVERNANCE-SYNC" status="done" verification="V-M-TEST-GOVERNANCE-SYNC">Commit the prepared GRACE markup in substantive test files so the governed release tree is clean</step-1>
+      <step-2 module="M-RELEASE-MESSAGING" status="pending" verification="V-M-RELEASE-MESSAGING">Align README and operator-facing release wording with the completed managed deployment surface</step-2>
+      <step-3 module="M-CHANGELOG-0-3-0" status="pending" verification="V-M-CHANGELOG-0-3-0">Add the v0.3.0 changelog entry for the managed deployment and live-wave scope</step-3>
+      <step-4 module="M-RELEASE-GATE-0-3-0" status="pending" verification="V-M-RELEASE-GATE-0-3-0">Run the release gate checks and record whether v0.3.0 is ready to tag</step-4>
+      <step-5 module="M-GITHUB-RELEASE-0-3-0" status="pending" verification="V-M-GITHUB-RELEASE-0-3-0">Prepare the tag-driven GitHub source release path for v0.3.0</step-5>
+    </Phase-10>
   </ImplementationOrder>
 
   <ExecutionPolicy>

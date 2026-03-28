@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.8">
+<VerificationPlan VERSION="0.2.10">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -14,6 +14,8 @@
     <systemd-evidence-rule>Managed-service verification must capture both service-manager evidence such as systemctl or journalctl state and the underlying runtime anchors emitted by n0wss itself.</systemd-evidence-rule>
     <evidence-packet-separation-rule>Success-path, restart-recovery, and bad-auth-path artifacts must remain separable so later agents can identify the first divergent block without replaying the entire wave.</evidence-packet-separation-rule>
     <doc-script-alignment-rule>When deploy scripts, unit files, or operator docs change, the verification surface must assert that names, paths, and operator commands still match across all three artifacts.</doc-script-alignment-rule>
+    <release-tag-alignment-rule>When a release-prep phase is active, the prepared changelog version, the remote tag baseline, and the intended next tag must agree before publication.</release-tag-alignment-rule>
+    <release-clean-tree-rule>The release gate must distinguish between allowed controller-owned release-prep edits that are still in progress and the final clean-tree condition required before tag creation.</release-clean-tree-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -925,6 +927,114 @@
       <wave-follow-up>Escalate any managed-service failure into a GRACE failure packet before reruns.</wave-follow-up>
       <phase-follow-up>Use this wave as the gate before any broader production-like rollout.</phase-follow-up>
     </V-M-LIVE-WAVE-2>
+
+    <V-M-TEST-GOVERNANCE-SYNC MODULE="M-TEST-GOVERNANCE-SYNC" PRIORITY="high">
+      <test-files>
+        <file>src/auth/mod.test.rs</file>
+        <file>src/iroh_adapter/mod.test.rs</file>
+        <file>src/obs/burst_detector.test.rs</file>
+        <file>src/obs/mod.test.rs</file>
+        <file>src/session/effect_handler.test.rs</file>
+        <file>src/session/effects.test.rs</file>
+        <file>src/session/registry.test.rs</file>
+        <file>src/session/state.test.rs</file>
+        <file>src/session/transport_selector.test.rs</file>
+        <file>src/socks5/mod.test.rs</file>
+        <file>src/socks5/reply_mapping.test.rs</file>
+        <file>src/wss_gateway/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>git diff --check</check-1>
+        <check-2>git status --short</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">All substantive governed test files carry committed GRACE headers and no longer block release tagging through a dirty tree.</scenario-1>
+        <scenario-2 kind="failure">Prepared test markup remains uncommitted or drifts beyond the approved governance scope.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Release preparation must not proceed while the governed test-file cleanup step still leaves tracked test files modified.</assertion-1>
+        <assertion-2>The cleanup commit must be limited to the approved substantive test files and their GRACE headers.</assertion-2>
+      </required-trace-assertions>
+      <wave-follow-up>Commit only the governed markup changes; do not mix unrelated runtime edits into this cleanup step.</wave-follow-up>
+    </V-M-TEST-GOVERNANCE-SYNC>
+
+    <V-M-RELEASE-MESSAGING MODULE="M-RELEASE-MESSAGING" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'still being finalized|first public release' README.md docs/OPERATORS.md</check-1>
+        <check-2>rg -n 'Managed Deployment Surface|source-first' README.md docs/OPERATORS.md</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Release-facing docs reflect the completed managed deployment posture and source-first release shape without stale language.</scenario-1>
+        <scenario-2 kind="failure">README or operator docs still claim deployment is unfinished after Phase-9 is closed.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>README and operator docs must describe the same current release posture.</assertion-1>
+        <assertion-2>README must no longer claim that public deployment flow is still being finalized once Phase-9 is done.</assertion-2>
+      </required-trace-assertions>
+    </V-M-RELEASE-MESSAGING>
+
+    <V-M-CHANGELOG-0-3-0 MODULE="M-CHANGELOG-0-3-0" PRIORITY="high">
+      <test-files>
+        <file>CHANGELOG.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n '^## \\[0\\.3\\.0\\]' CHANGELOG.md</check-1>
+        <check-2>git ls-remote --tags origin</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">CHANGELOG.md contains a v0.3.0 entry that matches the implemented Phase-9 and managed live-wave scope.</scenario-1>
+        <scenario-2 kind="failure">The next release entry is missing, mis-numbered, or omits the managed deployment surface.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The changelog version prepared for release must match the next remote tag after v0.2.0.</assertion-1>
+        <assertion-2>The v0.3.0 entry must mention the managed deployment surface and the second managed live wave.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CHANGELOG-0-3-0>
+
+    <V-M-RELEASE-GATE-0-3-0 MODULE="M-RELEASE-GATE-0-3-0" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo clippy --all-targets --all-features</check-1>
+        <check-2>cargo test</check-2>
+        <check-3>git status --short</check-3>
+        <check-4>git diff --check</check-4>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The repository reaches a clean release-prep state with green release checks and synchronized GRACE artifacts.</scenario-1>
+        <scenario-2 kind="failure">Any governed tree dirtiness, failing check, or artifact drift blocks the v0.3.0 tag.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Release gate evidence must include clippy, cargo test, review, refresh, and status outputs or their summarized results.</assertion-1>
+        <assertion-2>The final tag-ready state requires no tracked dirty files after the release-prep commits land.</assertion-2>
+      </required-trace-assertions>
+      <phase-follow-up>Do not create the v0.3.0 tag until this gate closes green.</phase-follow-up>
+    </V-M-RELEASE-GATE-0-3-0>
+
+    <V-M-GITHUB-RELEASE-0-3-0 MODULE="M-GITHUB-RELEASE-0-3-0" PRIORITY="medium">
+      <test-files>
+        <file>.github/workflows/release.yml</file>
+        <file>CHANGELOG.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>git ls-remote --tags origin</check-1>
+        <check-2>rg -n 'body_path: CHANGELOG.md|tags:' .github/workflows/release.yml</check-2>
+        <check-3>rg -n '^## \\[0\\.3\\.0\\]' CHANGELOG.md</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The existing GitHub release workflow remains aligned with a tag-driven source release for v0.3.0.</scenario-1>
+        <scenario-2 kind="failure">Workflow behavior or changelog mapping drifts from the prepared release tag path.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The next release tag after the remote v0.2.0 baseline is v0.3.0.</assertion-1>
+        <assertion-2>The workflow must still publish CHANGELOG.md as the source-first release body for the prepared tag.</assertion-2>
+      </required-trace-assertions>
+    </V-M-GITHUB-RELEASE-0-3-0>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -1146,6 +1256,23 @@
         <evidence-3>Managed-service evidence includes both system-manager state and runtime anchors, with separate packets for success, restart, and reject trajectories.</evidence-3>
       </required-evidence>
     </Gate-Phase-9>
+
+    <Gate-Phase-10 PHASE="Phase-10">
+      <goal>The repository is ready to tag and publish the source-first v0.3.0 release without dirty-tree blockers or release-note drift.</goal>
+      <commands>
+        <command-1>cargo clippy --all-targets --all-features</command-1>
+        <command-2>cargo test</command-2>
+        <command-3>git status --short</command-3>
+        <command-4>git ls-remote --tags origin</command-4>
+        <command-5>git diff --check</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>Governed test-file cleanup, release-facing docs, and the v0.3.0 changelog are committed and aligned.</evidence-1>
+        <evidence-2>The next release version is explicitly justified against the remote tag baseline.</evidence-2>
+        <evidence-3>GRACE review, refresh, and status all support the release-ready decision.</evidence-3>
+        <evidence-4>The final release-ready commit has no tracked dirty files and no whitespace or patch-integrity defects.</evidence-4>
+      </required-evidence>
+    </Gate-Phase-10>
   </PhaseGates>
 
   <FailurePackets>
@@ -1156,6 +1283,7 @@
       <live-example-auth-reject>LiveAuthReject expected BLOCK_VALIDATE_HANDSHAKE reject evidence and no surviving session, but observed successful transport selection and no reject marker; first divergent block is AuthPolicy::validateHandshake::BLOCK_VALIDATE_HANDSHAKE; next action is inspect live auth configuration and reject-path handling before any rerun.</live-example-auth-reject>
       <managed-deploy-example>ManagedDeployLayout expected one canonical artifact path plus aligned service and log targets, but observed deploy script targeting /opt/n0wss while the unit file still referenced a different path; first divergent block is DeployLayout::defineFilesystemLayout::BLOCK_DEPLOY_LAYOUT_ALIGNMENT; next action is realign deploy script, unit files, and operator docs before managed rollout.</managed-deploy-example>
       <managed-restart-example>ManagedRestartRecovery expected BLOCK_COORDINATE_SHUTDOWN followed by a new managed readiness packet, but observed a restarted unit with no fresh startup anchors and a stale listener; first divergent block is CliApp::coordinateShutdown::BLOCK_COORDINATE_SHUTDOWN; next action is inspect systemd restart behavior, stale process cleanup, and readiness capture before rerun.</managed-restart-example>
+      <release-gate-example>ReleaseGate030 expected a clean release-prep tree, v0.3.0 changelog entry, and green local checks, but observed a stale README or changelog and tracked dirty files; first divergent block is ReleaseGate030::runReleaseGate::BLOCK_RELEASE_GATE; next action is finish the remaining release-prep module steps before creating any tag.</release-gate-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>
