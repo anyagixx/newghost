@@ -885,7 +885,7 @@
       </annotations>
     </M-RELEASED-MASTER-TARGET>
 
-    <M-RELEASED-MASTER-MESSAGING NAME="ReleasedMasterMessaging" TYPE="UTILITY" STATUS="planned">
+    <M-RELEASED-MASTER-MESSAGING NAME="ReleasedMasterMessaging" TYPE="UTILITY" STATUS="implemented">
       <purpose>Align docs so the corrective master sync is understood as publication of the released snapshot only.</purpose>
       <path>README.md</path>
       <depends>M-RELEASED-MASTER-TARGET, M-BRANCH-SYNC-MESSAGING</depends>

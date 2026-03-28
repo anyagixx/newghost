@@ -357,6 +357,7 @@ Repository publication note:
 
 - tag `v0.3.2` already captures this approved baseline
 - a later push of `master` is only a GitHub branch-visibility sync so the default branch shows the same stable tree
+- that sync must publish the released `v0.3.2` snapshot only and must exclude newer local planning commits that were created after the tag
 - that branch sync must not be described as a new runtime wave or a new release beyond `v0.3.2`
 
 ### Telegram Evidence Packet Shape

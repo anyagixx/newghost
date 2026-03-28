@@ -138,6 +138,7 @@ GitHub publication shape:
 
 - the release tag `v0.3.2` already points at the approved stable baseline
 - the separate `master` branch sync step exists only so GitHub default-branch browsing shows the same baseline commit in the file tree view
+- that sync publishes the released `v0.3.2` snapshot only and excludes newer local planning commits created after the release tag
 - that branch sync is not a new release and does not add new runtime capability beyond `v0.3.2`
 
 Standalone packaged distribution is still deferred, but the governed `n0wss` binary, managed deployment workflow, and operator runbook are already implemented in-repo.
