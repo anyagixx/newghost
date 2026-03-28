@@ -214,6 +214,22 @@ Current release posture:
 
 If docs or workflows mention `cargo run`, a binary name, or a smoke target that does not exist, treat that as release drift and block publication.
 
+### GitHub Source Release
+
+After `Gate-Phase-10` closes green, the prepared source-release path is:
+
+```bash
+git status --short
+git tag v0.3.0
+git push origin v0.3.0
+```
+
+Expected outcome:
+
+- GitHub Actions workflow `.github/workflows/release.yml` runs on the pushed tag
+- the published release body is sourced from `CHANGELOG.md`
+- the published notes align with the `0.3.0` entry and the current source-first release posture
+
 ## Burst Detection Tuning
 
 Burst thresholds are deployment-time tuning values, not architecture constants.
