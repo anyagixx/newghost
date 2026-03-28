@@ -2478,7 +2478,7 @@
       <verification-ref>V-M-RELEASED-MASTER-GATE</verification-ref>
     </M-RELEASED-MASTER-GATE>
 
-    <M-GITHUB-MASTER-SYNC-032 NAME="GitHubMasterSync032" TYPE="INTEGRATION" LAYER="20" ORDER="4" STATUS="planned">
+    <M-GITHUB-MASTER-SYNC-032 NAME="GitHubMasterSync032" TYPE="INTEGRATION" LAYER="20" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Push v0.3.2 to origin/master so GitHub default-branch browsing becomes a copy of the released stable baseline.</purpose>
         <inputs>
@@ -2914,12 +2914,12 @@
       <step-4 module="M-GITHUB-MASTER-SYNC" status="pending" verification="V-M-GITHUB-MASTER-SYNC">Push the approved local master baseline to origin/master</step-4>
     </Phase-16>
 
-    <Phase-17 name="Released Commit Master Sync" status="pending">
+    <Phase-17 name="Released Commit Master Sync" status="done">
       <goal>Update origin/master to the already released v0.3.2 commit so GitHub default-branch browsing matches the stable baseline without publishing newer local planning commits.</goal>
       <step-1 module="M-RELEASED-MASTER-TARGET" status="done" verification="V-M-RELEASED-MASTER-TARGET">Freeze the only allowed origin/master target as the released v0.3.2 commit</step-1>
       <step-2 module="M-RELEASED-MASTER-MESSAGING" status="done" verification="V-M-RELEASED-MASTER-MESSAGING">Align docs so this sync publishes the released snapshot only and excludes newer local planning commits</step-2>
       <step-3 module="M-RELEASED-MASTER-GATE" status="done" verification="V-M-RELEASED-MASTER-GATE">Run the gate for syncing origin/master specifically to v0.3.2</step-3>
-      <step-4 module="M-GITHUB-MASTER-SYNC-032" status="pending" verification="V-M-GITHUB-MASTER-SYNC-032">Push v0.3.2 to origin/master</step-4>
+      <step-4 module="M-GITHUB-MASTER-SYNC-032" status="done" verification="V-M-GITHUB-MASTER-SYNC-032">Push v0.3.2 to origin/master</step-4>
     </Phase-17>
   </ImplementationOrder>
 

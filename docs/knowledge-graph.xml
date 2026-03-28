@@ -905,7 +905,7 @@
       </annotations>
     </M-RELEASED-MASTER-GATE>
 
-    <M-GITHUB-MASTER-SYNC-032 NAME="GitHubMasterSync032" TYPE="INTEGRATION" STATUS="planned">
+    <M-GITHUB-MASTER-SYNC-032 NAME="GitHubMasterSync032" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Push v0.3.2 to origin/master so GitHub default-branch browsing becomes a copy of the released stable baseline.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-RELEASED-MASTER-GATE</depends>
