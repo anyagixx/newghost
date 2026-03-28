@@ -629,7 +629,7 @@
       </annotations>
     </M-TELEGRAM-FORWARD-RUNBOOK>
 
-    <M-TELEGRAM-FORWARD-VERIFICATION NAME="TelegramForwardVerification" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-FORWARD-VERIFICATION NAME="TelegramForwardVerification" TYPE="UTILITY" STATUS="implemented">
       <purpose>Align LV-007 and Telegram evidence requirements with the actual forwarded Desktop verification path.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-SMOKE, M-TELEGRAM-EVIDENCE</depends>

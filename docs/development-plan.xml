@@ -1686,7 +1686,7 @@
       <verification-ref>V-M-TELEGRAM-FORWARD-RUNBOOK</verification-ref>
     </M-TELEGRAM-FORWARD-RUNBOOK>
 
-    <M-TELEGRAM-FORWARD-VERIFICATION NAME="TelegramForwardVerification" TYPE="UTILITY" LAYER="15" ORDER="2" STATUS="planned">
+    <M-TELEGRAM-FORWARD-VERIFICATION NAME="TelegramForwardVerification" TYPE="UTILITY" LAYER="15" ORDER="2" STATUS="implemented">
       <contract>
         <purpose>Update the Telegram wave verification contract so LV-007 and evidence packets explicitly include the local-forward prerequisite for the verified Desktop scenario.</purpose>
         <inputs>
@@ -2068,7 +2068,7 @@
     <Phase-12 name="Telegram Forward Clarification" status="pending">
       <goal>Repair the operator and verification contract so the proven local Telegram Desktop path explicitly includes the required SSH forward to the remote managed n0wss client.</goal>
       <step-1 module="M-TELEGRAM-FORWARD-RUNBOOK" status="done" verification="V-M-TELEGRAM-FORWARD-RUNBOOK">Document the local-workstation Telegram Desktop path and the SSH local-forward prerequisite explicitly in the operator runbook</step-1>
-      <step-2 module="M-TELEGRAM-FORWARD-VERIFICATION" status="pending" verification="V-M-TELEGRAM-FORWARD-VERIFICATION">Align LV-007 and Telegram evidence requirements with the forwarded Desktop verification path</step-2>
+      <step-2 module="M-TELEGRAM-FORWARD-VERIFICATION" status="done" verification="V-M-TELEGRAM-FORWARD-VERIFICATION">Align LV-007 and Telegram evidence requirements with the forwarded Desktop verification path</step-2>
       <step-3 module="M-TELEGRAM-FORWARD-GRAPH-SYNC" status="pending" verification="V-M-TELEGRAM-FORWARD-GRAPH-SYNC">Synchronize the knowledge graph with the clarified Telegram Desktop operator path</step-3>
     </Phase-12>
   </ImplementationOrder>
