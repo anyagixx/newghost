@@ -94,6 +94,22 @@ Phase-9 introduces the first governed managed deployment surface:
 - `deploy/logrotate/n0wss` for bounded log retention
 - `docs/OPERATORS.md` for install, `systemctl`, `journalctl`, logrotate, and rollback procedures
 
+## Telegram Compatibility Profile
+
+`n0wss` can be presented to Telegram as a standard local SOCKS5 proxy when the managed client runtime is already healthy. The expected shape is still:
+
+- Telegram points to a local SOCKS5 listener such as `127.0.0.1:1080`
+- `n0wss` remains the tunnel runtime behind that listener
+- the remote path stays the same governed WSS-backed tunnel already verified for generic SOCKS5 traffic
+
+Bounded claim surface:
+
+- supported claim: Telegram can be tested as a SOCKS5-aware application over the existing `n0wss` tunnel
+- unsupported claim: `n0wss` defines a Telegram-specific client protocol
+- unverified claim: `n0wss` guarantees bypass of every possible Telegram blocking regime or acts like a whole-device VPN
+
+The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.
+
 ## Release Notes
 
 The next public release is prepared as source-first:
