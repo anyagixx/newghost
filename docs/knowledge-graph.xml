@@ -538,7 +538,7 @@
       </annotations>
     </M-CHANGELOG-0-3-0>
 
-    <M-RELEASE-GATE-0-3-0 NAME="ReleaseGate030" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-RELEASE-GATE-0-3-0 NAME="ReleaseGate030" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Define the release gate that decides whether the repository is ready to tag v0.3.0.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TEST-GOVERNANCE-SYNC, M-CHANGELOG-0-3-0</depends>
