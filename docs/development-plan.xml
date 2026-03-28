@@ -2740,7 +2740,7 @@
       <verification-ref>V-M-TELEGRAM-CALLS-PROFILE</verification-ref>
     </M-TELEGRAM-CALLS-PROFILE>
 
-    <M-TELEGRAM-CALLS-WAVE NAME="TelegramCallsWave" TYPE="ENTRY_POINT" LAYER="21" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-WAVE NAME="TelegramCallsWave" TYPE="ENTRY_POINT" LAYER="21" ORDER="9" STATUS="implemented">
       <contract>
         <purpose>Run a dedicated Telegram voice or video calls verification wave over the new UDP-capable path.</purpose>
         <inputs>
@@ -3258,7 +3258,7 @@
       <step-6 module="M-UDP-EGRESS-RELAY" status="done" verification="V-M-UDP-EGRESS-RELAY">Relay real UDP traffic on the server side and return inbound packets</step-6>
       <step-7 module="M-DATAGRAM-TRANSPORT-SELECTOR" status="done" verification="V-M-DATAGRAM-TRANSPORT-SELECTOR">Select the governed datagram transport path with explicit future extension points</step-7>
       <step-8 module="M-TELEGRAM-CALLS-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-PROFILE">Document the bounded Telegram Desktop calls support claim</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-WAVE" status="pending" verification="V-M-TELEGRAM-CALLS-WAVE">Run a dedicated Telegram calls verification wave over the UDP-capable path</step-9>
+      <step-9 module="M-TELEGRAM-CALLS-WAVE" status="done" verification="V-M-TELEGRAM-CALLS-WAVE">Run a dedicated Telegram calls verification wave over the UDP-capable path</step-9>
       <step-10 module="M-TELEGRAM-CALLS-EVIDENCE" status="pending" verification="V-M-TELEGRAM-CALLS-EVIDENCE">Capture bounded evidence packets for call setup, media flow, and failure triage</step-10>
     </Phase-18>
   </ImplementationOrder>

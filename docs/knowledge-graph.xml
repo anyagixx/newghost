@@ -995,7 +995,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-PROFILE>
 
-    <M-TELEGRAM-CALLS-WAVE NAME="TelegramCallsWave" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-WAVE NAME="TelegramCallsWave" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Run a dedicated Telegram Desktop calls verification wave over the UDP-capable path.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-PROFILE, M-DATAGRAM-SESSION-MANAGER, M-UDP-EGRESS-RELAY</depends>
