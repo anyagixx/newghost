@@ -774,7 +774,7 @@
       </annotations>
     </M-FINAL-EVIDENCE-PACKET>
 
-    <M-FINAL-GO-NO-GO NAME="FinalGoNoGo" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-FINAL-GO-NO-GO NAME="FinalGoNoGo" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Produce the final go/no-go decision for the Telegram Desktop use case on the rebuilt two-host environment.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-FINAL-EVIDENCE-PACKET, M-TELEGRAM-COMPAT</depends>

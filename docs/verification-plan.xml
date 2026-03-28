@@ -1428,6 +1428,7 @@
       <required-trace-assertions>
         <assertion-1>The final decision must state that the evidence covers Telegram Desktop on the rebuilt two-host environment and not a wider client matrix.</assertion-1>
         <assertion-2>The go or no-go outcome must cite readiness, basic-connect, and media-path evidence rather than operator memory alone.</assertion-2>
+        <assertion-3>The final decision must explicitly separate the green text or file-transfer use case from the no-go call-capable use case instead of collapsing them into one absolute claim.</assertion-3>
       </required-trace-assertions>
     </V-M-FINAL-GO-NO-GO>
 
