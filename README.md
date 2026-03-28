@@ -126,12 +126,18 @@ The Telegram-specific verification wave is about client compatibility evidence, 
 
 ## Release Notes
 
-The next public release is prepared as source-first patch `v0.3.2`:
+The current public release baseline is source-first patch `v0.3.2`:
 
 - GitHub source release
 - bounded rebuilt-host Telegram Desktop baseline
 - operator guidance in [docs/OPERATORS.md](/home/truffle/Загрузки/newghost/docs/OPERATORS.md)
 - explicit SSH-forwarded Desktop path through `127.0.0.1:1080`
 - explicit no-go for voice and video call support until a later UDP-capable phase exists
+
+GitHub publication shape:
+
+- the release tag `v0.3.2` already points at the approved stable baseline
+- the separate `master` branch sync step exists only so GitHub default-branch browsing shows the same baseline commit in the file tree view
+- that branch sync is not a new release and does not add new runtime capability beyond `v0.3.2`
 
 Standalone packaged distribution is still deferred, but the governed `n0wss` binary, managed deployment workflow, and operator runbook are already implemented in-repo.

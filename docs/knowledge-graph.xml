@@ -845,7 +845,7 @@
       </annotations>
     </M-BRANCH-SYNC-BASELINE>
 
-    <M-BRANCH-SYNC-MESSAGING NAME="BranchSyncMessaging" TYPE="UTILITY" STATUS="planned">
+    <M-BRANCH-SYNC-MESSAGING NAME="BranchSyncMessaging" TYPE="UTILITY" STATUS="implemented">
       <purpose>Align docs so the master push is understood as GitHub branch visibility sync rather than a new release scope.</purpose>
       <path>README.md</path>
       <depends>M-BRANCH-SYNC-BASELINE, M-RELEASE-MESSAGING-0-3-2</depends>

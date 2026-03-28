@@ -353,6 +353,12 @@ Observed rebuilt-host acceptance outcome on 2026-03-29:
 
 This observed outcome is the operator-facing baseline for release `v0.3.2` and must not be described as working Telegram call support.
 
+Repository publication note:
+
+- tag `v0.3.2` already captures this approved baseline
+- a later push of `master` is only a GitHub branch-visibility sync so the default branch shows the same stable tree
+- that branch sync must not be described as a new runtime wave or a new release beyond `v0.3.2`
+
 ### Telegram Evidence Packet Shape
 
 For each Telegram wave keep four separable packets:

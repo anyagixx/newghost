@@ -2298,7 +2298,7 @@
       </notes>
     </M-BRANCH-SYNC-BASELINE>
 
-    <M-BRANCH-SYNC-MESSAGING NAME="BranchSyncMessaging" TYPE="UTILITY" LAYER="19" ORDER="2" STATUS="planned">
+    <M-BRANCH-SYNC-MESSAGING NAME="BranchSyncMessaging" TYPE="UTILITY" LAYER="19" ORDER="2" STATUS="implemented">
       <contract>
         <purpose>Document that pushing master is a branch-visibility sync for GitHub UI and not a new runtime or release scope change.</purpose>
         <inputs>
@@ -2325,6 +2325,9 @@
         <critical-block>BLOCK_BRANCH_SYNC_MESSAGING</critical-block>
       </observability>
       <verification-ref>V-M-BRANCH-SYNC-MESSAGING</verification-ref>
+      <notes>
+        <note-1>README and operator docs now distinguish the already published v0.3.2 release tag from the separate master-branch visibility sync for GitHub browsing.</note-1>
+      </notes>
     </M-BRANCH-SYNC-MESSAGING>
 
     <M-BRANCH-SYNC-GATE NAME="BranchSyncGate" TYPE="ENTRY_POINT" LAYER="19" ORDER="3" STATUS="planned">
@@ -2768,7 +2771,7 @@
     <Phase-16 name="GitHub Master Baseline Sync" status="pending">
       <goal>Fast-forward origin/master to the already released stable v0.3.2 baseline so GitHub default-branch browsing reflects the current verified repository state.</goal>
       <step-1 module="M-BRANCH-SYNC-BASELINE" status="done" verification="V-M-BRANCH-SYNC-BASELINE">Confirm that the visible branch sync target is the current released baseline and not an unbounded newer snapshot</step-1>
-      <step-2 module="M-BRANCH-SYNC-MESSAGING" status="pending" verification="V-M-BRANCH-SYNC-MESSAGING">Align branch-sync wording so GitHub UI sync is not confused with a new runtime or release scope</step-2>
+      <step-2 module="M-BRANCH-SYNC-MESSAGING" status="done" verification="V-M-BRANCH-SYNC-MESSAGING">Align branch-sync wording so GitHub UI sync is not confused with a new runtime or release scope</step-2>
       <step-3 module="M-BRANCH-SYNC-GATE" status="pending" verification="V-M-BRANCH-SYNC-GATE">Run the branch sync gate and confirm local master can safely fast-forward origin/master</step-3>
       <step-4 module="M-GITHUB-MASTER-SYNC" status="pending" verification="V-M-GITHUB-MASTER-SYNC">Push the approved local master baseline to origin/master</step-4>
     </Phase-16>
