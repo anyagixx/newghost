@@ -1477,6 +1477,9 @@
         <critical-block>BLOCK_RELEASE_GATE</critical-block>
       </observability>
       <verification-ref>V-M-RELEASE-GATE-0-3-0</verification-ref>
+      <notes>
+        <note-1>On March 28, 2026 the local release gate ran green: cargo clippy passed, cargo test passed with 88 unit tests plus 1 release smoke, git status was clean, git diff --check was clean, and the remote tag baseline remained v0.2.0.</note-1>
+      </notes>
     </M-RELEASE-GATE-0-3-0>
 
     <M-GITHUB-RELEASE-0-3-0 NAME="GitHubRelease030" TYPE="INTEGRATION" LAYER="13" ORDER="5" STATUS="planned">
