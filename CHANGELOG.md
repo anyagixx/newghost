@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.3.0] - 2026-03-28
+
+Managed deployment and release-hardening update for the WSS proxy runtime.
+
+Included in this release:
+
+- Governed managed deployment script for role-aware staging to Linux hosts
+- Managed `systemd` units for server and client runtime lifecycle
+- Bounded log rotation policy for server, client, and bad-auth evidence files
+- Operator runbook for install, restart, rollback, and evidence capture
+- Second managed live wave with repeated smoke, restart recovery, and redacted bad-auth rejection evidence
+- GRACE release-preparation governance for substantive test files, release-facing docs, and tag alignment
+
+Verification baseline:
+
+- `cargo clippy --all-targets --all-features`
+- `cargo test`
+- managed live verification for `Gate-Phase-9`
+
+Notes:
+
+- The next GitHub source release should be published from tag `v0.3.0` by `.github/workflows/release.yml`.
+
 ## [0.2.0] - 2026-03-28
 
 Live-capable WSS proxy release with deployable runtime packaging.
