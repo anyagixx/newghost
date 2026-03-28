@@ -466,7 +466,7 @@
       </annotations>
     </M-SYSTEMD-UNITS>
 
-    <M-LOG-ROTATION NAME="LogRotation" TYPE="INTEGRATION" STATUS="planned">
+    <M-LOG-ROTATION NAME="LogRotation" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Define bounded retention and rotation for n0wss logs so operators keep useful evidence without unbounded growth.</purpose>
       <path>deploy/logrotate/n0wss</path>
       <depends>M-SYSTEMD-UNITS, M-OBS</depends>
@@ -474,6 +474,7 @@
       <annotations>
         <fn-defineRotationPolicy PURPOSE="Pin retention count, rollover behavior, and active-log continuity guarantees." />
         <type-LogRotationPolicy PURPOSE="Carries the approved rotation behavior for managed n0wss logs." />
+        <type-ManagedLogRetention PURPOSE="The current managed retention policy rotates the server, client, and bad-auth logs daily or earlier at 5M, retaining 7 compressed generations." />
       </annotations>
     </M-LOG-ROTATION>
 

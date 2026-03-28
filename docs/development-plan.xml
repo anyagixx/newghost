@@ -1252,7 +1252,7 @@
       </notes>
     </M-SYSTEMD-UNITS>
 
-    <M-LOG-ROTATION NAME="LogRotation" TYPE="INTEGRATION" LAYER="11" ORDER="3" STATUS="planned">
+    <M-LOG-ROTATION NAME="LogRotation" TYPE="INTEGRATION" LAYER="11" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Define bounded retention and rotation for n0wss logs so operators retain useful evidence without unbounded log growth.</purpose>
         <inputs>
@@ -1280,6 +1280,7 @@
       <verification-ref>V-M-LOG-ROTATION</verification-ref>
       <notes>
         <note-1>Rotation policy must preserve the current-wave evidence packet until the operator explicitly closes it.</note-1>
+        <note-2>deploy/logrotate/n0wss now rotates server, client, and bad-auth logs daily with maxsize 5M, rotate 7, compression, and copytruncate continuity.</note-2>
       </notes>
     </M-LOG-ROTATION>
 
@@ -1591,7 +1592,7 @@
       <step-2 module="M-SECRET-HYGIENE" status="done" verification="V-M-SECRET-HYGIENE">Replace plaintext-oriented operator secret handling with a governed file or env-based model and explicit rotation follow-up</step-2>
       <step-3 module="M-DEPLOY-SCRIPTING" status="done" verification="V-M-DEPLOY-SCRIPTING">Implement repeatable server and client deployment or update scripting around the canonical layout</step-3>
       <step-4 module="M-SYSTEMD-UNITS" status="done" verification="V-M-SYSTEMD-UNITS">Define managed server and client systemd services with explicit readiness and restart evidence</step-4>
-      <step-5 module="M-LOG-ROTATION" status="pending" verification="V-M-LOG-ROTATION">Add bounded log-retention policy that preserves current-wave evidence</step-5>
+      <step-5 module="M-LOG-ROTATION" status="done" verification="V-M-LOG-ROTATION">Add bounded log-retention policy that preserves current-wave evidence</step-5>
       <step-6 module="M-OPERATOR-RUNBOOK" status="pending" verification="V-M-OPERATOR-RUNBOOK">Document install, start, stop, update, rollback, and evidence capture for the managed deployment shape</step-6>
       <step-7 module="M-LIVE-WAVE-2" status="pending" verification="V-M-LIVE-WAVE-2">Execute the second live wave for service-managed startup, repeated smoke, restart recovery, and bad-auth verification</step-7>
     </Phase-9>
