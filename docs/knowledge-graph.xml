@@ -985,7 +985,7 @@
       </annotations>
     </M-DATAGRAM-TRANSPORT-SELECTOR>
 
-    <M-TELEGRAM-CALLS-PROFILE NAME="TelegramCallsProfile" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-CALLS-PROFILE NAME="TelegramCallsProfile" TYPE="UTILITY" STATUS="implemented">
       <purpose>Document the bounded Telegram Desktop calls support claim for the governed UDP-capable path.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-COMPAT, M-SOCKS5-UDP-ASSOCIATE</depends>
