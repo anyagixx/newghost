@@ -664,7 +664,7 @@
       </annotations>
     </M-CHANGELOG-0-3-1>
 
-    <M-RELEASE-MESSAGING-0-3-1 NAME="ReleaseMessaging031" TYPE="UTILITY" STATUS="planned">
+    <M-RELEASE-MESSAGING-0-3-1 NAME="ReleaseMessaging031" TYPE="UTILITY" STATUS="implemented">
       <purpose>Align release-facing documentation with the verified Telegram Desktop SSH-forward requirement before the v0.3.1 patch release.</purpose>
       <path>README.md</path>
       <depends>M-CHANGELOG-0-3-1, M-TELEGRAM-COMPAT</depends>
