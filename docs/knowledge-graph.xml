@@ -549,7 +549,7 @@
       </annotations>
     </M-RELEASE-GATE-0-3-0>
 
-    <M-GITHUB-RELEASE-0-3-0 NAME="GitHubRelease030" TYPE="INTEGRATION" STATUS="planned">
+    <M-GITHUB-RELEASE-0-3-0 NAME="GitHubRelease030" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Align the existing GitHub source-release workflow with the next v0.3.0 tag and changelog entry.</purpose>
       <path>.github/workflows/release.yml</path>
       <depends>M-RELEASE-GATE-0-3-0, M-GITHUB-RELEASE</depends>

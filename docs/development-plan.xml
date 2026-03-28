@@ -1482,7 +1482,7 @@
       </notes>
     </M-RELEASE-GATE-0-3-0>
 
-    <M-GITHUB-RELEASE-0-3-0 NAME="GitHubRelease030" TYPE="INTEGRATION" LAYER="13" ORDER="5" STATUS="planned">
+    <M-GITHUB-RELEASE-0-3-0 NAME="GitHubRelease030" TYPE="INTEGRATION" LAYER="13" ORDER="5" STATUS="implemented">
       <contract>
         <purpose>Align the existing tag-driven GitHub source release workflow with the v0.3.0 changelog and release gate outcome.</purpose>
         <inputs>
@@ -1790,13 +1790,13 @@
       <step-7 module="M-LIVE-WAVE-2" status="done" verification="V-M-LIVE-WAVE-2">Execute the second live wave for service-managed startup, repeated smoke, restart recovery, and bad-auth verification</step-7>
     </Phase-9>
 
-    <Phase-10 name="Release Preparation" status="pending">
+    <Phase-10 name="Release Preparation" status="done">
       <goal>Prepare the repository for a coherent v0.3.0 source release by cleaning governed release blockers, synchronizing release-facing docs, and closing the release gate.</goal>
       <step-1 module="M-TEST-GOVERNANCE-SYNC" status="done" verification="V-M-TEST-GOVERNANCE-SYNC">Commit the prepared GRACE markup in substantive test files so the governed release tree is clean</step-1>
       <step-2 module="M-RELEASE-MESSAGING" status="done" verification="V-M-RELEASE-MESSAGING">Align README and operator-facing release wording with the completed managed deployment surface</step-2>
       <step-3 module="M-CHANGELOG-0-3-0" status="done" verification="V-M-CHANGELOG-0-3-0">Add the v0.3.0 changelog entry for the managed deployment and live-wave scope</step-3>
       <step-4 module="M-RELEASE-GATE-0-3-0" status="done" verification="V-M-RELEASE-GATE-0-3-0">Run the release gate checks and record whether v0.3.0 is ready to tag</step-4>
-      <step-5 module="M-GITHUB-RELEASE-0-3-0" status="pending" verification="V-M-GITHUB-RELEASE-0-3-0">Prepare the tag-driven GitHub source release path for v0.3.0</step-5>
+      <step-5 module="M-GITHUB-RELEASE-0-3-0" status="done" verification="V-M-GITHUB-RELEASE-0-3-0">Prepare the tag-driven GitHub source release path for v0.3.0</step-5>
     </Phase-10>
   </ImplementationOrder>
 
