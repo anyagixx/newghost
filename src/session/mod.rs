@@ -1,5 +1,5 @@
 // FILE: src/session/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Define the session core surface and orchestrate registry, transport selection, pure state transitions, and typed effect routing.
 //   SCOPE: Session module wiring, session manager orchestration, stable session identifiers, pure state-transition exports, typed effect exports, and shutdown coordination.
@@ -25,7 +25,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Prevented transport resolution from opening new streams after a session starts draining or closes.
+//   LAST_CHANGE: v0.1.3 - Added structured transport-resolution failure evidence so live verification can isolate the first divergent transport block quickly.
 // END_CHANGE_SUMMARY
 
 use std::sync::Arc;
@@ -34,7 +34,7 @@ use std::time::{Duration, Instant};
 use async_trait::async_trait;
 use thiserror::Error;
 use tokio_util::sync::CancellationToken;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::config::AppConfig;
 use crate::transport::adapter_contract::TransportRequest;
@@ -196,11 +196,20 @@ where
             ));
         }
 
-        let resolved = self
-            .selector
-            .open_stream(request, cancel)
-            .await
-            .map_err(SessionManagerError::TransportResolutionFailed)?;
+        let resolved = match self.selector.open_stream(request, cancel).await {
+            Ok(stream) => stream,
+            Err(err) => {
+                warn!(
+                    session_id,
+                    peer = %request.peer_label,
+                    target_host = %request.target_host,
+                    target_port = request.target_port,
+                    error = %err,
+                    "[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT] transport resolution failed"
+                );
+                return Err(SessionManagerError::TransportResolutionFailed(err));
+            }
+        };
 
         handle.with_record(|record| record.last_activity = Instant::now());
         self.handle_event(session_id, SessionEvent::StreamOpened)
