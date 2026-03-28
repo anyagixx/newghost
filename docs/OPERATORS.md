@@ -187,7 +187,7 @@ Do not change the service name, working directory, or log target during rollback
 
 ## Release Readiness
 
-Before opening the first GitHub release or handing the repository to external testers, run:
+Before opening the next GitHub release or handing the repository to external testers, run:
 
 ```bash
 cargo clippy --all-targets --all-features
@@ -209,7 +209,7 @@ cargo test proxy_bridge
 Current release posture:
 
 - source-first release
-- no standalone binary target documented yet
+- governed `n0wss` binary target and managed deployment workflow are implemented in-repo
 - GitHub docs and CI must stay aligned with the commands above
 
 If docs or workflows mention `cargo run`, a binary name, or a smoke target that does not exist, treat that as release drift and block publication.

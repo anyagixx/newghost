@@ -1,6 +1,6 @@
 # n0wss
 
-`n0wss` is a GRACE-governed Rust codebase for a WSS-backed proxy tunnel with an optional iroh transport path. The current repository state is source-first: the core modules, tests, and release gates are implemented, while the public deployment flow is still being finalized.
+`n0wss` is a GRACE-governed Rust codebase for a WSS-backed proxy tunnel with an optional iroh transport path. The current repository state is source-first: the core modules, tests, managed deployment surface, and release gates are implemented.
 
 ## Current Scope
 
@@ -96,10 +96,10 @@ Phase-9 introduces the first governed managed deployment surface:
 
 ## Release Notes
 
-The first public release is intended to be source-first:
+The next public release is prepared as source-first:
 
 - GitHub source release
 - CI-enforced `clippy` and `cargo test`
 - operator guidance in [docs/OPERATORS.md](/home/truffle/Загрузки/newghost/docs/OPERATORS.md)
 
-Binary packaging is intentionally deferred until the runtime surface is finalized.
+Standalone packaged distribution is still deferred, but the governed `n0wss` binary, managed deployment workflow, and operator runbook are already implemented in-repo.
