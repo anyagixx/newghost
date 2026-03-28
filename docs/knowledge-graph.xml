@@ -955,7 +955,7 @@
       </annotations>
     </M-DATAGRAM-SESSION-MANAGER>
 
-    <M-WSS-DATAGRAM-GATEWAY NAME="WssDatagramGateway" TYPE="INTEGRATION" STATUS="planned">
+    <M-WSS-DATAGRAM-GATEWAY NAME="WssDatagramGateway" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Encapsulate governed datagrams in WSS frames without changing the existing stream tunnel contract.</purpose>
       <path>src/wss_gateway/datagram.rs</path>
       <depends>M-WSS-GATEWAY, M-DATAGRAM-CONTRACT, M-AUTH, M-TLS</depends>
