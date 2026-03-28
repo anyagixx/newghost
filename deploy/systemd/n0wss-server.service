@@ -1,0 +1,37 @@
+# FILE: deploy/systemd/n0wss-server.service
+# VERSION: 0.1.0
+# START_MODULE_CONTRACT
+#   PURPOSE: Define the managed systemd unit for the n0wss server role under the canonical Phase-9 deployment layout.
+#   SCOPE: Service identity, environment source, working directory, restart policy, bounded shutdown, and canonical log targets.
+#   DEPENDS: M-DEPLOY-LAYOUT, M-DEPLOY-SCRIPTING, M-CLI
+#   LINKS: M-SYSTEMD-UNITS, V-M-SYSTEMD-UNITS, DF-SERVICE-BOOT
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   Unit - service-managed startup and restart contract for the server role
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.1.0 - Added the initial governed server unit for managed startup, restart, and bounded log output.
+# END_CHANGE_SUMMARY
+
+[Unit]
+Description=n0wss managed WSS server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/n0wss
+EnvironmentFile=/opt/n0wss/env/server.env
+ExecStart=/bin/sh -lc 'exec /opt/n0wss/n0wss --auth-token "$N0WSS_AUTH_TOKEN" server --tls-cert-path /opt/n0wss/certs/server.pem --tls-key-path /opt/n0wss/certs/server.key'
+Restart=on-failure
+RestartSec=2s
+TimeoutStopSec=90s
+StandardOutput=append:/var/log/n0wss-server.log
+StandardError=append:/var/log/n0wss-server.log
+
+[Install]
+WantedBy=multi-user.target

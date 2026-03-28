@@ -1,0 +1,37 @@
+# FILE: deploy/systemd/n0wss-client.service
+# VERSION: 0.1.0
+# START_MODULE_CONTRACT
+#   PURPOSE: Define the managed systemd unit for the n0wss client role under the canonical Phase-9 deployment layout.
+#   SCOPE: Service identity, environment source, working directory, restart policy, bounded shutdown, and canonical log targets.
+#   DEPENDS: M-DEPLOY-LAYOUT, M-DEPLOY-SCRIPTING, M-CLI
+#   LINKS: M-SYSTEMD-UNITS, V-M-SYSTEMD-UNITS, DF-SERVICE-BOOT
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   Unit - service-managed startup and restart contract for the client role
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.1.0 - Added the initial governed client unit for managed startup, restart, and bounded log output.
+# END_CHANGE_SUMMARY
+
+[Unit]
+Description=n0wss managed SOCKS5 client
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/n0wss
+EnvironmentFile=/opt/n0wss/env/client.env
+ExecStart=/bin/sh -lc 'exec /opt/n0wss/n0wss --auth-token "$N0WSS_AUTH_TOKEN" client --remote-wss-url "$N0WSS_REMOTE_WSS_URL" --tls-trust-anchor-path /opt/n0wss/certs/server.pem ${N0WSS_TLS_SERVER_NAME_OVERRIDE:+--tls-server-name-override "$N0WSS_TLS_SERVER_NAME_OVERRIDE"}'
+Restart=on-failure
+RestartSec=2s
+TimeoutStopSec=90s
+StandardOutput=append:/var/log/n0wss-client.log
+StandardError=append:/var/log/n0wss-client.log
+
+[Install]
+WantedBy=multi-user.target
