@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.13">
+  <Project NAME="n0wss" VERSION="0.2.14">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -875,6 +875,46 @@
       </annotations>
     </M-GITHUB-MASTER-SYNC>
 
+    <M-RELEASED-MASTER-TARGET NAME="ReleasedMasterTarget" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Freeze the corrective origin/master sync target as the released v0.3.2 commit rather than the newer local HEAD.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-GITHUB-RELEASE-0-3-2, M-BRANCH-SYNC-BASELINE</depends>
+      <verification-ref>V-M-RELEASED-MASTER-TARGET</verification-ref>
+      <annotations>
+        <fn-freezeReleasedMasterTarget PURPOSE="Freeze the exact released commit that master is allowed to move to." />
+      </annotations>
+    </M-RELEASED-MASTER-TARGET>
+
+    <M-RELEASED-MASTER-MESSAGING NAME="ReleasedMasterMessaging" TYPE="UTILITY" STATUS="planned">
+      <purpose>Align docs so the corrective master sync is understood as publication of the released snapshot only.</purpose>
+      <path>README.md</path>
+      <depends>M-RELEASED-MASTER-TARGET, M-BRANCH-SYNC-MESSAGING</depends>
+      <verification-ref>V-M-RELEASED-MASTER-MESSAGING</verification-ref>
+      <annotations>
+        <fn-alignReleasedMasterMessaging PURPOSE="Document that the corrective sync excludes newer local planning commits." />
+      </annotations>
+    </M-RELEASED-MASTER-MESSAGING>
+
+    <M-RELEASED-MASTER-GATE NAME="ReleasedMasterGate" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Gate the push of origin/master specifically to the released v0.3.2 commit.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-RELEASED-MASTER-TARGET, M-RELEASED-MASTER-MESSAGING</depends>
+      <verification-ref>V-M-RELEASED-MASTER-GATE</verification-ref>
+      <annotations>
+        <fn-runReleasedMasterGate PURPOSE="Check clean-tree and frozen released target before pushing v0.3.2:master." />
+      </annotations>
+    </M-RELEASED-MASTER-GATE>
+
+    <M-GITHUB-MASTER-SYNC-032 NAME="GitHubMasterSync032" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Push v0.3.2 to origin/master so GitHub default-branch browsing becomes a copy of the released stable baseline.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-RELEASED-MASTER-GATE</depends>
+      <verification-ref>V-M-GITHUB-MASTER-SYNC-032</verification-ref>
+      <annotations>
+        <fn-pushReleasedBaselineToMaster PURPOSE="Push the released v0.3.2 commit to origin/master." />
+      </annotations>
+    </M-GITHUB-MASTER-SYNC-032>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -992,6 +1032,10 @@
     <CrossLink from="M-BRANCH-SYNC-BASELINE" to="M-BRANCH-SYNC-MESSAGING" relation="anchors branch-sync wording to the approved baseline identity" />
     <CrossLink from="M-BRANCH-SYNC-MESSAGING" to="M-BRANCH-SYNC-GATE" relation="keeps the gate bounded to branch visibility sync rather than a new release scope" />
     <CrossLink from="M-BRANCH-SYNC-GATE" to="M-GITHUB-MASTER-SYNC" relation="must pass before local master is pushed to origin/master" />
+    <CrossLink from="M-GITHUB-RELEASE-0-3-2" to="M-RELEASED-MASTER-TARGET" relation="supplies the released commit that the corrective master sync must target" />
+    <CrossLink from="M-RELEASED-MASTER-TARGET" to="M-RELEASED-MASTER-MESSAGING" relation="anchors corrective branch-sync wording to the released commit identity" />
+    <CrossLink from="M-RELEASED-MASTER-MESSAGING" to="M-RELEASED-MASTER-GATE" relation="keeps the corrective gate bounded to the released snapshot" />
+    <CrossLink from="M-RELEASED-MASTER-GATE" to="M-GITHUB-MASTER-SYNC-032" relation="must pass before v0.3.2 is pushed to origin/master" />
 
   </Project>
 </KnowledgeGraph>

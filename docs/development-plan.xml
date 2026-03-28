@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.13">
+<DevelopmentPlan VERSION="0.2.14">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -2388,6 +2388,124 @@
       </observability>
       <verification-ref>V-M-GITHUB-MASTER-SYNC</verification-ref>
     </M-GITHUB-MASTER-SYNC>
+
+    <M-RELEASED-MASTER-TARGET NAME="ReleasedMasterTarget" TYPE="UTILITY" LAYER="20" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Freeze the only allowed origin/master sync target as the already released v0.3.2 commit rather than the current local HEAD.</purpose>
+        <inputs>
+          <param name="releasedTargetInputs" type="ReleasedTargetInputs" />
+        </inputs>
+        <outputs>
+          <param name="releasedTargetRecord" type="ReleasedTargetRecord" />
+        </outputs>
+        <errors>
+          <error code="RELEASED_MASTER_TARGET_MISMATCH" />
+        </errors>
+      </contract>
+      <interface>
+        <export-freezeReleasedMasterTarget PURPOSE="Freeze the exact released commit that origin/master is allowed to move to." />
+      </interface>
+      <depends>M-GITHUB-RELEASE-0-3-2, M-BRANCH-SYNC-BASELINE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/knowledge-graph.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleasedMasterTarget]</log-prefix>
+        <critical-block>BLOCK_RELEASED_MASTER_TARGET</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASED-MASTER-TARGET</verification-ref>
+    </M-RELEASED-MASTER-TARGET>
+
+    <M-RELEASED-MASTER-MESSAGING NAME="ReleasedMasterMessaging" TYPE="UTILITY" LAYER="20" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Document that the master sync publishes the released v0.3.2 snapshot only and excludes newer local planning commits.</purpose>
+        <inputs>
+          <param name="releasedMessagingInputs" type="ReleasedMessagingInputs" />
+        </inputs>
+        <outputs>
+          <param name="releasedMessagingRecord" type="ReleasedMessagingRecord" />
+        </outputs>
+        <errors>
+          <error code="RELEASED_MASTER_MESSAGING_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-alignReleasedMasterMessaging PURPOSE="Align docs around syncing master to the released commit rather than the current HEAD." />
+      </interface>
+      <depends>M-RELEASED-MASTER-TARGET, M-BRANCH-SYNC-MESSAGING</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleasedMasterMessaging]</log-prefix>
+        <critical-block>BLOCK_RELEASED_MASTER_MESSAGING</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASED-MASTER-MESSAGING</verification-ref>
+    </M-RELEASED-MASTER-MESSAGING>
+
+    <M-RELEASED-MASTER-GATE NAME="ReleasedMasterGate" TYPE="ENTRY_POINT" LAYER="20" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Gate the push of origin/master to the released v0.3.2 commit so no newer local controller commits are published by mistake.</purpose>
+        <inputs>
+          <param name="releasedGateInputs" type="ReleasedGateInputs" />
+        </inputs>
+        <outputs>
+          <param name="releasedGateRecord" type="ReleasedGateRecord" />
+        </outputs>
+        <errors>
+          <error code="RELEASED_MASTER_GATE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runReleasedMasterGate PURPOSE="Check clean-tree, released target identity, and safe push conditions for v0.3.2:master." />
+      </interface>
+      <depends>M-RELEASED-MASTER-TARGET, M-RELEASED-MASTER-MESSAGING</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/knowledge-graph.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleasedMasterGate]</log-prefix>
+        <critical-block>BLOCK_RELEASED_MASTER_GATE</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASED-MASTER-GATE</verification-ref>
+    </M-RELEASED-MASTER-GATE>
+
+    <M-GITHUB-MASTER-SYNC-032 NAME="GitHubMasterSync032" TYPE="INTEGRATION" LAYER="20" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Push v0.3.2 to origin/master so GitHub default-branch browsing becomes a copy of the released stable baseline.</purpose>
+        <inputs>
+          <param name="releasedSyncInputs" type="ReleasedSyncInputs" />
+        </inputs>
+        <outputs>
+          <param name="releasedSyncRecord" type="ReleasedSyncRecord" />
+        </outputs>
+        <errors>
+          <error code="GITHUB_MASTER_SYNC_032_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-pushReleasedBaselineToMaster PURPOSE="Push the released v0.3.2 commit to origin/master." />
+      </interface>
+      <depends>M-RELEASED-MASTER-GATE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[GitHubMasterSync032]</log-prefix>
+        <critical-block>BLOCK_GITHUB_MASTER_SYNC_032</critical-block>
+      </observability>
+      <verification-ref>V-M-GITHUB-MASTER-SYNC-032</verification-ref>
+    </M-GITHUB-MASTER-SYNC-032>
   </Modules>
 
   <DataFlow>
@@ -2450,6 +2568,26 @@
       <step-3>GitHub default-branch file view now exposes the same state that was already tagged as v0.3.2.</step-3>
       <evidence>Successful git push output and remote branch identity matching the approved local HEAD.</evidence>
     </DF-GITHUB-MASTER-SYNC>
+
+    <DF-RELEASED-MASTER-TARGET NAME="Released master target freeze" TRIGGER="A corrective branch sync is needed because local HEAD has moved beyond the released baseline.">
+      <step-1>The controller resolves the commit behind v0.3.2.</step-1>
+      <step-2>The controller explicitly excludes newer local commits from the publish target.</step-2>
+      <step-3>The released commit becomes the only allowed sync destination for origin/master.</step-3>
+      <evidence>Resolved tag commit identity, comparison with HEAD, and a frozen publish target record.</evidence>
+    </DF-RELEASED-MASTER-TARGET>
+
+    <DF-RELEASED-MASTER-TRUTH NAME="Released master messaging sync" TRIGGER="Docs are aligned before pushing origin/master to the released commit.">
+      <step-1>README and operator docs explain that tag v0.3.2 already exists.</step-1>
+      <step-2>They explain that master sync targets the released snapshot only, not the newer local planning state.</step-2>
+      <evidence>Branch-sync wording stays bounded to the released baseline publication step.</evidence>
+    </DF-RELEASED-MASTER-TRUTH>
+
+    <DF-GITHUB-MASTER-SYNC-032 NAME="GitHub master synchronization to released baseline" TRIGGER="The released-master gate passes for v0.3.2.">
+      <step-1>The controller confirms clean-tree and the frozen released target.</step-1>
+      <step-2>The controller pushes `v0.3.2:master` to origin.</step-2>
+      <step-3>GitHub default-branch browsing now matches the released stable baseline commit rather than the old branch tip.</step-3>
+      <evidence>Successful push output and post-push remote branch identity equal to v0.3.2.</evidence>
+    </DF-GITHUB-MASTER-SYNC-032>
 
     <DF-REPLY-MAPPING NAME="SOCKS5 reply mapping" TRIGGER="A proxy request fails before or after pump startup.">
       <step-1>Socks5Proxy or ProxyBridge classifies ProxyError as infrastructure, policy, target, or post-pump failure.</step-1>
@@ -2775,6 +2913,14 @@
       <step-3 module="M-BRANCH-SYNC-GATE" status="pending" verification="V-M-BRANCH-SYNC-GATE">Run the branch sync gate and confirm local master can safely fast-forward origin/master</step-3>
       <step-4 module="M-GITHUB-MASTER-SYNC" status="pending" verification="V-M-GITHUB-MASTER-SYNC">Push the approved local master baseline to origin/master</step-4>
     </Phase-16>
+
+    <Phase-17 name="Released Commit Master Sync" status="pending">
+      <goal>Update origin/master to the already released v0.3.2 commit so GitHub default-branch browsing matches the stable baseline without publishing newer local planning commits.</goal>
+      <step-1 module="M-RELEASED-MASTER-TARGET" status="done" verification="V-M-RELEASED-MASTER-TARGET">Freeze the only allowed origin/master target as the released v0.3.2 commit</step-1>
+      <step-2 module="M-RELEASED-MASTER-MESSAGING" status="pending" verification="V-M-RELEASED-MASTER-MESSAGING">Align docs so this sync publishes the released snapshot only and excludes newer local planning commits</step-2>
+      <step-3 module="M-RELEASED-MASTER-GATE" status="pending" verification="V-M-RELEASED-MASTER-GATE">Run the gate for syncing origin/master specifically to v0.3.2</step-3>
+      <step-4 module="M-GITHUB-MASTER-SYNC-032" status="pending" verification="V-M-GITHUB-MASTER-SYNC-032">Push v0.3.2 to origin/master</step-4>
+    </Phase-17>
   </ImplementationOrder>
 
   <ExecutionPolicy>

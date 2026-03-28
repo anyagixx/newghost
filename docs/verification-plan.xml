@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.22">
+<VerificationPlan VERSION="0.2.24">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -20,6 +20,8 @@
     <release-baseline-truth-rule>A baseline release that exists mainly to publish local GRACE progress must distinguish proven Telegram Desktop TCP or SOCKS5 behavior from still-open Telegram calls or UDP capability gaps and must not publish wishful future scope as current support.</release-baseline-truth-rule>
     <branch-sync-baseline-rule>When syncing origin/master after a release tag already exists, the branch push must target the same approved stable baseline commit and must not silently widen the published scope beyond that release truth.</branch-sync-baseline-rule>
     <branch-sync-visibility-rule>Branch synchronization must distinguish between publishing a release tag and updating the GitHub default branch view; verification should prove that origin/master catches up to the same approved baseline commit rather than merely observing that a tag exists.</branch-sync-visibility-rule>
+    <released-master-target-rule>When local HEAD has moved beyond the released baseline, a corrective master sync must target the released tag commit explicitly and must not derive its publish target from the current branch tip.</released-master-target-rule>
+    <released-master-no-head-publish-rule>During a corrective master sync, verification must explicitly prove that newer local commits remain unpublished and that the branch update uses the released tag reference itself rather than the current local branch name.</released-master-no-head-publish-rule>
     <telegram-compat-boundary-rule>Telegram verification may prove only standard SOCKS5 client compatibility over the governed n0wss tunnel and must not silently escalate into claims of universal unblock capability or Telegram-specific protocol support.</telegram-compat-boundary-rule>
     <manual-client-evidence-rule>When a live wave depends on a third-party interactive client, the verification packet must capture app-side action, n0wss-side anchored logs, socket state, and a first-divergent-block summary so another agent can debug without repeating blind manual steps.</manual-client-evidence-rule>
     <local-forward-proof-rule>When a verified local-workstation scenario reaches a remote localhost listener through SSH forwarding, the verification contract must require explicit evidence that the forward command, forwarded bind, and downstream managed listener were all present during the app-side attempt.</local-forward-proof-rule>
@@ -1611,6 +1613,86 @@
         <assertion-2>The push step must preserve that the visible branch baseline equals the already published v0.3.2 commit.</assertion-2>
       </required-trace-assertions>
     </V-M-GITHUB-MASTER-SYNC>
+
+    <V-M-RELEASED-MASTER-TARGET MODULE="M-RELEASED-MASTER-TARGET" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/knowledge-graph.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>git rev-parse v0.3.2</check-1>
+        <check-2>git rev-parse HEAD</check-2>
+        <check-3>git rev-parse origin/master</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The released commit behind v0.3.2 is frozen as the only allowed target for origin/master.</scenario-1>
+        <scenario-2 kind="failure">The corrective master sync would still derive its publish target from the newer local HEAD.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The target-freeze step must preserve the exact v0.3.2 commit identity as the allowed publish target.</assertion-1>
+        <assertion-2>The step must explicitly record that local HEAD is newer and is therefore excluded from the corrective publication step.</assertion-2>
+      </required-trace-assertions>
+    </V-M-RELEASED-MASTER-TARGET>
+
+    <V-M-RELEASED-MASTER-MESSAGING MODULE="M-RELEASED-MASTER-MESSAGING" PRIORITY="medium">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'v0.3.2|master|released snapshot|released commit|local HEAD' README.md docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Docs explain that the corrective master sync publishes the released v0.3.2 snapshot only.</scenario-1>
+        <scenario-2 kind="failure">Docs still imply the sync publishes the current local branch tip or a wider scope than the released baseline.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The wording must explicitly separate the released commit from the newer local planning state.</assertion-1>
+        <assertion-2>The wording must preserve that the corrective sync exists only to align GitHub default-branch browsing to the already released baseline.</assertion-2>
+      </required-trace-assertions>
+    </V-M-RELEASED-MASTER-MESSAGING>
+
+    <V-M-RELEASED-MASTER-GATE MODULE="M-RELEASED-MASTER-GATE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>git status --short</check-1>
+        <check-2>git diff --check</check-2>
+        <check-3>git rev-parse v0.3.2</check-3>
+        <check-4>git rev-parse origin/master</check-4>
+        <check-5>git rev-parse HEAD</check-5>
+        <check-6>git log --oneline v0.3.2..HEAD</check-6>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The corrective gate proves the tree is clean and that pushing v0.3.2:master will not publish newer local commits.</scenario-1>
+        <scenario-2 kind="failure">Dirty tree, unresolved released target, or accidental dependence on HEAD blocks the corrective master sync.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The gate must reject any attempt to substitute `git push origin master` for the bounded `git push origin v0.3.2:master` publish path.</assertion-1>
+        <assertion-2>The gate must preserve a bounded summary of commits in `v0.3.2..HEAD` as excluded local-only planning state.</assertion-2>
+      </required-trace-assertions>
+    </V-M-RELEASED-MASTER-GATE>
+
+    <V-M-GITHUB-MASTER-SYNC-032 MODULE="M-GITHUB-MASTER-SYNC-032" PRIORITY="medium">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>git push origin v0.3.2:master</check-1>
+        <check-2>git rev-parse origin/master</check-2>
+        <check-3>git rev-parse v0.3.2</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">origin/master is updated exactly to the released v0.3.2 commit.</scenario-1>
+        <scenario-2 kind="failure">The push fails or origin/master still does not equal v0.3.2 after the corrective sync attempt.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The corrective push step must use the explicit refspec `v0.3.2:master`.</assertion-1>
+        <assertion-2>Post-push verification must compare `origin/master` directly to `v0.3.2`, not to local HEAD.</assertion-2>
+      </required-trace-assertions>
+    </V-M-GITHUB-MASTER-SYNC-032>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -2020,6 +2102,27 @@
         <evidence-4>Post-push, origin/master resolves to the same commit as both local HEAD and v0.3.2.</evidence-4>
       </required-evidence>
     </Gate-Phase-16>
+
+    <Gate-Phase-17 PHASE="Phase-17">
+      <goal>GitHub default-branch browsing is synchronized specifically to the released v0.3.2 commit and not to the newer local branch tip.</goal>
+      <commands>
+        <command-1>git status --short</command-1>
+        <command-2>git diff --check</command-2>
+        <command-3>git rev-parse v0.3.2</command-3>
+        <command-4>git rev-parse origin/master</command-4>
+        <command-5>git rev-parse HEAD</command-5>
+        <command-6>git log --oneline v0.3.2..HEAD</command-6>
+        <command-7>git push origin v0.3.2:master</command-7>
+        <command-8>git rev-parse origin/master</command-8>
+        <command-9>git rev-parse v0.3.2</command-9>
+      </commands>
+      <required-evidence>
+        <evidence-1>The corrective sync target is frozen to the released v0.3.2 commit.</evidence-1>
+        <evidence-2>The tree is clean before pushing the corrective master sync.</evidence-2>
+        <evidence-3>Post-push, origin/master resolves to the same commit as v0.3.2 and does not include the newer local planning commits.</evidence-3>
+        <evidence-4>The corrective push path uses the released refspec and not the local branch name.</evidence-4>
+      </required-evidence>
+    </Gate-Phase-17>
   </PhaseGates>
 
   <FailurePackets>
@@ -2036,6 +2139,7 @@
       <final-acceptance-example>FinalTelegramAcceptanceWave expected fresh-host baseline, managed readiness, a live SSH-forward, a basic Telegram Desktop connect packet, and separate media packets, but observed Telegram stuck on Connecting with no fresh SOCKS5 ingress marker; first divergent block is FinalTelegramHandoff::prepareFinalTelegramHandoff::BLOCK_FINAL_TELEGRAM_HANDOFF if the local forward is absent, otherwise Socks5Proxy::parseRequest::BLOCK_PARSE_SOCKS5_REQUEST; next action is verify the SSH-forward process and forwarded local bind first, then inspect remote client readiness before repeating only the dependent acceptance step.</final-acceptance-example>
       <release-baseline-032-example>ReleaseBaseline032 expected a bounded v0.3.2 changelog entry, release-facing docs that preserve the verified Telegram Desktop SSH-forward path, a clean tree, and a remote baseline ending at v0.3.1, but observed docs or notes implying Telegram calls support or a stale local v0.3.2 tag before publication; first divergent block is ReleaseGate032::runReleaseGate032::BLOCK_RELEASE_GATE_0_3_2; next action is narrow the release truth back to the verified TCP or SOCKS5 envelope, remove the stale tag if present, and rerun only the release gate.</release-baseline-032-example>
       <branch-sync-example>GitHubMasterBaselineSync expected local HEAD and v0.3.2 to identify the same stable baseline while origin/master lagged behind, but observed a different local HEAD or a dirty tree before push; first divergent block is BranchSyncGate::runBranchSyncGate::BLOCK_BRANCH_SYNC_GATE; next action is restore the approved baseline identity and clean tree before syncing origin/master.</branch-sync-example>
+      <released-master-sync-example>ReleasedCommitMasterSync expected v0.3.2 to remain the only allowed publish target while local HEAD had already moved beyond it, but observed a corrective push attempt still deriving its target from HEAD; first divergent block is ReleasedMasterGate::runReleasedMasterGate::BLOCK_RELEASED_MASTER_GATE; next action is freeze the released target explicitly and retry only the bounded push of v0.3.2:master.</released-master-sync-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>
