@@ -2191,7 +2191,7 @@
       <step-3 module="M-TELEGRAM-FORWARD-GRAPH-SYNC" status="done" verification="V-M-TELEGRAM-FORWARD-GRAPH-SYNC">Synchronize the knowledge graph with the clarified Telegram Desktop operator path</step-3>
     </Phase-12>
 
-    <Phase-13 name="Patch Release 0.3.1" status="pending">
+    <Phase-13 name="Patch Release 0.3.1" status="done">
       <goal>Prepare, gate, and publish the v0.3.1 patch release for the Telegram forward clarification wave after the existing v0.3.0 release baseline.</goal>
       <step-1 module="M-CHANGELOG-0-3-1" status="done" verification="V-M-CHANGELOG-0-3-1">Add the v0.3.1 changelog entry for the Telegram forward clarification patch scope</step-1>
       <step-2 module="M-RELEASE-MESSAGING-0-3-1" status="done" verification="V-M-RELEASE-MESSAGING-0-3-1">Align release-facing docs with the verified Telegram Desktop forwarded path</step-2>
