@@ -1115,10 +1115,12 @@
       <scenarios>
         <scenario-1 kind="success">Telegram-specific evidence packets distinguish app-side misconfiguration from n0wss tunnel failure.</scenario-1>
         <scenario-2 kind="failure">Telegram-specific debugging still requires blind reruns because evidence is not separated cleanly.</scenario-2>
+        <scenario-3 kind="failure">A local Telegram relaunch attempt diverges before stable UI recovery, but the packet still preserves whether the tunnel path itself emitted fresh SOCKS5, transport, and handshake evidence.</scenario-3>
       </scenarios>
       <required-trace-assertions>
         <assertion-1>Telegram evidence must separate readiness, connect, reconnect, and failure packets.</assertion-1>
         <assertion-2>Each packet must preserve the minimum cross-host fields needed for handoff: app-side action summary, local listener state, anchored client log tail, anchored server log tail when applicable, and first divergent block.</assertion-2>
+        <assertion-3>A failed local Telegram relaunch must be recorded as an app-launch divergence if fresh tunnel markers already prove the reconnect path, rather than being misclassified as transport failure.</assertion-3>
       </required-trace-assertions>
     </V-M-TELEGRAM-EVIDENCE>
 
@@ -1252,6 +1254,7 @@
         <evidence-2>The success packet contains SOCKS5 parse, transport selection, and pump markers or a bounded failure packet with the first divergent block.</evidence-2>
         <evidence-3>Reconnect evidence is captured separately from the initial connect attempt.</evidence-3>
         <evidence-4>If the app attempt never reaches n0wss, the packet must explicitly classify the divergence as app-side misconfiguration or readiness failure rather than tunnel failure.</evidence-4>
+        <evidence-5>When reconnect succeeds but a local relaunch attempt shows unstable UI recovery, the packet keeps the reconnect-path success evidence separate from the app-launch divergence note.</evidence-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramProxyWave; expected-evidence=Telegram connects through SOCKS5 and survives one reconnect path; observed-evidence=Telegram app result, local listener state, and anchored n0wss logs; first-divergent-block=first missing SOCKS5 or transport marker; next-action=distinguish Telegram client misconfig from tunnel-side failure before rerun</failure-packet-template>
     </LV-007>
@@ -1423,6 +1426,7 @@
       <managed-restart-example>ManagedRestartRecovery expected BLOCK_COORDINATE_SHUTDOWN followed by a new managed readiness packet, but observed a restarted unit with no fresh startup anchors and a stale listener; first divergent block is CliApp::coordinateShutdown::BLOCK_COORDINATE_SHUTDOWN; next action is inspect systemd restart behavior, stale process cleanup, and readiness capture before rerun.</managed-restart-example>
       <release-gate-example>ReleaseGate030 expected a clean release-prep tree, v0.3.0 changelog entry, and green local checks, but observed a stale README or changelog and tracked dirty files; first divergent block is ReleaseGate030::runReleaseGate::BLOCK_RELEASE_GATE; next action is finish the remaining release-prep module steps before creating any tag.</release-gate-example>
       <telegram-wave-example>TelegramProxyWave expected a Telegram client configured as a standard SOCKS5 consumer to reach connectivity through the local n0wss endpoint, but observed no SOCKS5 parse marker or no transport-selection marker after the app-side attempt; first divergent block is TelegramSmoke::runTelegramSmoke::BLOCK_TELEGRAM_SMOKE; next action is distinguish Telegram client misconfiguration from tunnel-side failure before rerun.</telegram-wave-example>
+      <telegram-launch-example>TelegramProxyWave reconnect expected a fresh Telegram app relaunch plus a new bounded packet, but observed local UI recovery instability while n0wss still emitted fresh SOCKS5 parse, transport-selection, bridge-pump, and accepted-handshake evidence; first divergent block is TelegramDesktop::relaunch::LOCAL_APP_RECOVERY; next action is preserve the reconnect success packet, classify the UI issue as app-side, and avoid misrouting the fix into tunnel runtime code.</telegram-launch-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>
