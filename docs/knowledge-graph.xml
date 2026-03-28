@@ -708,7 +708,7 @@
       </annotations>
     </M-FINAL-HOST-REBASELINE>
 
-    <M-FINAL-DEPLOY-BOOTSTRAP NAME="FinalDeployBootstrap" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-FINAL-DEPLOY-BOOTSTRAP NAME="FinalDeployBootstrap" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Redeploy the governed n0wss managed stack onto both fresh Ubuntu hosts without ad hoc mutation.</purpose>
       <path>scripts/deploy-live.sh</path>
       <depends>M-DEPLOY-SCRIPTING, M-SYSTEMD-UNITS, M-SECRET-HYGIENE, M-LIVE-BUILD-PACK</depends>

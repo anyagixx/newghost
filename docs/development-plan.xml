@@ -1889,7 +1889,7 @@
       <verification-ref>V-M-FINAL-HOST-REBASELINE</verification-ref>
     </M-FINAL-HOST-REBASELINE>
 
-    <M-FINAL-DEPLOY-BOOTSTRAP NAME="FinalDeployBootstrap" TYPE="ENTRY_POINT" LAYER="17" ORDER="2" STATUS="planned">
+    <M-FINAL-DEPLOY-BOOTSTRAP NAME="FinalDeployBootstrap" TYPE="ENTRY_POINT" LAYER="17" ORDER="2" STATUS="done">
       <contract>
         <purpose>Redeploy the governed n0wss managed stack onto both fresh Ubuntu hosts without ad hoc mutations.</purpose>
         <inputs>
@@ -2429,7 +2429,7 @@
     <Phase-14 name="Final Telegram Acceptance On Fresh Hosts" status="pending">
       <goal>Rebaseline two fresh Ubuntu hosts, redeploy n0wss, hand off a verified Telegram Desktop path to the operator, and capture final acceptance evidence for real Telegram use.</goal>
       <step-1 module="M-FINAL-HOST-REBASELINE" status="done" verification="V-M-FINAL-HOST-REBASELINE">Confirm both rebuilt Ubuntu hosts are reachable, clean, and ready for controlled deployment</step-1>
-      <step-2 module="M-FINAL-DEPLOY-BOOTSTRAP" status="pending" verification="V-M-FINAL-DEPLOY-BOOTSTRAP">Redeploy the governed managed n0wss stack onto both fresh hosts</step-2>
+      <step-2 module="M-FINAL-DEPLOY-BOOTSTRAP" status="done" verification="V-M-FINAL-DEPLOY-BOOTSTRAP">Redeploy the governed managed n0wss stack onto both fresh hosts</step-2>
       <step-3 module="M-FINAL-SERVICE-READINESS" status="pending" verification="V-M-FINAL-SERVICE-READINESS">Prove fresh service readiness before the operator Telegram Desktop test begins</step-3>
       <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="pending" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
       <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="pending" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
