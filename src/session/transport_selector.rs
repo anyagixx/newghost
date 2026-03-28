@@ -1,5 +1,5 @@
 // FILE: src/session/transport_selector.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Choose iroh first and fall back to WSS sequentially under bounded timeouts and explicit cancellation.
 //   SCOPE: Transport selector configuration, sequential adapter attempts, safety timeout, and combined failure diagnostics.
@@ -15,7 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added sequential iroh then WSS transport resolution with bounded timeouts and combined diagnostics.
+//   LAST_CHANGE: v0.1.1 - Exposed iroh and WSS component failures in the combined selector error so live evidence can identify the first divergent transport layer.
 // END_CHANGE_SUMMARY
 
 use std::time::Duration;
@@ -43,7 +43,7 @@ pub enum TransportSelectError {
     Cancelled,
     #[error("transport selector safety timeout exceeded")]
     ContractViolation,
-    #[error("all transport attempts failed")]
+    #[error("all transport attempts failed (iroh={iroh_err:?}, wss={wss_err:?})")]
     AllFailed {
         iroh_err: Option<String>,
         wss_err: Option<String>,
