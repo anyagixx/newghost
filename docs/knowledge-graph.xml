@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.14">
+  <Project NAME="n0wss" VERSION="0.2.15">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -915,6 +915,106 @@
       </annotations>
     </M-GITHUB-MASTER-SYNC-032>
 
+    <M-DATAGRAM-CONTRACT NAME="DatagramContract" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Define the shared transport-agnostic datagram envelope, association identity, and bounded UDP error surface.</purpose>
+      <path>src/transport/datagram_contract.rs</path>
+      <depends>M-TRANSPORT-ADAPTER-CONTRACT, M-TRANSPORT-STREAM, M-SOCKS5</depends>
+      <verification-ref>V-M-DATAGRAM-CONTRACT</verification-ref>
+      <annotations>
+        <fn-datagramEnvelope PURPOSE="Represent one normalized UDP datagram plus target and association metadata." />
+      </annotations>
+    </M-DATAGRAM-CONTRACT>
+
+    <M-SOCKS5-UDP-ASSOCIATE NAME="Socks5UdpAssociate" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Add SOCKS5 UDP ASSOCIATE ingress and governed UDP relay normalization alongside the existing CONNECT path.</purpose>
+      <path>src/socks5/udp_associate.rs</path>
+      <depends>M-SOCKS5, M-DATAGRAM-CONTRACT, M-OBS</depends>
+      <verification-ref>V-M-SOCKS5-UDP-ASSOCIATE</verification-ref>
+      <annotations>
+        <fn-handleUdpAssociate PURPOSE="Negotiate SOCKS5 UDP ASSOCIATE and return the governed relay bind." />
+      </annotations>
+    </M-SOCKS5-UDP-ASSOCIATE>
+
+    <M-UDP-ASSOCIATION-REGISTRY NAME="UdpAssociationRegistry" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Track active UDP associations, relay metadata, idle timers, and deterministic cleanup.</purpose>
+      <path>src/session/udp_registry.rs</path>
+      <depends>M-DATAGRAM-CONTRACT, M-SESSION-REGISTRY, M-OBS</depends>
+      <verification-ref>V-M-UDP-ASSOCIATION-REGISTRY</verification-ref>
+      <annotations>
+        <fn-openAssociation PURPOSE="Register one active UDP association." />
+      </annotations>
+    </M-UDP-ASSOCIATION-REGISTRY>
+
+    <M-DATAGRAM-SESSION-MANAGER NAME="DatagramSessionManager" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Coordinate UDP association lifecycle and datagram dispatch across the tunnel boundary.</purpose>
+      <path>src/session/datagram_manager.rs</path>
+      <depends>M-UDP-ASSOCIATION-REGISTRY, M-DATAGRAM-CONTRACT, M-SESSION</depends>
+      <verification-ref>V-M-DATAGRAM-SESSION-MANAGER</verification-ref>
+      <annotations>
+        <fn-openAssociation PURPOSE="Open one datagram association under the governed session rules." />
+      </annotations>
+    </M-DATAGRAM-SESSION-MANAGER>
+
+    <M-WSS-DATAGRAM-GATEWAY NAME="WssDatagramGateway" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Encapsulate governed datagrams in WSS frames without changing the existing stream tunnel contract.</purpose>
+      <path>src/wss_gateway/datagram.rs</path>
+      <depends>M-WSS-GATEWAY, M-DATAGRAM-CONTRACT, M-AUTH, M-TLS</depends>
+      <verification-ref>V-M-WSS-DATAGRAM-GATEWAY</verification-ref>
+      <annotations>
+        <fn-sendDatagram PURPOSE="Carry one datagram over the WSS control path." />
+      </annotations>
+    </M-WSS-DATAGRAM-GATEWAY>
+
+    <M-UDP-EGRESS-RELAY NAME="UdpEgressRelay" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Relay real UDP traffic on the server side and return inbound packets to the owning association.</purpose>
+      <path>src/proxy_bridge/udp_relay.rs</path>
+      <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-OBS</depends>
+      <verification-ref>V-M-UDP-EGRESS-RELAY</verification-ref>
+      <annotations>
+        <fn-relayOutboundDatagram PURPOSE="Send one outbound UDP datagram to the remote target." />
+      </annotations>
+    </M-UDP-EGRESS-RELAY>
+
+    <M-DATAGRAM-TRANSPORT-SELECTOR NAME="DatagramTransportSelector" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Select the governed UDP-capable transport path for datagrams, initially with the WSS-backed datagram route.</purpose>
+      <path>src/session/datagram_transport_selector.rs</path>
+      <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-SESSION-TRANSPORT-SELECTOR</depends>
+      <verification-ref>V-M-DATAGRAM-TRANSPORT-SELECTOR</verification-ref>
+      <annotations>
+        <fn-selectTransport PURPOSE="Resolve one datagram transport path for a governed UDP association." />
+      </annotations>
+    </M-DATAGRAM-TRANSPORT-SELECTOR>
+
+    <M-TELEGRAM-CALLS-PROFILE NAME="TelegramCallsProfile" TYPE="UTILITY" STATUS="planned">
+      <purpose>Document the bounded Telegram Desktop calls support claim for the governed UDP-capable path.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-COMPAT, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-PROFILE</verification-ref>
+      <annotations>
+        <fn-documentTelegramCallsProfile PURPOSE="Describe the bounded Telegram Desktop calls support envelope." />
+      </annotations>
+    </M-TELEGRAM-CALLS-PROFILE>
+
+    <M-TELEGRAM-CALLS-WAVE NAME="TelegramCallsWave" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Run a dedicated Telegram Desktop calls verification wave over the UDP-capable path.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-PROFILE, M-DATAGRAM-SESSION-MANAGER, M-UDP-EGRESS-RELAY</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsWave PURPOSE="Execute one governed Telegram voice or video call verification wave." />
+      </annotations>
+    </M-TELEGRAM-CALLS-WAVE>
+
+    <M-TELEGRAM-CALLS-EVIDENCE NAME="TelegramCallsEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Capture bounded setup, media, reconnect, and failure packets for Telegram calls verification.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-WAVE, M-LIVE-OBS-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-captureTelegramCallsEvidence PURPOSE="Assemble bounded evidence packets for Telegram calls." />
+      </annotations>
+    </M-TELEGRAM-CALLS-EVIDENCE>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1036,6 +1136,19 @@
     <CrossLink from="M-RELEASED-MASTER-TARGET" to="M-RELEASED-MASTER-MESSAGING" relation="anchors corrective branch-sync wording to the released commit identity" />
     <CrossLink from="M-RELEASED-MASTER-MESSAGING" to="M-RELEASED-MASTER-GATE" relation="keeps the corrective gate bounded to the released snapshot" />
     <CrossLink from="M-RELEASED-MASTER-GATE" to="M-GITHUB-MASTER-SYNC-032" relation="must pass before v0.3.2 is pushed to origin/master" />
+    <CrossLink from="M-TRANSPORT-ADAPTER-CONTRACT" to="M-DATAGRAM-CONTRACT" relation="supplies the transport-facing request and adapter boundary reused by datagram flows" />
+    <CrossLink from="M-TRANSPORT-STREAM" to="M-DATAGRAM-CONTRACT" relation="anchors the generic transport surface that datagram metadata must complement" />
+    <CrossLink from="M-DATAGRAM-CONTRACT" to="M-SOCKS5-UDP-ASSOCIATE" relation="defines the normalized datagram envelope emitted by SOCKS5 UDP ingress" />
+    <CrossLink from="M-SOCKS5" to="M-SOCKS5-UDP-ASSOCIATE" relation="extends the existing SOCKS5 surface with governed UDP ASSOCIATE support" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-UDP-ASSOCIATION-REGISTRY" relation="creates governed UDP associations tracked by the registry" />
+    <CrossLink from="M-UDP-ASSOCIATION-REGISTRY" to="M-DATAGRAM-SESSION-MANAGER" relation="supplies active association ownership and cleanup state" />
+    <CrossLink from="M-DATAGRAM-SESSION-MANAGER" to="M-DATAGRAM-TRANSPORT-SELECTOR" relation="delegates datagram transport choice to a bounded selector" />
+    <CrossLink from="M-DATAGRAM-TRANSPORT-SELECTOR" to="M-WSS-DATAGRAM-GATEWAY" relation="initially resolves the WSS-backed datagram carrier" />
+    <CrossLink from="M-WSS-DATAGRAM-GATEWAY" to="M-UDP-EGRESS-RELAY" relation="carries outbound and inbound datagrams to the server-side UDP relay" />
+    <CrossLink from="M-TELEGRAM-COMPAT" to="M-TELEGRAM-CALLS-PROFILE" relation="bounds public calls claims to the tested Telegram Desktop setup" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-TELEGRAM-CALLS-PROFILE" relation="defines the client-facing UDP path used by Telegram calls" />
+    <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-TELEGRAM-CALLS-WAVE" relation="defines the bounded support claim exercised by the calls wave" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-TELEGRAM-CALLS-EVIDENCE" relation="produces bounded setup, media, reconnect, and failure packets for calls verification" />
 
   </Project>
 </KnowledgeGraph>

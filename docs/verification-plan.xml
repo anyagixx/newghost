@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.24">
+<VerificationPlan VERSION="0.2.25">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -22,6 +22,9 @@
     <branch-sync-visibility-rule>Branch synchronization must distinguish between publishing a release tag and updating the GitHub default branch view; verification should prove that origin/master catches up to the same approved baseline commit rather than merely observing that a tag exists.</branch-sync-visibility-rule>
     <released-master-target-rule>When local HEAD has moved beyond the released baseline, a corrective master sync must target the released tag commit explicitly and must not derive its publish target from the current branch tip.</released-master-target-rule>
     <released-master-no-head-publish-rule>During a corrective master sync, verification must explicitly prove that newer local commits remain unpublished and that the branch update uses the released tag reference itself rather than the current local branch name.</released-master-no-head-publish-rule>
+    <udp-associate-boundary-rule>The initial UDP-capable phase must explicitly separate SOCKS5 UDP ASSOCIATE relay semantics from the existing CONNECT path and must reject unsupported fragmentation or foreign-source packet reuse deterministically.</udp-associate-boundary-rule>
+    <telegram-calls-split-rule>Telegram calls verification must keep signaling success, UDP association success, media-path success, reconnect behavior, and failure packets separable; a green TCP path alone is insufficient evidence for call support.</telegram-calls-split-rule>
+    <datagram-scope-rule>The first datagram architecture wave is bounded to the governed WSS-backed UDP path and explicit extension points; verification must reject silent broadening into unplanned transport parity claims.</datagram-scope-rule>
     <telegram-compat-boundary-rule>Telegram verification may prove only standard SOCKS5 client compatibility over the governed n0wss tunnel and must not silently escalate into claims of universal unblock capability or Telegram-specific protocol support.</telegram-compat-boundary-rule>
     <manual-client-evidence-rule>When a live wave depends on a third-party interactive client, the verification packet must capture app-side action, n0wss-side anchored logs, socket state, and a first-divergent-block summary so another agent can debug without repeating blind manual steps.</manual-client-evidence-rule>
     <local-forward-proof-rule>When a verified local-workstation scenario reaches a remote localhost listener through SSH forwarding, the verification contract must require explicit evidence that the forward command, forwarded bind, and downstream managed listener were all present during the app-side attempt.</local-forward-proof-rule>
@@ -475,6 +478,108 @@
       <phase-follow-up>Verify clean shutdown under repeated reconnect attempts.</phase-follow-up>
     </V-M-SESSION>
 
+    <V-M-SESSION-EFFECT-HANDLER MODULE="M-SESSION-EFFECT-HANDLER" PRIORITY="medium">
+      <test-files>
+        <file>src/session/effect_handler.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test effect_handler</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">One top-level SessionEffect is routed to exactly one target component.</scenario-1>
+        <scenario-2 kind="failure">Batch routing changes effect order or leaks registry, timer, or metric calls across target boundaries.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>EffectHandler must remain a logic-free top-level router whose branch count matches the top-level SessionEffect variants.</assertion-1>
+        <assertion-2>apply_all must preserve declared effect order across mixed target types.</assertion-2>
+      </required-trace-assertions>
+      <wave-follow-up>Keep this helper aligned with SessionEffect routing whenever new top-level effect variants are proposed.</wave-follow-up>
+      <phase-follow-up>Review effect-router simplicity whenever session orchestration grows new component targets.</phase-follow-up>
+    </V-M-SESSION-EFFECT-HANDLER>
+
+    <V-M-SESSION-EFFECTS MODULE="M-SESSION-EFFECTS" PRIORITY="medium">
+      <test-files>
+        <file>src/session/effects.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test effects</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The top-level session effect surface stays intentionally small and typed for deterministic routing.</scenario-1>
+        <scenario-2 kind="failure">Registry, timer, or metric enums expand beyond their local component scope or lose stable debug evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>SessionEffect top-level variants remain bounded to component routing targets rather than becoming a generic command bag.</assertion-1>
+        <assertion-2>RegistryCommand and TimerCommand breadth stays intentionally narrow for local reasoning and review.</assertion-2>
+        <assertion-3>MetricEvent debug output remains stable enough for evidence packets and reviews.</assertion-3>
+      </required-trace-assertions>
+      <wave-follow-up>Update local enum hygiene limits when new effect variants are intentionally added.</wave-follow-up>
+      <phase-follow-up>Review typed session effects before any phase that expands per-session orchestration or timers.</phase-follow-up>
+    </V-M-SESSION-EFFECTS>
+
+    <V-M-SESSION-REGISTRY MODULE="M-SESSION-REGISTRY" PRIORITY="medium">
+      <test-files>
+        <file>src/session/registry.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test registry</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">SessionRegistry enforces capacity, removes sessions deterministically, and executes targeted registry commands.</scenario-1>
+        <scenario-2 kind="failure">Capacity permits leak, idle reap removes the wrong sessions, or a registry effect mutates more than the addressed session.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Reserve, insert, remove, and drain_all must release capacity deterministically.</assertion-1>
+        <assertion-2>Idle reaping must remove only stale sessions and preserve fresh ones.</assertion-2>
+        <assertion-3>RegistryEffectTarget execution must mutate only the targeted session record.</assertion-3>
+      </required-trace-assertions>
+      <wave-follow-up>Keep registry semantics aligned with later session shutdown and idle-timer integration checks.</wave-follow-up>
+      <phase-follow-up>Revisit registry capacity and drain behavior before any scale or reconnect-heavy live wave.</phase-follow-up>
+    </V-M-SESSION-REGISTRY>
+
+    <V-M-SESSION-STATE MODULE="M-SESSION-STATE" PRIORITY="medium">
+      <test-files>
+        <file>src/session/state.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test state</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Pure state transitions emit deterministic ordered effects for stream open, stream close, drain, transport loss, and deadline expiry.</scenario-1>
+        <scenario-2 kind="failure">Closing becomes reversible, terminal Closed state emits new effects, or transition ordering drifts from the contract.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Active stream-open and final stream-close transitions must preserve their declared effect order.</assertion-1>
+        <assertion-2>DrainRequested and TransportLost must enter Closing with the documented graceful close semantics.</assertion-2>
+        <assertion-3>Closed is terminal and Closing stays one-way toward Closed.</assertion-3>
+      </required-trace-assertions>
+      <wave-follow-up>Keep state-transition effect ordering aligned with registry, timer, and metric handlers.</wave-follow-up>
+      <phase-follow-up>Re-run this state-machine surface before any phase that adds new SessionEvent or CloseReason variants.</phase-follow-up>
+    </V-M-SESSION-STATE>
+
+    <V-M-SESSION-TRANSPORT-SELECTOR MODULE="M-SESSION-TRANSPORT-SELECTOR" PRIORITY="high">
+      <test-files>
+        <file>src/session/transport_selector.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test transport_selector</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The selector tries iroh first, falls back to WSS sequentially, and returns the resolved transport kind.</scenario-1>
+        <scenario-2 kind="failure">Cancellation, safety timeout, or dual-adapter failure does not surface bounded diagnostics or leaks fallback behavior.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The selector must never run iroh and WSS in parallel for a single request.</assertion-1>
+        <assertion-2>Combined failure diagnostics must preserve separated iroh and WSS component causes.</assertion-2>
+        <assertion-3>Explicit cancellation and safety timeout must stop selection without leaving fallback ambiguity.</assertion-3>
+      </required-trace-assertions>
+      <wave-follow-up>Keep transport-selector diagnostics aligned with live transport-failure evidence packets.</wave-follow-up>
+      <phase-follow-up>Re-run this surface before future phases that add UDP-capable or additional fallback transports.</phase-follow-up>
+    </V-M-SESSION-TRANSPORT-SELECTOR>
+
     <V-M-SOCKS5 MODULE="M-SOCKS5" PRIORITY="high">
       <test-files>
         <file>src/socks5/mod.test.rs</file>
@@ -559,6 +664,67 @@
       <wave-follow-up>Keep this wrapper synchronized whenever transport helper modules are added, removed, or renamed.</wave-follow-up>
       <phase-follow-up>Review the transport module export surface whenever transport-boundary tests or helper contracts change.</phase-follow-up>
     </V-M-TRANSPORT-MOD>
+
+    <V-M-TRANSPORT-ADAPTER-CONTRACT MODULE="M-TRANSPORT-ADAPTER-CONTRACT" PRIORITY="medium">
+      <test-files>
+        <file>src/wss_gateway/mod.test.rs</file>
+        <file>src/iroh_adapter/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test wss_gateway</check-1>
+        <check-2>cargo test iroh_adapter</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">TransportRequest carries peer label plus outbound target host and port into both adapter implementations.</scenario-1>
+        <scenario-2 kind="failure">Adapter request drift drops target host, target port, or task-tracker access from the shared contract.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The shared TransportAdapter contract must stay identical across WSS and iroh implementations.</assertion-1>
+        <assertion-2>TransportRequest must preserve peer label and outbound target coordinates required for real proxy streams.</assertion-2>
+      </required-trace-assertions>
+      <wave-follow-up>Re-check this contract whenever transport adapters or selector inputs change.</wave-follow-up>
+      <phase-follow-up>Review adapter-contract compatibility before adding new transport backends.</phase-follow-up>
+    </V-M-TRANSPORT-ADAPTER-CONTRACT>
+
+    <V-M-TRANSPORT-STREAM MODULE="M-TRANSPORT-STREAM" PRIORITY="medium">
+      <test-files>
+        <file>src/proxy_bridge/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test proxy_bridge</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">ResolvedStream exposes one transport-agnostic stream and kind metadata that ProxyBridge can consume without adapter-specific imports.</scenario-1>
+        <scenario-2 kind="failure">TransportKind drift, shutdown contract drift, or stream trait expansion leaks adapter-specific concerns into bridge code.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>TransportStream must remain the minimal stream surface consumed by ProxyBridge.</assertion-1>
+        <assertion-2>ResolvedStream must preserve transport kind metadata for diagnostics without changing the generic bridge contract.</assertion-2>
+      </required-trace-assertions>
+      <wave-follow-up>Keep the stream contract aligned with bridge pump tests and future transport additions.</wave-follow-up>
+      <phase-follow-up>Review shutdown and split semantics before adding datagram-capable transports.</phase-follow-up>
+    </V-M-TRANSPORT-STREAM>
+
+    <V-M-TRANSPORT-TASK-TRACKER MODULE="M-TRANSPORT-TASK-TRACKER" PRIORITY="medium">
+      <test-files>
+        <file>src/iroh_adapter/mod.test.rs</file>
+        <file>src/wss_gateway/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test iroh_adapter</check-1>
+        <check-2>cargo test wss_gateway</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">AdapterTaskTracker counts spawned adapter tasks and returns to zero after cleanup-sensitive adapter tests complete.</scenario-1>
+        <scenario-2 kind="failure">Tracked adapter tasks leak across test boundaries or close_and_wait loses its bounded-timeout guarantee.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Task-tracker alive counts must return to zero after bounded adapter cleanup in gateway and iroh tests.</assertion-1>
+        <assertion-2>Adapter-scoped cleanup must remain testable without exposing transport-internal task management to higher layers.</assertion-2>
+      </required-trace-assertions>
+      <wave-follow-up>Keep tracker expectations synchronized with adapter cleanup tests and shutdown coordination changes.</wave-follow-up>
+      <phase-follow-up>Review tracker timeouts before phases that add longer-lived transport background tasks.</phase-follow-up>
+    </V-M-TRANSPORT-TASK-TRACKER>
 
     <V-M-RELEASE-DOCS MODULE="M-RELEASE-DOCS" PRIORITY="medium">
       <test-files>
@@ -1249,7 +1415,7 @@
         <check-2>git diff --check</check-2>
         <check-3>git ls-remote --tags origin</check-3>
         <check-4>rg -n '^## \\[0\\.3\\.1\\]' CHANGELOG.md</check-4>
-        <check-5>git rev-parse --verify refs/tags/v0.3.1 >/dev/null 2>&1 && echo local-tag-present || true</check-5>
+        <check-5>git rev-parse --verify refs/tags/v0.3.1 >/dev/null 2&gt;&amp;1 &amp;&amp; echo local-tag-present || true</check-5>
       </module-checks>
       <scenarios>
         <scenario-1 kind="success">The release gate confirms a clean tree, synced artifacts, a v0.3.1 changelog entry, and a remote baseline where the next tag is v0.3.1.</scenario-1>
@@ -1693,6 +1859,200 @@
         <assertion-2>Post-push verification must compare `origin/master` directly to `v0.3.2`, not to local HEAD.</assertion-2>
       </required-trace-assertions>
     </V-M-GITHUB-MASTER-SYNC-032>
+
+    <V-M-DATAGRAM-CONTRACT MODULE="M-DATAGRAM-CONTRACT" PRIORITY="high">
+      <test-files>
+        <file>src/transport/datagram_contract.rs</file>
+        <file>src/transport/datagram_contract.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test datagram_contract</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The shared datagram contract preserves association identity, target address, and bounded payload semantics.</scenario-1>
+        <scenario-2 kind="failure">Datagram envelopes drift into transport-specific or unbounded shapes that later agents cannot reason about safely.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The datagram contract must stay transport-agnostic and must not hardcode WSS frame details.</assertion-1>
+        <assertion-2>Association identity, target address, and size bounds must remain explicit and reviewable.</assertion-2>
+        <assertion-3>The contract must explicitly distinguish relay-client address, remote target address, payload bytes, and association ownership.</assertion-3>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-CONTRACT>
+
+    <V-M-SOCKS5-UDP-ASSOCIATE MODULE="M-SOCKS5-UDP-ASSOCIATE" PRIORITY="high">
+      <test-files>
+        <file>src/socks5/udp_associate.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test udp_associate</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">SOCKS5 UDP ASSOCIATE returns a governed relay bind and normalizes relay packets into datagram envelopes.</scenario-1>
+        <scenario-2 kind="failure">Malformed UDP relay packets, unsupported fragmentation, or foreign-source packets are rejected deterministically.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The existing CONNECT path must remain intact while UDP ASSOCIATE adds a separate governed relay surface.</assertion-1>
+        <assertion-2>Relay-bind and packet-source validation must be deterministic and bounded.</assertion-2>
+        <assertion-3>Unsupported SOCKS5 UDP fragmentation must be rejected deterministically rather than partially relayed.</assertion-3>
+        <assertion-4>The relay socket must not accept datagrams from a foreign client source after the association is established.</assertion-4>
+      </required-trace-assertions>
+    </V-M-SOCKS5-UDP-ASSOCIATE>
+
+    <V-M-UDP-ASSOCIATION-REGISTRY MODULE="M-UDP-ASSOCIATION-REGISTRY" PRIORITY="medium">
+      <test-files>
+        <file>src/session/udp_registry.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test udp_registry</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Active UDP associations, relay metadata, and idle cleanup stay deterministic.</scenario-1>
+        <scenario-2 kind="failure">Association state leaks, wrong association lookup, or idle timeout cleanup becomes ambiguous.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Association lifecycle must remain explicit, bounded, and independently reviewable from TCP session state.</assertion-1>
+        <assertion-2>Idle timeout cleanup and explicit close must both release relay ownership without leaving reusable stale association state.</assertion-2>
+      </required-trace-assertions>
+    </V-M-UDP-ASSOCIATION-REGISTRY>
+
+    <V-M-DATAGRAM-SESSION-MANAGER MODULE="M-DATAGRAM-SESSION-MANAGER" PRIORITY="high">
+      <test-files>
+        <file>src/session/datagram_manager.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test datagram_manager</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Datagram association open, outbound dispatch, inbound dispatch, and cleanup follow the contract.</scenario-1>
+        <scenario-2 kind="failure">Datagram ownership, association routing, or cleanup order drifts from the governed lifecycle.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Outbound and inbound datagram handling must remain associated with the correct UDP session identity.</assertion-1>
+        <assertion-2>The manager must preserve a clean separation between association-open, outbound-dispatch, inbound-dispatch, and cleanup trajectories.</assertion-2>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-SESSION-MANAGER>
+
+    <V-M-WSS-DATAGRAM-GATEWAY MODULE="M-WSS-DATAGRAM-GATEWAY" PRIORITY="high">
+      <test-files>
+        <file>src/wss_gateway/datagram.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test wss_gateway datagram</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Governed datagrams are encapsulated in WSS frames and recovered without changing the stream path semantics.</scenario-1>
+        <scenario-2 kind="failure">Frame encoding, decoding, or auth-bound routing leaks datagram context across associations.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[WssDatagramGateway][sendDatagram][BLOCK_SEND_WSS_DATAGRAM]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The WSS datagram path must remain distinct from the existing stream path while preserving the same auth and TLS boundary.</assertion-1>
+        <assertion-2>Datagram frame encoding must preserve association identity and target metadata without leaking packets across tunnels.</assertion-2>
+      </required-trace-assertions>
+    </V-M-WSS-DATAGRAM-GATEWAY>
+
+    <V-M-UDP-EGRESS-RELAY MODULE="M-UDP-EGRESS-RELAY" PRIORITY="high">
+      <test-files>
+        <file>src/proxy_bridge/udp_relay.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test udp_relay</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The server-side relay sends outbound UDP datagrams and returns inbound packets to the correct association.</scenario-1>
+        <scenario-2 kind="failure">Wrong target mapping, inbound-source ambiguity, or relay leaks break bounded call-path reasoning.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[UdpEgressRelay][relayOutbound][BLOCK_RELAY_UDP_OUTBOUND]</marker-1>
+        <marker-2>[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Outbound and inbound UDP relay semantics must remain association-scoped and deterministic.</assertion-1>
+        <assertion-2>Inbound relay must classify foreign or unexpected source packets deterministically instead of returning them to the client association.</assertion-2>
+      </required-trace-assertions>
+    </V-M-UDP-EGRESS-RELAY>
+
+    <V-M-DATAGRAM-TRANSPORT-SELECTOR MODULE="M-DATAGRAM-TRANSPORT-SELECTOR" PRIORITY="high">
+      <test-files>
+        <file>src/session/datagram_transport_selector.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test datagram_transport_selector</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The governed datagram transport path is selected deterministically for the initial WSS-backed UDP phase.</scenario-1>
+        <scenario-2 kind="failure">Datagram transport selection becomes ambiguous, parallel, or silently wider than the approved initial scope.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The initial datagram transport selector must remain explicitly bounded to the approved phase scope and future extension points.</assertion-1>
+        <assertion-2>The selector must make it obvious in logs and failure packets that the initial datagram phase uses the WSS-backed path and does not yet prove iroh datagram parity.</assertion-2>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-TRANSPORT-SELECTOR>
+
+    <V-M-TELEGRAM-CALLS-PROFILE MODULE="M-TELEGRAM-CALLS-PROFILE" PRIORITY="medium">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram|call|voice|video|UDP|SOCKS5 UDP ASSOCIATE' README.md docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Docs describe Telegram Desktop calls as a bounded UDP-capable extension to the existing governed path.</scenario-1>
+        <scenario-2 kind="failure">Docs overclaim universal unblock or imply that calls support is proven before the dedicated calls wave runs.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Public claims must stay bounded to the tested Telegram Desktop calls setup and must not claim a new Telegram-specific protocol.</assertion-1>
+        <assertion-2>Docs must explicitly separate the already green text/file TCP envelope from the new UDP media envelope under validation.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-PROFILE>
+
+    <V-M-TELEGRAM-CALLS-WAVE MODULE="M-TELEGRAM-CALLS-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-009|TelegramCallsWave|UDP ASSOCIATE|voice|video' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">A dedicated Telegram calls wave proves signaling green, UDP media-path green, and reconnect classification under the governed setup.</scenario-1>
+        <scenario-2 kind="failure">Call setup reuses the old TCP-only evidence model and cannot distinguish signaling success from media-path failure.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The calls wave must separate signaling success from UDP media success.</assertion-1>
+        <assertion-2>Failure packets must preserve the first divergent layer rather than collapsing back into generic Telegram smoke evidence.</assertion-2>
+        <assertion-3>Reconnect evidence for calls must show whether a fresh UDP association was created or a stale one was incorrectly reused.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-WAVE>
+
+    <V-M-TELEGRAM-CALLS-EVIDENCE MODULE="M-TELEGRAM-CALLS-EVIDENCE" PRIORITY="medium">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'call-failure packet|media packet|LV-009|UDP' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Call setup, media flow, reconnect, and failure packets stay separable and reusable by later agents.</scenario-1>
+        <scenario-2 kind="failure">Call-path evidence is dumped as one opaque packet that hides the first divergent block.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Calls evidence must remain packetized into setup, media, reconnect, and failure classes.</assertion-1>
+        <assertion-2>The media packet must not be inferred from signaling-only evidence or from a green text-message path.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-EVIDENCE>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -1845,6 +2205,26 @@
       </required-evidence>
       <failure-packet-template>scenario=FinalTelegramAcceptanceWave; expected-evidence=fresh-host baseline, managed readiness, explicit SSH-forward handoff, basic-connect packet, and separate media packets; observed-evidence=host baseline output, deploy output, service state, forward state, Telegram operator result, and anchored server-client logs; first-divergent-block=first missing host-baseline, readiness, SSH-forward, SOCKS5, transport, or media marker; next-action=repair the first divergent layer before repeating only the dependent acceptance step</failure-packet-template>
     </LV-008>
+
+    <LV-009 NAME="TelegramCallsWave" PRIORITY="high">
+      <goal>Run a dedicated Telegram Desktop voice or video calls wave through SOCKS5 UDP ASSOCIATE and the governed UDP-capable tunnel path.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-1>
+        <command-2>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-2>
+        <command-3>operator starts and keeps alive `ssh -N -L 127.0.0.1:$N0WSS_SOCKS5_PORT:127.0.0.1:$N0WSS_SOCKS5_PORT root@$N0WSS_CLIENT_HOST` for the local-workstation Telegram Desktop path</command-3>
+        <command-4>operator configures Telegram Desktop to use SOCKS5 127.0.0.1:$N0WSS_SOCKS5_PORT and initiates one voice or video call</command-4>
+        <command-5>capture client and server logs for SOCKS5 UDP ASSOCIATE, datagram transport selection, WSS datagram, and UDP relay markers</command-5>
+        <command-6>capture separate packets for call-setup, media-flow, reconnect, and failure evidence</command-6>
+        <command-7>if the call stalls, separate signaling evidence from UDP media evidence before rerun</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>Telegram signaling remains green on the existing TCP path while UDP ASSOCIATE creates a governed relay bind.</evidence-1>
+        <evidence-2>Outbound and inbound UDP media packets produce bounded datagram transport and relay evidence.</evidence-2>
+        <evidence-3>Failure packets classify the first divergent layer as UDP ingress, datagram session, transport selection, remote relay, or app-side behavior.</evidence-3>
+        <evidence-4>Reconnect evidence shows whether a new UDP association was opened after the prior call ended or idled out.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsWave; expected-evidence=signaling green, UDP ASSOCIATE green, and bounded media-path evidence for one call; observed-evidence=Telegram call result, UDP association state, datagram transport logs, relay logs, and reconnect outcome; first-divergent-block=first missing UDP ASSOCIATE, datagram transport, relay, or inbound media marker; next-action=repair the first divergent layer before replaying the calls wave</failure-packet-template>
+    </LV-009>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -2123,6 +2503,25 @@
         <evidence-4>The corrective push path uses the released refspec and not the local branch name.</evidence-4>
       </required-evidence>
     </Gate-Phase-17>
+
+    <Gate-Phase-18 PHASE="Phase-18">
+      <goal>The project has a governed UDP-capable architecture for Telegram Desktop calls with bounded datagram verification and no overclaim beyond the tested setup.</goal>
+      <commands>
+        <command-1>cargo test udp_associate</command-1>
+        <command-2>cargo test udp_registry</command-2>
+        <command-3>cargo test datagram_manager</command-3>
+        <command-4>cargo test datagram_transport_selector</command-4>
+        <command-5>cargo test wss_gateway datagram</command-5>
+        <command-6>cargo test udp_relay</command-6>
+        <command-7>rg -n 'Telegram|call|voice|video|UDP|SOCKS5 UDP ASSOCIATE' README.md docs/OPERATORS.md docs/verification-plan.xml</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The datagram contract, UDP ASSOCIATE ingress, association registry, datagram session manager, and datagram transport path are automated and green.</evidence-1>
+        <evidence-2>The Telegram calls wave defines separate signaling, media, reconnect, and failure packets rather than reusing the old TCP-only smoke envelope.</evidence-2>
+        <evidence-3>Public claims remain bounded to Telegram Desktop calls on the governed tested setup and do not imply universal unblock behavior.</evidence-3>
+        <evidence-4>The initial UDP-capable phase explicitly proves the WSS-backed datagram path and does not silently claim parity for any unimplemented datagram transport backend.</evidence-4>
+      </required-evidence>
+    </Gate-Phase-18>
   </PhaseGates>
 
   <FailurePackets>
@@ -2140,6 +2539,7 @@
       <release-baseline-032-example>ReleaseBaseline032 expected a bounded v0.3.2 changelog entry, release-facing docs that preserve the verified Telegram Desktop SSH-forward path, a clean tree, and a remote baseline ending at v0.3.1, but observed docs or notes implying Telegram calls support or a stale local v0.3.2 tag before publication; first divergent block is ReleaseGate032::runReleaseGate032::BLOCK_RELEASE_GATE_0_3_2; next action is narrow the release truth back to the verified TCP or SOCKS5 envelope, remove the stale tag if present, and rerun only the release gate.</release-baseline-032-example>
       <branch-sync-example>GitHubMasterBaselineSync expected local HEAD and v0.3.2 to identify the same stable baseline while origin/master lagged behind, but observed a different local HEAD or a dirty tree before push; first divergent block is BranchSyncGate::runBranchSyncGate::BLOCK_BRANCH_SYNC_GATE; next action is restore the approved baseline identity and clean tree before syncing origin/master.</branch-sync-example>
       <released-master-sync-example>ReleasedCommitMasterSync expected v0.3.2 to remain the only allowed publish target while local HEAD had already moved beyond it, but observed a corrective push attempt still deriving its target from HEAD; first divergent block is ReleasedMasterGate::runReleasedMasterGate::BLOCK_RELEASED_MASTER_GATE; next action is freeze the released target explicitly and retry only the bounded push of v0.3.2:master.</released-master-sync-example>
+      <telegram-calls-example>TelegramCallsWave expected signaling green plus UDP ASSOCIATE, datagram transport, and UDP relay evidence for one voice or video call, but observed Telegram stuck after signaling while no UDP media markers appeared; first divergent block is Socks5Proxy::handleUdpAssociate::BLOCK_HANDLE_UDP_ASSOCIATE if no association is created, otherwise DatagramTransportSelector::selectTransport::BLOCK_SELECT_DATAGRAM_TRANSPORT or UdpEgressRelay::relayOutbound::BLOCK_RELAY_UDP_OUTBOUND depending on the first missing media marker; next action is repair the first divergent UDP layer before replaying the calls wave.</telegram-calls-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>

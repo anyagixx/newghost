@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.14">
+<DevelopmentPlan VERSION="0.2.15">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -2506,6 +2506,297 @@
       </observability>
       <verification-ref>V-M-GITHUB-MASTER-SYNC-032</verification-ref>
     </M-GITHUB-MASTER-SYNC-032>
+
+    <M-DATAGRAM-CONTRACT NAME="DatagramContract" TYPE="UTILITY" LAYER="21" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Define the transport-agnostic datagram envelope, association identity, size bounds, and error taxonomy for UDP-capable proxy flows.</purpose>
+        <inputs>
+          <param name="datagramInputs" type="DatagramInputs" />
+        </inputs>
+        <outputs>
+          <param name="datagramEnvelope" type="DatagramEnvelope" />
+        </outputs>
+        <errors>
+          <error code="DATAGRAM_CONTRACT_VIOLATION" />
+        </errors>
+      </contract>
+      <interface>
+        <export-datagramEnvelope PURPOSE="Represent one normalized datagram plus addressing and association metadata." />
+        <export-datagramAssociationId PURPOSE="Represent one stable UDP association identity." />
+      </interface>
+      <depends>M-TRANSPORT-ADAPTER-CONTRACT, M-TRANSPORT-STREAM, M-SOCKS5</depends>
+      <target>
+        <source>src/transport/datagram_contract.rs</source>
+        <tests>src/transport/datagram_contract.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[DatagramContract]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_CONTRACT</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-CONTRACT</verification-ref>
+    </M-DATAGRAM-CONTRACT>
+
+    <M-SOCKS5-UDP-ASSOCIATE NAME="Socks5UdpAssociate" TYPE="ENTRY_POINT" LAYER="21" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Add governed SOCKS5 UDP ASSOCIATE ingress, relay bind handling, and UDP packet normalization without breaking the existing CONNECT path.</purpose>
+        <inputs>
+          <param name="udpAssociateInputs" type="UdpAssociateInputs" />
+        </inputs>
+        <outputs>
+          <param name="udpAssociateRecord" type="UdpAssociateRecord" />
+        </outputs>
+        <errors>
+          <error code="SOCKS5_UDP_ASSOCIATE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-handleUdpAssociate PURPOSE="Negotiate SOCKS5 UDP ASSOCIATE and return the governed relay bind." />
+        <export-parseUdpDatagram PURPOSE="Normalize one SOCKS5 UDP relay packet into the shared datagram contract." />
+      </interface>
+      <depends>M-SOCKS5, M-DATAGRAM-CONTRACT, M-OBS</depends>
+      <target>
+        <source>src/socks5/udp_associate.rs</source>
+        <source>src/socks5/mod.rs</source>
+        <tests>src/socks5/udp_associate.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[Socks5Proxy]</log-prefix>
+        <critical-block>BLOCK_HANDLE_UDP_ASSOCIATE</critical-block>
+      </observability>
+      <verification-ref>V-M-SOCKS5-UDP-ASSOCIATE</verification-ref>
+    </M-SOCKS5-UDP-ASSOCIATE>
+
+    <M-UDP-ASSOCIATION-REGISTRY NAME="UdpAssociationRegistry" TYPE="CORE_LOGIC" LAYER="21" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Track active UDP associations, governed relay endpoints, idle timers, and deterministic cleanup for datagram traffic.</purpose>
+        <inputs>
+          <param name="udpAssociationInputs" type="UdpAssociationInputs" />
+        </inputs>
+        <outputs>
+          <param name="udpAssociationRecord" type="UdpAssociationRecord" />
+        </outputs>
+        <errors>
+          <error code="UDP_ASSOCIATION_NOT_FOUND" />
+          <error code="UDP_ASSOCIATION_LIMIT_REACHED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-openAssociation PURPOSE="Register one active UDP association and reserve relay state." />
+        <export-closeAssociation PURPOSE="Close one UDP association and free relay state deterministically." />
+      </interface>
+      <depends>M-DATAGRAM-CONTRACT, M-SESSION-REGISTRY, M-OBS</depends>
+      <target>
+        <source>src/session/udp_registry.rs</source>
+        <tests>src/session/udp_registry.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[UdpAssociationRegistry]</log-prefix>
+        <critical-block>BLOCK_UDP_ASSOCIATION_REGISTRY</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-ASSOCIATION-REGISTRY</verification-ref>
+    </M-UDP-ASSOCIATION-REGISTRY>
+
+    <M-DATAGRAM-SESSION-MANAGER NAME="DatagramSessionManager" TYPE="CORE_LOGIC" LAYER="21" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Coordinate UDP association lifecycle, outbound or inbound datagram dispatch, and session-side cleanup rules.</purpose>
+        <inputs>
+          <param name="datagramSessionInputs" type="DatagramSessionInputs" />
+        </inputs>
+        <outputs>
+          <param name="datagramSessionRecord" type="DatagramSessionRecord" />
+        </outputs>
+        <errors>
+          <error code="DATAGRAM_SESSION_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-openAssociation PURPOSE="Create one session-owned datagram association." />
+        <export-forwardOutboundDatagram PURPOSE="Forward one normalized outbound datagram into the selected transport path." />
+      </interface>
+      <depends>M-UDP-ASSOCIATION-REGISTRY, M-DATAGRAM-CONTRACT, M-SESSION</depends>
+      <target>
+        <source>src/session/datagram_manager.rs</source>
+        <tests>src/session/datagram_manager.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[DatagramSessionManager]</log-prefix>
+        <critical-block>BLOCK_OPEN_DATAGRAM_ASSOCIATION</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-SESSION-MANAGER</verification-ref>
+    </M-DATAGRAM-SESSION-MANAGER>
+
+    <M-WSS-DATAGRAM-GATEWAY NAME="WssDatagramGateway" TYPE="INTEGRATION" LAYER="21" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Encapsulate governed datagrams inside WSS frames and recover them on the opposite side without altering the existing stream tunnel path.</purpose>
+        <inputs>
+          <param name="wssDatagramInputs" type="WssDatagramInputs" />
+        </inputs>
+        <outputs>
+          <param name="wssDatagramRecord" type="WssDatagramRecord" />
+        </outputs>
+        <errors>
+          <error code="WSS_DATAGRAM_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-sendDatagram PURPOSE="Send one governed datagram over the WSS control path." />
+        <export-receiveDatagram PURPOSE="Decode one inbound WSS datagram frame back into the shared contract." />
+      </interface>
+      <depends>M-WSS-GATEWAY, M-DATAGRAM-CONTRACT, M-AUTH, M-TLS</depends>
+      <target>
+        <source>src/wss_gateway/datagram.rs</source>
+        <tests>src/wss_gateway/datagram.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[WssDatagramGateway]</log-prefix>
+        <critical-block>BLOCK_SEND_WSS_DATAGRAM</critical-block>
+      </observability>
+      <verification-ref>V-M-WSS-DATAGRAM-GATEWAY</verification-ref>
+    </M-WSS-DATAGRAM-GATEWAY>
+
+    <M-UDP-EGRESS-RELAY NAME="UdpEgressRelay" TYPE="INTEGRATION" LAYER="21" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Open real UDP sockets on the server side, relay outbound datagrams to remote targets, and return inbound packets to the owning association.</purpose>
+        <inputs>
+          <param name="udpRelayInputs" type="UdpRelayInputs" />
+        </inputs>
+        <outputs>
+          <param name="udpRelayRecord" type="UdpRelayRecord" />
+        </outputs>
+        <errors>
+          <error code="UDP_RELAY_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-relayOutboundDatagram PURPOSE="Relay one outbound datagram to the remote UDP target." />
+        <export-relayInboundDatagram PURPOSE="Return one inbound datagram to the owning tunnel association." />
+      </interface>
+      <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-OBS</depends>
+      <target>
+        <source>src/proxy_bridge/udp_relay.rs</source>
+        <tests>src/proxy_bridge/udp_relay.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[UdpEgressRelay]</log-prefix>
+        <critical-block>BLOCK_RELAY_UDP_OUTBOUND</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-EGRESS-RELAY</verification-ref>
+    </M-UDP-EGRESS-RELAY>
+
+    <M-DATAGRAM-TRANSPORT-SELECTOR NAME="DatagramTransportSelector" TYPE="CORE_LOGIC" LAYER="21" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Select the governed datagram transport path, initially with WSS-backed datagrams and an explicit extension point for later parity work.</purpose>
+        <inputs>
+          <param name="datagramTransportInputs" type="DatagramTransportInputs" />
+        </inputs>
+        <outputs>
+          <param name="datagramTransportRecord" type="DatagramTransportRecord" />
+        </outputs>
+        <errors>
+          <error code="DATAGRAM_TRANSPORT_SELECTION_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-selectTransport PURPOSE="Resolve one datagram transport path for a governed UDP association." />
+      </interface>
+      <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-SESSION-TRANSPORT-SELECTOR</depends>
+      <target>
+        <source>src/session/datagram_transport_selector.rs</source>
+        <tests>src/session/datagram_transport_selector.test.rs</tests>
+      </target>
+      <observability>
+        <log-prefix>[DatagramTransportSelector]</log-prefix>
+        <critical-block>BLOCK_SELECT_DATAGRAM_TRANSPORT</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-TRANSPORT-SELECTOR</verification-ref>
+    </M-DATAGRAM-TRANSPORT-SELECTOR>
+
+    <M-TELEGRAM-CALLS-PROFILE NAME="TelegramCallsProfile" TYPE="UTILITY" LAYER="21" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Describe the bounded support claim for Telegram Desktop calls over the governed UDP-capable path without implying universal unblock guarantees.</purpose>
+        <inputs>
+          <param name="telegramCallsProfileInputs" type="TelegramCallsProfileInputs" />
+        </inputs>
+        <outputs>
+          <param name="telegramCallsProfileRecord" type="TelegramCallsProfileRecord" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_CALLS_PROFILE_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-documentTelegramCallsProfile PURPOSE="Document the bounded Telegram Desktop calls support envelope." />
+      </interface>
+      <depends>M-TELEGRAM-COMPAT, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramCallsProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-PROFILE</verification-ref>
+    </M-TELEGRAM-CALLS-PROFILE>
+
+    <M-TELEGRAM-CALLS-WAVE NAME="TelegramCallsWave" TYPE="ENTRY_POINT" LAYER="21" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Run a dedicated Telegram voice or video calls verification wave over the new UDP-capable path.</purpose>
+        <inputs>
+          <param name="telegramCallsWaveInputs" type="TelegramCallsWaveInputs" />
+        </inputs>
+        <outputs>
+          <param name="telegramCallsWaveRecord" type="TelegramCallsWaveRecord" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_CALLS_WAVE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runTelegramCallsWave PURPOSE="Execute one governed Telegram calls verification wave." />
+      </interface>
+      <depends>M-TELEGRAM-CALLS-PROFILE, M-DATAGRAM-SESSION-MANAGER, M-UDP-EGRESS-RELAY</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramCallsWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-WAVE</verification-ref>
+    </M-TELEGRAM-CALLS-WAVE>
+
+    <M-TELEGRAM-CALLS-EVIDENCE NAME="TelegramCallsEvidence" TYPE="UTILITY" LAYER="21" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Define bounded evidence packets for Telegram call setup, media flow, reconnect, and first-divergent-block failure triage.</purpose>
+        <inputs>
+          <param name="telegramCallsEvidenceInputs" type="TelegramCallsEvidenceInputs" />
+        </inputs>
+        <outputs>
+          <param name="telegramCallsEvidenceRecord" type="TelegramCallsEvidenceRecord" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_CALLS_EVIDENCE_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureTelegramCallsEvidence PURPOSE="Capture bounded evidence packets for Telegram calls verification." />
+      </interface>
+      <depends>M-TELEGRAM-CALLS-WAVE, M-LIVE-OBS-EVIDENCE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramCallsEvidence]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-EVIDENCE</verification-ref>
+    </M-TELEGRAM-CALLS-EVIDENCE>
   </Modules>
 
   <DataFlow>
@@ -2588,6 +2879,41 @@
       <step-3>GitHub default-branch browsing now matches the released stable baseline commit rather than the old branch tip.</step-3>
       <evidence>Successful push output and post-push remote branch identity equal to v0.3.2.</evidence>
     </DF-GITHUB-MASTER-SYNC-032>
+
+    <DF-SOCKS5-UDP-ASSOCIATE NAME="SOCKS5 UDP associate negotiation" TRIGGER="A proxy-aware client such as Telegram requests UDP relay support over SOCKS5.">
+      <step-1>The client opens a SOCKS5 control channel and requests UDP ASSOCIATE.</step-1>
+      <step-2>Socks5UdpAssociate allocates a governed local UDP relay bind and returns the relay address to the client.</step-2>
+      <step-3>Subsequent UDP packets are normalized into the shared datagram contract and tied to the created association.</step-3>
+      <evidence>UDP ASSOCIATE marker, governed relay bind proof, and normalized datagram parsing evidence.</evidence>
+    </DF-SOCKS5-UDP-ASSOCIATE>
+
+    <DF-UDP-OUTBOUND NAME="Outbound datagram relay" TRIGGER="A Telegram media datagram arrives at the local UDP relay endpoint.">
+      <step-1>Socks5UdpAssociate normalizes the UDP relay packet into a datagram envelope.</step-1>
+      <step-2>DatagramSessionManager resolves the owning association and forwards the datagram through the selected transport path.</step-2>
+      <step-3>WssDatagramGateway carries the datagram to the remote UdpEgressRelay, which forwards it to the target UDP endpoint.</step-3>
+      <evidence>UDP ASSOCIATE marker, datagram session marker, WSS datagram marker, and outbound relay marker.</evidence>
+    </DF-UDP-OUTBOUND>
+
+    <DF-UDP-INBOUND NAME="Inbound datagram return path" TRIGGER="A remote UDP endpoint returns media traffic to an active association.">
+      <step-1>UdpEgressRelay receives the remote UDP packet and maps it back to the owning association.</step-1>
+      <step-2>WssDatagramGateway encapsulates the inbound datagram and returns it to the client side.</step-2>
+      <step-3>DatagramSessionManager and Socks5UdpAssociate emit the packet through the governed local UDP relay socket to the application.</step-3>
+      <evidence>Inbound relay marker, WSS datagram receive marker, and local UDP relay egress proof.</evidence>
+    </DF-UDP-INBOUND>
+
+    <DF-UDP-ASSOCIATION-LIFECYCLE NAME="UDP association lifecycle" TRIGGER="A UDP association is created, idles, reconnects, or is torn down.">
+      <step-1>UdpAssociationRegistry records the active association and its relay metadata.</step-1>
+      <step-2>DatagramSessionManager updates activity timestamps and enforces bounded idle cleanup.</step-2>
+      <step-3>Association shutdown closes local relay state and remote relay ownership deterministically.</step-3>
+      <evidence>Association-open marker, activity or timeout evidence, and deterministic cleanup proof.</evidence>
+    </DF-UDP-ASSOCIATION-LIFECYCLE>
+
+    <DF-TELEGRAM-CALL-PATH NAME="Telegram call signaling and media split" TRIGGER="Telegram Desktop starts a voice or video call through n0wss.">
+      <step-1>The existing TCP SOCKS5 path continues to carry Telegram signaling and setup traffic.</step-1>
+      <step-2>The call media path switches to SOCKS5 UDP ASSOCIATE and governed datagram relay.</step-2>
+      <step-3>Success requires both signaling evidence and datagram media evidence; failure packets must classify the first divergent layer.</step-3>
+      <evidence>Separated TCP signaling markers, UDP association markers, media relay markers, and bounded call-failure packets.</evidence>
+    </DF-TELEGRAM-CALL-PATH>
 
     <DF-REPLY-MAPPING NAME="SOCKS5 reply mapping" TRIGGER="A proxy request fails before or after pump startup.">
       <step-1>Socks5Proxy or ProxyBridge classifies ProxyError as infrastructure, policy, target, or post-pump failure.</step-1>
@@ -2921,6 +3247,20 @@
       <step-3 module="M-RELEASED-MASTER-GATE" status="done" verification="V-M-RELEASED-MASTER-GATE">Run the gate for syncing origin/master specifically to v0.3.2</step-3>
       <step-4 module="M-GITHUB-MASTER-SYNC-032" status="done" verification="V-M-GITHUB-MASTER-SYNC-032">Push v0.3.2 to origin/master</step-4>
     </Phase-17>
+
+    <Phase-18 name="Telegram Calls Support" status="pending">
+      <goal>Extend the governed proxy path with UDP-capable architecture so Telegram Desktop voice and video calls can be tested through SOCKS5 UDP ASSOCIATE and bounded datagram relay.</goal>
+      <step-1 module="M-DATAGRAM-CONTRACT" status="done" verification="V-M-DATAGRAM-CONTRACT">Define the transport-agnostic datagram contract, association identity, and error taxonomy</step-1>
+      <step-2 module="M-SOCKS5-UDP-ASSOCIATE" status="pending" verification="V-M-SOCKS5-UDP-ASSOCIATE">Add governed SOCKS5 UDP ASSOCIATE ingress and datagram normalization</step-2>
+      <step-3 module="M-UDP-ASSOCIATION-REGISTRY" status="pending" verification="V-M-UDP-ASSOCIATION-REGISTRY">Track active UDP associations, idle timers, and deterministic cleanup</step-3>
+      <step-4 module="M-DATAGRAM-SESSION-MANAGER" status="pending" verification="V-M-DATAGRAM-SESSION-MANAGER">Coordinate datagram association lifecycle and outbound or inbound dispatch</step-4>
+      <step-5 module="M-WSS-DATAGRAM-GATEWAY" status="pending" verification="V-M-WSS-DATAGRAM-GATEWAY">Carry governed datagrams over the existing WSS security boundary</step-5>
+      <step-6 module="M-UDP-EGRESS-RELAY" status="pending" verification="V-M-UDP-EGRESS-RELAY">Relay real UDP traffic on the server side and return inbound packets</step-6>
+      <step-7 module="M-DATAGRAM-TRANSPORT-SELECTOR" status="pending" verification="V-M-DATAGRAM-TRANSPORT-SELECTOR">Select the governed datagram transport path with explicit future extension points</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-PROFILE" status="pending" verification="V-M-TELEGRAM-CALLS-PROFILE">Document the bounded Telegram Desktop calls support claim</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-WAVE" status="pending" verification="V-M-TELEGRAM-CALLS-WAVE">Run a dedicated Telegram calls verification wave over the UDP-capable path</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-EVIDENCE" status="pending" verification="V-M-TELEGRAM-CALLS-EVIDENCE">Capture bounded evidence packets for call setup, media flow, and failure triage</step-10>
+    </Phase-18>
   </ImplementationOrder>
 
   <ExecutionPolicy>
