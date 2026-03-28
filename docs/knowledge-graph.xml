@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.9">
+  <Project NAME="n0wss" VERSION="0.2.10">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -653,6 +653,50 @@
       </annotations>
     </M-TELEGRAM-FORWARD-GRAPH-SYNC>
 
+    <M-CHANGELOG-0-3-1 NAME="Changelog031" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Add the v0.3.1 changelog entry so the next GitHub tag matches the Telegram forward clarification patch scope closed after v0.3.0.</purpose>
+      <path>CHANGELOG.md</path>
+      <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-FORWARD-VERIFICATION, M-TELEGRAM-FORWARD-GRAPH-SYNC</depends>
+      <verification-ref>V-M-CHANGELOG-0-3-1</verification-ref>
+      <annotations>
+        <fn-writeReleaseEntry PURPOSE="Write the v0.3.1 changelog entry for the Telegram forward clarification patch release." />
+        <type-ChangelogRecord031 PURPOSE="Carries the prepared 0.3.1 release notes for the next GitHub source release." />
+      </annotations>
+    </M-CHANGELOG-0-3-1>
+
+    <M-RELEASE-MESSAGING-0-3-1 NAME="ReleaseMessaging031" TYPE="UTILITY" STATUS="planned">
+      <purpose>Align release-facing documentation with the verified Telegram Desktop SSH-forward requirement before the v0.3.1 patch release.</purpose>
+      <path>README.md</path>
+      <depends>M-CHANGELOG-0-3-1, M-TELEGRAM-COMPAT</depends>
+      <verification-ref>V-M-RELEASE-MESSAGING-0-3-1</verification-ref>
+      <annotations>
+        <fn-syncReleaseMessaging PURPOSE="Keep release-facing wording aligned with the verified Telegram Desktop forwarded path." />
+        <type-ReleaseMessagingRecord031 PURPOSE="Carries the approved release-facing wording for the v0.3.1 patch-release wave." />
+      </annotations>
+    </M-RELEASE-MESSAGING-0-3-1>
+
+    <M-RELEASE-GATE-0-3-1 NAME="ReleaseGate031" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the release gate that decides whether the repository is ready to tag and push v0.3.1.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CHANGELOG-0-3-1, M-RELEASE-MESSAGING-0-3-1</depends>
+      <verification-ref>V-M-RELEASE-GATE-0-3-1</verification-ref>
+      <annotations>
+        <fn-runReleaseGate PURPOSE="Execute and summarize the release-prep checks before the v0.3.1 tag is created." />
+        <type-ReleaseGateResult031 PURPOSE="Carries the release-ready or blocked decision for the v0.3.1 patch release." />
+      </annotations>
+    </M-RELEASE-GATE-0-3-1>
+
+    <M-GITHUB-RELEASE-0-3-1 NAME="GitHubRelease031" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Align the existing GitHub source-release workflow with the v0.3.1 changelog and release gate outcome, then push the tag.</purpose>
+      <path>.github/workflows/release.yml</path>
+      <depends>M-RELEASE-GATE-0-3-1, M-GITHUB-RELEASE-0-3-0</depends>
+      <verification-ref>V-M-GITHUB-RELEASE-0-3-1</verification-ref>
+      <annotations>
+        <fn-prepareAndPushTagPath PURPOSE="Confirm the v0.3.1 tag path and push the tag after the gate is green." />
+        <type-GitHubReleasePlan031 PURPOSE="Carries the prepared source-release path for the v0.3.1 tag." />
+      </annotations>
+    </M-GITHUB-RELEASE-0-3-1>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -737,6 +781,15 @@
     <CrossLink from="M-TELEGRAM-READINESS" to="M-TELEGRAM-FORWARD-VERIFICATION" relation="requires forward proof before the local-workstation app-side attempt is considered valid" />
     <CrossLink from="M-TELEGRAM-FORWARD-RUNBOOK" to="M-TELEGRAM-FORWARD-GRAPH-SYNC" relation="supplies the clarified operator path that the graph must encode" />
     <CrossLink from="M-TELEGRAM-FORWARD-VERIFICATION" to="M-TELEGRAM-FORWARD-GRAPH-SYNC" relation="supplies the corrected verification dependency the graph must encode" />
+    <CrossLink from="M-TELEGRAM-FORWARD-RUNBOOK" to="M-CHANGELOG-0-3-1" relation="defines the operator-path correction summarized in the v0.3.1 release notes" />
+    <CrossLink from="M-TELEGRAM-FORWARD-VERIFICATION" to="M-CHANGELOG-0-3-1" relation="defines the verification-contract correction summarized in the v0.3.1 release notes" />
+    <CrossLink from="M-TELEGRAM-FORWARD-GRAPH-SYNC" to="M-CHANGELOG-0-3-1" relation="defines the graph synchronization summarized in the v0.3.1 release notes" />
+    <CrossLink from="M-CHANGELOG-0-3-1" to="M-RELEASE-MESSAGING-0-3-1" relation="supplies the release wording that must match the patch-release notes" />
+    <CrossLink from="M-TELEGRAM-COMPAT" to="M-RELEASE-MESSAGING-0-3-1" relation="constrains release-facing claims to the verified Telegram compatibility envelope" />
+    <CrossLink from="M-CHANGELOG-0-3-1" to="M-RELEASE-GATE-0-3-1" relation="supplies the versioned release notes required by the v0.3.1 gate" />
+    <CrossLink from="M-RELEASE-MESSAGING-0-3-1" to="M-RELEASE-GATE-0-3-1" relation="supplies the release-facing wording checked by the v0.3.1 gate" />
+    <CrossLink from="M-RELEASE-GATE-0-3-1" to="M-GITHUB-RELEASE-0-3-1" relation="provides the release-ready decision required before creating and pushing the v0.3.1 tag" />
+    <CrossLink from="M-GITHUB-RELEASE-0-3-0" to="M-GITHUB-RELEASE-0-3-1" relation="supplies the existing tag-driven workflow reused for the v0.3.1 source release" />
 
   </Project>
 </KnowledgeGraph>

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.9">
+<DevelopmentPlan VERSION="0.2.10">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -1741,6 +1741,122 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORWARD-GRAPH-SYNC</verification-ref>
     </M-TELEGRAM-FORWARD-GRAPH-SYNC>
+
+    <M-CHANGELOG-0-3-1 NAME="Changelog031" TYPE="UTILITY" LAYER="16" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Add the v0.3.1 changelog entry so the next GitHub tag matches the Telegram forward clarification scope closed after v0.3.0.</purpose>
+        <inputs>
+          <param name="releaseScope" type="ReleaseScope031" />
+        </inputs>
+        <outputs>
+          <param name="releaseNotes" type="ChangelogRecord031" />
+        </outputs>
+        <errors>
+          <error code="CHANGELOG_031_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-writeReleaseEntry PURPOSE="Write the v0.3.1 changelog entry for the Telegram forward clarification patch release." />
+      </interface>
+      <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-FORWARD-VERIFICATION, M-TELEGRAM-FORWARD-GRAPH-SYNC</depends>
+      <target>
+        <source>CHANGELOG.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[Changelog031]</log-prefix>
+        <critical-block>BLOCK_CHANGELOG_031_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-CHANGELOG-0-3-1</verification-ref>
+    </M-CHANGELOG-0-3-1>
+
+    <M-RELEASE-MESSAGING-0-3-1 NAME="ReleaseMessaging031" TYPE="UTILITY" LAYER="16" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Align release-facing documentation with the verified Telegram Desktop SSH-forward requirement before the v0.3.1 patch release.</purpose>
+        <inputs>
+          <param name="releaseMessagingScope" type="ReleaseMessagingInputs031" />
+        </inputs>
+        <outputs>
+          <param name="messagingRecord" type="ReleaseMessagingRecord031" />
+        </outputs>
+        <errors>
+          <error code="RELEASE_MESSAGING_031_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-syncReleaseMessaging PURPOSE="Ensure README and operator-facing release wording reflect the verified Telegram Desktop forwarded path." />
+      </interface>
+      <depends>M-CHANGELOG-0-3-1, M-TELEGRAM-COMPAT</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleaseMessaging031]</log-prefix>
+        <critical-block>BLOCK_RELEASE_MESSAGING_031</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASE-MESSAGING-0-3-1</verification-ref>
+    </M-RELEASE-MESSAGING-0-3-1>
+
+    <M-RELEASE-GATE-0-3-1 NAME="ReleaseGate031" TYPE="ENTRY_POINT" LAYER="16" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the release gate that decides whether the repository is ready to tag and push v0.3.1.</purpose>
+        <inputs>
+          <param name="releaseGateScope" type="ReleaseGateInputs031" />
+        </inputs>
+        <outputs>
+          <param name="gateResult" type="ReleaseGateResult031" />
+        </outputs>
+        <errors>
+          <error code="RELEASE_GATE_031_FAILED" />
+          <error code="RELEASE_TREE_DIRTY" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runReleaseGate PURPOSE="Execute and summarize the release-prep checks before creating the v0.3.1 tag." />
+      </interface>
+      <depends>M-CHANGELOG-0-3-1, M-RELEASE-MESSAGING-0-3-1</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleaseGate031]</log-prefix>
+        <critical-block>BLOCK_RELEASE_GATE_031</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASE-GATE-0-3-1</verification-ref>
+    </M-RELEASE-GATE-0-3-1>
+
+    <M-GITHUB-RELEASE-0-3-1 NAME="GitHubRelease031" TYPE="INTEGRATION" LAYER="16" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Align the existing tag-driven GitHub source release workflow with the v0.3.1 changelog and release gate outcome, then push the tag.</purpose>
+        <inputs>
+          <param name="tagCandidate" type="GitTag" />
+        </inputs>
+        <outputs>
+          <param name="releasePath" type="GitHubReleasePlan031" />
+        </outputs>
+        <errors>
+          <error code="GITHUB_RELEASE_031_DRIFT" />
+          <error code="TAG_PUSH_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-prepareAndPushTagPath PURPOSE="Confirm the v0.3.1 tag path and push the tag to origin after the release gate is green." />
+      </interface>
+      <depends>M-RELEASE-GATE-0-3-1, M-GITHUB-RELEASE-0-3-0</depends>
+      <target>
+        <source>.github/workflows/release.yml</source>
+        <source>CHANGELOG.md</source>
+        <source>docs/OPERATORS.md</source>
+      </target>
+      <observability>
+        <log-prefix>[GitHubRelease031]</log-prefix>
+        <critical-block>BLOCK_GITHUB_RELEASE_031_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-GITHUB-RELEASE-0-3-1</verification-ref>
+    </M-GITHUB-RELEASE-0-3-1>
   </Modules>
 
   <DataFlow>
@@ -2071,6 +2187,14 @@
       <step-2 module="M-TELEGRAM-FORWARD-VERIFICATION" status="done" verification="V-M-TELEGRAM-FORWARD-VERIFICATION">Align LV-007 and Telegram evidence requirements with the forwarded Desktop verification path</step-2>
       <step-3 module="M-TELEGRAM-FORWARD-GRAPH-SYNC" status="done" verification="V-M-TELEGRAM-FORWARD-GRAPH-SYNC">Synchronize the knowledge graph with the clarified Telegram Desktop operator path</step-3>
     </Phase-12>
+
+    <Phase-13 name="Patch Release 0.3.1" status="pending">
+      <goal>Prepare, gate, and publish the v0.3.1 patch release for the Telegram forward clarification wave after the existing v0.3.0 release baseline.</goal>
+      <step-1 module="M-CHANGELOG-0-3-1" status="done" verification="V-M-CHANGELOG-0-3-1">Add the v0.3.1 changelog entry for the Telegram forward clarification patch scope</step-1>
+      <step-2 module="M-RELEASE-MESSAGING-0-3-1" status="pending" verification="V-M-RELEASE-MESSAGING-0-3-1">Align release-facing docs with the verified Telegram Desktop forwarded path</step-2>
+      <step-3 module="M-RELEASE-GATE-0-3-1" status="pending" verification="V-M-RELEASE-GATE-0-3-1">Run the release gate and confirm v0.3.1 is ready to tag</step-3>
+      <step-4 module="M-GITHUB-RELEASE-0-3-1" status="pending" verification="V-M-GITHUB-RELEASE-0-3-1">Create and push the v0.3.1 tag through the existing GitHub source-release workflow</step-4>
+    </Phase-13>
   </ImplementationOrder>
 
   <ExecutionPolicy>
