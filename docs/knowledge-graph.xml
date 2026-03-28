@@ -582,7 +582,7 @@
       </annotations>
     </M-TELEGRAM-READINESS>
 
-    <M-TELEGRAM-SMOKE NAME="TelegramSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-SMOKE NAME="TelegramSmoke" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Define the Telegram-specific compatibility wave for connect and reconnect behavior through the existing SOCKS5-over-tunnel path.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-READINESS, M-LIVE-WAVE-2, M-SOCKS5, M-PROXY-BRIDGE, M-WSS-GATEWAY</depends>
@@ -590,6 +590,7 @@
       <annotations>
         <fn-runTelegramSmoke PURPOSE="Execute the Telegram-specific connect and reconnect verification wave." />
         <type-TelegramSmokeEvidence PURPOSE="Carries the bounded connect and reconnect evidence packets for Telegram compatibility." />
+        <type-TelegramSmokeSuccess PURPOSE="The current Telegram wave produced separate initial-connect and reconnect bursts on Telegram target IPs with SOCKS5 parse, transport-selection, bridge-pump, and accepted WSS handshake evidence." />
       </annotations>
     </M-TELEGRAM-SMOKE>
 
