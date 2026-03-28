@@ -1423,7 +1423,7 @@
       <verification-ref>V-M-RELEASE-MESSAGING</verification-ref>
     </M-RELEASE-MESSAGING>
 
-    <M-CHANGELOG-0-3-0 NAME="Changelog030" TYPE="UTILITY" LAYER="13" ORDER="3" STATUS="planned">
+    <M-CHANGELOG-0-3-0 NAME="Changelog030" TYPE="UTILITY" LAYER="13" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Prepare the v0.3.0 changelog entry so the next GitHub tag matches the actual implemented scope and verification baseline.</purpose>
         <inputs>
@@ -1791,7 +1791,7 @@
       <goal>Prepare the repository for a coherent v0.3.0 source release by cleaning governed release blockers, synchronizing release-facing docs, and closing the release gate.</goal>
       <step-1 module="M-TEST-GOVERNANCE-SYNC" status="done" verification="V-M-TEST-GOVERNANCE-SYNC">Commit the prepared GRACE markup in substantive test files so the governed release tree is clean</step-1>
       <step-2 module="M-RELEASE-MESSAGING" status="done" verification="V-M-RELEASE-MESSAGING">Align README and operator-facing release wording with the completed managed deployment surface</step-2>
-      <step-3 module="M-CHANGELOG-0-3-0" status="pending" verification="V-M-CHANGELOG-0-3-0">Add the v0.3.0 changelog entry for the managed deployment and live-wave scope</step-3>
+      <step-3 module="M-CHANGELOG-0-3-0" status="done" verification="V-M-CHANGELOG-0-3-0">Add the v0.3.0 changelog entry for the managed deployment and live-wave scope</step-3>
       <step-4 module="M-RELEASE-GATE-0-3-0" status="pending" verification="V-M-RELEASE-GATE-0-3-0">Run the release gate checks and record whether v0.3.0 is ready to tag</step-4>
       <step-5 module="M-GITHUB-RELEASE-0-3-0" status="pending" verification="V-M-GITHUB-RELEASE-0-3-0">Prepare the tag-driven GitHub source release path for v0.3.0</step-5>
     </Phase-10>

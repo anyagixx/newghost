@@ -527,7 +527,7 @@
       </annotations>
     </M-RELEASE-MESSAGING>
 
-    <M-CHANGELOG-0-3-0 NAME="Changelog030" TYPE="UTILITY" STATUS="planned">
+    <M-CHANGELOG-0-3-0 NAME="Changelog030" TYPE="UTILITY" STATUS="implemented">
       <purpose>Prepare the v0.3.0 changelog entry so the next GitHub tag matches the implemented managed deployment scope.</purpose>
       <path>CHANGELOG.md</path>
       <depends>M-RELEASE-MESSAGING, M-LIVE-WAVE-2</depends>
