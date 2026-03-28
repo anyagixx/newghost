@@ -2104,7 +2104,7 @@
       </notes>
     </M-FINAL-GO-NO-GO>
 
-    <M-CHANGELOG-0-3-2 NAME="Changelog032" TYPE="UTILITY" LAYER="18" ORDER="1" STATUS="planned">
+    <M-CHANGELOG-0-3-2 NAME="Changelog032" TYPE="UTILITY" LAYER="18" ORDER="1" STATUS="implemented">
       <contract>
         <purpose>Prepare the v0.3.2 changelog entry for the current verified local baseline without overstating Telegram call support.</purpose>
         <inputs>
@@ -2130,6 +2130,9 @@
         <critical-block>BLOCK_CHANGELOG_0_3_2</critical-block>
       </observability>
       <verification-ref>V-M-CHANGELOG-0-3-2</verification-ref>
+      <notes>
+        <note-1>The v0.3.2 changelog entry now publishes the rebuilt-host Telegram Desktop baseline with green text and file-transfer scope and an explicit calls gap.</note-1>
+      </notes>
     </M-CHANGELOG-0-3-2>
 
     <M-RELEASE-MESSAGING-0-3-2 NAME="ReleaseMessaging032" TYPE="UTILITY" LAYER="18" ORDER="2" STATUS="planned">
@@ -2602,7 +2605,7 @@
 
     <Phase-15 name="Release Baseline 0.3.2" status="pending">
       <goal>Publish the current verified local baseline to GitHub as v0.3.2 before planning the UDP-capable Telegram calls architecture.</goal>
-      <step-1 module="M-CHANGELOG-0-3-2" status="pending" verification="V-M-CHANGELOG-0-3-2">Add the bounded v0.3.2 changelog entry for the current verified baseline</step-1>
+      <step-1 module="M-CHANGELOG-0-3-2" status="done" verification="V-M-CHANGELOG-0-3-2">Add the bounded v0.3.2 changelog entry for the current verified baseline</step-1>
       <step-2 module="M-RELEASE-MESSAGING-0-3-2" status="pending" verification="V-M-RELEASE-MESSAGING-0-3-2">Align release-facing docs with the verified Telegram Desktop envelope and current limitations</step-2>
       <step-3 module="M-BASELINE-SYNC-0-3-2" status="pending" verification="V-M-BASELINE-SYNC-0-3-2">Synchronize GRACE artifacts with the v0.3.2 release truth</step-3>
       <step-4 module="M-RELEASE-GATE-0-3-2" status="pending" verification="V-M-RELEASE-GATE-0-3-2">Run the release gate and confirm v0.3.2 is ready to tag</step-4>

@@ -785,7 +785,7 @@
       </annotations>
     </M-FINAL-GO-NO-GO>
 
-    <M-CHANGELOG-0-3-2 NAME="Changelog032" TYPE="UTILITY" STATUS="planned">
+    <M-CHANGELOG-0-3-2 NAME="Changelog032" TYPE="UTILITY" STATUS="implemented">
       <purpose>Prepare the v0.3.2 changelog entry for the current verified local baseline without overstating Telegram call support.</purpose>
       <path>CHANGELOG.md</path>
       <depends>M-FINAL-HOST-REBASELINE, M-FINAL-DEPLOY-BOOTSTRAP, M-FINAL-SERVICE-READINESS, M-FINAL-TELEGRAM-HANDOFF, M-TELEGRAM-COMPAT</depends>
