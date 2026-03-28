@@ -300,6 +300,49 @@ After readiness is green:
 
 Do not blend the initial connect and reconnect evidence into one transcript.
 
+### Final Acceptance Handoff
+
+The current final-acceptance environment is:
+
+- remote WSS server host: `91.99.128.146`
+- remote managed client host: `178.104.104.208`
+- local Telegram Desktop proxy target: `127.0.0.1:1080`
+- proxy type: `SOCKS5`
+- username: empty
+- password: empty
+
+The controlled operator sequence is:
+
+1. wait until the controller explicitly says the environment is ready
+2. on the local workstation, start and keep alive:
+
+```bash
+ssh -N -L 127.0.0.1:1080:127.0.0.1:1080 root@178.104.104.208
+```
+
+3. prove the local forwarded bind exists:
+
+```bash
+ss -ltnp | grep ":1080" || true
+```
+
+4. in Telegram Desktop set:
+   - host: `127.0.0.1`
+   - port: `1080`
+   - proxy type: `SOCKS5`
+   - no username
+   - no password
+5. perform the acceptance actions in this order:
+   - basic connect and message send
+   - photo send
+   - large file send
+   - voice call if available
+   - video call if available
+6. if Telegram shows `Connecting`, do not change settings first; verify the `ssh -N -L ...` process is still alive
+7. report each result in order so the controller can keep separate evidence packets
+
+The controller must not ask the operator to start Telegram testing before service readiness, local forward proof, and the pre-handoff smoke are already green.
+
 ### Telegram Evidence Packet Shape
 
 For each Telegram wave keep four separable packets:

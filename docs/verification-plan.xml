@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.16">
+<VerificationPlan VERSION="0.2.18">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -20,6 +20,10 @@
     <telegram-compat-boundary-rule>Telegram verification may prove only standard SOCKS5 client compatibility over the governed n0wss tunnel and must not silently escalate into claims of universal unblock capability or Telegram-specific protocol support.</telegram-compat-boundary-rule>
     <manual-client-evidence-rule>When a live wave depends on a third-party interactive client, the verification packet must capture app-side action, n0wss-side anchored logs, socket state, and a first-divergent-block summary so another agent can debug without repeating blind manual steps.</manual-client-evidence-rule>
     <local-forward-proof-rule>When a verified local-workstation scenario reaches a remote localhost listener through SSH forwarding, the verification contract must require explicit evidence that the forward command, forwarded bind, and downstream managed listener were all present during the app-side attempt.</local-forward-proof-rule>
+    <fresh-host-baseline-rule>When a live acceptance wave starts on freshly rebuilt hosts, verification must capture OS identity, SSH reachability, and baseline tool presence before any deploy or app-side interpretation occurs.</fresh-host-baseline-rule>
+    <operator-handoff-readiness-rule>A manual operator handoff may begin only after governed readiness evidence proves the remote server service, remote client service, remote SOCKS5 listener, and local SSH-forward prerequisites are all green.</operator-handoff-readiness-rule>
+    <media-scenario-separation-rule>Photo transfer, large-file transfer, voice call, video call, reconnect, and idle-resume observations must remain separable in the acceptance packet so a later agent can isolate the first divergent media path.</media-scenario-separation-rule>
+    <final-go-no-go-boundary-rule>The final go or no-go decision must stay bounded to the exact tested Telegram Desktop setup, host pair, and operator workflow, and must not silently generalize to mobile clients or universal censorship-resilience claims.</final-go-no-go-boundary-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -1271,6 +1275,158 @@
         <assertion-2>The changelog body published by GitHub must come from CHANGELOG.md for the prepared v0.3.1 entry.</assertion-2>
       </required-trace-assertions>
     </V-M-GITHUB-RELEASE-0-3-1>
+
+    <V-M-FINAL-HOST-REBASELINE MODULE="M-FINAL-HOST-REBASELINE" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Both rebuilt Ubuntu hosts are reachable and clean enough to start the final managed deployment wave.</scenario-1>
+        <scenario-2 kind="failure">One or both hosts are unreachable, not root-accessible, or missing baseline shell tooling needed for the governed deploy path.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The host baseline packet must identify both host roles explicitly before any deploy step begins.</assertion-1>
+        <assertion-2>Fresh-host evidence must include SSH reachability, OS identity, and the presence of baseline shell tooling on both rebuilt machines.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-HOST-REBASELINE>
+
+    <V-M-FINAL-DEPLOY-BOOTSTRAP MODULE="M-FINAL-DEPLOY-BOOTSTRAP" PRIORITY="high">
+      <test-files>
+        <file>scripts/deploy-live.sh</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>bash scripts/deploy-live.sh --dry-run</check-1>
+        <check-2>ssh root@$N0WSS_SERVER_HOST 'test -x /opt/n0wss/n0wss'</check-2>
+        <check-3>ssh root@$N0WSS_CLIENT_HOST 'test -x /opt/n0wss/n0wss'</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The governed managed deployment path is reapplied to both fresh hosts without ad hoc drift.</scenario-1>
+        <scenario-2 kind="failure">Deployment requires undocumented host mutation or leaves either host without the governed binary and service layout.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final deploy step must reuse the governed managed deployment path rather than hand-edited host mutations.</assertion-1>
+        <assertion-2>The deployed binary, cert layout, and service files must land on both fresh hosts before service readiness can be claimed.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-DEPLOY-BOOTSTRAP>
+
+    <V-M-FINAL-SERVICE-READINESS MODULE="M-FINAL-SERVICE-READINESS" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server &amp;&amp; systemctl show n0wss-server -p MainPID --no-pager'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client &amp;&amp; systemctl show n0wss-client -p MainPID --no-pager'</check-2>
+        <check-3>ssh root@$N0WSS_SERVER_HOST 'ss -ltnp | grep -E \"(:443|:$N0WSS_WSS_PORT)\" || true'</check-3>
+        <check-4>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</check-4>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Server and client services are green with bound listeners and startup anchors before the operator app-side test begins.</scenario-1>
+        <scenario-2 kind="failure">The app-side acceptance test would start before the fresh deployment has proven readiness.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Readiness evidence must include service-manager state and runtime anchors rather than socket state alone.</assertion-1>
+        <assertion-2>The operator handoff is forbidden until the remote SOCKS5 listener and WSS service are both proven live.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-SERVICE-READINESS>
+
+    <V-M-FINAL-TELEGRAM-HANDOFF MODULE="M-FINAL-TELEGRAM-HANDOFF" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>README.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'ssh -N -L 127.0.0.1:1080:127.0.0.1:1080|Telegram Desktop|127.0.0.1:1080|SOCKS5' docs/OPERATORS.md README.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The operator receives one exact and unambiguous handoff path for the final Telegram Desktop test.</scenario-1>
+        <scenario-2 kind="failure">The final handoff still leaves ambiguity about SSH forwarding, SOCKS5 settings, or when the operator should begin testing.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The handoff must explicitly say when I declare the environment ready and what exact SSH-forward command the operator must run locally.</assertion-1>
+        <assertion-2>The handoff must not blur together local-workstation Telegram Desktop and Telegram running directly on the remote client host.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-TELEGRAM-HANDOFF>
+
+    <V-M-FINAL-TELEGRAM-ACCEPTANCE MODULE="M-FINAL-TELEGRAM-ACCEPTANCE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 100 --no-pager'</check-1>
+        <check-2>ssh root@$N0WSS_SERVER_HOST 'journalctl -u n0wss-server -n 100 --no-pager'</check-2>
+        <check-3>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The operator performs the final Telegram Desktop acceptance path and bounded evidence proves whether traffic crossed the governed SOCKS5 and tunnel runtime.</scenario-1>
+        <scenario-2 kind="failure">The operator reports Telegram symptoms but the evidence packet cannot distinguish app-side state, SSH-forward failure, readiness failure, or tunnel/runtime failure.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The acceptance packet must separate basic connect evidence from later media-heavy checks.</assertion-1>
+        <assertion-2>If the operator reports Telegram stuck on Connecting, the first triage step must verify SSH-forward liveness before blaming the tunnel runtime.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-TELEGRAM-ACCEPTANCE>
+
+    <V-M-FINAL-VOICE-AND-MEDIA MODULE="M-FINAL-VOICE-AND-MEDIA" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'photo|file|voice|video|call' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Photo, large-file, and call-path checks are captured as separable media scenarios rather than being merged into one anecdotal result.</scenario-1>
+        <scenario-2 kind="failure">A media-heavy Telegram failure leaves no way to tell whether only calls broke, only file upload broke, or the whole tunnel path failed.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Photo, large-file, voice-call, and video-call observations must remain separately classifiable even if they happen in one manual session.</assertion-1>
+        <assertion-2>Media-heavy failures must record whether the basic connect path remained healthy at the same time.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-VOICE-AND-MEDIA>
+
+    <V-M-FINAL-EVIDENCE-PACKET MODULE="M-FINAL-EVIDENCE-PACKET" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'first divergent block|readiness packet|acceptance packet|media packet|go-no-go' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The final acceptance packet is bounded and sufficient for handoff without replaying the entire live session.</scenario-1>
+        <scenario-2 kind="failure">The final live acceptance still depends on prose-only memory or conflated logs instead of bounded evidence packets.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final packet must contain distinct readiness, basic-acceptance, media, and failure-or-go-no-go sections.</assertion-1>
+        <assertion-2>The packet must preserve a first-divergent-block summary for any failed sub-scenario.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-EVIDENCE-PACKET>
+
+    <V-M-FINAL-GO-NO-GO MODULE="M-FINAL-GO-NO-GO" PRIORITY="medium">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>README.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'go/no-go|Telegram Desktop|tested host setup' docs/development-plan.xml README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The final decision is bounded to the tested Telegram Desktop setup on the rebuilt hosts.</scenario-1>
+        <scenario-2 kind="failure">The final decision overclaims more than the evidence packet can support.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must state that the evidence covers Telegram Desktop on the rebuilt two-host environment and not a wider client matrix.</assertion-1>
+        <assertion-2>The go or no-go outcome must cite readiness, basic-connect, and media-path evidence rather than operator memory alone.</assertion-2>
+      </required-trace-assertions>
+    </V-M-FINAL-GO-NO-GO>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -1392,6 +1548,36 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramProxyWave; expected-evidence=Telegram connects through SOCKS5 and survives one reconnect path with forward proof when the client is local; observed-evidence=Telegram app result, forward state, local listener state, and anchored n0wss logs; first-divergent-block=first missing forward, SOCKS5, or transport marker; next-action=check SSH-forward liveness first for local-workstation runs, then distinguish Telegram misconfig from tunnel-side failure before rerun</failure-packet-template>
     </LV-007>
+
+    <LV-008 NAME="FinalTelegramAcceptanceWave" PRIORITY="high">
+      <goal>Redeploy onto the rebuilt server pair, prove managed readiness, hand off one exact Telegram Desktop path to the operator, and capture separate basic and media-heavy acceptance packets.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-2>
+        <command-3>bash scripts/deploy-live.sh</command-3>
+        <command-4>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server &amp;&amp; systemctl show n0wss-server -p MainPID --no-pager'</command-4>
+        <command-5>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client &amp;&amp; systemctl show n0wss-client -p MainPID --no-pager'</command-5>
+        <command-6>ssh root@$N0WSS_SERVER_HOST 'journalctl -u n0wss-server -n 100 --no-pager'</command-6>
+        <command-7>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 100 --no-pager'</command-7>
+        <command-8>operator starts and keeps alive `ssh -N -L 127.0.0.1:$N0WSS_SOCKS5_PORT:127.0.0.1:$N0WSS_SOCKS5_PORT root@$N0WSS_CLIENT_HOST` on the local workstation</command-8>
+        <command-9>operator proves the forwarded local bind with `ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true` before Telegram Desktop testing</command-9>
+        <command-10>operator configures Telegram Desktop to use SOCKS5 127.0.0.1:$N0WSS_SOCKS5_PORT with no username and no password</command-10>
+        <command-11>operator performs a basic-connect packet and at least one text or small-message action</command-11>
+        <command-12>operator performs media-heavy checks as available: photo send, large file send, voice call, and video call</command-12>
+        <command-13>if Telegram stalls at Connecting or a media path fails, verify SSH-forward liveness before classifying a tunnel-side failure</command-13>
+        <command-14>capture separate bounded server and client log tails after basic-connect and after media-heavy actions</command-14>
+      </commands>
+      <required-evidence>
+        <evidence-1>The fresh-host packet proves SSH reachability, OS identity, and baseline tooling on both rebuilt Ubuntu hosts before deploy.</evidence-1>
+        <evidence-2>The deploy packet proves the governed managed path was reapplied to both hosts with no ad hoc drift.</evidence-2>
+        <evidence-3>The readiness packet proves active services, bound listeners, and startup anchors before the operator starts Telegram testing.</evidence-3>
+        <evidence-4>The handoff packet contains the exact SSH-forward command, SOCKS5 parameters, and the moment the operator was told to begin.</evidence-4>
+        <evidence-5>The basic-connect packet is separate from photo, large-file, voice-call, and video-call observations.</evidence-5>
+        <evidence-6>Any failure packet identifies whether the first divergence was host baseline, deploy, readiness, SSH-forward, SOCKS5 ingress, transport selection, or a media-specific path.</evidence-6>
+        <evidence-7>The final go/no-go decision remains explicitly bounded to Telegram Desktop on the rebuilt host pair.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=FinalTelegramAcceptanceWave; expected-evidence=fresh-host baseline, managed readiness, explicit SSH-forward handoff, basic-connect packet, and separate media packets; observed-evidence=host baseline output, deploy output, service state, forward state, Telegram operator result, and anchored server-client logs; first-divergent-block=first missing host-baseline, readiness, SSH-forward, SOCKS5, transport, or media marker; next-action=repair the first divergent layer before repeating only the dependent acceptance step</failure-packet-template>
+    </LV-008>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -1584,6 +1770,28 @@
         <evidence-6>No stale local v0.3.1 tag exists before the approved release-push step.</evidence-6>
       </required-evidence>
     </Gate-Phase-13>
+
+    <Gate-Phase-14 PHASE="Phase-14">
+      <goal>The rebuilt two-host environment is freshly deployed, operator-ready, and yields a bounded final Telegram Desktop acceptance packet.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-2>
+        <command-3>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-4>
+        <command-5>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-5>
+        <command-6>ssh root@$N0WSS_SERVER_HOST 'journalctl -u n0wss-server -n 100 --no-pager'</command-6>
+        <command-7>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 100 --no-pager'</command-7>
+        <command-8>rg -n 'ssh -N -L 127.0.0.1:1080:127.0.0.1:1080|Telegram Desktop|photo|file|voice|video|call|go/no-go' docs/OPERATORS.md docs/verification-plan.xml README.md docs/development-plan.xml</command-8>
+      </commands>
+      <required-evidence>
+        <evidence-1>Both rebuilt Ubuntu hosts produce a fresh-host baseline packet before the governed deploy path starts.</evidence-1>
+        <evidence-2>Both rebuilt Ubuntu hosts are redeployed and green before the operator Telegram test starts.</evidence-2>
+        <evidence-3>The operator receives one exact SSH-forward plus SOCKS5 handoff for Telegram Desktop and proves the local forwarded bind before app testing.</evidence-3>
+        <evidence-4>Basic Telegram acceptance and media-heavy scenarios are recorded as separable packets.</evidence-4>
+        <evidence-5>A first-divergent-block discipline exists if any Telegram scenario fails, and SSH-forward liveness is checked before tunnel blame on local-workstation runs.</evidence-5>
+        <evidence-6>The final go/no-go decision is bounded to the tested Telegram Desktop setup on the rebuilt hosts.</evidence-6>
+      </required-evidence>
+    </Gate-Phase-14>
   </PhaseGates>
 
   <FailurePackets>
@@ -1597,6 +1805,7 @@
       <release-gate-example>ReleaseGate030 expected a clean release-prep tree, v0.3.0 changelog entry, and green local checks, but observed a stale README or changelog and tracked dirty files; first divergent block is ReleaseGate030::runReleaseGate::BLOCK_RELEASE_GATE; next action is finish the remaining release-prep module steps before creating any tag.</release-gate-example>
       <telegram-wave-example>TelegramProxyWave expected a Telegram client configured as a standard SOCKS5 consumer to reach connectivity through the local n0wss endpoint, but observed no SOCKS5 parse marker or no transport-selection marker after the app-side attempt; first divergent block is TelegramSmoke::runTelegramSmoke::BLOCK_TELEGRAM_SMOKE; next action is distinguish Telegram client misconfiguration from tunnel-side failure before rerun.</telegram-wave-example>
       <telegram-launch-example>TelegramProxyWave reconnect expected a fresh Telegram app relaunch plus a new bounded packet, but observed local UI recovery instability while n0wss still emitted fresh SOCKS5 parse, transport-selection, bridge-pump, and accepted-handshake evidence; first divergent block is TelegramDesktop::relaunch::LOCAL_APP_RECOVERY; next action is preserve the reconnect success packet, classify the UI issue as app-side, and avoid misrouting the fix into tunnel runtime code.</telegram-launch-example>
+      <final-acceptance-example>FinalTelegramAcceptanceWave expected fresh-host baseline, managed readiness, a live SSH-forward, a basic Telegram Desktop connect packet, and separate media packets, but observed Telegram stuck on Connecting with no fresh SOCKS5 ingress marker; first divergent block is FinalTelegramHandoff::prepareFinalTelegramHandoff::BLOCK_FINAL_TELEGRAM_HANDOFF if the local forward is absent, otherwise Socks5Proxy::parseRequest::BLOCK_PARSE_SOCKS5_REQUEST; next action is verify the SSH-forward process and forwarded local bind first, then inspect remote client readiness before repeating only the dependent acceptance step.</final-acceptance-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>

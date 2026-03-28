@@ -730,7 +730,7 @@
       </annotations>
     </M-FINAL-SERVICE-READINESS>
 
-    <M-FINAL-TELEGRAM-HANDOFF NAME="FinalTelegramHandoff" TYPE="UTILITY" STATUS="planned">
+    <M-FINAL-TELEGRAM-HANDOFF NAME="FinalTelegramHandoff" TYPE="UTILITY" STATUS="implemented">
       <purpose>Define the exact operator handoff for the final Telegram Desktop test including the SSH forward and SOCKS5 settings.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-READINESS, M-TELEGRAM-COMPAT</depends>

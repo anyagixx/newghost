@@ -1946,7 +1946,7 @@
       <verification-ref>V-M-FINAL-SERVICE-READINESS</verification-ref>
     </M-FINAL-SERVICE-READINESS>
 
-    <M-FINAL-TELEGRAM-HANDOFF NAME="FinalTelegramHandoff" TYPE="UTILITY" LAYER="17" ORDER="4" STATUS="planned">
+    <M-FINAL-TELEGRAM-HANDOFF NAME="FinalTelegramHandoff" TYPE="UTILITY" LAYER="17" ORDER="4" STATUS="done">
       <contract>
         <purpose>Define the exact moment and exact parameters for handing the final Telegram Desktop test to the operator.</purpose>
         <inputs>
@@ -2431,7 +2431,7 @@
       <step-1 module="M-FINAL-HOST-REBASELINE" status="done" verification="V-M-FINAL-HOST-REBASELINE">Confirm both rebuilt Ubuntu hosts are reachable, clean, and ready for controlled deployment</step-1>
       <step-2 module="M-FINAL-DEPLOY-BOOTSTRAP" status="done" verification="V-M-FINAL-DEPLOY-BOOTSTRAP">Redeploy the governed managed n0wss stack onto both fresh hosts</step-2>
       <step-3 module="M-FINAL-SERVICE-READINESS" status="done" verification="V-M-FINAL-SERVICE-READINESS">Prove fresh service readiness before the operator Telegram Desktop test begins</step-3>
-      <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="pending" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
+      <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="done" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
       <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="pending" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
       <step-6 module="M-FINAL-VOICE-AND-MEDIA" status="pending" verification="V-M-FINAL-VOICE-AND-MEDIA">Capture photo, file, and call-path acceptance results as separable media evidence</step-6>
       <step-7 module="M-FINAL-EVIDENCE-PACKET" status="pending" verification="V-M-FINAL-EVIDENCE-PACKET">Assemble the bounded final evidence packet from both hosts and the operator session</step-7>
