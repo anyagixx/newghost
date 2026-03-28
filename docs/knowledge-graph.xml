@@ -571,7 +571,7 @@
       </annotations>
     </M-TELEGRAM-PROFILE>
 
-    <M-TELEGRAM-READINESS NAME="TelegramReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-READINESS NAME="TelegramReadiness" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Define the operator path for exposing n0wss as a Telegram-facing SOCKS5 proxy and proving readiness before app-side testing.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-PROFILE, M-LIVE-CLIENT-LAUNCH, M-SYSTEMD-UNITS</depends>
