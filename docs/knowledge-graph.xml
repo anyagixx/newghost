@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.12">
+  <Project NAME="n0wss" VERSION="0.2.13">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -835,6 +835,46 @@
       </annotations>
     </M-GITHUB-RELEASE-0-3-2>
 
+    <M-BRANCH-SYNC-BASELINE NAME="BranchSyncBaseline" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Confirm that origin/master lags behind the current approved stable baseline and can be synchronized safely.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-GITHUB-RELEASE-0-3-2, M-BASELINE-SYNC-0-3-2</depends>
+      <verification-ref>V-M-BRANCH-SYNC-BASELINE</verification-ref>
+      <annotations>
+        <fn-identifyBranchBaseline PURPOSE="Confirm the exact branch sync target for origin/master." />
+      </annotations>
+    </M-BRANCH-SYNC-BASELINE>
+
+    <M-BRANCH-SYNC-MESSAGING NAME="BranchSyncMessaging" TYPE="UTILITY" STATUS="planned">
+      <purpose>Align docs so the master push is understood as GitHub branch visibility sync rather than a new release scope.</purpose>
+      <path>README.md</path>
+      <depends>M-BRANCH-SYNC-BASELINE, M-RELEASE-MESSAGING-0-3-2</depends>
+      <verification-ref>V-M-BRANCH-SYNC-MESSAGING</verification-ref>
+      <annotations>
+        <fn-alignBranchSyncMessaging PURPOSE="Document the purpose and limits of the master sync step." />
+      </annotations>
+    </M-BRANCH-SYNC-MESSAGING>
+
+    <M-BRANCH-SYNC-GATE NAME="BranchSyncGate" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Gate the origin/master push so the visible branch matches the approved stable baseline exactly.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-BRANCH-SYNC-BASELINE, M-BRANCH-SYNC-MESSAGING, M-RELEASE-GATE-0-3-2</depends>
+      <verification-ref>V-M-BRANCH-SYNC-GATE</verification-ref>
+      <annotations>
+        <fn-runBranchSyncGate PURPOSE="Check clean-tree, baseline identity, and fast-forward safety before pushing master." />
+      </annotations>
+    </M-BRANCH-SYNC-GATE>
+
+    <M-GITHUB-MASTER-SYNC NAME="GitHubMasterSync" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Push local master to origin/master so GitHub default-branch browsing reflects the stable v0.3.2 repository tree.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-BRANCH-SYNC-GATE</depends>
+      <verification-ref>V-M-GITHUB-MASTER-SYNC</verification-ref>
+      <annotations>
+        <fn-pushMasterBaseline PURPOSE="Push the approved local master baseline to origin/master." />
+      </annotations>
+    </M-GITHUB-MASTER-SYNC>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -948,6 +988,10 @@
     <CrossLink from="M-RELEASE-MESSAGING-0-3-2" to="M-BASELINE-SYNC-0-3-2" relation="must align with the GRACE artifacts before the release gate runs" />
     <CrossLink from="M-BASELINE-SYNC-0-3-2" to="M-RELEASE-GATE-0-3-2" relation="provides synchronized release truth to the v0.3.2 gate" />
     <CrossLink from="M-RELEASE-GATE-0-3-2" to="M-GITHUB-RELEASE-0-3-2" relation="must pass before the v0.3.2 tag is pushed to GitHub" />
+    <CrossLink from="M-GITHUB-RELEASE-0-3-2" to="M-BRANCH-SYNC-BASELINE" relation="supplies the already published stable baseline commit that origin/master must catch up to" />
+    <CrossLink from="M-BRANCH-SYNC-BASELINE" to="M-BRANCH-SYNC-MESSAGING" relation="anchors branch-sync wording to the approved baseline identity" />
+    <CrossLink from="M-BRANCH-SYNC-MESSAGING" to="M-BRANCH-SYNC-GATE" relation="keeps the gate bounded to branch visibility sync rather than a new release scope" />
+    <CrossLink from="M-BRANCH-SYNC-GATE" to="M-GITHUB-MASTER-SYNC" relation="must pass before local master is pushed to origin/master" />
 
   </Project>
 </KnowledgeGraph>

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.12">
+<DevelopmentPlan VERSION="0.2.13">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -2264,6 +2264,127 @@
         <note-1>The v0.3.2 tag is prepared from the bounded rebuilt-host Telegram Desktop baseline after the clean release gate passed.</note-1>
       </notes>
     </M-GITHUB-RELEASE-0-3-2>
+
+    <M-BRANCH-SYNC-BASELINE NAME="BranchSyncBaseline" TYPE="UTILITY" LAYER="19" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Confirm that origin/master lags behind the current verified baseline and can be fast-forward synchronized to the v0.3.2 commit.</purpose>
+        <inputs>
+          <param name="branchSyncInputs" type="BranchSyncInputs" />
+        </inputs>
+        <outputs>
+          <param name="branchSyncRecord" type="BranchSyncBaselineRecord" />
+        </outputs>
+        <errors>
+          <error code="BRANCH_SYNC_BASELINE_MISMATCH" />
+        </errors>
+      </contract>
+      <interface>
+        <export-identifyBranchBaseline PURPOSE="Confirm the exact stable sync target for origin/master." />
+      </interface>
+      <depends>M-GITHUB-RELEASE-0-3-2, M-BASELINE-SYNC-0-3-2</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/knowledge-graph.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[BranchSyncBaseline]</log-prefix>
+        <critical-block>BLOCK_BRANCH_SYNC_BASELINE</critical-block>
+      </observability>
+      <verification-ref>V-M-BRANCH-SYNC-BASELINE</verification-ref>
+      <notes>
+        <note-1>The approved branch sync target is the already released commit b2f92e8, where local HEAD equals v0.3.2 while origin/master still points to eba2be8.</note-1>
+      </notes>
+    </M-BRANCH-SYNC-BASELINE>
+
+    <M-BRANCH-SYNC-MESSAGING NAME="BranchSyncMessaging" TYPE="UTILITY" LAYER="19" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Document that pushing master is a branch-visibility sync for GitHub UI and not a new runtime or release scope change.</purpose>
+        <inputs>
+          <param name="messagingInputs" type="BranchSyncMessagingInputs" />
+        </inputs>
+        <outputs>
+          <param name="messagingRecord" type="BranchSyncMessagingRecord" />
+        </outputs>
+        <errors>
+          <error code="BRANCH_SYNC_MESSAGING_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-alignBranchSyncMessaging PURPOSE="Align user-facing wording around the master sync baseline step." />
+      </interface>
+      <depends>M-BRANCH-SYNC-BASELINE, M-RELEASE-MESSAGING-0-3-2</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[BranchSyncMessaging]</log-prefix>
+        <critical-block>BLOCK_BRANCH_SYNC_MESSAGING</critical-block>
+      </observability>
+      <verification-ref>V-M-BRANCH-SYNC-MESSAGING</verification-ref>
+    </M-BRANCH-SYNC-MESSAGING>
+
+    <M-BRANCH-SYNC-GATE NAME="BranchSyncGate" TYPE="ENTRY_POINT" LAYER="19" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Run the bounded gate before pushing master so the visible GitHub branch matches the already released stable baseline.</purpose>
+        <inputs>
+          <param name="gateInputs" type="BranchSyncGateInputs" />
+        </inputs>
+        <outputs>
+          <param name="gateRecord" type="BranchSyncGateRecord" />
+        </outputs>
+        <errors>
+          <error code="BRANCH_SYNC_GATE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runBranchSyncGate PURPOSE="Check clean tree, baseline identity, and safe fast-forward conditions before pushing master." />
+      </interface>
+      <depends>M-BRANCH-SYNC-BASELINE, M-BRANCH-SYNC-MESSAGING, M-RELEASE-GATE-0-3-2</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/knowledge-graph.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[BranchSyncGate]</log-prefix>
+        <critical-block>BLOCK_BRANCH_SYNC_GATE</critical-block>
+      </observability>
+      <verification-ref>V-M-BRANCH-SYNC-GATE</verification-ref>
+    </M-BRANCH-SYNC-GATE>
+
+    <M-GITHUB-MASTER-SYNC NAME="GitHubMasterSync" TYPE="INTEGRATION" LAYER="19" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Push the local master branch to origin/master so GitHub shows the current stable repository tree rather than only the v0.3.2 tag.</purpose>
+        <inputs>
+          <param name="syncInputs" type="GitHubMasterSyncInputs" />
+        </inputs>
+        <outputs>
+          <param name="syncRecord" type="GitHubMasterSyncRecord" />
+        </outputs>
+        <errors>
+          <error code="GITHUB_MASTER_SYNC_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-pushMasterBaseline PURPOSE="Push the approved local master baseline to origin/master." />
+      </interface>
+      <depends>M-BRANCH-SYNC-GATE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[GitHubMasterSync]</log-prefix>
+        <critical-block>BLOCK_GITHUB_MASTER_SYNC</critical-block>
+      </observability>
+      <verification-ref>V-M-GITHUB-MASTER-SYNC</verification-ref>
+    </M-GITHUB-MASTER-SYNC>
   </Modules>
 
   <DataFlow>
@@ -2306,6 +2427,26 @@
       <step-3>EffectHandler.applyAll forwards each effect to the target component without branching on business logic.</step-3>
       <evidence>Session effect marker, state transition tests, and effect-handler branch-count assertions.</evidence>
     </DF-SESSION-EFFECTS>
+
+    <DF-BRANCH-BASELINE-CHECK NAME="Branch baseline comparison" TRIGGER="The operator wants GitHub default-branch state to match the already released stable baseline.">
+      <step-1>The controller compares local HEAD, v0.3.2, and origin/master.</step-1>
+      <step-2>The controller confirms the stable sync target is the released baseline commit rather than an unreviewed newer snapshot.</step-2>
+      <step-3>The controller confirms origin/master can be fast-forward synchronized without rewriting history.</step-3>
+      <evidence>Git commit identities, tag identities, ahead or behind state, and a bounded branch-sync target.</evidence>
+    </DF-BRANCH-BASELINE-CHECK>
+
+    <DF-BRANCH-TRUTH-SYNC NAME="Branch sync truth alignment" TRIGGER="Release-facing branch sync documentation is prepared before pushing master.">
+      <step-1>README and operator docs state that the branch push is a visibility sync for GitHub UI.</step-1>
+      <step-2>The wording preserves the already verified Telegram Desktop baseline and the explicit call-support gap.</step-2>
+      <evidence>No release drift between visible branch messaging and the v0.3.2 baseline truth.</evidence>
+    </DF-BRANCH-TRUTH-SYNC>
+
+    <DF-GITHUB-MASTER-SYNC NAME="GitHub master synchronization" TRIGGER="The branch sync gate passes and the operator approves publication of the visible repository tree.">
+      <step-1>The controller confirms the tree is clean and still points at the approved stable baseline.</step-1>
+      <step-2>The controller pushes local master to origin/master.</step-2>
+      <step-3>GitHub default-branch file view now exposes the same state that was already tagged as v0.3.2.</step-3>
+      <evidence>Successful git push output and remote branch identity matching the approved local HEAD.</evidence>
+    </DF-GITHUB-MASTER-SYNC>
 
     <DF-REPLY-MAPPING NAME="SOCKS5 reply mapping" TRIGGER="A proxy request fails before or after pump startup.">
       <step-1>Socks5Proxy or ProxyBridge classifies ProxyError as infrastructure, policy, target, or post-pump failure.</step-1>
@@ -2623,6 +2764,14 @@
       <step-4 module="M-RELEASE-GATE-0-3-2" status="done" verification="V-M-RELEASE-GATE-0-3-2">Run the release gate and confirm v0.3.2 is ready to tag</step-4>
       <step-5 module="M-GITHUB-RELEASE-0-3-2" status="done" verification="V-M-GITHUB-RELEASE-0-3-2">Create and push the v0.3.2 tag through the existing GitHub source-release workflow</step-5>
     </Phase-15>
+
+    <Phase-16 name="GitHub Master Baseline Sync" status="pending">
+      <goal>Fast-forward origin/master to the already released stable v0.3.2 baseline so GitHub default-branch browsing reflects the current verified repository state.</goal>
+      <step-1 module="M-BRANCH-SYNC-BASELINE" status="done" verification="V-M-BRANCH-SYNC-BASELINE">Confirm that the visible branch sync target is the current released baseline and not an unbounded newer snapshot</step-1>
+      <step-2 module="M-BRANCH-SYNC-MESSAGING" status="pending" verification="V-M-BRANCH-SYNC-MESSAGING">Align branch-sync wording so GitHub UI sync is not confused with a new runtime or release scope</step-2>
+      <step-3 module="M-BRANCH-SYNC-GATE" status="pending" verification="V-M-BRANCH-SYNC-GATE">Run the branch sync gate and confirm local master can safely fast-forward origin/master</step-3>
+      <step-4 module="M-GITHUB-MASTER-SYNC" status="pending" verification="V-M-GITHUB-MASTER-SYNC">Push the approved local master baseline to origin/master</step-4>
+    </Phase-16>
   </ImplementationOrder>
 
   <ExecutionPolicy>
