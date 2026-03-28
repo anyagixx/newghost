@@ -2042,7 +2042,7 @@
         <file>docs/OPERATORS.md</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'call-failure packet|media packet|LV-009|UDP' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+        <check-1>rg -n 'call-failure packet|media-flow packet|call-setup packet|reconnect packet|LV-009|UDP' docs/verification-plan.xml docs/OPERATORS.md</check-1>
       </module-checks>
       <scenarios>
         <scenario-1 kind="success">Call setup, media flow, reconnect, and failure packets stay separable and reusable by later agents.</scenario-1>
@@ -2051,6 +2051,7 @@
       <required-trace-assertions>
         <assertion-1>Calls evidence must remain packetized into setup, media, reconnect, and failure classes.</assertion-1>
         <assertion-2>The media packet must not be inferred from signaling-only evidence or from a green text-message path.</assertion-2>
+        <assertion-3>The reconnect packet must carry fresh association identity evidence instead of only restating the first call logs.</assertion-3>
       </required-trace-assertions>
     </V-M-TELEGRAM-CALLS-EVIDENCE>
   </ModuleVerification>

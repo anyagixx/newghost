@@ -406,12 +406,36 @@ Repository publication note:
 
 ### Telegram Evidence Packet Shape
 
-For each Telegram wave keep four separable packets:
+For Telegram calls keep four separable packets:
 
-- readiness packet: `systemctl`, `MainPID`, listener state, startup anchors
-- initial connect packet: Telegram action summary, local listener state, local forward state when applicable, client log tail, server log tail if reached
-- reconnect packet: reconnect action summary, fresh local forward state when applicable, fresh client log tail, fresh server log tail if reached
-- failure packet: expected evidence, observed evidence, first divergent block, next action
+- call-setup packet:
+  call type, local forward state when applicable, whether ringing and answer state appeared, and the first appearance of `[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]`
+- media-flow packet:
+  association id, datagram transport marker, WSS datagram marker, outbound relay marker, inbound relay marker, and whether two-way media was actually observed
+- reconnect packet:
+  second call attempt summary, fresh local forward proof when applicable, and evidence that a fresh UDP association was opened instead of reusing stale state
+- call-failure packet:
+  expected evidence, observed evidence, first divergent block, and the exact next repair action
+
+Calls-packet templates for `LV-009`:
+
+- call-setup packet:
+  expected evidence: Telegram call reaches ringing or answer state and opens one governed UDP association
+  observed evidence: operator call summary, local forward liveness, client log tail, server log tail, and the first UDP ASSOCIATE marker if present
+  first divergent block: first missing UDP ASSOCIATE marker after signaling turns green
+- media-flow packet:
+  expected evidence: the same association produces datagram transport selection, WSS datagram send, outbound relay, and inbound relay markers
+  observed evidence: association id, outbound marker state, inbound marker state, and operator note about real media
+  first divergent block: first missing datagram transport, outbound relay, or inbound relay marker
+- reconnect packet:
+  expected evidence: a second call attempt opens a fresh UDP association after the first call ends
+  observed evidence: second-call action summary, fresh local forward proof, fresh logs, and the new association id
+  first divergent block: first sign of stale association reuse or missing second association-open marker
+- call-failure packet:
+  expected evidence: signaling green, UDP ASSOCIATE green, datagram transport green, and bounded media-path evidence
+  observed evidence: Telegram result, forward state, association state, datagram logs, relay logs, and operator media note
+  first divergent block: first missing UDP ingress, datagram transport, outbound relay, inbound relay, or app-side media confirmation
+  next action: repair only that first divergent layer before replaying the calls wave
 
 Final rebuilt-host packet on 2026-03-29:
 
