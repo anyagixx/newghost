@@ -100,6 +100,91 @@ Operational rule:
 
 - if an operator must choose between speed and secret hygiene, secret hygiene wins and the rollout waits
 
+## Managed Service Workflow
+
+This is the governed Phase-9 operator path. Do not bypass it with one-off `scp`, ad hoc `nohup`, or manual service definitions once managed deployment is in use.
+
+### Install Or Update
+
+Server role:
+
+```bash
+bash scripts/deploy-live.sh \
+  --role server \
+  --host <server-host> \
+  --binary target/release/n0wss \
+  --env-file /secure-inputs/server.env \
+  --server-cert /secure-inputs/server.pem \
+  --server-key /secure-inputs/server.key
+```
+
+Client role:
+
+```bash
+bash scripts/deploy-live.sh \
+  --role client \
+  --host <client-host> \
+  --binary target/release/n0wss \
+  --env-file /secure-inputs/client.env \
+  --trust-anchor /secure-inputs/server.pem
+```
+
+Dry-run before the first managed rollout:
+
+```bash
+bash scripts/deploy-live.sh --dry-run --role client --host example.invalid --binary target/release/n0wss --env-file /secure-inputs/client.env --trust-anchor /secure-inputs/server.pem
+systemd-analyze verify deploy/systemd/n0wss-server.service deploy/systemd/n0wss-client.service
+logrotate -d deploy/logrotate/n0wss
+```
+
+### Service Lifecycle
+
+Install units on the host from the governed files under `deploy/systemd/`, then reload the service manager:
+
+```bash
+sudo install -m 0644 deploy/systemd/n0wss-server.service /etc/systemd/system/n0wss-server.service
+sudo install -m 0644 deploy/systemd/n0wss-client.service /etc/systemd/system/n0wss-client.service
+sudo systemctl daemon-reload
+```
+
+Managed lifecycle commands:
+
+```bash
+sudo systemctl enable --now n0wss-server
+sudo systemctl enable --now n0wss-client
+sudo systemctl restart n0wss-server
+sudo systemctl restart n0wss-client
+sudo systemctl stop n0wss-server
+sudo systemctl stop n0wss-client
+```
+
+### Evidence Capture
+
+Use both service-manager evidence and runtime-anchor evidence:
+
+```bash
+systemctl is-active n0wss-server
+systemctl is-active n0wss-client
+systemctl show n0wss-server -p MainPID --no-pager
+systemctl show n0wss-client -p MainPID --no-pager
+journalctl -u n0wss-server -n 100 --no-pager
+journalctl -u n0wss-client -n 100 --no-pager
+tail -n 100 /var/log/n0wss-server.log
+tail -n 100 /var/log/n0wss-client.log
+tail -n 100 /var/log/n0wss-client-bad-auth.log 2>/dev/null || true
+```
+
+### Rollback
+
+Rollback must be bounded and explicit:
+
+1. stop the affected service with `systemctl stop`
+2. restore the previous known-good binary or env file under the same canonical path
+3. start the service again with `systemctl start`
+4. capture `journalctl`, `systemctl show ... MainPID`, and bounded log tails before declaring rollback successful
+
+Do not change the service name, working directory, or log target during rollback. If those need to change, it is not a rollback; it is a new GRACE plan update.
+
 ## Release Readiness
 
 Before opening the first GitHub release or handing the repository to external testers, run:

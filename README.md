@@ -85,12 +85,21 @@ Important validated options:
 
 `client` mode requires a `wss://` remote URL and may pin trust with `--tls-trust-anchor-path`. `server` mode requires both TLS paths.
 
+## Managed Deployment Surface
+
+Phase-9 introduces the first governed managed deployment surface:
+
+- `scripts/deploy-live.sh` for repeatable role-aware staging
+- `deploy/systemd/n0wss-server.service` and `deploy/systemd/n0wss-client.service` for managed startup and restart
+- `deploy/logrotate/n0wss` for bounded log retention
+- `docs/OPERATORS.md` for install, `systemctl`, `journalctl`, logrotate, and rollback procedures
+
 ## Release Notes
 
 The first public release is intended to be source-first:
 
 - GitHub source release
 - CI-enforced `clippy` and `cargo test`
-- operator guidance in [docs/OPERATORS.md](/home/zverev/Загрузки/newghost/docs/OPERATORS.md)
+- operator guidance in [docs/OPERATORS.md](/home/truffle/Загрузки/newghost/docs/OPERATORS.md)
 
 Binary packaging is intentionally deferred until the runtime surface is finalized.
