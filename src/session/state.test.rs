@@ -1,3 +1,26 @@
+// FILE: src/session/state.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify the pure session state machine, including ordered effects and one-way close semantics.
+//   SCOPE: Stream open and close transitions, drain and transport-loss closing paths, deadline closure, and terminal-state behavior.
+//   DEPENDS: src/session/state.rs, src/session/effects.rs
+//   LINKS: V-M-SESSION, VF-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   stream_opened_increments_count_and_cancels_idle_timer - proves stream-open transitions update count and cancel idle timers
+//   final_stream_close_schedules_idle_timer - proves final stream close schedules an idle deadline
+//   drain_requested_moves_to_closing_and_stops_new_streams - proves drain requests close the session in the expected order
+//   transport_lost_moves_to_closing_with_graceful_close - proves transport loss enters closing with graceful stream shutdown
+//   deadline_reached_closes_and_deregisters - proves deadline expiry forces close and deregistration effects
+//   closed_state_is_terminal - proves closed sessions ignore further events
+//   closing_state_is_one_way_and_does_not_reopen_streams - proves closing sessions never reopen stream admission
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so pure session-state verification remains explicit for autonomous debugging.
+// END_CHANGE_SUMMARY
+
 use std::time::{Duration, Instant};
 
 use super::{CloseReason, SessionEvent, SessionState};

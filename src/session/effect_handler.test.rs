@@ -1,3 +1,21 @@
+// FILE: src/session/effect_handler.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify effect-handler routing and ordered batch application across registry, timer, and metric targets.
+//   SCOPE: Single-effect routing and multi-effect ordering guarantees for the top-level session effect dispatcher.
+//   DEPENDS: src/session/effect_handler.rs, src/session/effects.rs
+//   LINKS: V-M-SESSION, VF-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   registry_effect_hits_only_registry_target - proves registry effects do not leak into timer or metric targets
+//   apply_all_preserves_effect_order - proves batch routing preserves the declared effect order
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so effect-handler verification stays explicit for autonomous session work.
+// END_CHANGE_SUMMARY
+
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;

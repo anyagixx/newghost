@@ -1,3 +1,24 @@
+// FILE: src/obs/mod.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify observability bootstrap, metric snapshots, config-derived mode labeling, and redaction behavior.
+//   SCOPE: Successful initialization, invalid config rejection, metric updates, burst observation wiring, and secret redaction.
+//   DEPENDS: src/obs/mod.rs, src/config/mod.rs
+//   LINKS: V-M-OBS, VF-001, VF-009
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   initializes_observability_handles - proves subscriber and metric handles initialize deterministically
+//   rejects_empty_service_name - proves invalid observability config fails fast
+//   metrics_reflect_queue_limit_and_reply_code_outcomes - proves metric snapshots reflect queue and reply-code events
+//   redacts_sensitive_values - proves observability redaction hides raw secrets
+//   derives_mode_label_from_app_config - proves mode labels derive from validated application config
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so observability verification stays navigable and reusable across later waves.
+// END_CHANGE_SUMMARY
+
 use std::time::Duration;
 
 use crate::config::{load_config_from, BurstDetectionConfig, RuntimeMode};

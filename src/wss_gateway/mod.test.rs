@@ -1,3 +1,23 @@
+// FILE: src/wss_gateway/mod.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify TLS-backed WSS stream establishment, cancellation handling, and adapter cleanup guarantees.
+//   SCOPE: Successful WSS handshake and byte relay, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
+//   DEPENDS: src/wss_gateway/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/tls/mod.rs, src/transport/adapter_contract.rs, src/transport/stream.rs
+//   LINKS: V-M-WSS-GATEWAY, VF-003, VF-008
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   valid_tls_plus_wss_handshake_returns_resolved_stream - proves TLS plus WSS handshake yields a usable resolved stream
+//   cancel_before_open_returns_err_and_spawns_no_tasks - proves pre-open cancellation leaves no tracked tasks behind
+//   cancel_during_open_returns_err_and_socket_closes - proves mid-open cancellation closes the socket and surfaces cancellation
+//   failed_open_does_not_leak_tracked_tasks - proves failed opens do not leak adapter tasks
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so WSS gateway contract tests remain usable for later autonomous repair and review waves.
+// END_CHANGE_SUMMARY
+
 use std::fs;
 use std::time::Duration;
 

@@ -1,3 +1,23 @@
+// FILE: src/obs/burst_detector.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify burst-detection windows, peak-rate maintenance, and rate-limited burst logging semantics.
+//   SCOPE: Burst spike detection, slow rejection suppression, peak reset behavior, and sustained-log throttling.
+//   DEPENDS: src/obs/mod.rs, src/config/mod.rs
+//   LINKS: V-M-OBS, VF-005, VF-009
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   burst_spike_updates_peak_and_emits_rate_limited_log - proves short spikes update peak rate and emit one alert log
+//   slow_rejections_do_not_trigger_burst_alert - proves slow rejection patterns do not trip burst alerts
+//   peak_rate_resets_on_maintenance_interval - proves maintenance resets peak rate metrics
+//   sustained_burst_logs_are_rate_limited - proves repeated bursts are throttled by the minimum log interval
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so burst-detection evidence remains navigable for future verification agents.
+// END_CHANGE_SUMMARY
+
 use std::thread;
 use std::time::Duration;
 

@@ -1,3 +1,23 @@
+// FILE: src/session/registry.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify session-registry capacity control, drain behavior, idle reaping, and targeted effect execution.
+//   SCOPE: Reservation lifecycle, drain semantics, idle cleanup, and registry-targeted command execution.
+//   DEPENDS: src/session/registry.rs, src/session/state.rs, src/session/effect_handler.rs
+//   LINKS: V-M-SESSION, VF-010
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   reserve_insert_and_remove_release_capacity - proves insert and remove return registry capacity deterministically
+//   drain_all_releases_every_reserved_slot - proves drain releases all tracked sessions and permits
+//   reap_idle_removes_old_sessions - proves idle sessions are reaped without removing fresh sessions
+//   registry_execute_updates_only_the_target_session - proves registry effect execution mutates only the addressed session
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so session registry tests stay navigable across fix and verification waves.
+// END_CHANGE_SUMMARY
+
 use std::time::{Duration, Instant};
 
 use super::{SessionLimitReached, SessionRecord, SessionRegistry};

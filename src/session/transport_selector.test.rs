@@ -1,3 +1,24 @@
+// FILE: src/session/transport_selector.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify sequential iroh-then-WSS transport selection, timeout handling, and cancellation semantics.
+//   SCOPE: Iroh success, WSS fallback after timeout, combined-failure diagnostics, explicit cancellation, and safety-timeout enforcement.
+//   DEPENDS: src/session/transport_selector.rs, src/transport/adapter_contract.rs, src/transport/stream.rs, src/transport/task_tracker.rs
+//   LINKS: V-M-SESSION, VF-003, VF-008
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   iroh_success_skips_wss_fallback - proves a successful iroh open prevents WSS fallback
+//   iroh_timeout_falls_back_to_wss - proves iroh timeout triggers WSS fallback resolution
+//   both_attempts_fail_with_combined_diagnostics - proves dual transport failure surfaces combined diagnostics
+//   explicit_cancel_stops_selection - proves explicit cancellation stops the selector before fallback completion
+//   safety_timeout_surfaces_contract_violation - proves safety timeout reports a contract-level selector failure
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so transport-selector verification can be trusted by later autonomous waves.
+// END_CHANGE_SUMMARY
+
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicUsize, Ordering};

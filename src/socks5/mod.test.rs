@@ -1,3 +1,23 @@
+// FILE: src/socks5/mod.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify SOCKS5 request parsing, bounded queue failure behavior, and success-reply socket semantics.
+//   SCOPE: Valid CONNECT parsing, queue saturation failure replies, closed-queue behavior, and success replies that keep the client socket open.
+//   DEPENDS: src/socks5/mod.rs
+//   LINKS: V-M-SOCKS5, VF-002, VF-005
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   parses_valid_connect_request_into_proxy_intent - proves a valid CONNECT request becomes a normalized ProxyIntent
+//   queue_saturation_returns_failure_reply_quickly - proves saturated queues fail fast with a client-visible reply
+//   closed_queue_returns_failure_reply_and_closes_stream - proves closed queue handling returns failure and closes the client stream
+//   success_reply_does_not_close_client_socket - proves a success reply leaves the client socket open for payload pumping
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so SOCKS5 ingress tests stay navigable and reusable for future verification waves.
+// END_CHANGE_SUMMARY
+
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::{Duration, Instant};
 

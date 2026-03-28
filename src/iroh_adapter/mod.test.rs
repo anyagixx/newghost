@@ -1,3 +1,23 @@
+// FILE: src/iroh_adapter/mod.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify iroh adapter stream establishment, cancellation handling, cleanup guarantees, and release behavior.
+//   SCOPE: Direct stream success, pre-open cancellation, failed-open cleanup, and endpoint release semantics.
+//   DEPENDS: src/iroh_adapter/mod.rs, src/obs/mod.rs, src/transport/adapter_contract.rs, src/transport/stream.rs
+//   LINKS: V-M-IROH-ADAPTER, VF-003, VF-008
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   opens_direct_stream_with_stable_diagnostics - proves a direct iroh stream opens and carries payload bytes
+//   cancel_before_open_returns_err_and_no_tracked_tasks - proves explicit cancellation exits cleanly without leaked tasks
+//   failed_open_does_not_leak_tracked_tasks - proves transport failure leaves no tracked background work behind
+//   release_closes_endpoint - proves release closes the underlying endpoint deterministically
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so iroh adapter contract tests can be reused by autonomous fix and verification flows.
+// END_CHANGE_SUMMARY
+
 use std::time::Duration;
 
 use iroh::Endpoint;

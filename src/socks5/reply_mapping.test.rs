@@ -1,3 +1,26 @@
+// FILE: src/socks5/reply_mapping.test.rs
+// VERSION: 0.1.0
+// START_MODULE_CONTRACT
+//   PURPOSE: Verify deterministic SOCKS5 reply mapping across infrastructure, policy, target, and post-reply failures.
+//   SCOPE: Reply-code mapping, error-category stability, and the invariant that all pre-pump failures stay client-visible.
+//   DEPENDS: src/socks5/mod.rs
+//   LINKS: V-M-SOCKS5, VF-006, VF-007
+// END_MODULE_CONTRACT
+//
+// START_MODULE_MAP
+//   infrastructure_failures_map_to_general_failure - proves infrastructure failures map to general failure replies
+//   policy_denied_maps_to_ruleset_reply - proves policy denials map to ruleset replies
+//   target_refused_maps_to_connection_refused - proves refused targets map to connection-refused replies
+//   target_timeout_maps_to_host_unreachable - proves timed-out targets map to host-unreachable replies
+//   pump_failed_returns_no_reply - proves post-reply pump failure does not emit a second client reply
+//   categories_remain_exhaustive_and_stable - proves error categories stay exhaustive and stable
+//   all_pre_pump_variants_map_to_some_reply - proves every pre-pump error remains client-visible
+// END_MODULE_MAP
+//
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.0 - Added GRACE markup so reply-mapping invariants remain explicit for autonomous verification agents.
+// END_CHANGE_SUMMARY
+
 use super::{ErrorCategory, ProxyError, Socks5Proxy, Socks5Reply};
 
 #[test]
