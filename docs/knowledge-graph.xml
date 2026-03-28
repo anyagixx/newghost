@@ -453,7 +453,7 @@
       </annotations>
     </M-DEPLOY-SCRIPTING>
 
-    <M-SYSTEMD-UNITS NAME="SystemdUnits" TYPE="INTEGRATION" STATUS="planned">
+    <M-SYSTEMD-UNITS NAME="SystemdUnits" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Define managed systemd services for n0wss server and client roles with explicit startup, restart, and shutdown behavior.</purpose>
       <path>deploy/systemd/n0wss-server.service</path>
       <depends>M-DEPLOY-SCRIPTING, M-CLI, M-DEPLOY-LAYOUT</depends>
@@ -462,6 +462,7 @@
         <fn-defineServerUnit PURPOSE="Pin the managed service contract for the n0wss server role." />
         <fn-defineClientUnit PURPOSE="Pin the managed service contract for the n0wss client role." />
         <type-SystemdUnitSet PURPOSE="Carries the approved managed service names, env sources, and ExecStart invariants." />
+        <type-ManagedServiceLogTargets PURPOSE="The current managed units append server and client runtime output to /var/log/n0wss-server.log and /var/log/n0wss-client.log." />
       </annotations>
     </M-SYSTEMD-UNITS>
 
