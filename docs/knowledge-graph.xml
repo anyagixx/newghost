@@ -795,7 +795,7 @@
       </annotations>
     </M-CHANGELOG-0-3-2>
 
-    <M-RELEASE-MESSAGING-0-3-2 NAME="ReleaseMessaging032" TYPE="UTILITY" STATUS="planned">
+    <M-RELEASE-MESSAGING-0-3-2 NAME="ReleaseMessaging032" TYPE="UTILITY" STATUS="implemented">
       <purpose>Align README and operator docs with the verified Telegram Desktop envelope and current call limitation.</purpose>
       <path>README.md</path>
       <depends>M-CHANGELOG-0-3-2, M-TELEGRAM-COMPAT, M-FINAL-TELEGRAM-HANDOFF</depends>
