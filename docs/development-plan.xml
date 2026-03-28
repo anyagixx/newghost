@@ -2233,7 +2233,7 @@
       </notes>
     </M-RELEASE-GATE-0-3-2>
 
-    <M-GITHUB-RELEASE-0-3-2 NAME="GitHubRelease032" TYPE="INTEGRATION" LAYER="18" ORDER="5" STATUS="planned">
+    <M-GITHUB-RELEASE-0-3-2 NAME="GitHubRelease032" TYPE="INTEGRATION" LAYER="18" ORDER="5" STATUS="implemented">
       <contract>
         <purpose>Create and push the v0.3.2 tag so the GitHub repository reflects the current local baseline before the UDP calls phase begins.</purpose>
         <inputs>
@@ -2260,6 +2260,9 @@
         <critical-block>BLOCK_GITHUB_RELEASE_0_3_2</critical-block>
       </observability>
       <verification-ref>V-M-GITHUB-RELEASE-0-3-2</verification-ref>
+      <notes>
+        <note-1>The v0.3.2 tag is prepared from the bounded rebuilt-host Telegram Desktop baseline after the clean release gate passed.</note-1>
+      </notes>
     </M-GITHUB-RELEASE-0-3-2>
   </Modules>
 
@@ -2618,7 +2621,7 @@
       <step-2 module="M-RELEASE-MESSAGING-0-3-2" status="done" verification="V-M-RELEASE-MESSAGING-0-3-2">Align release-facing docs with the verified Telegram Desktop envelope and current limitations</step-2>
       <step-3 module="M-BASELINE-SYNC-0-3-2" status="done" verification="V-M-BASELINE-SYNC-0-3-2">Synchronize GRACE artifacts with the v0.3.2 release truth</step-3>
       <step-4 module="M-RELEASE-GATE-0-3-2" status="done" verification="V-M-RELEASE-GATE-0-3-2">Run the release gate and confirm v0.3.2 is ready to tag</step-4>
-      <step-5 module="M-GITHUB-RELEASE-0-3-2" status="pending" verification="V-M-GITHUB-RELEASE-0-3-2">Create and push the v0.3.2 tag through the existing GitHub source-release workflow</step-5>
+      <step-5 module="M-GITHUB-RELEASE-0-3-2" status="done" verification="V-M-GITHUB-RELEASE-0-3-2">Create and push the v0.3.2 tag through the existing GitHub source-release workflow</step-5>
     </Phase-15>
   </ImplementationOrder>
 

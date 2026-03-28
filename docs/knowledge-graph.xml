@@ -825,7 +825,7 @@
       </annotations>
     </M-RELEASE-GATE-0-3-2>
 
-    <M-GITHUB-RELEASE-0-3-2 NAME="GitHubRelease032" TYPE="INTEGRATION" STATUS="planned">
+    <M-GITHUB-RELEASE-0-3-2 NAME="GitHubRelease032" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Push the v0.3.2 tag so GitHub reflects the current local baseline before the UDP calls phase starts.</purpose>
       <path>.github/workflows/release.yml</path>
       <depends>M-RELEASE-GATE-0-3-2, M-GITHUB-RELEASE-0-3-1</depends>
