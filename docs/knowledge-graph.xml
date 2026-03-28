@@ -925,7 +925,7 @@
       </annotations>
     </M-DATAGRAM-CONTRACT>
 
-    <M-SOCKS5-UDP-ASSOCIATE NAME="Socks5UdpAssociate" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-SOCKS5-UDP-ASSOCIATE NAME="Socks5UdpAssociate" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Add SOCKS5 UDP ASSOCIATE ingress and governed UDP relay normalization alongside the existing CONNECT path.</purpose>
       <path>src/socks5/udp_associate.rs</path>
       <depends>M-SOCKS5, M-DATAGRAM-CONTRACT, M-OBS</depends>
