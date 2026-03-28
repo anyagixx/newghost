@@ -515,7 +515,7 @@
       </annotations>
     </M-TEST-GOVERNANCE-SYNC>
 
-    <M-RELEASE-MESSAGING NAME="ReleaseMessaging" TYPE="UTILITY" STATUS="planned">
+    <M-RELEASE-MESSAGING NAME="ReleaseMessaging" TYPE="UTILITY" STATUS="implemented">
       <purpose>Align README and operator-facing release copy with the completed managed deployment posture.</purpose>
       <path>README.md</path>
       <depends>M-OPERATOR-RUNBOOK, M-LIVE-WAVE-2</depends>
