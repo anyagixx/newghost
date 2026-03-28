@@ -351,6 +351,8 @@ Observed rebuilt-host acceptance outcome on 2026-03-29:
 - voice and video calls: not green; the call reached ringing and answer state but then stayed at Telegram key exchange
 - classification: basic SOCKS5 or TCP tunnel behavior stayed healthy while the call-specific media path remained outside the currently proven envelope
 
+This observed outcome is the operator-facing baseline for release `v0.3.2` and must not be described as working Telegram call support.
+
 ### Telegram Evidence Packet Shape
 
 For each Telegram wave keep four separable packets:

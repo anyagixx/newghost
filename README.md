@@ -126,11 +126,12 @@ The Telegram-specific verification wave is about client compatibility evidence, 
 
 ## Release Notes
 
-The next public release is prepared as source-first patch `v0.3.1`:
+The next public release is prepared as source-first patch `v0.3.2`:
 
 - GitHub source release
-- CI-enforced `clippy` and `cargo test`
+- bounded rebuilt-host Telegram Desktop baseline
 - operator guidance in [docs/OPERATORS.md](/home/truffle/Загрузки/newghost/docs/OPERATORS.md)
-- Telegram Desktop forwarded-path clarification aligned with the verified `ssh -L` operator shape
+- explicit SSH-forwarded Desktop path through `127.0.0.1:1080`
+- explicit no-go for voice and video call support until a later UDP-capable phase exists
 
 Standalone packaged distribution is still deferred, but the governed `n0wss` binary, managed deployment workflow, and operator runbook are already implemented in-repo.
