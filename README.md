@@ -102,6 +102,11 @@ Phase-9 introduces the first governed managed deployment surface:
 - `n0wss` remains the tunnel runtime behind that listener
 - the remote path stays the same governed WSS-backed tunnel already verified for generic SOCKS5 traffic
 
+For the verified local-workstation Telegram Desktop example, that local `127.0.0.1:1080` listener is reached through an SSH forward to the managed client host, not through a directly local `n0wss` bind:
+
+- local operator workstation -> `ssh -L 127.0.0.1:1080:127.0.0.1:1080 root@$N0WSS_CLIENT_HOST`
+- remote managed client host -> `n0wss-client` listener on `127.0.0.1:1080`
+
 Bounded claim surface:
 
 - supported claim: Telegram can be tested as a SOCKS5-aware application over the existing `n0wss` tunnel
@@ -111,6 +116,7 @@ Bounded claim surface:
 Verified envelope as of 2026-03-28:
 
 - Telegram Desktop was exercised through a governed SOCKS5 path backed by the managed `n0wss` client and server services
+- the verified local Desktop path explicitly includes the SSH forward to the remote managed client listener before Telegram is pointed at `127.0.0.1:1080`
 - separate initial-connect and reconnect packets were observed on Telegram network IPs with anchored SOCKS5 parse, transport selection, bridge pump, and accepted WSS handshake evidence
 - the evidence applies to the tested desktop build and host setup only
 
@@ -118,10 +124,11 @@ The Telegram-specific verification wave is about client compatibility evidence, 
 
 ## Release Notes
 
-The next public release is prepared as source-first:
+The next public release is prepared as source-first patch `v0.3.1`:
 
 - GitHub source release
 - CI-enforced `clippy` and `cargo test`
 - operator guidance in [docs/OPERATORS.md](/home/truffle/Загрузки/newghost/docs/OPERATORS.md)
+- Telegram Desktop forwarded-path clarification aligned with the verified `ssh -L` operator shape
 
 Standalone packaged distribution is still deferred, but the governed `n0wss` binary, managed deployment workflow, and operator runbook are already implemented in-repo.
