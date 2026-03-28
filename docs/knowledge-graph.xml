@@ -895,7 +895,7 @@
       </annotations>
     </M-RELEASED-MASTER-MESSAGING>
 
-    <M-RELEASED-MASTER-GATE NAME="ReleasedMasterGate" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-RELEASED-MASTER-GATE NAME="ReleasedMasterGate" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Gate the push of origin/master specifically to the released v0.3.2 commit.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-RELEASED-MASTER-TARGET, M-RELEASED-MASTER-MESSAGING</depends>

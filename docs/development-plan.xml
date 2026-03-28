@@ -2448,7 +2448,7 @@
       <verification-ref>V-M-RELEASED-MASTER-MESSAGING</verification-ref>
     </M-RELEASED-MASTER-MESSAGING>
 
-    <M-RELEASED-MASTER-GATE NAME="ReleasedMasterGate" TYPE="ENTRY_POINT" LAYER="20" ORDER="3" STATUS="planned">
+    <M-RELEASED-MASTER-GATE NAME="ReleasedMasterGate" TYPE="ENTRY_POINT" LAYER="20" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Gate the push of origin/master to the released v0.3.2 commit so no newer local controller commits are published by mistake.</purpose>
         <inputs>
@@ -2918,7 +2918,7 @@
       <goal>Update origin/master to the already released v0.3.2 commit so GitHub default-branch browsing matches the stable baseline without publishing newer local planning commits.</goal>
       <step-1 module="M-RELEASED-MASTER-TARGET" status="done" verification="V-M-RELEASED-MASTER-TARGET">Freeze the only allowed origin/master target as the released v0.3.2 commit</step-1>
       <step-2 module="M-RELEASED-MASTER-MESSAGING" status="done" verification="V-M-RELEASED-MASTER-MESSAGING">Align docs so this sync publishes the released snapshot only and excludes newer local planning commits</step-2>
-      <step-3 module="M-RELEASED-MASTER-GATE" status="pending" verification="V-M-RELEASED-MASTER-GATE">Run the gate for syncing origin/master specifically to v0.3.2</step-3>
+      <step-3 module="M-RELEASED-MASTER-GATE" status="done" verification="V-M-RELEASED-MASTER-GATE">Run the gate for syncing origin/master specifically to v0.3.2</step-3>
       <step-4 module="M-GITHUB-MASTER-SYNC-032" status="pending" verification="V-M-GITHUB-MASTER-SYNC-032">Push v0.3.2 to origin/master</step-4>
     </Phase-17>
   </ImplementationOrder>
