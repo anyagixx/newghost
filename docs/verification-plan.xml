@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.14">
+<VerificationPlan VERSION="0.2.16">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -16,6 +16,7 @@
     <doc-script-alignment-rule>When deploy scripts, unit files, or operator docs change, the verification surface must assert that names, paths, and operator commands still match across all three artifacts.</doc-script-alignment-rule>
     <release-tag-alignment-rule>When a release-prep phase is active, the prepared changelog version, the remote tag baseline, and the intended next tag must agree before publication.</release-tag-alignment-rule>
     <release-clean-tree-rule>The release gate must distinguish between allowed controller-owned release-prep edits that are still in progress and the final clean-tree condition required before tag creation.</release-clean-tree-rule>
+    <patch-release-scope-rule>When the next release is a patch over an already published baseline, the changelog and release wording must stay bounded to the post-baseline correction scope and must not silently imply a new runtime feature wave.</patch-release-scope-rule>
     <telegram-compat-boundary-rule>Telegram verification may prove only standard SOCKS5 client compatibility over the governed n0wss tunnel and must not silently escalate into claims of universal unblock capability or Telegram-specific protocol support.</telegram-compat-boundary-rule>
     <manual-client-evidence-rule>When a live wave depends on a third-party interactive client, the verification packet must capture app-side action, n0wss-side anchored logs, socket state, and a first-divergent-block summary so another agent can debug without repeating blind manual steps.</manual-client-evidence-rule>
     <local-forward-proof-rule>When a verified local-workstation scenario reaches a remote localhost listener through SSH forwarding, the verification contract must require explicit evidence that the forward command, forwarded bind, and downstream managed listener were all present during the app-side attempt.</local-forward-proof-rule>
@@ -1192,6 +1193,84 @@
         <scenario-2 kind="failure">The graph remains silent about the clarified forwarded Desktop path after the plan and verification contracts are updated.</scenario-2>
       </scenarios>
     </V-M-TELEGRAM-FORWARD-GRAPH-SYNC>
+
+    <V-M-CHANGELOG-0-3-1 MODULE="M-CHANGELOG-0-3-1" PRIORITY="high">
+      <test-files>
+        <file>CHANGELOG.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n '^## \\[0\\.3\\.1\\]' CHANGELOG.md</check-1>
+        <check-2>rg -n 'Telegram|forward|SSH|Phase-12' CHANGELOG.md</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The changelog contains a v0.3.1 entry that describes the Telegram forward clarification patch scope accurately.</scenario-1>
+        <scenario-2 kind="failure">The changelog still tops out at v0.3.0 or describes a larger runtime change than was actually shipped after v0.3.0.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The v0.3.1 entry must explicitly read as a patch release after the already published v0.3.0 baseline.</assertion-1>
+        <assertion-2>The notes must stay bounded to the Telegram forward clarification and must not imply a new transport or deployment wave.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CHANGELOG-0-3-1>
+
+    <V-M-RELEASE-MESSAGING-0-3-1 MODULE="M-RELEASE-MESSAGING-0-3-1" PRIORITY="medium">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram|SOCKS5|SSH forward|forwarded path' README.md docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Release-facing docs remain aligned with the verified Telegram Desktop forwarded path.</scenario-1>
+        <scenario-2 kind="failure">Release-facing docs contradict the SSH-forward prerequisite or reintroduce stale Telegram operator wording.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Release-facing wording must preserve the SSH-forward prerequisite for the local-workstation Telegram Desktop path.</assertion-1>
+        <assertion-2>Release-facing wording must not imply that v0.3.1 adds a new runtime feature beyond the already verified correction scope.</assertion-2>
+      </required-trace-assertions>
+    </V-M-RELEASE-MESSAGING-0-3-1>
+
+    <V-M-RELEASE-GATE-0-3-1 MODULE="M-RELEASE-GATE-0-3-1" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>git status --short</check-1>
+        <check-2>git diff --check</check-2>
+        <check-3>git ls-remote --tags origin</check-3>
+        <check-4>rg -n '^## \\[0\\.3\\.1\\]' CHANGELOG.md</check-4>
+        <check-5>git rev-parse --verify refs/tags/v0.3.1 >/dev/null 2>&1 && echo local-tag-present || true</check-5>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The release gate confirms a clean tree, synced artifacts, a v0.3.1 changelog entry, and a remote baseline where the next tag is v0.3.1.</scenario-1>
+        <scenario-2 kind="failure">The tree is dirty, the changelog is stale, or the remote tag baseline no longer justifies v0.3.1.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Before tag creation, the local tree must be clean and patch-integrity checks must pass.</assertion-1>
+        <assertion-2>The remote baseline must still show v0.3.0 as the newest published release tag before v0.3.1 is created.</assertion-2>
+        <assertion-3>The gate must fail if a stale local v0.3.1 tag already exists before the approved push step.</assertion-3>
+      </required-trace-assertions>
+    </V-M-RELEASE-GATE-0-3-1>
+
+    <V-M-GITHUB-RELEASE-0-3-1 MODULE="M-GITHUB-RELEASE-0-3-1" PRIORITY="medium">
+      <test-files>
+        <file>.github/workflows/release.yml</file>
+        <file>CHANGELOG.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'body_path: CHANGELOG.md|tags:|v\\*' .github/workflows/release.yml</check-1>
+        <check-2>git tag --list 'v0.3.1'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The existing GitHub release workflow remains valid for a pushed v0.3.1 tag.</scenario-1>
+        <scenario-2 kind="failure">The workflow no longer matches the tag-driven source-release path or the local tag state diverges from the intended push plan.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The push step must target exactly v0.3.1 and rely on the existing tag-driven workflow rather than an ad hoc release path.</assertion-1>
+        <assertion-2>The changelog body published by GitHub must come from CHANGELOG.md for the prepared v0.3.1 entry.</assertion-2>
+      </required-trace-assertions>
+    </V-M-GITHUB-RELEASE-0-3-1>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -1485,6 +1564,26 @@
         <evidence-4>The failure contract explicitly checks SSH-forward liveness before a local-workstation Connecting-only symptom can be blamed on the tunnel runtime.</evidence-4>
       </required-evidence>
     </Gate-Phase-12>
+
+    <Gate-Phase-13 PHASE="Phase-13">
+      <goal>The repository is ready to create and push the v0.3.1 patch-release tag after the Telegram forward clarification wave.</goal>
+      <commands>
+        <command-1>git status --short</command-1>
+        <command-2>git diff --check</command-2>
+        <command-3>git ls-remote --tags origin</command-3>
+        <command-4>rg -n '^## \\[0\\.3\\.1\\]' CHANGELOG.md</command-4>
+        <command-5>rg -n 'body_path: CHANGELOG.md|tags:|v\\*' .github/workflows/release.yml</command-5>
+        <command-6>git tag --list 'v0.3.1'</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>The changelog contains a v0.3.1 entry for the Telegram forward clarification patch scope.</evidence-1>
+        <evidence-2>Release-facing docs stay aligned with the verified forwarded Telegram Desktop path.</evidence-2>
+        <evidence-3>The local tree is clean and patch-integrity checks pass before tag creation.</evidence-3>
+        <evidence-4>The remote baseline already contains v0.3.0 and the next tag is justified as v0.3.1.</evidence-4>
+        <evidence-5>The existing GitHub workflow remains valid for the pushed v0.3.1 tag.</evidence-5>
+        <evidence-6>No stale local v0.3.1 tag exists before the approved release-push step.</evidence-6>
+      </required-evidence>
+    </Gate-Phase-13>
   </PhaseGates>
 
   <FailurePackets>

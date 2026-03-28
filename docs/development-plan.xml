@@ -1826,6 +1826,9 @@
         <critical-block>BLOCK_RELEASE_GATE_031</critical-block>
       </observability>
       <verification-ref>V-M-RELEASE-GATE-0-3-1</verification-ref>
+      <notes>
+        <note-1>On March 28, 2026 the v0.3.1 release gate ran green after the patch-release changelog and release-facing messaging were updated: CHANGELOG.md contained 0.3.1, git diff --check was clean, no local v0.3.1 tag existed yet, and the remote tag baseline remained v0.3.0.</note-1>
+      </notes>
     </M-RELEASE-GATE-0-3-1>
 
     <M-GITHUB-RELEASE-0-3-1 NAME="GitHubRelease031" TYPE="INTEGRATION" LAYER="16" ORDER="4" STATUS="planned">
