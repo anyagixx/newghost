@@ -2615,7 +2615,7 @@
       <step-8 module="M-FINAL-GO-NO-GO" status="done" verification="V-M-FINAL-GO-NO-GO">Produce the final go/no-go decision for the Telegram Desktop use case on the rebuilt environment</step-8>
     </Phase-14>
 
-    <Phase-15 name="Release Baseline 0.3.2" status="pending">
+    <Phase-15 name="Release Baseline 0.3.2" status="done">
       <goal>Publish the current verified local baseline to GitHub as v0.3.2 before planning the UDP-capable Telegram calls architecture.</goal>
       <step-1 module="M-CHANGELOG-0-3-2" status="done" verification="V-M-CHANGELOG-0-3-2">Add the bounded v0.3.2 changelog entry for the current verified baseline</step-1>
       <step-2 module="M-RELEASE-MESSAGING-0-3-2" status="done" verification="V-M-RELEASE-MESSAGING-0-3-2">Align release-facing docs with the verified Telegram Desktop envelope and current limitations</step-2>
