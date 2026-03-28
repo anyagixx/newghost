@@ -975,7 +975,7 @@
       </annotations>
     </M-UDP-EGRESS-RELAY>
 
-    <M-DATAGRAM-TRANSPORT-SELECTOR NAME="DatagramTransportSelector" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-TRANSPORT-SELECTOR NAME="DatagramTransportSelector" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Select the governed UDP-capable transport path for datagrams, initially with the WSS-backed datagram route.</purpose>
       <path>src/session/datagram_transport_selector.rs</path>
       <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-SESSION-TRANSPORT-SELECTOR</depends>
