@@ -1831,7 +1831,7 @@
       </notes>
     </M-RELEASE-GATE-0-3-1>
 
-    <M-GITHUB-RELEASE-0-3-1 NAME="GitHubRelease031" TYPE="INTEGRATION" LAYER="16" ORDER="4" STATUS="planned">
+    <M-GITHUB-RELEASE-0-3-1 NAME="GitHubRelease031" TYPE="INTEGRATION" LAYER="16" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Align the existing tag-driven GitHub source release workflow with the v0.3.1 changelog and release gate outcome, then push the tag.</purpose>
         <inputs>
@@ -2196,7 +2196,7 @@
       <step-1 module="M-CHANGELOG-0-3-1" status="done" verification="V-M-CHANGELOG-0-3-1">Add the v0.3.1 changelog entry for the Telegram forward clarification patch scope</step-1>
       <step-2 module="M-RELEASE-MESSAGING-0-3-1" status="done" verification="V-M-RELEASE-MESSAGING-0-3-1">Align release-facing docs with the verified Telegram Desktop forwarded path</step-2>
       <step-3 module="M-RELEASE-GATE-0-3-1" status="done" verification="V-M-RELEASE-GATE-0-3-1">Run the release gate and confirm v0.3.1 is ready to tag</step-3>
-      <step-4 module="M-GITHUB-RELEASE-0-3-1" status="pending" verification="V-M-GITHUB-RELEASE-0-3-1">Create and push the v0.3.1 tag through the existing GitHub source-release workflow</step-4>
+      <step-4 module="M-GITHUB-RELEASE-0-3-1" status="done" verification="V-M-GITHUB-RELEASE-0-3-1">Create and push the v0.3.1 tag through the existing GitHub source-release workflow</step-4>
     </Phase-13>
   </ImplementationOrder>
 
