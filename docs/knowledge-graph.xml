@@ -478,7 +478,7 @@
       </annotations>
     </M-LOG-ROTATION>
 
-    <M-OPERATOR-RUNBOOK NAME="OperatorRunbook" TYPE="UTILITY" STATUS="planned">
+    <M-OPERATOR-RUNBOOK NAME="OperatorRunbook" TYPE="UTILITY" STATUS="implemented">
       <purpose>Define the stable operator runbook for install, start, stop, update, rollback, and evidence capture in the managed deployment shape.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-DEPLOY-LAYOUT, M-SYSTEMD-UNITS, M-LOG-ROTATION, M-LIVE-OBS-EVIDENCE</depends>
@@ -487,6 +487,7 @@
         <fn-documentInstall PURPOSE="Describe the managed install and first-start procedure." />
         <fn-documentRecovery PURPOSE="Describe restart, rollback, and evidence-capture procedures." />
         <type-OperatorRunbookRecord PURPOSE="Carries the approved operator workflow for the managed deployment shape." />
+        <type-ManagedOperatorFlow PURPOSE="The current runbook defines deploy-live, systemctl lifecycle, journalctl evidence capture, and bounded rollback as the canonical managed operator flow." />
       </annotations>
     </M-OPERATOR-RUNBOOK>
 

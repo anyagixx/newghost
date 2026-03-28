@@ -1284,7 +1284,7 @@
       </notes>
     </M-LOG-ROTATION>
 
-    <M-OPERATOR-RUNBOOK NAME="OperatorRunbook" TYPE="UTILITY" LAYER="12" ORDER="1" STATUS="planned">
+    <M-OPERATOR-RUNBOOK NAME="OperatorRunbook" TYPE="UTILITY" LAYER="12" ORDER="1" STATUS="implemented">
       <contract>
         <purpose>Define the stable operator runbook for install, start, stop, update, rollback, restart evidence, and bounded failure triage.</purpose>
         <inputs>
@@ -1314,6 +1314,7 @@
       <verification-ref>V-M-OPERATOR-RUNBOOK</verification-ref>
       <notes>
         <note-1>The runbook must describe only proven paths and must reference the same evidence commands used by the verification plan.</note-1>
+        <note-2>docs/OPERATORS.md now documents managed install or update, systemctl lifecycle, journalctl evidence capture, and bounded rollback using the governed Phase-9 artifacts.</note-2>
       </notes>
     </M-OPERATOR-RUNBOOK>
 
@@ -1593,7 +1594,7 @@
       <step-3 module="M-DEPLOY-SCRIPTING" status="done" verification="V-M-DEPLOY-SCRIPTING">Implement repeatable server and client deployment or update scripting around the canonical layout</step-3>
       <step-4 module="M-SYSTEMD-UNITS" status="done" verification="V-M-SYSTEMD-UNITS">Define managed server and client systemd services with explicit readiness and restart evidence</step-4>
       <step-5 module="M-LOG-ROTATION" status="done" verification="V-M-LOG-ROTATION">Add bounded log-retention policy that preserves current-wave evidence</step-5>
-      <step-6 module="M-OPERATOR-RUNBOOK" status="pending" verification="V-M-OPERATOR-RUNBOOK">Document install, start, stop, update, rollback, and evidence capture for the managed deployment shape</step-6>
+      <step-6 module="M-OPERATOR-RUNBOOK" status="done" verification="V-M-OPERATOR-RUNBOOK">Document install, start, stop, update, rollback, and evidence capture for the managed deployment shape</step-6>
       <step-7 module="M-LIVE-WAVE-2" status="pending" verification="V-M-LIVE-WAVE-2">Execute the second live wave for service-managed startup, repeated smoke, restart recovery, and bad-auth verification</step-7>
     </Phase-9>
   </ImplementationOrder>
