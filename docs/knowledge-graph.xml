@@ -640,7 +640,7 @@
       </annotations>
     </M-TELEGRAM-FORWARD-VERIFICATION>
 
-    <M-TELEGRAM-FORWARD-GRAPH-SYNC NAME="TelegramForwardGraphSync" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-FORWARD-GRAPH-SYNC NAME="TelegramForwardGraphSync" TYPE="UTILITY" STATUS="implemented">
       <purpose>Synchronize the graph with the clarified Telegram Desktop operator path without altering runtime architecture.</purpose>
       <path>docs/knowledge-graph.xml</path>
       <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-FORWARD-VERIFICATION</depends>
@@ -648,6 +648,8 @@
       <annotations>
         <fn-syncTelegramForwardGraph PURPOSE="Record the clarified forwarded Desktop operator path and its verification links." />
         <type-TelegramForwardGraphSyncRecord PURPOSE="Carries the graph-level synchronization record for the Telegram forward clarification wave." />
+        <type-TelegramForwardedDesktopPath PURPOSE="The verified Desktop path is local Telegram Desktop -> local SSH-forwarded 127.0.0.1:1080 -> remote managed n0wss-client listener, not a directly local n0wss bind." />
+        <type-TelegramForwardLivenessTriage PURPOSE="When Telegram stalls at Connecting on the local workstation, SSH-forward liveness is checked before classifying a tunnel-runtime defect." />
       </annotations>
     </M-TELEGRAM-FORWARD-GRAPH-SYNC>
 
@@ -729,8 +731,10 @@
     <CrossLink from="M-TELEGRAM-EVIDENCE" to="M-TELEGRAM-COMPAT" relation="limits compatibility claims to what Telegram-specific evidence actually proves" />
     <CrossLink from="M-TELEGRAM-READINESS" to="M-TELEGRAM-FORWARD-RUNBOOK" relation="supplies the Telegram operator path that now needs the explicit forwarded Desktop variant" />
     <CrossLink from="M-OPERATOR-RUNBOOK" to="M-TELEGRAM-FORWARD-RUNBOOK" relation="owns the operator-facing commands for the clarified forwarded Desktop path" />
+    <CrossLink from="M-LIVE-CLIENT-LAUNCH" to="M-TELEGRAM-FORWARD-RUNBOOK" relation="supplies the remote managed SOCKS5 listener that the verified Desktop scenario reaches through SSH local forwarding" />
     <CrossLink from="M-TELEGRAM-SMOKE" to="M-TELEGRAM-FORWARD-VERIFICATION" relation="defines the proven Telegram Desktop wave that the forward-aware verification must reproduce" />
     <CrossLink from="M-TELEGRAM-EVIDENCE" to="M-TELEGRAM-FORWARD-VERIFICATION" relation="supplies the packet boundaries that must include the local-forward prerequisite" />
+    <CrossLink from="M-TELEGRAM-READINESS" to="M-TELEGRAM-FORWARD-VERIFICATION" relation="requires forward proof before the local-workstation app-side attempt is considered valid" />
     <CrossLink from="M-TELEGRAM-FORWARD-RUNBOOK" to="M-TELEGRAM-FORWARD-GRAPH-SYNC" relation="supplies the clarified operator path that the graph must encode" />
     <CrossLink from="M-TELEGRAM-FORWARD-VERIFICATION" to="M-TELEGRAM-FORWARD-GRAPH-SYNC" relation="supplies the corrected verification dependency the graph must encode" />
 
