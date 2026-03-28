@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.12">
+<VerificationPlan VERSION="0.2.14">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -18,6 +18,7 @@
     <release-clean-tree-rule>The release gate must distinguish between allowed controller-owned release-prep edits that are still in progress and the final clean-tree condition required before tag creation.</release-clean-tree-rule>
     <telegram-compat-boundary-rule>Telegram verification may prove only standard SOCKS5 client compatibility over the governed n0wss tunnel and must not silently escalate into claims of universal unblock capability or Telegram-specific protocol support.</telegram-compat-boundary-rule>
     <manual-client-evidence-rule>When a live wave depends on a third-party interactive client, the verification packet must capture app-side action, n0wss-side anchored logs, socket state, and a first-divergent-block summary so another agent can debug without repeating blind manual steps.</manual-client-evidence-rule>
+    <local-forward-proof-rule>When a verified local-workstation scenario reaches a remote localhost listener through SSH forwarding, the verification contract must require explicit evidence that the forward command, forwarded bind, and downstream managed listener were all present during the app-side attempt.</local-forward-proof-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -1141,6 +1142,56 @@
         <assertion-1>Compatibility language must not silently escalate from proxy compatibility to guaranteed unblock claims.</assertion-1>
       </required-trace-assertions>
     </V-M-TELEGRAM-COMPAT>
+
+    <V-M-TELEGRAM-FORWARD-RUNBOOK MODULE="M-TELEGRAM-FORWARD-RUNBOOK" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'ssh -N -L 127.0.0.1:1080:127.0.0.1:1080|Telegram Desktop|local workstation|remote client host' docs/OPERATORS.md docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The operator runbook explicitly distinguishes the local-workstation Telegram Desktop scenario from Telegram running directly on the remote client host.</scenario-1>
+        <scenario-2 kind="failure">The runbook still implies that 127.0.0.1:1080 is locally available without an SSH forward in the verified Desktop scenario.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The local-workstation Desktop path must show the exact SSH local-forward shape before Telegram is pointed at 127.0.0.1:1080.</assertion-1>
+        <assertion-2>The runbook must also preserve the separate remote-host variant so the SSH-forward step is not falsely universalized.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORWARD-RUNBOOK>
+
+    <V-M-TELEGRAM-FORWARD-VERIFICATION MODULE="M-TELEGRAM-FORWARD-VERIFICATION" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-007|ssh -N -L 127.0.0.1:1080:127.0.0.1:1080|forward|TelegramProxyWave' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">LV-007 and the Telegram evidence packet requirements explicitly encode the local-forward prerequisite for the verified Desktop scenario.</scenario-1>
+        <scenario-2 kind="failure">Verification commands still omit the forward and therefore do not reproduce the validated Telegram Desktop path.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The Telegram Desktop wave must prove three states for the local-workstation variant: local forwarded bind present, remote managed SOCKS5 listener present, and Telegram pointed at the forwarded local endpoint.</assertion-1>
+        <assertion-2>A later Connecting-only failure must first check forward liveness before classifying a tunnel-side regression.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORWARD-VERIFICATION>
+
+    <V-M-TELEGRAM-FORWARD-GRAPH-SYNC MODULE="M-TELEGRAM-FORWARD-GRAPH-SYNC" PRIORITY="medium">
+      <test-files>
+        <file>docs/knowledge-graph.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'M-TELEGRAM-FORWARD-|forwarded Desktop|SSH local forward' docs/knowledge-graph.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The graph records the clarified Telegram Desktop operator path and its verification dependencies without changing runtime-module meaning.</scenario-1>
+        <scenario-2 kind="failure">The graph remains silent about the clarified forwarded Desktop path after the plan and verification contracts are updated.</scenario-2>
+      </scenarios>
+    </V-M-TELEGRAM-FORWARD-GRAPH-SYNC>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -1244,19 +1295,23 @@
       <commands>
         <command-1>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-1>
         <command-2>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-2>
-        <command-3>telegram-client-side configure SOCKS5 proxy 127.0.0.1:$N0WSS_SOCKS5_PORT and attempt initial connect</command-3>
-        <command-4>collect bounded client and server log tails for the initial connect packet</command-4>
-        <command-5>restart the Telegram app or trigger one reconnect path through the same SOCKS5 settings</command-5>
-        <command-6>collect bounded client and server log tails for the reconnect packet</command-6>
+        <command-3>if Telegram runs on the local operator workstation, start and keep alive `ssh -N -L 127.0.0.1:$N0WSS_SOCKS5_PORT:127.0.0.1:$N0WSS_SOCKS5_PORT root@$N0WSS_CLIENT_HOST` before the app-side check</command-3>
+        <command-4>if Telegram runs on the local operator workstation, prove the forwarded local bind with `ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true` before the app-side check</command-4>
+        <command-5>telegram-client-side configure SOCKS5 proxy 127.0.0.1:$N0WSS_SOCKS5_PORT and attempt initial connect</command-5>
+        <command-6>collect bounded client and server log tails for the initial connect packet</command-6>
+        <command-7>restart the Telegram app or trigger one reconnect path through the same SOCKS5 settings</command-7>
+        <command-8>if reconnect stalls at Connecting on the local workstation, verify the SSH-forward process is still alive before classifying a tunnel-side failure</command-8>
+        <command-9>collect bounded client and server log tails for the reconnect packet</command-9>
       </commands>
       <required-evidence>
         <evidence-1>A Telegram app instance is configured as a standard SOCKS5 client against the local n0wss endpoint.</evidence-1>
-        <evidence-2>The success packet contains SOCKS5 parse, transport selection, and pump markers or a bounded failure packet with the first divergent block.</evidence-2>
-        <evidence-3>Reconnect evidence is captured separately from the initial connect attempt.</evidence-3>
-        <evidence-4>If the app attempt never reaches n0wss, the packet must explicitly classify the divergence as app-side misconfiguration or readiness failure rather than tunnel failure.</evidence-4>
-        <evidence-5>When reconnect succeeds but a local relaunch attempt shows unstable UI recovery, the packet keeps the reconnect-path success evidence separate from the app-launch divergence note.</evidence-5>
+        <evidence-2>For the local-workstation variant, the packet includes proof of the SSH local forward and the forwarded local bind, not only the remote managed listener.</evidence-2>
+        <evidence-3>The success packet contains SOCKS5 parse, transport selection, and pump markers or a bounded failure packet with the first divergent block.</evidence-3>
+        <evidence-4>Reconnect evidence is captured separately from the initial connect attempt.</evidence-4>
+        <evidence-5>If the app attempt never reaches n0wss, the packet must explicitly classify the divergence as app-side misconfiguration, forward-liveness failure, or readiness failure rather than tunnel failure.</evidence-5>
+        <evidence-6>When reconnect succeeds but a local relaunch attempt shows unstable UI recovery, the packet keeps the reconnect-path success evidence separate from the app-launch divergence note.</evidence-6>
       </required-evidence>
-      <failure-packet-template>scenario=TelegramProxyWave; expected-evidence=Telegram connects through SOCKS5 and survives one reconnect path; observed-evidence=Telegram app result, local listener state, and anchored n0wss logs; first-divergent-block=first missing SOCKS5 or transport marker; next-action=distinguish Telegram client misconfig from tunnel-side failure before rerun</failure-packet-template>
+      <failure-packet-template>scenario=TelegramProxyWave; expected-evidence=Telegram connects through SOCKS5 and survives one reconnect path with forward proof when the client is local; observed-evidence=Telegram app result, forward state, local listener state, and anchored n0wss logs; first-divergent-block=first missing forward, SOCKS5, or transport marker; next-action=check SSH-forward liveness first for local-workstation runs, then distinguish Telegram misconfig from tunnel-side failure before rerun</failure-packet-template>
     </LV-007>
   </LiveEnvironmentVerification>
 
@@ -1414,6 +1469,22 @@
         <evidence-4>Phase evidence includes separable readiness, initial-connect, reconnect, and bounded-failure packets rather than one blended manual transcript.</evidence-4>
       </required-evidence>
     </Gate-Phase-11>
+
+    <Gate-Phase-12 PHASE="Phase-12">
+      <goal>The proven local Telegram Desktop path is operator-reproducible because the SSH-forward prerequisite is explicit in both the runbook and verification contract.</goal>
+      <commands>
+        <command-1>rg -n 'ssh -N -L 127.0.0.1:1080:127.0.0.1:1080|Telegram Desktop|local workstation|remote client host' docs/OPERATORS.md</command-1>
+        <command-2>rg -n 'LV-007|ssh -N -L 127.0.0.1:1080:127.0.0.1:1080|TelegramProxyWave' docs/verification-plan.xml</command-2>
+        <command-3>rg -n 'M-TELEGRAM-FORWARD-|forwarded Desktop|SSH local forward' docs/knowledge-graph.xml docs/development-plan.xml</command-3>
+        <command-4>rg -n 'forward-liveness failure|forward proof|local-workstation variant' docs/verification-plan.xml</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The operator runbook makes the local-forward prerequisite explicit for the verified Desktop scenario.</evidence-1>
+        <evidence-2>LV-007 mirrors the same prerequisite instead of assuming a local listener exists by itself.</evidence-2>
+        <evidence-3>The knowledge graph stays synchronized with the clarified Telegram Desktop operator path.</evidence-3>
+        <evidence-4>The failure contract explicitly checks SSH-forward liveness before a local-workstation Connecting-only symptom can be blamed on the tunnel runtime.</evidence-4>
+      </required-evidence>
+    </Gate-Phase-12>
   </PhaseGates>
 
   <FailurePackets>
