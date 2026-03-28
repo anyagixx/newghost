@@ -2596,7 +2596,7 @@
       <verification-ref>V-M-UDP-ASSOCIATION-REGISTRY</verification-ref>
     </M-UDP-ASSOCIATION-REGISTRY>
 
-    <M-DATAGRAM-SESSION-MANAGER NAME="DatagramSessionManager" TYPE="CORE_LOGIC" LAYER="21" ORDER="4" STATUS="planned">
+    <M-DATAGRAM-SESSION-MANAGER NAME="DatagramSessionManager" TYPE="CORE_LOGIC" LAYER="21" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Coordinate UDP association lifecycle, outbound or inbound datagram dispatch, and session-side cleanup rules.</purpose>
         <inputs>
@@ -3253,7 +3253,7 @@
       <step-1 module="M-DATAGRAM-CONTRACT" status="done" verification="V-M-DATAGRAM-CONTRACT">Define the transport-agnostic datagram contract, association identity, and error taxonomy</step-1>
       <step-2 module="M-SOCKS5-UDP-ASSOCIATE" status="done" verification="V-M-SOCKS5-UDP-ASSOCIATE">Add governed SOCKS5 UDP ASSOCIATE ingress and datagram normalization</step-2>
       <step-3 module="M-UDP-ASSOCIATION-REGISTRY" status="done" verification="V-M-UDP-ASSOCIATION-REGISTRY">Track active UDP associations, idle timers, and deterministic cleanup</step-3>
-      <step-4 module="M-DATAGRAM-SESSION-MANAGER" status="pending" verification="V-M-DATAGRAM-SESSION-MANAGER">Coordinate datagram association lifecycle and outbound or inbound dispatch</step-4>
+      <step-4 module="M-DATAGRAM-SESSION-MANAGER" status="done" verification="V-M-DATAGRAM-SESSION-MANAGER">Coordinate datagram association lifecycle and outbound or inbound dispatch</step-4>
       <step-5 module="M-WSS-DATAGRAM-GATEWAY" status="pending" verification="V-M-WSS-DATAGRAM-GATEWAY">Carry governed datagrams over the existing WSS security boundary</step-5>
       <step-6 module="M-UDP-EGRESS-RELAY" status="pending" verification="V-M-UDP-EGRESS-RELAY">Relay real UDP traffic on the server side and return inbound packets</step-6>
       <step-7 module="M-DATAGRAM-TRANSPORT-SELECTOR" status="pending" verification="V-M-DATAGRAM-TRANSPORT-SELECTOR">Select the governed datagram transport path with explicit future extension points</step-7>

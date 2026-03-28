@@ -945,7 +945,7 @@
       </annotations>
     </M-UDP-ASSOCIATION-REGISTRY>
 
-    <M-DATAGRAM-SESSION-MANAGER NAME="DatagramSessionManager" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-SESSION-MANAGER NAME="DatagramSessionManager" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Coordinate UDP association lifecycle and datagram dispatch across the tunnel boundary.</purpose>
       <path>src/session/datagram_manager.rs</path>
       <depends>M-UDP-ASSOCIATION-REGISTRY, M-DATAGRAM-CONTRACT, M-SESSION</depends>
