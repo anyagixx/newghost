@@ -1,5 +1,64 @@
 # Operators Guide
 
+## Managed Deployment Layout
+
+Phase-9 fixes one canonical deployment layout for managed Linux hosts. Do not introduce alternate ad hoc paths once managed deployment begins.
+
+### Shared Paths
+
+| Surface | Canonical Path | Notes |
+|---|---|---|
+| release binary | `/opt/n0wss/n0wss` | Active executable for both roles |
+| working root | `/opt/n0wss` | Owned by `root:root` |
+| cert directory | `/opt/n0wss/certs` | Server cert and client trust copy live here |
+| runtime env directory | `/opt/n0wss/env` | Reserved for service-managed env files |
+| runtime state directory | `/opt/n0wss/run` | Reserved for future pid or transient state if needed |
+| logs | `/var/log/n0wss-*.log` | Bounded by logrotate in later Phase-9 steps |
+
+### Server Role
+
+| Surface | Canonical Path |
+|---|---|
+| binary | `/opt/n0wss/n0wss` |
+| server cert | `/opt/n0wss/certs/server.pem` |
+| server key | `/opt/n0wss/certs/server.key` |
+| auth source | `/opt/n0wss/env/server.env` |
+| log file | `/var/log/n0wss-server.log` |
+| service file | `/etc/systemd/system/n0wss-server.service` |
+
+The server role owns the externally reachable WSS listener and must not read client-only override values from a separate layout.
+
+### Client Role
+
+| Surface | Canonical Path |
+|---|---|
+| binary | `/opt/n0wss/n0wss` |
+| trust anchor | `/opt/n0wss/certs/server.pem` |
+| auth source | `/opt/n0wss/env/client.env` |
+| log file | `/var/log/n0wss-client.log` |
+| bad-auth log file | `/var/log/n0wss-client-bad-auth.log` |
+| service file | `/etc/systemd/system/n0wss-client.service` |
+
+The client role owns the local SOCKS5 ingress and targets the managed server endpoint through the pinned trust shape only.
+
+### Ownership And Modes
+
+Canonical ownership and mode rules:
+
+- `/opt/n0wss` and subdirectories: `root:root`
+- `n0wss` binary: mode `0755`
+- certificate files: mode `0644` unless stricter host policy requires tighter read rules
+- private key files and env files containing auth material: mode `0600`
+- service files: mode `0644`
+- logs stay writable by the service runtime user or by the service manager policy chosen in the unit files
+
+Operational invariants:
+
+- one binary path per host role
+- one canonical log target per service role
+- no secret material in repository-tracked files
+- no service file may point outside the approved `/opt/n0wss`, `/etc/systemd/system`, and `/var/log` layout without a new GRACE plan update
+
 ## Release Readiness
 
 Before opening the first GitHub release or handing the repository to external testers, run:
