@@ -1799,7 +1799,7 @@
       <verification-ref>V-M-RELEASE-MESSAGING-0-3-1</verification-ref>
     </M-RELEASE-MESSAGING-0-3-1>
 
-    <M-RELEASE-GATE-0-3-1 NAME="ReleaseGate031" TYPE="ENTRY_POINT" LAYER="16" ORDER="3" STATUS="planned">
+    <M-RELEASE-GATE-0-3-1 NAME="ReleaseGate031" TYPE="ENTRY_POINT" LAYER="16" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Define the release gate that decides whether the repository is ready to tag and push v0.3.1.</purpose>
         <inputs>
@@ -2195,7 +2195,7 @@
       <goal>Prepare, gate, and publish the v0.3.1 patch release for the Telegram forward clarification wave after the existing v0.3.0 release baseline.</goal>
       <step-1 module="M-CHANGELOG-0-3-1" status="done" verification="V-M-CHANGELOG-0-3-1">Add the v0.3.1 changelog entry for the Telegram forward clarification patch scope</step-1>
       <step-2 module="M-RELEASE-MESSAGING-0-3-1" status="done" verification="V-M-RELEASE-MESSAGING-0-3-1">Align release-facing docs with the verified Telegram Desktop forwarded path</step-2>
-      <step-3 module="M-RELEASE-GATE-0-3-1" status="pending" verification="V-M-RELEASE-GATE-0-3-1">Run the release gate and confirm v0.3.1 is ready to tag</step-3>
+      <step-3 module="M-RELEASE-GATE-0-3-1" status="done" verification="V-M-RELEASE-GATE-0-3-1">Run the release gate and confirm v0.3.1 is ready to tag</step-3>
       <step-4 module="M-GITHUB-RELEASE-0-3-1" status="pending" verification="V-M-GITHUB-RELEASE-0-3-1">Create and push the v0.3.1 tag through the existing GitHub source-release workflow</step-4>
     </Phase-13>
   </ImplementationOrder>
