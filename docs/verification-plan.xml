@@ -1943,7 +1943,7 @@
         <file>src/wss_gateway/datagram.test.rs</file>
       </test-files>
       <module-checks>
-        <check-1>cargo test wss_gateway datagram</check-1>
+        <check-1>cargo test datagram</check-1>
       </module-checks>
       <scenarios>
         <scenario-1 kind="success">Governed datagrams are encapsulated in WSS frames and recovered without changing the stream path semantics.</scenario-1>
@@ -2515,7 +2515,7 @@
         <command-2>cargo test udp_registry</command-2>
         <command-3>cargo test datagram_manager</command-3>
         <command-4>cargo test datagram_transport_selector</command-4>
-        <command-5>cargo test wss_gateway datagram</command-5>
+        <command-5>cargo test datagram</command-5>
         <command-6>cargo test udp_relay</command-6>
         <command-7>rg -n 'Telegram|call|voice|video|UDP|SOCKS5 UDP ASSOCIATE' README.md docs/OPERATORS.md docs/verification-plan.xml</command-7>
       </commands>

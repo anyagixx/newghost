@@ -3248,7 +3248,7 @@
       <step-4 module="M-GITHUB-MASTER-SYNC-032" status="done" verification="V-M-GITHUB-MASTER-SYNC-032">Push v0.3.2 to origin/master</step-4>
     </Phase-17>
 
-    <Phase-18 name="Telegram Calls Support" status="pending">
+    <Phase-18 name="Telegram Calls Support" status="done">
       <goal>Extend the governed proxy path with UDP-capable architecture so Telegram Desktop voice and video calls can be tested through SOCKS5 UDP ASSOCIATE and bounded datagram relay.</goal>
       <step-1 module="M-DATAGRAM-CONTRACT" status="done" verification="V-M-DATAGRAM-CONTRACT">Define the transport-agnostic datagram contract, association identity, and error taxonomy</step-1>
       <step-2 module="M-SOCKS5-UDP-ASSOCIATE" status="done" verification="V-M-SOCKS5-UDP-ASSOCIATE">Add governed SOCKS5 UDP ASSOCIATE ingress and datagram normalization</step-2>
