@@ -1,10 +1,10 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Create WSS-backed transport streams by composing TCP, TLS, websocket upgrade, auth validation, and remote target relay under the shared adapter contract without owning transport selection logic.
-//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, adapter-scoped task tracking, and cleanup-sensitive shutdown paths.
-//   DEPENDS: std, async-trait, futures-util, http, thiserror, tokio, tokio-tungstenite, tokio-util, tracing, src/tls/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/transport/*
-//   LINKS: M-WSS-GATEWAY, M-TLS, M-AUTH, M-OBS, V-M-WSS-GATEWAY, DF-WSS-HANDSHAKE
+//   PURPOSE: Create WSS-backed transport streams by composing TCP, TLS, websocket upgrade, auth validation, target relay, and governed datagram framing under the shared adapter contract without owning transport selection logic.
+//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
+//   DEPENDS: std, async-trait, futures-util, http, thiserror, tokio, tokio-tungstenite, tokio-util, tracing, src/tls/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/transport/*, src/wss_gateway/datagram.rs
+//   LINKS: M-WSS-GATEWAY, M-WSS-DATAGRAM-GATEWAY, M-TLS, M-AUTH, M-OBS, V-M-WSS-GATEWAY, V-M-WSS-DATAGRAM-GATEWAY, DF-WSS-HANDSHAKE, DF-UDP-OUTBOUND, DF-UDP-INBOUND
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -15,10 +15,11 @@
 //   open_stream - establish an outbound WSS-backed resolved stream
 //   task_tracker - expose adapter-scoped task tracking
 //   stop_accept - stop the accept loop during shutdown
+//   datagram - governed WSS datagram frame helpers kept separate from the stream path
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Replaced the placeholder echo server path with a target-aware TCP relay so WSS streams can proxy real outbound traffic.
+//   LAST_CHANGE: v0.1.3 - Exported a bounded WSS datagram framing helper surface without changing the existing stream tunnel path.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -49,6 +50,8 @@ use crate::transport::task_tracker::AdapterTaskTracker;
 #[cfg(test)]
 #[path = "mod.test.rs"]
 mod tests;
+
+pub mod datagram;
 
 #[derive(Clone)]
 pub struct GatewayConfig {
