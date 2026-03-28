@@ -763,7 +763,7 @@
       </annotations>
     </M-FINAL-VOICE-AND-MEDIA>
 
-    <M-FINAL-EVIDENCE-PACKET NAME="FinalEvidencePacket" TYPE="UTILITY" STATUS="planned">
+    <M-FINAL-EVIDENCE-PACKET NAME="FinalEvidencePacket" TYPE="UTILITY" STATUS="implemented">
       <purpose>Assemble a bounded final acceptance packet from both hosts and the operator Telegram Desktop session without blind reruns.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-FINAL-TELEGRAM-ACCEPTANCE, M-FINAL-VOICE-AND-MEDIA, M-LIVE-OBS-EVIDENCE</depends>

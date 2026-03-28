@@ -2039,7 +2039,7 @@
       </notes>
     </M-FINAL-VOICE-AND-MEDIA>
 
-    <M-FINAL-EVIDENCE-PACKET NAME="FinalEvidencePacket" TYPE="UTILITY" LAYER="17" ORDER="7" STATUS="planned">
+    <M-FINAL-EVIDENCE-PACKET NAME="FinalEvidencePacket" TYPE="UTILITY" LAYER="17" ORDER="7" STATUS="implemented">
       <contract>
         <purpose>Assemble a bounded final acceptance packet from both hosts and the operator Telegram Desktop session without requiring blind reruns.</purpose>
         <inputs>
@@ -2065,6 +2065,10 @@
         <critical-block>BLOCK_FINAL_EVIDENCE_PACKET</critical-block>
       </observability>
       <verification-ref>V-M-FINAL-EVIDENCE-PACKET</verification-ref>
+      <notes>
+        <note-1>The bounded final packet now contains separate readiness, basic-acceptance, media-success, and call-failure sections for the rebuilt-host Telegram Desktop wave.</note-1>
+        <note-2>The failure summary preserves the observed call symptom, keeps the verified message and file path green, and points the next action at a later UDP-capable calls phase instead of replaying the same TCP or SOCKS5 acceptance steps.</note-2>
+      </notes>
     </M-FINAL-EVIDENCE-PACKET>
 
     <M-FINAL-GO-NO-GO NAME="FinalGoNoGo" TYPE="ENTRY_POINT" LAYER="17" ORDER="8" STATUS="planned">
@@ -2588,7 +2592,7 @@
       <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="done" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
       <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="done" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
       <step-6 module="M-FINAL-VOICE-AND-MEDIA" status="done" verification="V-M-FINAL-VOICE-AND-MEDIA">Capture photo, file, and call-path acceptance results as separable media evidence</step-6>
-      <step-7 module="M-FINAL-EVIDENCE-PACKET" status="pending" verification="V-M-FINAL-EVIDENCE-PACKET">Assemble the bounded final evidence packet from both hosts and the operator session</step-7>
+      <step-7 module="M-FINAL-EVIDENCE-PACKET" status="done" verification="V-M-FINAL-EVIDENCE-PACKET">Assemble the bounded final evidence packet from both hosts and the operator session</step-7>
       <step-8 module="M-FINAL-GO-NO-GO" status="pending" verification="V-M-FINAL-GO-NO-GO">Produce the final go/no-go decision for the Telegram Desktop use case on the rebuilt environment</step-8>
     </Phase-14>
 

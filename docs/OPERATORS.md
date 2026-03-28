@@ -360,6 +360,20 @@ For each Telegram wave keep four separable packets:
 - reconnect packet: reconnect action summary, fresh local forward state when applicable, fresh client log tail, fresh server log tail if reached
 - failure packet: expected evidence, observed evidence, first divergent block, next action
 
+Final rebuilt-host packet on 2026-03-29:
+
+- readiness packet:
+  server and client services were green on the rebuilt hosts before handoff, with managed listeners and startup anchors already confirmed
+- basic-acceptance packet:
+  Telegram Desktop connected through the governed SSH-forwarded SOCKS5 path and text-message delivery was green
+- media-success packet:
+  photo send, ordinary media send, and large-file transfer were green
+- call-failure packet:
+  expected evidence: voice and video calls complete over the same governed path
+  observed evidence: call ringing and answer state succeeded, but Telegram stayed at key exchange while message and file paths remained green
+  first divergent block: the current bounded envelope stops at the CONNECT-oriented SOCKS5 or TCP path and does not yet prove the later call media path
+  next action: plan a dedicated UDP-capable Telegram calls phase instead of replaying the already green TCP or SOCKS5 acceptance path
+
 Classification rule:
 
 - if Telegram never triggers `[Socks5Proxy][parseRequest][BLOCK_PARSE_SOCKS5_REQUEST]`, first check whether the SSH forward is still alive for the local-workstation variant, then classify the failure as app-side misconfiguration, forward-liveness failure, or readiness-side failure

@@ -1409,6 +1409,7 @@
       <required-trace-assertions>
         <assertion-1>The final packet must contain distinct readiness, basic-acceptance, media, and failure-or-go-no-go sections.</assertion-1>
         <assertion-2>The packet must preserve a first-divergent-block summary for any failed sub-scenario.</assertion-2>
+        <assertion-3>The final packet must preserve that March 29 basic and file-transfer paths stayed green while the calls path diverged into a separate failure summary with a later UDP-capable next action.</assertion-3>
       </required-trace-assertions>
     </V-M-FINAL-EVIDENCE-PACKET>
 
