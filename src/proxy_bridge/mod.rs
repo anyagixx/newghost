@@ -1,10 +1,10 @@
 // FILE: src/proxy_bridge/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Consume ProxyIntent work items, resolve generic transport streams through SessionManager, and relay bytes bidirectionally with bounded request lifetime and drain behavior.
-//   SCOPE: Worker loop, per-intent orchestration, bidirectional stream pumping, active-task drain, and session lifecycle notification.
-//   DEPENDS: std, thiserror, tokio, tokio-util, tracing, src/socks5/mod.rs, src/session/mod.rs, src/transport/stream.rs
-//   LINKS: M-PROXY-BRIDGE, V-M-PROXY-BRIDGE, DF-SOCKS5-REQUEST, DF-SHUTDOWN
+//   PURPOSE: Consume ProxyIntent work items, resolve generic transport streams through SessionManager, relay TCP bytes bidirectionally, and host the server-side UDP relay helper surface.
+//   SCOPE: Worker loop, per-intent orchestration, bidirectional stream pumping, active-task drain, session lifecycle notification, and UDP relay helper export.
+//   DEPENDS: std, thiserror, tokio, tokio-util, tracing, src/socks5/mod.rs, src/session/mod.rs, src/transport/stream.rs, src/proxy_bridge/udp_relay.rs
+//   LINKS: M-PROXY-BRIDGE, M-UDP-EGRESS-RELAY, V-M-PROXY-BRIDGE, V-M-UDP-EGRESS-RELAY, DF-SOCKS5-REQUEST, DF-SHUTDOWN, DF-UDP-OUTBOUND, DF-UDP-INBOUND
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -14,10 +14,11 @@
 //   run_worker - consume ProxyIntent items until drain is requested
 //   pump_bidirectional - relay bytes between local proxy socket and resolved generic stream
 //   drain_all - stop new bridge work and wait for active pumps to complete
+//   udp_relay - governed server-side UDP relay helpers kept separate from the TCP bridge path
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Propagated proxy target host and port into transport resolution so live WSS sessions can open real outbound destinations.
+//   LAST_CHANGE: v0.1.3 - Exported the governed UDP relay helper surface without changing the existing TCP bridge worker contract.
 // END_CHANGE_SUMMARY
 
 use std::sync::Arc;
@@ -38,6 +39,8 @@ use crate::transport::stream::ResolvedStream;
 #[cfg(test)]
 #[path = "mod.test.rs"]
 mod tests;
+
+pub mod udp_relay;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProxyBridgeConfig {
