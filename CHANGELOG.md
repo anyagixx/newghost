@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.1] - 2026-03-28
+
+Patch release for the Telegram Desktop forward clarification wave after the published `v0.3.0` baseline.
+
+Included in this release:
+
+- Explicit operator guidance for the verified local Telegram Desktop path through `ssh -L 127.0.0.1:1080:127.0.0.1:1080`
+- Telegram verification contract updated so `LV-007` requires forward proof and forward-liveness triage before tunnel blame
+- Knowledge graph synchronized with the clarified forwarded Desktop path and failure-classification order
+
+Verification baseline:
+
+- `Gate-Phase-12`
+- targeted GRACE refresh for the Telegram forward clarification scope
+- scoped GRACE review pass for the same scope
+
+Notes:
+
+- This is a patch-level documentation and verification correction release after `v0.3.0`; it does not introduce a new transport or deployment wave.
+
 ## [0.3.0] - 2026-03-28
 
 Managed deployment and release-hardening update for the WSS proxy runtime.
