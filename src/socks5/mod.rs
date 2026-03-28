@@ -1,10 +1,10 @@
 // FILE: src/socks5/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and map pre-pump failures to exact client-visible replies.
-//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, and accept-loop shutdown.
-//   DEPENDS: std, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/session/mod.rs
-//   LINKS: M-SOCKS5, V-M-SOCKS5, DF-SOCKS5-INTENT, DF-REPLY-MAPPING
+//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and host the governed UDP ASSOCIATE helper surface.
+//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, UDP ASSOCIATE helper export, and accept-loop shutdown.
+//   DEPENDS: std, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/session/mod.rs, src/socks5/udp_associate.rs
+//   LINKS: M-SOCKS5, M-SOCKS5-UDP-ASSOCIATE, V-M-SOCKS5, V-M-SOCKS5-UDP-ASSOCIATE, DF-SOCKS5-INTENT, DF-REPLY-MAPPING, DF-SOCKS5-UDP-ASSOCIATE
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -21,10 +21,11 @@
 //   map_reply - map ProxyError to an exact SOCKS5 reply or None after reply emission
 //   send_reply_and_close - send a SOCKS5 reply and close the client socket for pre-pump failures
 //   stop_accept - stop accepting new local connections during shutdown
+//   udp_associate - governed SOCKS5 UDP ASSOCIATE relay-bind and packet normalization helpers
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Hardened reply semantics with explicit no-wildcard mapping coverage and client-visible failure invariants.
+//   LAST_CHANGE: v0.1.2 - Exported the governed UDP ASSOCIATE helper surface without widening the existing CONNECT request path.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -47,6 +48,8 @@ mod tests;
 #[cfg(test)]
 #[path = "reply_mapping.test.rs"]
 mod reply_mapping_tests;
+
+pub mod udp_associate;
 
 static NEXT_REQUEST_ID: AtomicU64 = AtomicU64::new(1);
 
