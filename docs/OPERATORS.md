@@ -361,6 +361,42 @@ Current Telegram calls profile during Phase-18:
 - public wording must still separate the already green text or file envelope from the new UDP media envelope that still needs a dedicated verification wave
 - until `LV-009 TelegramCallsWave` is executed, voice and video calls remain under validation for the tested Telegram Desktop setup
 
+### Telegram Calls Wave Runbook
+
+Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
+
+Preflight for the calls wave:
+
+1. confirm `n0wss-client` and `n0wss-server` are both active before opening Telegram
+2. for the local-workstation Desktop shape, start and keep alive:
+   `ssh -N -L 127.0.0.1:1080:127.0.0.1:1080 root@$N0WSS_CLIENT_HOST`
+3. prove the forwarded local listener exists before the call attempt:
+   `ss -ltnp | grep ':1080' || true`
+4. keep Telegram Desktop on SOCKS5 `127.0.0.1:1080` with no username and no password
+
+Execution order for `LV-009 TelegramCallsWave`:
+
+1. start one voice call or video call and note whether ringing and answer state appear
+2. while the call is progressing, capture logs for:
+   `[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]`
+   `[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]`
+   `[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT]`
+   `[WssDatagramGateway][sendDatagram][BLOCK_SEND_WSS_DATAGRAM]`
+   `[UdpEgressRelay][relayOutbound][BLOCK_RELAY_UDP_OUTBOUND]`
+   `[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]`
+3. separate signaling green from media green:
+   signaling green means the call reaches ringing or answer state
+   media green means UDP association, transport, outbound relay, and inbound relay markers all appear for the same association
+4. end the first call, wait for cleanup, then trigger one more call attempt through the same SOCKS5 settings
+5. on the second call, prove a fresh UDP association is opened instead of silently reusing stale state
+
+If the call stalls:
+
+- first verify the SSH forward is still alive for the local-workstation variant
+- if signaling is green but no UDP ASSOCIATE marker appears, classify the first divergent layer at UDP ingress
+- if UDP ASSOCIATE appears but no datagram transport marker follows, classify the first divergent layer at datagram transport selection
+- if outbound relay appears without inbound relay, classify the first divergent layer at remote relay or remote media path
+
 Repository publication note:
 
 - tag `v0.3.2` already captures this approved baseline

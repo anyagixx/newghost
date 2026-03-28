@@ -2212,16 +2212,19 @@
         <command-1>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-1>
         <command-2>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-2>
         <command-3>operator starts and keeps alive `ssh -N -L 127.0.0.1:$N0WSS_SOCKS5_PORT:127.0.0.1:$N0WSS_SOCKS5_PORT root@$N0WSS_CLIENT_HOST` for the local-workstation Telegram Desktop path</command-3>
-        <command-4>operator configures Telegram Desktop to use SOCKS5 127.0.0.1:$N0WSS_SOCKS5_PORT and initiates one voice or video call</command-4>
-        <command-5>capture client and server logs for SOCKS5 UDP ASSOCIATE, datagram transport selection, WSS datagram, and UDP relay markers</command-5>
-        <command-6>capture separate packets for call-setup, media-flow, reconnect, and failure evidence</command-6>
-        <command-7>if the call stalls, separate signaling evidence from UDP media evidence before rerun</command-7>
+        <command-4>operator proves the local forwarded bind exists with `ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true` before opening the call</command-4>
+        <command-5>operator configures Telegram Desktop to use SOCKS5 127.0.0.1:$N0WSS_SOCKS5_PORT and initiates one voice or video call</command-5>
+        <command-6>capture client and server logs for SOCKS5 UDP ASSOCIATE, datagram session open, datagram transport selection, WSS datagram, and UDP relay markers</command-6>
+        <command-7>capture separate packets for call-setup, media-flow, reconnect, and failure evidence</command-7>
+        <command-8>end the first call, then trigger one fresh reconnect call attempt through the same SOCKS5 settings</command-8>
+        <command-9>if the call stalls, separate signaling evidence from UDP media evidence before rerun</command-9>
       </commands>
       <required-evidence>
         <evidence-1>Telegram signaling remains green on the existing TCP path while UDP ASSOCIATE creates a governed relay bind.</evidence-1>
         <evidence-2>Outbound and inbound UDP media packets produce bounded datagram transport and relay evidence.</evidence-2>
         <evidence-3>Failure packets classify the first divergent layer as UDP ingress, datagram session, transport selection, remote relay, or app-side behavior.</evidence-3>
         <evidence-4>Reconnect evidence shows whether a new UDP association was opened after the prior call ended or idled out.</evidence-4>
+        <evidence-5>The calls wave keeps the SSH-forward liveness proof for the local-workstation variant separate from the UDP media diagnosis.</evidence-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsWave; expected-evidence=signaling green, UDP ASSOCIATE green, and bounded media-path evidence for one call; observed-evidence=Telegram call result, UDP association state, datagram transport logs, relay logs, and reconnect outcome; first-divergent-block=first missing UDP ASSOCIATE, datagram transport, relay, or inbound media marker; next-action=repair the first divergent layer before replaying the calls wave</failure-packet-template>
     </LV-009>
