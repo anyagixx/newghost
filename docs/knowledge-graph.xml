@@ -719,7 +719,7 @@
       </annotations>
     </M-FINAL-DEPLOY-BOOTSTRAP>
 
-    <M-FINAL-SERVICE-READINESS NAME="FinalServiceReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-FINAL-SERVICE-READINESS NAME="FinalServiceReadiness" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Prove server and client readiness on the rebuilt hosts before the operator Telegram Desktop acceptance begins.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-FINAL-DEPLOY-BOOTSTRAP, M-LIVE-SERVER-LAUNCH, M-LIVE-CLIENT-LAUNCH, M-SYSTEMD-UNITS</depends>

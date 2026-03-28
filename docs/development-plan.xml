@@ -1918,7 +1918,7 @@
       <verification-ref>V-M-FINAL-DEPLOY-BOOTSTRAP</verification-ref>
     </M-FINAL-DEPLOY-BOOTSTRAP>
 
-    <M-FINAL-SERVICE-READINESS NAME="FinalServiceReadiness" TYPE="ENTRY_POINT" LAYER="17" ORDER="3" STATUS="planned">
+    <M-FINAL-SERVICE-READINESS NAME="FinalServiceReadiness" TYPE="ENTRY_POINT" LAYER="17" ORDER="3" STATUS="done">
       <contract>
         <purpose>Prove server and client readiness on the fresh hosts before handing control to the Telegram Desktop operator test.</purpose>
         <inputs>
@@ -2430,7 +2430,7 @@
       <goal>Rebaseline two fresh Ubuntu hosts, redeploy n0wss, hand off a verified Telegram Desktop path to the operator, and capture final acceptance evidence for real Telegram use.</goal>
       <step-1 module="M-FINAL-HOST-REBASELINE" status="done" verification="V-M-FINAL-HOST-REBASELINE">Confirm both rebuilt Ubuntu hosts are reachable, clean, and ready for controlled deployment</step-1>
       <step-2 module="M-FINAL-DEPLOY-BOOTSTRAP" status="done" verification="V-M-FINAL-DEPLOY-BOOTSTRAP">Redeploy the governed managed n0wss stack onto both fresh hosts</step-2>
-      <step-3 module="M-FINAL-SERVICE-READINESS" status="pending" verification="V-M-FINAL-SERVICE-READINESS">Prove fresh service readiness before the operator Telegram Desktop test begins</step-3>
+      <step-3 module="M-FINAL-SERVICE-READINESS" status="done" verification="V-M-FINAL-SERVICE-READINESS">Prove fresh service readiness before the operator Telegram Desktop test begins</step-3>
       <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="pending" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
       <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="pending" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
       <step-6 module="M-FINAL-VOICE-AND-MEDIA" status="pending" verification="V-M-FINAL-VOICE-AND-MEDIA">Capture photo, file, and call-path acceptance results as separable media evidence</step-6>
