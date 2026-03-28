@@ -2007,7 +2007,7 @@
       </notes>
     </M-FINAL-TELEGRAM-ACCEPTANCE>
 
-    <M-FINAL-VOICE-AND-MEDIA NAME="FinalVoiceAndMedia" TYPE="CORE_LOGIC" LAYER="17" ORDER="6" STATUS="planned">
+    <M-FINAL-VOICE-AND-MEDIA NAME="FinalVoiceAndMedia" TYPE="CORE_LOGIC" LAYER="17" ORDER="6" STATUS="implemented">
       <contract>
         <purpose>Separate media-heavy Telegram acceptance scenarios such as photos, large files, and calls from the basic connect path.</purpose>
         <inputs>
@@ -2033,6 +2033,10 @@
         <critical-block>BLOCK_FINAL_VOICE_AND_MEDIA</critical-block>
       </observability>
       <verification-ref>V-M-FINAL-VOICE-AND-MEDIA</verification-ref>
+      <notes>
+        <note-1>On 2026-03-29 the operator reported green photo, media, and multi-gigabyte file transfer through the rebuilt-host Telegram Desktop path, with upload behavior described as fast and stable.</note-1>
+        <note-2>Voice and video calls reached ringing and answer state but stalled at Telegram key-exchange, while the basic connect path remained healthy; this was classified as a media-specific call-path gap rather than a collapse of the verified TCP or SOCKS5 envelope.</note-2>
+      </notes>
     </M-FINAL-VOICE-AND-MEDIA>
 
     <M-FINAL-EVIDENCE-PACKET NAME="FinalEvidencePacket" TYPE="UTILITY" LAYER="17" ORDER="7" STATUS="planned">
@@ -2583,7 +2587,7 @@
       <step-3 module="M-FINAL-SERVICE-READINESS" status="done" verification="V-M-FINAL-SERVICE-READINESS">Prove fresh service readiness before the operator Telegram Desktop test begins</step-3>
       <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="done" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
       <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="done" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
-      <step-6 module="M-FINAL-VOICE-AND-MEDIA" status="pending" verification="V-M-FINAL-VOICE-AND-MEDIA">Capture photo, file, and call-path acceptance results as separable media evidence</step-6>
+      <step-6 module="M-FINAL-VOICE-AND-MEDIA" status="done" verification="V-M-FINAL-VOICE-AND-MEDIA">Capture photo, file, and call-path acceptance results as separable media evidence</step-6>
       <step-7 module="M-FINAL-EVIDENCE-PACKET" status="pending" verification="V-M-FINAL-EVIDENCE-PACKET">Assemble the bounded final evidence packet from both hosts and the operator session</step-7>
       <step-8 module="M-FINAL-GO-NO-GO" status="pending" verification="V-M-FINAL-GO-NO-GO">Produce the final go/no-go decision for the Telegram Desktop use case on the rebuilt environment</step-8>
     </Phase-14>

@@ -752,7 +752,7 @@
       </annotations>
     </M-FINAL-TELEGRAM-ACCEPTANCE>
 
-    <M-FINAL-VOICE-AND-MEDIA NAME="FinalVoiceAndMedia" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-FINAL-VOICE-AND-MEDIA NAME="FinalVoiceAndMedia" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Record photos, large files, and call-path checks as separate media-heavy acceptance scenarios.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-FINAL-TELEGRAM-ACCEPTANCE, M-PROXY-BRIDGE, M-OBS</depends>

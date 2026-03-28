@@ -343,6 +343,14 @@ ss -ltnp | grep ":1080" || true
 
 The controller must not ask the operator to start Telegram testing before service readiness, local forward proof, and the pre-handoff smoke are already green.
 
+Observed rebuilt-host acceptance outcome on 2026-03-29:
+
+- basic connect and text messages: green
+- photo and ordinary media send: green
+- large-file transfer: green
+- voice and video calls: not green; the call reached ringing and answer state but then stayed at Telegram key exchange
+- classification: basic SOCKS5 or TCP tunnel behavior stayed healthy while the call-specific media path remained outside the currently proven envelope
+
 ### Telegram Evidence Packet Shape
 
 For each Telegram wave keep four separable packets:
