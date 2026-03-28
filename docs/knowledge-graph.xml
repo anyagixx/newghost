@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.11">
+  <Project NAME="n0wss" VERSION="0.2.12">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -741,7 +741,7 @@
       </annotations>
     </M-FINAL-TELEGRAM-HANDOFF>
 
-    <M-FINAL-TELEGRAM-ACCEPTANCE NAME="FinalTelegramAcceptance" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-FINAL-TELEGRAM-ACCEPTANCE NAME="FinalTelegramAcceptance" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Run the final Telegram Desktop acceptance wave while bounded evidence is captured on both rebuilt hosts.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-FINAL-SERVICE-READINESS, M-FINAL-TELEGRAM-HANDOFF, M-TELEGRAM-SMOKE, M-TELEGRAM-EVIDENCE</depends>
@@ -784,6 +784,56 @@
         <type-FinalDecisionRecord PURPOSE="Carries the final bounded decision for the Telegram Desktop use case on the rebuilt hosts." />
       </annotations>
     </M-FINAL-GO-NO-GO>
+
+    <M-CHANGELOG-0-3-2 NAME="Changelog032" TYPE="UTILITY" STATUS="planned">
+      <purpose>Prepare the v0.3.2 changelog entry for the current verified local baseline without overstating Telegram call support.</purpose>
+      <path>CHANGELOG.md</path>
+      <depends>M-FINAL-HOST-REBASELINE, M-FINAL-DEPLOY-BOOTSTRAP, M-FINAL-SERVICE-READINESS, M-FINAL-TELEGRAM-HANDOFF, M-TELEGRAM-COMPAT</depends>
+      <verification-ref>V-M-CHANGELOG-0-3-2</verification-ref>
+      <annotations>
+        <fn-prepareChangelog032 PURPOSE="Add the bounded v0.3.2 release notes for the current baseline." />
+      </annotations>
+    </M-CHANGELOG-0-3-2>
+
+    <M-RELEASE-MESSAGING-0-3-2 NAME="ReleaseMessaging032" TYPE="UTILITY" STATUS="planned">
+      <purpose>Align README and operator docs with the verified Telegram Desktop envelope and current call limitation.</purpose>
+      <path>README.md</path>
+      <depends>M-CHANGELOG-0-3-2, M-TELEGRAM-COMPAT, M-FINAL-TELEGRAM-HANDOFF</depends>
+      <verification-ref>V-M-RELEASE-MESSAGING-0-3-2</verification-ref>
+      <annotations>
+        <fn-alignReleaseMessaging032 PURPOSE="Synchronize release-facing wording for the v0.3.2 baseline." />
+      </annotations>
+    </M-RELEASE-MESSAGING-0-3-2>
+
+    <M-BASELINE-SYNC-0-3-2 NAME="BaselineSync032" TYPE="UTILITY" STATUS="planned">
+      <purpose>Synchronize GRACE shared artifacts with the v0.3.2 release truth before tagging.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-RELEASE-MESSAGING-0-3-2, M-FINAL-SERVICE-READINESS</depends>
+      <verification-ref>V-M-BASELINE-SYNC-0-3-2</verification-ref>
+      <annotations>
+        <fn-syncBaseline032 PURPOSE="Confirm the local GRACE artifacts and release truth are aligned before tagging." />
+      </annotations>
+    </M-BASELINE-SYNC-0-3-2>
+
+    <M-RELEASE-GATE-0-3-2 NAME="ReleaseGate032" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Run the bounded release gate for v0.3.2 before publishing the new GitHub baseline.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-BASELINE-SYNC-0-3-2, M-CHANGELOG-0-3-2</depends>
+      <verification-ref>V-M-RELEASE-GATE-0-3-2</verification-ref>
+      <annotations>
+        <fn-runReleaseGate032 PURPOSE="Check clean-tree, changelog, remote baseline, and tag readiness for v0.3.2." />
+      </annotations>
+    </M-RELEASE-GATE-0-3-2>
+
+    <M-GITHUB-RELEASE-0-3-2 NAME="GitHubRelease032" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Push the v0.3.2 tag so GitHub reflects the current local baseline before the UDP calls phase starts.</purpose>
+      <path>.github/workflows/release.yml</path>
+      <depends>M-RELEASE-GATE-0-3-2, M-GITHUB-RELEASE-0-3-1</depends>
+      <verification-ref>V-M-GITHUB-RELEASE-0-3-2</verification-ref>
+      <annotations>
+        <fn-prepareAndPushTag032 PURPOSE="Prepare and push the v0.3.2 source-release tag." />
+      </annotations>
+    </M-GITHUB-RELEASE-0-3-2>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -893,6 +943,11 @@
     <CrossLink from="M-FINAL-VOICE-AND-MEDIA" to="M-FINAL-EVIDENCE-PACKET" relation="adds media-heavy scenario evidence to the final acceptance packet" />
     <CrossLink from="M-FINAL-EVIDENCE-PACKET" to="M-FINAL-GO-NO-GO" relation="supplies the bounded evidence used for the final decision" />
     <CrossLink from="M-TELEGRAM-COMPAT" to="M-FINAL-GO-NO-GO" relation="keeps the final decision bounded to the verified Telegram Desktop envelope" />
+    <CrossLink from="M-FINAL-GO-NO-GO" to="M-CHANGELOG-0-3-2" relation="supplies the verified baseline that must be reflected in the next release notes" />
+    <CrossLink from="M-CHANGELOG-0-3-2" to="M-RELEASE-MESSAGING-0-3-2" relation="anchors release-facing wording to the bounded v0.3.2 notes" />
+    <CrossLink from="M-RELEASE-MESSAGING-0-3-2" to="M-BASELINE-SYNC-0-3-2" relation="must align with the GRACE artifacts before the release gate runs" />
+    <CrossLink from="M-BASELINE-SYNC-0-3-2" to="M-RELEASE-GATE-0-3-2" relation="provides synchronized release truth to the v0.3.2 gate" />
+    <CrossLink from="M-RELEASE-GATE-0-3-2" to="M-GITHUB-RELEASE-0-3-2" relation="must pass before the v0.3.2 tag is pushed to GitHub" />
 
   </Project>
 </KnowledgeGraph>

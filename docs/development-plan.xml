@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.11">
+<DevelopmentPlan VERSION="0.2.12">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -1975,7 +1975,7 @@
       <verification-ref>V-M-FINAL-TELEGRAM-HANDOFF</verification-ref>
     </M-FINAL-TELEGRAM-HANDOFF>
 
-    <M-FINAL-TELEGRAM-ACCEPTANCE NAME="FinalTelegramAcceptance" TYPE="CORE_LOGIC" LAYER="17" ORDER="5" STATUS="planned">
+    <M-FINAL-TELEGRAM-ACCEPTANCE NAME="FinalTelegramAcceptance" TYPE="CORE_LOGIC" LAYER="17" ORDER="5" STATUS="implemented">
       <contract>
         <purpose>Run the final manual Telegram Desktop acceptance wave while bounded evidence is captured on both fresh hosts.</purpose>
         <inputs>
@@ -2001,6 +2001,10 @@
         <critical-block>BLOCK_FINAL_TELEGRAM_ACCEPTANCE</critical-block>
       </observability>
       <verification-ref>V-M-FINAL-TELEGRAM-ACCEPTANCE</verification-ref>
+      <notes>
+        <note-1>On 2026-03-29 the rebuilt-host acceptance wave reached a green basic Telegram Desktop path through the governed local SSH forward to the managed client listener.</note-1>
+        <note-2>The operator confirmed successful connection and text-message delivery without observed connection instability during the bounded acceptance window; media-heavy results remain separated under M-FINAL-VOICE-AND-MEDIA.</note-2>
+      </notes>
     </M-FINAL-TELEGRAM-ACCEPTANCE>
 
     <M-FINAL-VOICE-AND-MEDIA NAME="FinalVoiceAndMedia" TYPE="CORE_LOGIC" LAYER="17" ORDER="6" STATUS="planned">
@@ -2087,6 +2091,152 @@
       </observability>
       <verification-ref>V-M-FINAL-GO-NO-GO</verification-ref>
     </M-FINAL-GO-NO-GO>
+
+    <M-CHANGELOG-0-3-2 NAME="Changelog032" TYPE="UTILITY" LAYER="18" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Prepare the v0.3.2 changelog entry for the current verified local baseline without overstating Telegram call support.</purpose>
+        <inputs>
+          <param name="releaseScopeInputs" type="ReleaseScopeInputs032" />
+        </inputs>
+        <outputs>
+          <param name="releaseNotes" type="ReleaseNotes032" />
+        </outputs>
+        <errors>
+          <error code="CHANGELOG_032_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-prepareChangelog032 PURPOSE="Add the bounded v0.3.2 release notes for the current verified baseline." />
+      </interface>
+      <depends>M-FINAL-HOST-REBASELINE, M-FINAL-DEPLOY-BOOTSTRAP, M-FINAL-SERVICE-READINESS, M-FINAL-TELEGRAM-HANDOFF, M-TELEGRAM-COMPAT</depends>
+      <target>
+        <source>CHANGELOG.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[Changelog032]</log-prefix>
+        <critical-block>BLOCK_CHANGELOG_0_3_2</critical-block>
+      </observability>
+      <verification-ref>V-M-CHANGELOG-0-3-2</verification-ref>
+    </M-CHANGELOG-0-3-2>
+
+    <M-RELEASE-MESSAGING-0-3-2 NAME="ReleaseMessaging032" TYPE="UTILITY" LAYER="18" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Align release-facing docs with the verified Telegram Desktop TCP/SOCKS5 envelope and explicitly exclude unsupported call-path claims.</purpose>
+        <inputs>
+          <param name="messagingInputs" type="ReleaseMessagingInputs032" />
+        </inputs>
+        <outputs>
+          <param name="messagingPacket" type="ReleaseMessagingPacket032" />
+        </outputs>
+        <errors>
+          <error code="RELEASE_MESSAGING_032_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-alignReleaseMessaging032 PURPOSE="Synchronize README and operator docs with the v0.3.2 verified baseline." />
+      </interface>
+      <depends>M-CHANGELOG-0-3-2, M-TELEGRAM-COMPAT, M-FINAL-TELEGRAM-HANDOFF</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleaseMessaging032]</log-prefix>
+        <critical-block>BLOCK_RELEASE_MESSAGING_0_3_2</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASE-MESSAGING-0-3-2</verification-ref>
+    </M-RELEASE-MESSAGING-0-3-2>
+
+    <M-BASELINE-SYNC-0-3-2 NAME="BaselineSync032" TYPE="UTILITY" LAYER="18" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Synchronize GRACE shared artifacts with the verified v0.3.2 baseline before the release gate runs.</purpose>
+        <inputs>
+          <param name="baselineSyncInputs" type="BaselineSyncInputs032" />
+        </inputs>
+        <outputs>
+          <param name="baselineSyncPacket" type="BaselineSyncPacket032" />
+        </outputs>
+        <errors>
+          <error code="BASELINE_SYNC_032_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-syncBaseline032 PURPOSE="Confirm the local GRACE artifacts and release truth are aligned before tagging v0.3.2." />
+      </interface>
+      <depends>M-RELEASE-MESSAGING-0-3-2, M-FINAL-SERVICE-READINESS</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/knowledge-graph.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[BaselineSync032]</log-prefix>
+        <critical-block>BLOCK_BASELINE_SYNC_0_3_2</critical-block>
+      </observability>
+      <verification-ref>V-M-BASELINE-SYNC-0-3-2</verification-ref>
+    </M-BASELINE-SYNC-0-3-2>
+
+    <M-RELEASE-GATE-0-3-2 NAME="ReleaseGate032" TYPE="ENTRY_POINT" LAYER="18" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Run the bounded release gate for v0.3.2 so GitHub can reflect the current local baseline safely.</purpose>
+        <inputs>
+          <param name="releaseGateInputs" type="ReleaseGateInputs032" />
+        </inputs>
+        <outputs>
+          <param name="releaseGatePacket" type="ReleaseGatePacket032" />
+        </outputs>
+        <errors>
+          <error code="RELEASE_GATE_032_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runReleaseGate032 PURPOSE="Check changelog truth, doc alignment, clean tree, and tag readiness for v0.3.2." />
+      </interface>
+      <depends>M-BASELINE-SYNC-0-3-2, M-CHANGELOG-0-3-2</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/knowledge-graph.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[ReleaseGate032]</log-prefix>
+        <critical-block>BLOCK_RELEASE_GATE_0_3_2</critical-block>
+      </observability>
+      <verification-ref>V-M-RELEASE-GATE-0-3-2</verification-ref>
+    </M-RELEASE-GATE-0-3-2>
+
+    <M-GITHUB-RELEASE-0-3-2 NAME="GitHubRelease032" TYPE="INTEGRATION" LAYER="18" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Create and push the v0.3.2 tag so the GitHub repository reflects the current local baseline before the UDP calls phase begins.</purpose>
+        <inputs>
+          <param name="releasePushInputs" type="ReleasePushInputs032" />
+        </inputs>
+        <outputs>
+          <param name="releasePushPacket" type="ReleasePushPacket032" />
+        </outputs>
+        <errors>
+          <error code="GITHUB_RELEASE_032_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-prepareAndPushTag032 PURPOSE="Prepare and push the v0.3.2 release tag through the existing GitHub workflow." />
+      </interface>
+      <depends>M-RELEASE-GATE-0-3-2, M-GITHUB-RELEASE-0-3-1</depends>
+      <target>
+        <source>.github/workflows/release.yml</source>
+        <source>CHANGELOG.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[GitHubRelease032]</log-prefix>
+        <critical-block>BLOCK_GITHUB_RELEASE_0_3_2</critical-block>
+      </observability>
+      <verification-ref>V-M-GITHUB-RELEASE-0-3-2</verification-ref>
+    </M-GITHUB-RELEASE-0-3-2>
   </Modules>
 
   <DataFlow>
@@ -2432,11 +2582,20 @@
       <step-2 module="M-FINAL-DEPLOY-BOOTSTRAP" status="done" verification="V-M-FINAL-DEPLOY-BOOTSTRAP">Redeploy the governed managed n0wss stack onto both fresh hosts</step-2>
       <step-3 module="M-FINAL-SERVICE-READINESS" status="done" verification="V-M-FINAL-SERVICE-READINESS">Prove fresh service readiness before the operator Telegram Desktop test begins</step-3>
       <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="done" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
-      <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="pending" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
+      <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="done" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
       <step-6 module="M-FINAL-VOICE-AND-MEDIA" status="pending" verification="V-M-FINAL-VOICE-AND-MEDIA">Capture photo, file, and call-path acceptance results as separable media evidence</step-6>
       <step-7 module="M-FINAL-EVIDENCE-PACKET" status="pending" verification="V-M-FINAL-EVIDENCE-PACKET">Assemble the bounded final evidence packet from both hosts and the operator session</step-7>
       <step-8 module="M-FINAL-GO-NO-GO" status="pending" verification="V-M-FINAL-GO-NO-GO">Produce the final go/no-go decision for the Telegram Desktop use case on the rebuilt environment</step-8>
     </Phase-14>
+
+    <Phase-15 name="Release Baseline 0.3.2" status="pending">
+      <goal>Publish the current verified local baseline to GitHub as v0.3.2 before planning the UDP-capable Telegram calls architecture.</goal>
+      <step-1 module="M-CHANGELOG-0-3-2" status="pending" verification="V-M-CHANGELOG-0-3-2">Add the bounded v0.3.2 changelog entry for the current verified baseline</step-1>
+      <step-2 module="M-RELEASE-MESSAGING-0-3-2" status="pending" verification="V-M-RELEASE-MESSAGING-0-3-2">Align release-facing docs with the verified Telegram Desktop envelope and current limitations</step-2>
+      <step-3 module="M-BASELINE-SYNC-0-3-2" status="pending" verification="V-M-BASELINE-SYNC-0-3-2">Synchronize GRACE artifacts with the v0.3.2 release truth</step-3>
+      <step-4 module="M-RELEASE-GATE-0-3-2" status="pending" verification="V-M-RELEASE-GATE-0-3-2">Run the release gate and confirm v0.3.2 is ready to tag</step-4>
+      <step-5 module="M-GITHUB-RELEASE-0-3-2" status="pending" verification="V-M-GITHUB-RELEASE-0-3-2">Create and push the v0.3.2 tag through the existing GitHub source-release workflow</step-5>
+    </Phase-15>
   </ImplementationOrder>
 
   <ExecutionPolicy>
