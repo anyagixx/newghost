@@ -1601,7 +1601,7 @@
       </notes>
     </M-TELEGRAM-SMOKE>
 
-    <M-TELEGRAM-EVIDENCE NAME="TelegramEvidence" TYPE="UTILITY" LAYER="14" ORDER="4" STATUS="planned">
+    <M-TELEGRAM-EVIDENCE NAME="TelegramEvidence" TYPE="UTILITY" LAYER="14" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Define the bounded success and failure evidence packets for Telegram-specific testing so future agents can triage app-side versus tunnel-side issues.</purpose>
         <inputs>
@@ -1977,7 +1977,7 @@
       <step-1 module="M-TELEGRAM-PROFILE" status="done" verification="V-M-TELEGRAM-PROFILE">Define the supported Telegram-facing SOCKS5 profile and its explicit non-goals</step-1>
       <step-2 module="M-TELEGRAM-READINESS" status="done" verification="V-M-TELEGRAM-READINESS">Document and verify the readiness path for launching n0wss as a Telegram-facing SOCKS5 proxy</step-2>
       <step-3 module="M-TELEGRAM-SMOKE" status="done" verification="V-M-TELEGRAM-SMOKE">Execute a Telegram-specific connect and reconnect verification wave through the governed SOCKS5 endpoint</step-3>
-      <step-4 module="M-TELEGRAM-EVIDENCE" status="pending" verification="V-M-TELEGRAM-EVIDENCE">Capture bounded Telegram-specific success and failure evidence packets</step-4>
+      <step-4 module="M-TELEGRAM-EVIDENCE" status="done" verification="V-M-TELEGRAM-EVIDENCE">Capture bounded Telegram-specific success and failure evidence packets</step-4>
       <step-5 module="M-TELEGRAM-COMPAT" status="pending" verification="V-M-TELEGRAM-COMPAT">Document the verified Telegram compatibility bounds without overstating unblock guarantees</step-5>
     </Phase-11>
   </ImplementationOrder>

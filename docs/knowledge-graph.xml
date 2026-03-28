@@ -594,7 +594,7 @@
       </annotations>
     </M-TELEGRAM-SMOKE>
 
-    <M-TELEGRAM-EVIDENCE NAME="TelegramEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-EVIDENCE NAME="TelegramEvidence" TYPE="UTILITY" STATUS="implemented">
       <purpose>Define bounded success and failure evidence packets for Telegram-specific verification.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-SMOKE, M-OBS, M-LIVE-OBS-EVIDENCE</depends>
@@ -602,6 +602,7 @@
       <annotations>
         <fn-captureTelegramEvidence PURPOSE="Separate readiness, connect, reconnect, and failure packets for Telegram-specific debugging." />
         <type-TelegramEvidencePacket PURPOSE="Carries the bounded packet used to distinguish app-side and tunnel-side divergence." />
+        <type-TelegramLaunchDivergence PURPOSE="The current Telegram wave preserves a local app-relaunch instability note separately from the successful reconnect packet so tunnel runtime evidence is not misclassified." />
       </annotations>
     </M-TELEGRAM-EVIDENCE>
 
