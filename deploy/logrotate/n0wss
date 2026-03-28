@@ -1,0 +1,28 @@
+# FILE: deploy/logrotate/n0wss
+# VERSION: 0.1.0
+# START_MODULE_CONTRACT
+#   PURPOSE: Define bounded retention for managed n0wss log files while preserving active log continuity for service-managed units.
+#   SCOPE: Rotation cadence, retention count, compression behavior, copytruncate policy, and canonical file targets.
+#   DEPENDS: M-SYSTEMD-UNITS, M-OBS
+#   LINKS: M-LOG-ROTATION, V-M-LOG-ROTATION, DF-SERVICE-UPDATE
+# END_MODULE_CONTRACT
+#
+# START_MODULE_MAP
+#   Policy - bounded retention and continuity policy for managed runtime logs
+# END_MODULE_MAP
+#
+# START_CHANGE_SUMMARY
+#   LAST_CHANGE: v0.1.0 - Added the initial managed log rotation policy for server, client, and bad-auth evidence logs.
+# END_CHANGE_SUMMARY
+
+/var/log/n0wss-server.log /var/log/n0wss-client.log /var/log/n0wss-client-bad-auth.log {
+    daily
+    rotate 7
+    maxsize 5M
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    create 0640 root adm
+}
