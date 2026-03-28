@@ -1,10 +1,10 @@
 // FILE: src/session/mod.rs
-// VERSION: 0.1.5
+// VERSION: 0.1.6
 // START_MODULE_CONTRACT
-//   PURPOSE: Define the session core surface and orchestrate registry, transport selection, pure state transitions, typed effect routing, UDP association ownership, and datagram session lifecycle helpers.
-//   SCOPE: Session module wiring, session manager orchestration, stable session identifiers, pure state-transition exports, typed effect exports, UDP association registry export, datagram session-manager export, and shutdown coordination.
-//   DEPENDS: std, thiserror, tracing, src/config/mod.rs, src/session/effects.rs, src/session/state.rs, src/session/registry.rs, src/session/udp_registry.rs, src/session/datagram_manager.rs, src/session/transport_selector.rs, src/session/effect_handler.rs
-//   LINKS: M-SESSION, M-UDP-ASSOCIATION-REGISTRY, M-DATAGRAM-SESSION-MANAGER, V-M-SESSION, V-M-UDP-ASSOCIATION-REGISTRY, V-M-DATAGRAM-SESSION-MANAGER, DF-SESSION-EFFECTS, DF-UDP-ASSOCIATION-LIFECYCLE
+//   PURPOSE: Define the session core surface and orchestrate registry, transport selection, pure state transitions, typed effect routing, UDP association ownership, datagram session lifecycle, and bounded datagram transport selection helpers.
+//   SCOPE: Session module wiring, session manager orchestration, stable session identifiers, pure state-transition exports, typed effect exports, UDP association registry export, datagram session-manager export, datagram transport selector export, and shutdown coordination.
+//   DEPENDS: std, thiserror, tracing, src/config/mod.rs, src/session/effects.rs, src/session/state.rs, src/session/registry.rs, src/session/udp_registry.rs, src/session/datagram_manager.rs, src/session/datagram_transport_selector.rs, src/session/transport_selector.rs, src/session/effect_handler.rs
+//   LINKS: M-SESSION, M-UDP-ASSOCIATION-REGISTRY, M-DATAGRAM-SESSION-MANAGER, M-DATAGRAM-TRANSPORT-SELECTOR, V-M-SESSION, V-M-UDP-ASSOCIATION-REGISTRY, V-M-DATAGRAM-SESSION-MANAGER, V-M-DATAGRAM-TRANSPORT-SELECTOR, DF-SESSION-EFFECTS, DF-UDP-ASSOCIATION-LIFECYCLE, DF-UDP-OUTBOUND
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -24,10 +24,11 @@
 //   state - pure state machine transitions and close reasons
 //   udp_registry - capacity-aware UDP association ownership and idle cleanup helpers
 //   datagram_manager - session-owned UDP association orchestration and dispatch helpers
+//   datagram_transport_selector - bounded datagram carrier selector, initially WSS-only
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.5 - Exported the governed datagram session manager surface so later transport work can build on stable UDP lifecycle orchestration.
+//   LAST_CHANGE: v0.1.6 - Exported the bounded datagram transport selector surface so UDP routing can stay explicit about using only the initial WSS-backed carrier.
 // END_CHANGE_SUMMARY
 
 use std::sync::Arc;
@@ -47,6 +48,7 @@ pub mod effects;
 pub mod registry;
 pub mod state;
 pub mod transport_selector;
+pub mod datagram_transport_selector;
 pub mod datagram_manager;
 pub mod udp_registry;
 
@@ -54,6 +56,10 @@ pub type SessionId = u64;
 
 pub use datagram_manager::{
     DatagramDispatchTarget, DatagramSessionError, DatagramSessionManager,
+};
+pub use datagram_transport_selector::{
+    DatagramTransportResolution, DatagramTransportSelectError, DatagramTransportSelector,
+    DatagramTransportSelectorConfig, DatagramTransportKind, WssDatagramPath,
 };
 pub use effect_handler::{
     EffectHandler, MetricEffectTarget, RegistryEffectTarget, TimerEffectTarget,
