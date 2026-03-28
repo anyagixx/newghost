@@ -1,10 +1,10 @@
 // FILE: src/session/mod.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
-//   PURPOSE: Define the session core surface and orchestrate registry, transport selection, pure state transitions, and typed effect routing.
-//   SCOPE: Session module wiring, session manager orchestration, stable session identifiers, pure state-transition exports, typed effect exports, and shutdown coordination.
-//   DEPENDS: std, thiserror, tracing, src/config/mod.rs, src/session/effects.rs, src/session/state.rs, src/session/registry.rs, src/session/transport_selector.rs, src/session/effect_handler.rs
-//   LINKS: M-SESSION, V-M-SESSION, DF-SESSION-EFFECTS, VF-006
+//   PURPOSE: Define the session core surface and orchestrate registry, transport selection, pure state transitions, typed effect routing, and UDP association ownership helpers.
+//   SCOPE: Session module wiring, session manager orchestration, stable session identifiers, pure state-transition exports, typed effect exports, UDP association registry export, and shutdown coordination.
+//   DEPENDS: std, thiserror, tracing, src/config/mod.rs, src/session/effects.rs, src/session/state.rs, src/session/registry.rs, src/session/udp_registry.rs, src/session/transport_selector.rs, src/session/effect_handler.rs
+//   LINKS: M-SESSION, M-UDP-ASSOCIATION-REGISTRY, V-M-SESSION, V-M-UDP-ASSOCIATION-REGISTRY, DF-SESSION-EFFECTS
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -22,10 +22,11 @@
 //   effects - typed session effects and component-targeted commands
 //   effect_handler - stable top-level dispatcher over registry, timer, and metric targets
 //   state - pure state machine transitions and close reasons
+//   udp_registry - capacity-aware UDP association ownership and idle cleanup helpers
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added structured transport-resolution failure evidence so live verification can isolate the first divergent transport block quickly.
+//   LAST_CHANGE: v0.1.4 - Exported the governed UDP association registry surface so later datagram modules can build on stable ownership semantics.
 // END_CHANGE_SUMMARY
 
 use std::sync::Arc;
@@ -45,6 +46,7 @@ pub mod effects;
 pub mod registry;
 pub mod state;
 pub mod transport_selector;
+pub mod udp_registry;
 
 pub type SessionId = u64;
 
@@ -57,6 +59,10 @@ pub use registry::{
 };
 pub use state::{CloseReason, SessionEvent, SessionState};
 pub use transport_selector::{TransportSelectError, TransportSelector, TransportSelectorConfig};
+pub use udp_registry::{
+    UdpAssociationLimitReached, UdpAssociationNotFound, UdpAssociationRecord,
+    UdpAssociationRegistry,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SessionManagerConfig {
