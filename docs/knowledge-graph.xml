@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.7">
+  <Project NAME="n0wss" VERSION="0.2.8">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -560,6 +560,61 @@
       </annotations>
     </M-GITHUB-RELEASE-0-3-0>
 
+    <M-TELEGRAM-PROFILE NAME="TelegramProfile" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Define the supported Telegram-facing profile as standard SOCKS5 client compatibility over the existing n0wss tunnel path.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-SOCKS5, M-CLI, M-RELEASE-DOCS</depends>
+      <verification-ref>V-M-TELEGRAM-PROFILE</verification-ref>
+      <annotations>
+        <fn-documentTelegramProfile PURPOSE="Describe the approved Telegram SOCKS5 profile and its explicit non-goals." />
+        <type-TelegramProxyProfile PURPOSE="Carries the approved Telegram-facing SOCKS5 settings profile for n0wss." />
+      </annotations>
+    </M-TELEGRAM-PROFILE>
+
+    <M-TELEGRAM-READINESS NAME="TelegramReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the operator path for exposing n0wss as a Telegram-facing SOCKS5 proxy and proving readiness before app-side testing.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-PROFILE, M-LIVE-CLIENT-LAUNCH, M-SYSTEMD-UNITS</depends>
+      <verification-ref>V-M-TELEGRAM-READINESS</verification-ref>
+      <annotations>
+        <fn-captureTelegramReady PURPOSE="Collect the bounded readiness evidence before Telegram testing begins." />
+        <type-TelegramReadinessEvidence PURPOSE="Carries the local SOCKS5 readiness packet used before Telegram app-side checks." />
+      </annotations>
+    </M-TELEGRAM-READINESS>
+
+    <M-TELEGRAM-SMOKE NAME="TelegramSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define the Telegram-specific compatibility wave for connect and reconnect behavior through the existing SOCKS5-over-tunnel path.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-READINESS, M-LIVE-WAVE-2, M-SOCKS5, M-PROXY-BRIDGE, M-WSS-GATEWAY</depends>
+      <verification-ref>V-M-TELEGRAM-SMOKE</verification-ref>
+      <annotations>
+        <fn-runTelegramSmoke PURPOSE="Execute the Telegram-specific connect and reconnect verification wave." />
+        <type-TelegramSmokeEvidence PURPOSE="Carries the bounded connect and reconnect evidence packets for Telegram compatibility." />
+      </annotations>
+    </M-TELEGRAM-SMOKE>
+
+    <M-TELEGRAM-EVIDENCE NAME="TelegramEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define bounded success and failure evidence packets for Telegram-specific verification.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-SMOKE, M-OBS, M-LIVE-OBS-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-captureTelegramEvidence PURPOSE="Separate readiness, connect, reconnect, and failure packets for Telegram-specific debugging." />
+        <type-TelegramEvidencePacket PURPOSE="Carries the bounded packet used to distinguish app-side and tunnel-side divergence." />
+      </annotations>
+    </M-TELEGRAM-EVIDENCE>
+
+    <M-TELEGRAM-COMPAT NAME="TelegramCompatAssessment" TYPE="UTILITY" STATUS="planned">
+      <purpose>Bound the Telegram compatibility claim so documentation does not overstate unblock guarantees beyond verified evidence.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-PROFILE, M-TELEGRAM-EVIDENCE, M-RELEASE-MESSAGING</depends>
+      <verification-ref>V-M-TELEGRAM-COMPAT</verification-ref>
+      <annotations>
+        <fn-documentCompatBounds PURPOSE="Document what Telegram compatibility is proven and what remains unverified." />
+        <type-TelegramCompatRecord PURPOSE="Carries the bounded compatibility statement for Telegram usage over n0wss." />
+      </annotations>
+    </M-TELEGRAM-COMPAT>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -626,6 +681,16 @@
     <CrossLink from="M-CHANGELOG-0-3-0" to="M-RELEASE-GATE-0-3-0" relation="supplies the versioned release notes required by the release gate" />
     <CrossLink from="M-RELEASE-GATE-0-3-0" to="M-GITHUB-RELEASE-0-3-0" relation="provides the release-ready decision required before creating the v0.3.0 tag" />
     <CrossLink from="M-GITHUB-RELEASE" to="M-GITHUB-RELEASE-0-3-0" relation="supplies the existing tag-driven workflow reused for the next source release" />
+    <CrossLink from="M-SOCKS5" to="M-TELEGRAM-PROFILE" relation="provides the standard client-facing proxy surface reused by Telegram" />
+    <CrossLink from="M-CLI" to="M-TELEGRAM-PROFILE" relation="provides the startup surface used when n0wss is launched for Telegram-facing proxy usage" />
+    <CrossLink from="M-TELEGRAM-PROFILE" to="M-TELEGRAM-READINESS" relation="defines the SOCKS5 client shape that the readiness path must expose" />
+    <CrossLink from="M-LIVE-CLIENT-LAUNCH" to="M-TELEGRAM-READINESS" relation="supplies the client-side readiness surface reused for Telegram testing" />
+    <CrossLink from="M-TELEGRAM-READINESS" to="M-TELEGRAM-SMOKE" relation="provides the governed local SOCKS5 endpoint used by the Telegram-specific wave" />
+    <CrossLink from="M-LIVE-WAVE-2" to="M-TELEGRAM-SMOKE" relation="supplies the managed restart and reconnect pattern reused for Telegram verification" />
+    <CrossLink from="M-TELEGRAM-SMOKE" to="M-TELEGRAM-EVIDENCE" relation="produces the Telegram-specific success and failure packets" />
+    <CrossLink from="M-OBS" to="M-TELEGRAM-EVIDENCE" relation="provides the anchored runtime logs used in Telegram-specific triage" />
+    <CrossLink from="M-TELEGRAM-PROFILE" to="M-TELEGRAM-COMPAT" relation="defines the bounded Telegram SOCKS5 compatibility claim" />
+    <CrossLink from="M-TELEGRAM-EVIDENCE" to="M-TELEGRAM-COMPAT" relation="limits compatibility claims to what Telegram-specific evidence actually proves" />
 
   </Project>
 </KnowledgeGraph>

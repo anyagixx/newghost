@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.7">
+<DevelopmentPlan VERSION="0.2.8">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -1510,6 +1510,148 @@
       </observability>
       <verification-ref>V-M-GITHUB-RELEASE-0-3-0</verification-ref>
     </M-GITHUB-RELEASE-0-3-0>
+
+    <M-TELEGRAM-PROFILE NAME="TelegramProfile" TYPE="UTILITY" LAYER="14" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Define the supported Telegram-facing proxy profile as a standard SOCKS5 client configuration over the existing n0wss tunnel path.</purpose>
+        <inputs>
+          <param name="proxyMode" type="TelegramProxySettings" />
+        </inputs>
+        <outputs>
+          <param name="profileRecord" type="TelegramProxyProfile" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_PROFILE_UNSUPPORTED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-documentTelegramProfile PURPOSE="Describe the approved Telegram-facing SOCKS5 profile and its explicit non-goals." />
+      </interface>
+      <depends>M-SOCKS5, M-CLI, M-RELEASE-DOCS</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_PROXY_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-PROFILE</verification-ref>
+    </M-TELEGRAM-PROFILE>
+
+    <M-TELEGRAM-READINESS NAME="TelegramReadiness" TYPE="ENTRY_POINT" LAYER="14" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define the operator path for launching n0wss as a Telegram-facing SOCKS5 proxy and proving readiness before app-side testing.</purpose>
+        <inputs>
+          <param name="managedRuntime" type="TelegramReadinessInputs" />
+        </inputs>
+        <outputs>
+          <param name="readinessPacket" type="TelegramReadinessEvidence" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_READINESS_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureTelegramReady PURPOSE="Collect the bounded readiness evidence required before Telegram app-side testing begins." />
+      </interface>
+      <depends>M-TELEGRAM-PROFILE, M-LIVE-CLIENT-LAUNCH, M-SYSTEMD-UNITS</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramReadiness]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_READINESS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-READINESS</verification-ref>
+    </M-TELEGRAM-READINESS>
+
+    <M-TELEGRAM-SMOKE NAME="TelegramSmoke" TYPE="CORE_LOGIC" LAYER="14" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the Telegram-specific live verification wave for SOCKS5 connectivity, reconnect behavior, and basic end-to-end viability over the existing tunnel.</purpose>
+        <inputs>
+          <param name="telegramWaveInputs" type="TelegramSmokeInputs" />
+        </inputs>
+        <outputs>
+          <param name="telegramWaveResult" type="TelegramSmokeEvidence" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_SMOKE_FAILED" />
+          <error code="TELEGRAM_RECONNECT_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runTelegramSmoke PURPOSE="Execute the Telegram-specific connect and reconnect checks through the governed SOCKS5 endpoint." />
+      </interface>
+      <depends>M-TELEGRAM-READINESS, M-LIVE-WAVE-2, M-SOCKS5, M-PROXY-BRIDGE, M-WSS-GATEWAY</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramSmoke]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-SMOKE</verification-ref>
+    </M-TELEGRAM-SMOKE>
+
+    <M-TELEGRAM-EVIDENCE NAME="TelegramEvidence" TYPE="UTILITY" LAYER="14" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded success and failure evidence packets for Telegram-specific testing so future agents can triage app-side versus tunnel-side issues.</purpose>
+        <inputs>
+          <param name="telegramTrace" type="TelegramTracePacket" />
+        </inputs>
+        <outputs>
+          <param name="telegramEvidence" type="TelegramEvidencePacket" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_EVIDENCE_INSUFFICIENT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureTelegramEvidence PURPOSE="Capture Telegram-specific readiness, connect, reconnect, and failure evidence in bounded packets." />
+      </interface>
+      <depends>M-TELEGRAM-SMOKE, M-OBS, M-LIVE-OBS-EVIDENCE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <tests>docs/OPERATORS.md</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramEvidence]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-EVIDENCE</verification-ref>
+    </M-TELEGRAM-EVIDENCE>
+
+    <M-TELEGRAM-COMPAT NAME="TelegramCompatAssessment" TYPE="UTILITY" LAYER="14" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Bound the public compatibility claim so Telegram SOCKS5 support is documented without overstating unblock guarantees beyond verified evidence.</purpose>
+        <inputs>
+          <param name="compatInputs" type="TelegramCompatInputs" />
+        </inputs>
+        <outputs>
+          <param name="compatAssessment" type="TelegramCompatRecord" />
+        </outputs>
+        <errors>
+          <error code="TELEGRAM_CLAIM_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-documentCompatBounds PURPOSE="Document what Telegram-specific compatibility is proven and what remains unverified." />
+      </interface>
+      <depends>M-TELEGRAM-PROFILE, M-TELEGRAM-EVIDENCE, M-RELEASE-MESSAGING</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[TelegramCompatAssessment]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_COMPAT</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-COMPAT</verification-ref>
+    </M-TELEGRAM-COMPAT>
   </Modules>
 
   <DataFlow>
@@ -1712,6 +1854,32 @@
       <step-3>The published notes match the v0.3.0 changelog entry.</step-3>
       <evidence>Tag-triggered GitHub release execution and notes aligned with the prepared changelog.</evidence>
     </DF-GITHUB-SOURCE-RELEASE-0-3-0>
+
+    <DF-TELEGRAM-PROXY-CONFIG NAME="Telegram SOCKS5 configuration" TRIGGER="An operator configures Telegram Desktop or Mobile to use the local n0wss endpoint as a SOCKS5 proxy.">
+      <step-1>The operator points Telegram at the local n0wss SOCKS5 listener address and port.</step-1>
+      <step-2>The configured client remains a standard SOCKS5 consumer and does not need a custom n0wss protocol.</step-2>
+      <evidence>Documented app-side settings aligned with the governed SOCKS5 client profile.</evidence>
+    </DF-TELEGRAM-PROXY-CONFIG>
+
+    <DF-TELEGRAM-CONNECT NAME="Telegram connect path" TRIGGER="Telegram attempts to establish connectivity through the local SOCKS5 proxy.">
+      <step-1>Telegram issues SOCKS5 requests to the local n0wss client endpoint.</step-1>
+      <step-2>Socks5Proxy parses the request, SessionManager resolves transport, and ProxyBridge pumps the stream through the remote WSS path.</step-2>
+      <step-3>The response path returns to Telegram through the same proxied tunnel.</step-3>
+      <evidence>SOCKS5 parse, transport selection, and pump anchors plus Telegram-visible connectivity proof.</evidence>
+    </DF-TELEGRAM-CONNECT>
+
+    <DF-TELEGRAM-SESSION-RECOVERY NAME="Telegram reconnect recovery" TRIGGER="The n0wss client or managed service is restarted while Telegram remains configured for SOCKS5 usage.">
+      <step-1>The managed n0wss service restarts and rebinds the local SOCKS5 listener.</step-1>
+      <step-2>Telegram retries connection attempts through the same local proxy settings.</step-2>
+      <step-3>The operator captures whether reconnect succeeds or fails deterministically.</step-3>
+      <evidence>Managed readiness packet plus fresh SOCKS5 and pump markers after restart.</evidence>
+    </DF-TELEGRAM-SESSION-RECOVERY>
+
+    <DF-TELEGRAM-EVIDENCE NAME="Telegram failure and success evidence" TRIGGER="Telegram-specific verification succeeds or diverges and needs a bounded packet for later triage.">
+      <step-1>The operator captures Telegram app-side state, local SOCKS5 readiness, and n0wss anchored logs.</step-1>
+      <step-2>The evidence packet separates app misconfiguration from tunnel-side divergence.</step-2>
+      <evidence>Bounded Telegram-specific success or failure packets with first divergent block when applicable.</evidence>
+    </DF-TELEGRAM-EVIDENCE>
   </DataFlow>
 
   <ImplementationOrder>
@@ -1798,6 +1966,15 @@
       <step-4 module="M-RELEASE-GATE-0-3-0" status="done" verification="V-M-RELEASE-GATE-0-3-0">Run the release gate checks and record whether v0.3.0 is ready to tag</step-4>
       <step-5 module="M-GITHUB-RELEASE-0-3-0" status="done" verification="V-M-GITHUB-RELEASE-0-3-0">Prepare the tag-driven GitHub source release path for v0.3.0</step-5>
     </Phase-10>
+
+    <Phase-11 name="Telegram Verification Wave" status="pending">
+      <goal>Prove the existing SOCKS5-over-tunnel design works for Telegram as a proxy-aware client, while explicitly bounding unsupported unblock claims.</goal>
+      <step-1 module="M-TELEGRAM-PROFILE" status="done" verification="V-M-TELEGRAM-PROFILE">Define the supported Telegram-facing SOCKS5 profile and its explicit non-goals</step-1>
+      <step-2 module="M-TELEGRAM-READINESS" status="pending" verification="V-M-TELEGRAM-READINESS">Document and verify the readiness path for launching n0wss as a Telegram-facing SOCKS5 proxy</step-2>
+      <step-3 module="M-TELEGRAM-SMOKE" status="pending" verification="V-M-TELEGRAM-SMOKE">Execute a Telegram-specific connect and reconnect verification wave through the governed SOCKS5 endpoint</step-3>
+      <step-4 module="M-TELEGRAM-EVIDENCE" status="pending" verification="V-M-TELEGRAM-EVIDENCE">Capture bounded Telegram-specific success and failure evidence packets</step-4>
+      <step-5 module="M-TELEGRAM-COMPAT" status="pending" verification="V-M-TELEGRAM-COMPAT">Document the verified Telegram compatibility bounds without overstating unblock guarantees</step-5>
+    </Phase-11>
   </ImplementationOrder>
 
   <ExecutionPolicy>

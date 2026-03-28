@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.10">
+<VerificationPlan VERSION="0.2.12">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -16,6 +16,8 @@
     <doc-script-alignment-rule>When deploy scripts, unit files, or operator docs change, the verification surface must assert that names, paths, and operator commands still match across all three artifacts.</doc-script-alignment-rule>
     <release-tag-alignment-rule>When a release-prep phase is active, the prepared changelog version, the remote tag baseline, and the intended next tag must agree before publication.</release-tag-alignment-rule>
     <release-clean-tree-rule>The release gate must distinguish between allowed controller-owned release-prep edits that are still in progress and the final clean-tree condition required before tag creation.</release-clean-tree-rule>
+    <telegram-compat-boundary-rule>Telegram verification may prove only standard SOCKS5 client compatibility over the governed n0wss tunnel and must not silently escalate into claims of universal unblock capability or Telegram-specific protocol support.</telegram-compat-boundary-rule>
+    <manual-client-evidence-rule>When a live wave depends on a third-party interactive client, the verification packet must capture app-side action, n0wss-side anchored logs, socket state, and a first-divergent-block summary so another agent can debug without repeating blind manual steps.</manual-client-evidence-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -1035,6 +1037,108 @@
         <assertion-2>The workflow must still publish CHANGELOG.md as the source-first release body for the prepared tag.</assertion-2>
       </required-trace-assertions>
     </V-M-GITHUB-RELEASE-0-3-0>
+
+    <V-M-TELEGRAM-PROFILE MODULE="M-TELEGRAM-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram|SOCKS5' README.md docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'custom protocol|universal unblock|all blocking|guaranteed unblock' README.md docs/OPERATORS.md docs/verification-plan.xml || true</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Telegram compatibility is documented as a standard SOCKS5 client profile over the existing n0wss tunnel.</scenario-1>
+        <scenario-2 kind="failure">Documentation implies a new Telegram-specific protocol, overclaims unblock guarantees, or leaves the SOCKS5 profile underspecified.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Telegram support must remain framed as standard SOCKS5 client compatibility, not a custom client protocol.</assertion-1>
+        <assertion-2>Profile documentation must state the bounded claim surface clearly enough that later agents do not confuse Telegram compatibility with VPN-style whole-device tunneling.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-PROFILE>
+
+    <V-M-TELEGRAM-READINESS MODULE="M-TELEGRAM-READINESS" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram|127.0.0.1:1080|SOCKS5|systemctl is-active n0wss-client|ss -ltnp' docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The runbook defines a bounded operator path for exposing n0wss as a Telegram-facing SOCKS5 proxy.</scenario-1>
+        <scenario-2 kind="failure">Telegram-facing readiness is left implicit, misses the governed local SOCKS5 bind assumptions, or omits the managed-service preflight checks.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[CliApp][run][BLOCK_START_APPLICATION]</marker-1>
+        <marker-2>[CliApp][runRuntime][BLOCK_RUN_CLIENT_MODE]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The readiness path must include a local listener proof for the governed SOCKS5 port before any Telegram app-side action is attempted.</assertion-1>
+        <assertion-2>The readiness path must be expressible as a bounded operator sequence rather than undocumented interactive intuition.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-READINESS>
+
+    <V-M-TELEGRAM-SMOKE MODULE="M-TELEGRAM-SMOKE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Telegram can connect through the local SOCKS5 endpoint and survives one managed reconnect cycle.</scenario-1>
+        <scenario-2 kind="failure">Telegram connectivity fails or reconnect diverges despite a green generic SOCKS5 tunnel path.</scenario-2>
+        <scenario-3 kind="failure">Telegram app-side settings are wrong, and the evidence must stop at readiness or SOCKS5 ingress instead of guessing at tunnel failure.</scenario-3>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][parseRequest][BLOCK_PARSE_SOCKS5_REQUEST]</marker-1>
+        <marker-2>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</marker-2>
+        <marker-3>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Telegram-specific evidence must include one initial connect packet and one reconnect packet rather than one conflated log dump.</assertion-1>
+        <assertion-2>When the Telegram app attempt does not produce SOCKS5 ingress markers, the failure packet must remain classified as app-side or readiness-side until the tunnel path is actually exercised.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-SMOKE>
+
+    <V-M-TELEGRAM-EVIDENCE MODULE="M-TELEGRAM-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram|first divergent block|SOCKS5|readiness packet|connect packet|reconnect packet|failure packet' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Telegram-specific evidence packets distinguish app-side misconfiguration from n0wss tunnel failure.</scenario-1>
+        <scenario-2 kind="failure">Telegram-specific debugging still requires blind reruns because evidence is not separated cleanly.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Telegram evidence must separate readiness, connect, reconnect, and failure packets.</assertion-1>
+        <assertion-2>Each packet must preserve the minimum cross-host fields needed for handoff: app-side action summary, local listener state, anchored client log tail, anchored server log tail when applicable, and first divergent block.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-EVIDENCE>
+
+    <V-M-TELEGRAM-COMPAT MODULE="M-TELEGRAM-COMPAT" PRIORITY="medium">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram|blocking|SOCKS5' README.md docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'all blocking|any blocking|guaranteed|always bypass|universal unblock' README.md docs/OPERATORS.md docs/verification-plan.xml || true</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Public-facing docs state only the Telegram compatibility that is actually verified.</scenario-1>
+        <scenario-2 kind="failure">Docs overclaim universal unblock capability beyond the verified SOCKS5 compatibility evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Compatibility language must not silently escalate from proxy compatibility to guaranteed unblock claims.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-COMPAT>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -1132,6 +1236,25 @@
       </required-evidence>
       <failure-packet-template>scenario=ManagedServiceWaveExecution; expected-evidence=service-managed readiness, repeated smoke success, restart recovery, and redacted bad-auth reject; observed-evidence=journal, systemctl, socket, and output failure details; first-divergent-block=first missing managed-service marker; next-action=repair service, deploy, or runtime behavior before rerun</failure-packet-template>
     </LV-006>
+
+    <LV-007 NAME="TelegramProxyWave" PRIORITY="high">
+      <goal>Run one Telegram-specific compatibility wave through the governed SOCKS5 endpoint and capture bounded connect plus reconnect evidence.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-2>
+        <command-3>telegram-client-side configure SOCKS5 proxy 127.0.0.1:$N0WSS_SOCKS5_PORT and attempt initial connect</command-3>
+        <command-4>collect bounded client and server log tails for the initial connect packet</command-4>
+        <command-5>restart the Telegram app or trigger one reconnect path through the same SOCKS5 settings</command-5>
+        <command-6>collect bounded client and server log tails for the reconnect packet</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>A Telegram app instance is configured as a standard SOCKS5 client against the local n0wss endpoint.</evidence-1>
+        <evidence-2>The success packet contains SOCKS5 parse, transport selection, and pump markers or a bounded failure packet with the first divergent block.</evidence-2>
+        <evidence-3>Reconnect evidence is captured separately from the initial connect attempt.</evidence-3>
+        <evidence-4>If the app attempt never reaches n0wss, the packet must explicitly classify the divergence as app-side misconfiguration or readiness failure rather than tunnel failure.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramProxyWave; expected-evidence=Telegram connects through SOCKS5 and survives one reconnect path; observed-evidence=Telegram app result, local listener state, and anchored n0wss logs; first-divergent-block=first missing SOCKS5 or transport marker; next-action=distinguish Telegram client misconfig from tunnel-side failure before rerun</failure-packet-template>
+    </LV-007>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -1273,6 +1396,21 @@
         <evidence-4>The final release-ready commit has no tracked dirty files and no whitespace or patch-integrity defects.</evidence-4>
       </required-evidence>
     </Gate-Phase-10>
+
+    <Gate-Phase-11 PHASE="Phase-11">
+      <goal>The project has bounded Telegram-specific compatibility evidence without overstating unblock guarantees.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-2>
+        <command-3>rg -n 'Telegram|SOCKS5' README.md docs/OPERATORS.md docs/verification-plan.xml</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>Telegram-facing profile, readiness path, smoke wave, and evidence packet shape are documented and aligned.</evidence-1>
+        <evidence-2>Telegram compatibility is documented as SOCKS5 proxy support over the existing tunnel path, not as a new protocol.</evidence-2>
+        <evidence-3>Compatibility claims stay inside the verified evidence envelope.</evidence-3>
+        <evidence-4>Phase evidence includes separable readiness, initial-connect, reconnect, and bounded-failure packets rather than one blended manual transcript.</evidence-4>
+      </required-evidence>
+    </Gate-Phase-11>
   </PhaseGates>
 
   <FailurePackets>
@@ -1284,6 +1422,7 @@
       <managed-deploy-example>ManagedDeployLayout expected one canonical artifact path plus aligned service and log targets, but observed deploy script targeting /opt/n0wss while the unit file still referenced a different path; first divergent block is DeployLayout::defineFilesystemLayout::BLOCK_DEPLOY_LAYOUT_ALIGNMENT; next action is realign deploy script, unit files, and operator docs before managed rollout.</managed-deploy-example>
       <managed-restart-example>ManagedRestartRecovery expected BLOCK_COORDINATE_SHUTDOWN followed by a new managed readiness packet, but observed a restarted unit with no fresh startup anchors and a stale listener; first divergent block is CliApp::coordinateShutdown::BLOCK_COORDINATE_SHUTDOWN; next action is inspect systemd restart behavior, stale process cleanup, and readiness capture before rerun.</managed-restart-example>
       <release-gate-example>ReleaseGate030 expected a clean release-prep tree, v0.3.0 changelog entry, and green local checks, but observed a stale README or changelog and tracked dirty files; first divergent block is ReleaseGate030::runReleaseGate::BLOCK_RELEASE_GATE; next action is finish the remaining release-prep module steps before creating any tag.</release-gate-example>
+      <telegram-wave-example>TelegramProxyWave expected a Telegram client configured as a standard SOCKS5 consumer to reach connectivity through the local n0wss endpoint, but observed no SOCKS5 parse marker or no transport-selection marker after the app-side attempt; first divergent block is TelegramSmoke::runTelegramSmoke::BLOCK_TELEGRAM_SMOKE; next action is distinguish Telegram client misconfiguration from tunnel-side failure before rerun.</telegram-wave-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>
