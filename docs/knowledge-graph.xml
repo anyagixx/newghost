@@ -1005,7 +1005,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-WAVE>
 
-    <M-TELEGRAM-CALLS-EVIDENCE NAME="TelegramCallsEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-CALLS-EVIDENCE NAME="TelegramCallsEvidence" TYPE="UTILITY" STATUS="implemented">
       <purpose>Capture bounded setup, media, reconnect, and failure packets for Telegram calls verification.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-WAVE, M-LIVE-OBS-EVIDENCE</depends>
