@@ -1629,7 +1629,7 @@
       <verification-ref>V-M-TELEGRAM-EVIDENCE</verification-ref>
     </M-TELEGRAM-EVIDENCE>
 
-    <M-TELEGRAM-COMPAT NAME="TelegramCompatAssessment" TYPE="UTILITY" LAYER="14" ORDER="5" STATUS="planned">
+    <M-TELEGRAM-COMPAT NAME="TelegramCompatAssessment" TYPE="UTILITY" LAYER="14" ORDER="5" STATUS="implemented">
       <contract>
         <purpose>Bound the public compatibility claim so Telegram SOCKS5 support is documented without overstating unblock guarantees beyond verified evidence.</purpose>
         <inputs>
@@ -1978,7 +1978,7 @@
       <step-2 module="M-TELEGRAM-READINESS" status="done" verification="V-M-TELEGRAM-READINESS">Document and verify the readiness path for launching n0wss as a Telegram-facing SOCKS5 proxy</step-2>
       <step-3 module="M-TELEGRAM-SMOKE" status="done" verification="V-M-TELEGRAM-SMOKE">Execute a Telegram-specific connect and reconnect verification wave through the governed SOCKS5 endpoint</step-3>
       <step-4 module="M-TELEGRAM-EVIDENCE" status="done" verification="V-M-TELEGRAM-EVIDENCE">Capture bounded Telegram-specific success and failure evidence packets</step-4>
-      <step-5 module="M-TELEGRAM-COMPAT" status="pending" verification="V-M-TELEGRAM-COMPAT">Document the verified Telegram compatibility bounds without overstating unblock guarantees</step-5>
+      <step-5 module="M-TELEGRAM-COMPAT" status="done" verification="V-M-TELEGRAM-COMPAT">Document the verified Telegram compatibility bounds without overstating unblock guarantees</step-5>
     </Phase-11>
   </ImplementationOrder>
 

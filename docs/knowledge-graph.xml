@@ -606,7 +606,7 @@
       </annotations>
     </M-TELEGRAM-EVIDENCE>
 
-    <M-TELEGRAM-COMPAT NAME="TelegramCompatAssessment" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-COMPAT NAME="TelegramCompatAssessment" TYPE="UTILITY" STATUS="implemented">
       <purpose>Bound the Telegram compatibility claim so documentation does not overstate unblock guarantees beyond verified evidence.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-PROFILE, M-TELEGRAM-EVIDENCE, M-RELEASE-MESSAGING</depends>
@@ -614,6 +614,7 @@
       <annotations>
         <fn-documentCompatBounds PURPOSE="Document what Telegram compatibility is proven and what remains unverified." />
         <type-TelegramCompatRecord PURPOSE="Carries the bounded compatibility statement for Telegram usage over n0wss." />
+        <type-TelegramCompatEnvelope PURPOSE="The current public claim surface is limited to Telegram Desktop compatibility through the governed SOCKS5 tunnel on the tested host setup and explicitly excludes universal unblock guarantees." />
       </annotations>
     </M-TELEGRAM-COMPAT>
 
