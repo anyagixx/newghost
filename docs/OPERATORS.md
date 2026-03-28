@@ -230,6 +230,72 @@ Expected outcome:
 - the published release body is sourced from `CHANGELOG.md`
 - the published notes align with the `0.3.0` entry and the current source-first release posture
 
+## Telegram Readiness
+
+Phase-11 does not introduce a new Telegram protocol. The governed operator path is to expose the existing managed client runtime as a local SOCKS5 proxy and only then test Telegram against that listener.
+
+### Telegram Proxy Settings
+
+Use Telegram as a standard SOCKS5 client:
+
+- host: `127.0.0.1`
+- port: `1080` unless the managed client service is configured for a different governed SOCKS5 port
+- proxy type: `SOCKS5`
+- no Telegram-specific transport mode or custom `n0wss` protocol setting is required
+
+### Managed Preflight
+
+Do not start the Telegram app-side check until the managed client runtime is already healthy:
+
+```bash
+systemctl is-active n0wss-client
+systemctl show n0wss-client -p MainPID --no-pager
+ss -ltnp | grep ":1080" || true
+journalctl -u n0wss-client -n 100 --no-pager
+tail -n 100 /var/log/n0wss-client.log
+```
+
+Required readiness outcome:
+
+- `n0wss-client` is active
+- the local SOCKS5 listener is bound on the governed port
+- startup evidence includes `[CliApp][run][BLOCK_START_APPLICATION]`
+- startup evidence includes `[CliApp][runRuntime][BLOCK_RUN_CLIENT_MODE]`
+
+If this preflight is not green, stop here. A Telegram-side retry without readiness proof is not valid GRACE evidence.
+
+### Bounded Telegram App Check
+
+After readiness is green:
+
+1. configure Telegram Desktop to use SOCKS5 at `127.0.0.1:1080`
+2. perform one initial connect attempt
+3. capture a bounded client log tail and, when tunnel activity appears, a bounded server log tail
+4. restart Telegram Desktop or trigger one reconnect attempt through the same SOCKS5 settings
+5. capture a second bounded packet for reconnect
+
+Do not blend the initial connect and reconnect evidence into one transcript.
+
+### Telegram Evidence Packet Shape
+
+For each Telegram wave keep four separable packets:
+
+- readiness packet: `systemctl`, `MainPID`, listener state, startup anchors
+- initial connect packet: Telegram action summary, local listener state, client log tail, server log tail if reached
+- reconnect packet: reconnect action summary, fresh client log tail, fresh server log tail if reached
+- failure packet: expected evidence, observed evidence, first divergent block, next action
+
+Classification rule:
+
+- if Telegram never triggers `[Socks5Proxy][parseRequest][BLOCK_PARSE_SOCKS5_REQUEST]`, classify the failure as app-side misconfiguration or readiness-side failure
+- if SOCKS5 parse appears but no `[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]` follows, classify the divergence at transport resolution
+- if transport selection appears but no `[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]` follows, classify the divergence at the bridge or remote path
+
+Bounded claim rule:
+
+- a green Telegram wave proves SOCKS5 client compatibility for the tested Telegram build and host setup
+- it does not prove universal unblock behavior across all Telegram builds, all networks, or all blocking regimes
+
 ## Burst Detection Tuning
 
 Burst thresholds are deployment-time tuning values, not architecture constants.
