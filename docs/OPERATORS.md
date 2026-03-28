@@ -59,6 +59,47 @@ Operational invariants:
 - no secret material in repository-tracked files
 - no service file may point outside the approved `/opt/n0wss`, `/etc/systemd/system`, and `/var/log` layout without a new GRACE plan update
 
+## Secret Hygiene
+
+Phase-9 forbids plaintext-oriented secret handling as part of the standard operator workflow.
+
+Approved secret source types:
+
+- root-readable env files stored on the host under `/opt/n0wss/env`
+- transient shell environment variables provided through an operator-controlled session
+- out-of-band secret delivery handled outside the repository and copied directly onto the host
+
+Disallowed secret source types:
+
+- repository-tracked files containing live auth values
+- chat transcripts or tickets containing reusable raw secrets
+- shell scripts with embedded live auth values, passwords, or private keys
+
+Canonical managed secret surfaces:
+
+| Secret Surface | Approved Location | Mode | Notes |
+|---|---|---|---|
+| server auth token | `/opt/n0wss/env/server.env` | `0600` | Loaded only by the server service or deploy workflow |
+| client auth token | `/opt/n0wss/env/client.env` | `0600` | Loaded only by the client service or deploy workflow |
+| private key | `/opt/n0wss/certs/server.key` | `0600` | Never copied into logs, docs, or reusable transcripts |
+
+Redaction rules:
+
+- describe secret source type or file path, not the secret value
+- if a reject-path example needs evidence, show only redacted material such as masked prefixes
+- never paste a live auth token, SSH password, GitHub token, or PEM private key into repository docs
+
+Rotation follow-up is mandatory when a live secret was ever stored unsafely:
+
+1. replace the leaked token or password
+2. update the host-local env file with the new value
+3. verify the old value is no longer accepted
+4. remove the unsafe source artifact from the operator workflow
+
+Operational rule:
+
+- if an operator must choose between speed and secret hygiene, secret hygiene wins and the rollout waits
+
 ## Release Readiness
 
 Before opening the first GitHub release or handing the repository to external testers, run:
