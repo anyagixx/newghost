@@ -1594,6 +1594,11 @@
         <critical-block>BLOCK_TELEGRAM_SMOKE</critical-block>
       </observability>
       <verification-ref>V-M-TELEGRAM-SMOKE</verification-ref>
+      <notes>
+        <note-1>On 2026-03-28 Telegram Desktop was exercised through a governed local SOCKS5 path by forwarding 127.0.0.1:1080 to the managed client host listener and switching the local system SOCKS proxy to the forwarded endpoint.</note-1>
+        <note-2>The initial connect packet at 17:18:16Z through 17:18:26Z produced BLOCK_PARSE_SOCKS5_REQUEST, BLOCK_SELECT_TRANSPORT, and BLOCK_PUMP_BIDIRECTIONAL markers on Telegram target IPs under 149.154.0.0/16 and 91.108.0.0/16.</note-2>
+        <note-3>The reconnect packet at 17:19:14Z through 17:19:32Z produced a fresh Telegram-target request burst with the same anchored transport-selection and bridge-pump trajectory plus accepted WSS handshakes on the server host.</note-3>
+      </notes>
     </M-TELEGRAM-SMOKE>
 
     <M-TELEGRAM-EVIDENCE NAME="TelegramEvidence" TYPE="UTILITY" LAYER="14" ORDER="4" STATUS="planned">
