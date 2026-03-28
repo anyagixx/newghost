@@ -353,6 +353,14 @@ Observed rebuilt-host acceptance outcome on 2026-03-29:
 
 This observed outcome is the operator-facing baseline for release `v0.3.2` and must not be described as working Telegram call support.
 
+Current Telegram calls profile during Phase-18:
+
+- the repository now contains a governed UDP-capable path for later call validation:
+  `SOCKS5 UDP ASSOCIATE`, datagram association ownership, a bounded WSS-backed datagram carrier, and server-side UDP relay helpers
+- this changes the architecture baseline, but it does not by itself convert calls into a verified green path
+- public wording must still separate the already green text or file envelope from the new UDP media envelope that still needs a dedicated verification wave
+- until `LV-009 TelegramCallsWave` is executed, voice and video calls remain under validation for the tested Telegram Desktop setup
+
 Repository publication note:
 
 - tag `v0.3.2` already captures this approved baseline
@@ -380,8 +388,8 @@ Final rebuilt-host packet on 2026-03-29:
 - call-failure packet:
   expected evidence: voice and video calls complete over the same governed path
   observed evidence: call ringing and answer state succeeded, but Telegram stayed at key exchange while message and file paths remained green
-  first divergent block: the current bounded envelope stops at the CONNECT-oriented SOCKS5 or TCP path and does not yet prove the later call media path
-  next action: plan a dedicated UDP-capable Telegram calls phase instead of replaying the already green TCP or SOCKS5 acceptance path
+  first divergent block: the old bounded envelope stopped at the CONNECT-oriented SOCKS5 or TCP path and did not yet prove the later call media path
+  next action: use the new UDP-capable Phase-18 architecture and run the dedicated Telegram calls wave instead of replaying the already green TCP or SOCKS5 acceptance path
 
 Classification rule:
 
@@ -392,6 +400,7 @@ Classification rule:
 Bounded claim rule:
 
 - a green Telegram wave proves SOCKS5 client compatibility for the tested Telegram build and host setup
+- a future green Telegram calls wave would need separate UDP media evidence before voice or video calls can be described as supported
 - it does not prove universal unblock behavior across all Telegram builds, all networks, or all blocking regimes
 - the current verified example is Telegram Desktop on the local operator workstation routed into the managed client host listener through a governed local SOCKS5 forward
 

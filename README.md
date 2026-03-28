@@ -109,8 +109,9 @@ For the verified local-workstation Telegram Desktop example, that local `127.0.0
 
 Bounded claim surface:
 
-- supported claim: Telegram can be tested as a SOCKS5-aware application over the existing `n0wss` tunnel
+- supported claim: Telegram can be tested as a SOCKS5-aware application over the existing `n0wss` tunnel, and the repository now contains an explicit UDP-capable architecture for later Telegram calls verification
 - unsupported claim: `n0wss` defines a Telegram-specific client protocol
+- unverified claim: the newly added UDP-capable path already proves working Telegram Desktop voice or video calls before the dedicated calls wave runs
 - unverified claim: `n0wss` guarantees bypass of every possible Telegram blocking regime or acts like a whole-device VPN
 
 Verified envelope as of 2026-03-29:
@@ -119,8 +120,16 @@ Verified envelope as of 2026-03-29:
 - the verified local Desktop path explicitly includes the SSH forward to the remote managed client listener before Telegram is pointed at `127.0.0.1:1080`
 - separate initial-connect and reconnect packets were observed on Telegram network IPs with anchored SOCKS5 parse, transport selection, bridge pump, and accepted WSS handshake evidence
 - on rebuilt hosts, Telegram Desktop text messages, photo send, ordinary media send, and large-file transfer were green through that same governed path
-- Telegram Desktop voice and video calls are not in the current proven envelope; the rebuilt-host acceptance wave stalled at Telegram key exchange and remains a no-go until a later UDP-capable phase exists
+- the rebuilt-host acceptance wave still left Telegram Desktop voice and video calls outside the proven envelope; it stalled at Telegram key exchange before any governed UDP-capable path existed
 - the evidence applies to the tested desktop build and host setup only
+
+Current calls-profile status:
+
+- Phase-18 adds a governed UDP-capable architecture to the repository:
+  `SOCKS5 UDP ASSOCIATE` ingress, datagram association ownership, a bounded WSS-backed datagram carrier, and server-side UDP relay helpers
+- this is an implementation baseline for a later dedicated calls wave, not a retroactive proof that the old key-exchange failure is solved
+- until the dedicated Telegram calls wave is run, Telegram Desktop voice and video calls remain under validation rather than green
+- the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.
 
