@@ -264,15 +264,39 @@ Required readiness outcome:
 
 If this preflight is not green, stop here. A Telegram-side retry without readiness proof is not valid GRACE evidence.
 
+### Local Workstation Versus Remote Host
+
+There are two valid operator shapes, and they are not interchangeable:
+
+- local-workstation Telegram Desktop: Telegram runs on your own machine, while `n0wss-client` listens on the remote managed client host
+- remote-host Telegram: Telegram runs directly on the same host where `n0wss-client` is listening
+
+For the current verified Desktop example, use the first shape. That means `127.0.0.1:1080` is not available locally by itself. You must first forward your local port to the remote managed listener:
+
+```bash
+ssh -N -L 127.0.0.1:1080:127.0.0.1:1080 root@$N0WSS_CLIENT_HOST
+```
+
+Keep that SSH session open during the Telegram test. Before configuring Telegram, prove the local forwarded bind exists:
+
+```bash
+ss -ltnp | grep ":1080" || true
+```
+
+If Telegram is running directly on the remote client host, skip the SSH forward and point Telegram at the host-local listener there.
+
 ### Bounded Telegram App Check
 
 After readiness is green:
 
-1. configure Telegram Desktop to use SOCKS5 at `127.0.0.1:1080`
-2. perform one initial connect attempt
-3. capture a bounded client log tail and, when tunnel activity appears, a bounded server log tail
-4. restart Telegram Desktop or trigger one reconnect attempt through the same SOCKS5 settings
-5. capture a second bounded packet for reconnect
+1. if Telegram runs on the local workstation, start `ssh -N -L 127.0.0.1:1080:127.0.0.1:1080 root@$N0WSS_CLIENT_HOST` and keep it alive
+2. if Telegram runs on the local workstation, confirm the forwarded local bind exists with `ss -ltnp | grep ":1080" || true`
+3. configure Telegram Desktop to use SOCKS5 at `127.0.0.1:1080`
+4. perform one initial connect attempt
+5. capture a bounded client log tail and, when tunnel activity appears, a bounded server log tail
+6. restart Telegram Desktop or trigger one reconnect attempt through the same SOCKS5 settings
+7. if reconnect stalls at `Connecting` on the local workstation, verify the SSH forward is still alive before classifying a tunnel-side defect
+8. capture a second bounded packet for reconnect
 
 Do not blend the initial connect and reconnect evidence into one transcript.
 
@@ -281,13 +305,13 @@ Do not blend the initial connect and reconnect evidence into one transcript.
 For each Telegram wave keep four separable packets:
 
 - readiness packet: `systemctl`, `MainPID`, listener state, startup anchors
-- initial connect packet: Telegram action summary, local listener state, client log tail, server log tail if reached
-- reconnect packet: reconnect action summary, fresh client log tail, fresh server log tail if reached
+- initial connect packet: Telegram action summary, local listener state, local forward state when applicable, client log tail, server log tail if reached
+- reconnect packet: reconnect action summary, fresh local forward state when applicable, fresh client log tail, fresh server log tail if reached
 - failure packet: expected evidence, observed evidence, first divergent block, next action
 
 Classification rule:
 
-- if Telegram never triggers `[Socks5Proxy][parseRequest][BLOCK_PARSE_SOCKS5_REQUEST]`, classify the failure as app-side misconfiguration or readiness-side failure
+- if Telegram never triggers `[Socks5Proxy][parseRequest][BLOCK_PARSE_SOCKS5_REQUEST]`, first check whether the SSH forward is still alive for the local-workstation variant, then classify the failure as app-side misconfiguration, forward-liveness failure, or readiness-side failure
 - if SOCKS5 parse appears but no `[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]` follows, classify the divergence at transport resolution
 - if transport selection appears but no `[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]` follows, classify the divergence at the bridge or remote path
 
