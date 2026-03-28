@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.10">
+  <Project NAME="n0wss" VERSION="0.2.11">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -697,6 +697,94 @@
       </annotations>
     </M-GITHUB-RELEASE-0-3-1>
 
+    <M-FINAL-HOST-REBASELINE NAME="FinalHostRebaseline" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Confirm that both freshly rebuilt Ubuntu hosts are reachable, clean, and ready for the final controlled deployment wave.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-LIVE-HOST-INVENTORY, M-DEPLOY-LAYOUT</depends>
+      <verification-ref>V-M-FINAL-HOST-REBASELINE</verification-ref>
+      <annotations>
+        <fn-captureFreshHostBaseline PURPOSE="Capture SSH, OS, and package-baseline evidence for both rebuilt hosts." />
+        <type-FinalHostBaselinePacket PURPOSE="Carries the clean-host baseline packet used before final deployment." />
+      </annotations>
+    </M-FINAL-HOST-REBASELINE>
+
+    <M-FINAL-DEPLOY-BOOTSTRAP NAME="FinalDeployBootstrap" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Redeploy the governed n0wss managed stack onto both fresh Ubuntu hosts without ad hoc mutation.</purpose>
+      <path>scripts/deploy-live.sh</path>
+      <depends>M-DEPLOY-SCRIPTING, M-SYSTEMD-UNITS, M-SECRET-HYGIENE, M-LIVE-BUILD-PACK</depends>
+      <verification-ref>V-M-FINAL-DEPLOY-BOOTSTRAP</verification-ref>
+      <annotations>
+        <fn-runFinalDeploy PURPOSE="Apply the approved managed deployment path to the rebuilt server and client hosts." />
+        <type-FinalDeployPacket PURPOSE="Carries the final deployment packet proving the fresh hosts received the governed runtime layout." />
+      </annotations>
+    </M-FINAL-DEPLOY-BOOTSTRAP>
+
+    <M-FINAL-SERVICE-READINESS NAME="FinalServiceReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Prove server and client readiness on the rebuilt hosts before the operator Telegram Desktop acceptance begins.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-FINAL-DEPLOY-BOOTSTRAP, M-LIVE-SERVER-LAUNCH, M-LIVE-CLIENT-LAUNCH, M-SYSTEMD-UNITS</depends>
+      <verification-ref>V-M-FINAL-SERVICE-READINESS</verification-ref>
+      <annotations>
+        <fn-captureFinalReadiness PURPOSE="Capture service, socket, and runtime-anchor evidence proving the rebuilt deployment is ready." />
+        <type-FinalServiceReadinessPacket PURPOSE="Carries the bounded readiness packet used before the operator app-side handoff." />
+      </annotations>
+    </M-FINAL-SERVICE-READINESS>
+
+    <M-FINAL-TELEGRAM-HANDOFF NAME="FinalTelegramHandoff" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define the exact operator handoff for the final Telegram Desktop test including the SSH forward and SOCKS5 settings.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-READINESS, M-TELEGRAM-COMPAT</depends>
+      <verification-ref>V-M-FINAL-TELEGRAM-HANDOFF</verification-ref>
+      <annotations>
+        <fn-prepareFinalTelegramHandoff PURPOSE="Prepare the exact SSH forward and SOCKS5 parameters the operator must use." />
+        <type-FinalTelegramHandoffPacket PURPOSE="Carries the exact operator handoff instructions for the final Telegram Desktop acceptance wave." />
+      </annotations>
+    </M-FINAL-TELEGRAM-HANDOFF>
+
+    <M-FINAL-TELEGRAM-ACCEPTANCE NAME="FinalTelegramAcceptance" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run the final Telegram Desktop acceptance wave while bounded evidence is captured on both rebuilt hosts.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-FINAL-SERVICE-READINESS, M-FINAL-TELEGRAM-HANDOFF, M-TELEGRAM-SMOKE, M-TELEGRAM-EVIDENCE</depends>
+      <verification-ref>V-M-FINAL-TELEGRAM-ACCEPTANCE</verification-ref>
+      <annotations>
+        <fn-runFinalTelegramAcceptance PURPOSE="Coordinate the operator-led final Telegram Desktop wave with bounded evidence capture." />
+        <type-FinalTelegramAcceptancePacket PURPOSE="Carries the final Telegram Desktop acceptance packet from the rebuilt environment." />
+      </annotations>
+    </M-FINAL-TELEGRAM-ACCEPTANCE>
+
+    <M-FINAL-VOICE-AND-MEDIA NAME="FinalVoiceAndMedia" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Record photos, large files, and call-path checks as separate media-heavy acceptance scenarios.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-FINAL-TELEGRAM-ACCEPTANCE, M-PROXY-BRIDGE, M-OBS</depends>
+      <verification-ref>V-M-FINAL-VOICE-AND-MEDIA</verification-ref>
+      <annotations>
+        <fn-runMediaAcceptance PURPOSE="Record media-heavy Telegram scenarios as separable evidence packets." />
+        <type-FinalVoiceAndMediaPacket PURPOSE="Carries the media-path acceptance results for the final Telegram Desktop wave." />
+      </annotations>
+    </M-FINAL-VOICE-AND-MEDIA>
+
+    <M-FINAL-EVIDENCE-PACKET NAME="FinalEvidencePacket" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble a bounded final acceptance packet from both hosts and the operator Telegram Desktop session without blind reruns.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-FINAL-TELEGRAM-ACCEPTANCE, M-FINAL-VOICE-AND-MEDIA, M-LIVE-OBS-EVIDENCE</depends>
+      <verification-ref>V-M-FINAL-EVIDENCE-PACKET</verification-ref>
+      <annotations>
+        <fn-assembleFinalEvidence PURPOSE="Assemble success or failure packets with first-divergent-block discipline for the final live wave." />
+        <type-FinalEvidencePacketRecord PURPOSE="Carries the bounded final acceptance packet for handoff and decision-making." />
+      </annotations>
+    </M-FINAL-EVIDENCE-PACKET>
+
+    <M-FINAL-GO-NO-GO NAME="FinalGoNoGo" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Produce the final go/no-go decision for the Telegram Desktop use case on the rebuilt two-host environment.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-FINAL-EVIDENCE-PACKET, M-TELEGRAM-COMPAT</depends>
+      <verification-ref>V-M-FINAL-GO-NO-GO</verification-ref>
+      <annotations>
+        <fn-decideFinalAcceptance PURPOSE="Summarize the final acceptance evidence into a bounded go/no-go decision for the operator." />
+        <type-FinalDecisionRecord PURPOSE="Carries the final bounded decision for the Telegram Desktop use case on the rebuilt hosts." />
+      </annotations>
+    </M-FINAL-GO-NO-GO>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -790,6 +878,21 @@
     <CrossLink from="M-RELEASE-MESSAGING-0-3-1" to="M-RELEASE-GATE-0-3-1" relation="supplies the release-facing wording checked by the v0.3.1 gate" />
     <CrossLink from="M-RELEASE-GATE-0-3-1" to="M-GITHUB-RELEASE-0-3-1" relation="provides the release-ready decision required before creating and pushing the v0.3.1 tag" />
     <CrossLink from="M-GITHUB-RELEASE-0-3-0" to="M-GITHUB-RELEASE-0-3-1" relation="supplies the existing tag-driven workflow reused for the v0.3.1 source release" />
+    <CrossLink from="M-LIVE-HOST-INVENTORY" to="M-FINAL-HOST-REBASELINE" relation="supplies the rebuilt host identities used by the final acceptance wave" />
+    <CrossLink from="M-DEPLOY-LAYOUT" to="M-FINAL-HOST-REBASELINE" relation="defines the host-level baseline expected before the final deployment bootstrap begins" />
+    <CrossLink from="M-FINAL-HOST-REBASELINE" to="M-FINAL-DEPLOY-BOOTSTRAP" relation="proves the rebuilt hosts are ready for the governed managed deploy path" />
+    <CrossLink from="M-DEPLOY-SCRIPTING" to="M-FINAL-DEPLOY-BOOTSTRAP" relation="supplies the governed deployment path reused for the rebuilt hosts" />
+    <CrossLink from="M-FINAL-DEPLOY-BOOTSTRAP" to="M-FINAL-SERVICE-READINESS" relation="provides the freshly deployed services that must prove readiness before app-side testing" />
+    <CrossLink from="M-TELEGRAM-FORWARD-RUNBOOK" to="M-FINAL-TELEGRAM-HANDOFF" relation="supplies the exact SSH-forward operator path reused in the final acceptance wave" />
+    <CrossLink from="M-FINAL-SERVICE-READINESS" to="M-FINAL-TELEGRAM-HANDOFF" relation="defines when the operator handoff may begin" />
+    <CrossLink from="M-FINAL-TELEGRAM-HANDOFF" to="M-FINAL-TELEGRAM-ACCEPTANCE" relation="supplies the exact operator action path used during final Telegram Desktop testing" />
+    <CrossLink from="M-TELEGRAM-SMOKE" to="M-FINAL-TELEGRAM-ACCEPTANCE" relation="supplies the acceptance trajectory and anchors reused in the final Telegram Desktop wave" />
+    <CrossLink from="M-FINAL-TELEGRAM-ACCEPTANCE" to="M-FINAL-VOICE-AND-MEDIA" relation="provides the base Telegram acceptance path expanded into media-heavy scenarios" />
+    <CrossLink from="M-PROXY-BRIDGE" to="M-FINAL-VOICE-AND-MEDIA" relation="carries the media-heavy byte streams that must remain observable during the final wave" />
+    <CrossLink from="M-FINAL-TELEGRAM-ACCEPTANCE" to="M-FINAL-EVIDENCE-PACKET" relation="supplies the base acceptance packet for final bounded evidence assembly" />
+    <CrossLink from="M-FINAL-VOICE-AND-MEDIA" to="M-FINAL-EVIDENCE-PACKET" relation="adds media-heavy scenario evidence to the final acceptance packet" />
+    <CrossLink from="M-FINAL-EVIDENCE-PACKET" to="M-FINAL-GO-NO-GO" relation="supplies the bounded evidence used for the final decision" />
+    <CrossLink from="M-TELEGRAM-COMPAT" to="M-FINAL-GO-NO-GO" relation="keeps the final decision bounded to the verified Telegram Desktop envelope" />
 
   </Project>
 </KnowledgeGraph>

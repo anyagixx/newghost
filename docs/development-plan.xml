@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.10">
+<DevelopmentPlan VERSION="0.2.11">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -1860,6 +1860,233 @@
       </observability>
       <verification-ref>V-M-GITHUB-RELEASE-0-3-1</verification-ref>
     </M-GITHUB-RELEASE-0-3-1>
+
+    <M-FINAL-HOST-REBASELINE NAME="FinalHostRebaseline" TYPE="UTILITY" LAYER="17" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Confirm that both freshly reinstalled Ubuntu hosts are reachable, clean, and ready for the final controlled deployment wave.</purpose>
+        <inputs>
+          <param name="hostAccessInputs" type="FinalHostAccessInputs" />
+        </inputs>
+        <outputs>
+          <param name="hostBaselinePacket" type="FinalHostBaselinePacket" />
+        </outputs>
+        <errors>
+          <error code="HOST_REBASELINE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureFreshHostBaseline PURPOSE="Capture SSH, OS, and package-baseline evidence for both clean Ubuntu hosts." />
+      </interface>
+      <depends>M-LIVE-HOST-INVENTORY, M-DEPLOY-LAYOUT</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalHostRebaseline]</log-prefix>
+        <critical-block>BLOCK_FINAL_HOST_REBASELINE</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-HOST-REBASELINE</verification-ref>
+    </M-FINAL-HOST-REBASELINE>
+
+    <M-FINAL-DEPLOY-BOOTSTRAP NAME="FinalDeployBootstrap" TYPE="ENTRY_POINT" LAYER="17" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Redeploy the governed n0wss managed stack onto both fresh Ubuntu hosts without ad hoc mutations.</purpose>
+        <inputs>
+          <param name="deployInputs" type="FinalDeployInputs" />
+        </inputs>
+        <outputs>
+          <param name="deployPacket" type="FinalDeployPacket" />
+        </outputs>
+        <errors>
+          <error code="FINAL_DEPLOY_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runFinalDeploy PURPOSE="Apply the approved managed deployment path to the fresh server and client hosts." />
+      </interface>
+      <depends>M-DEPLOY-SCRIPTING, M-SYSTEMD-UNITS, M-SECRET-HYGIENE, M-LIVE-BUILD-PACK</depends>
+      <target>
+        <source>scripts/deploy-live.sh</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalDeployBootstrap]</log-prefix>
+        <critical-block>BLOCK_FINAL_DEPLOY_BOOTSTRAP</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-DEPLOY-BOOTSTRAP</verification-ref>
+    </M-FINAL-DEPLOY-BOOTSTRAP>
+
+    <M-FINAL-SERVICE-READINESS NAME="FinalServiceReadiness" TYPE="ENTRY_POINT" LAYER="17" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Prove server and client readiness on the fresh hosts before handing control to the Telegram Desktop operator test.</purpose>
+        <inputs>
+          <param name="readinessInputs" type="FinalServiceReadinessInputs" />
+        </inputs>
+        <outputs>
+          <param name="readinessPacket" type="FinalServiceReadinessPacket" />
+        </outputs>
+        <errors>
+          <error code="FINAL_READINESS_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureFinalReadiness PURPOSE="Capture service, socket, and runtime-anchor evidence proving the fresh deployment is ready." />
+      </interface>
+      <depends>M-FINAL-DEPLOY-BOOTSTRAP, M-LIVE-SERVER-LAUNCH, M-LIVE-CLIENT-LAUNCH, M-SYSTEMD-UNITS</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalServiceReadiness]</log-prefix>
+        <critical-block>BLOCK_FINAL_SERVICE_READINESS</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-SERVICE-READINESS</verification-ref>
+    </M-FINAL-SERVICE-READINESS>
+
+    <M-FINAL-TELEGRAM-HANDOFF NAME="FinalTelegramHandoff" TYPE="UTILITY" LAYER="17" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Define the exact moment and exact parameters for handing the final Telegram Desktop test to the operator.</purpose>
+        <inputs>
+          <param name="handoffInputs" type="FinalTelegramHandoffInputs" />
+        </inputs>
+        <outputs>
+          <param name="handoffPacket" type="FinalTelegramHandoffPacket" />
+        </outputs>
+        <errors>
+          <error code="FINAL_HANDOFF_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-prepareFinalTelegramHandoff PURPOSE="Prepare the exact SSH forward and SOCKS5 settings the operator must use for the final Telegram Desktop acceptance test." />
+      </interface>
+      <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-READINESS, M-TELEGRAM-COMPAT</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <source>README.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalTelegramHandoff]</log-prefix>
+        <critical-block>BLOCK_FINAL_TELEGRAM_HANDOFF</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-TELEGRAM-HANDOFF</verification-ref>
+    </M-FINAL-TELEGRAM-HANDOFF>
+
+    <M-FINAL-TELEGRAM-ACCEPTANCE NAME="FinalTelegramAcceptance" TYPE="CORE_LOGIC" LAYER="17" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Run the final manual Telegram Desktop acceptance wave while bounded evidence is captured on both fresh hosts.</purpose>
+        <inputs>
+          <param name="acceptanceInputs" type="FinalTelegramAcceptanceInputs" />
+        </inputs>
+        <outputs>
+          <param name="acceptancePacket" type="FinalTelegramAcceptancePacket" />
+        </outputs>
+        <errors>
+          <error code="FINAL_TELEGRAM_ACCEPTANCE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runFinalTelegramAcceptance PURPOSE="Coordinate the operator-led Telegram Desktop wave with bounded evidence capture on both hosts." />
+      </interface>
+      <depends>M-FINAL-SERVICE-READINESS, M-FINAL-TELEGRAM-HANDOFF, M-TELEGRAM-SMOKE, M-TELEGRAM-EVIDENCE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalTelegramAcceptance]</log-prefix>
+        <critical-block>BLOCK_FINAL_TELEGRAM_ACCEPTANCE</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-TELEGRAM-ACCEPTANCE</verification-ref>
+    </M-FINAL-TELEGRAM-ACCEPTANCE>
+
+    <M-FINAL-VOICE-AND-MEDIA NAME="FinalVoiceAndMedia" TYPE="CORE_LOGIC" LAYER="17" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Separate media-heavy Telegram acceptance scenarios such as photos, large files, and calls from the basic connect path.</purpose>
+        <inputs>
+          <param name="mediaInputs" type="FinalVoiceAndMediaInputs" />
+        </inputs>
+        <outputs>
+          <param name="mediaPacket" type="FinalVoiceAndMediaPacket" />
+        </outputs>
+        <errors>
+          <error code="FINAL_MEDIA_PATH_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runMediaAcceptance PURPOSE="Record photo, large-file, and call-path acceptance results as separable evidence packets." />
+      </interface>
+      <depends>M-FINAL-TELEGRAM-ACCEPTANCE, M-PROXY-BRIDGE, M-OBS</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <tests>docs/OPERATORS.md</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalVoiceAndMedia]</log-prefix>
+        <critical-block>BLOCK_FINAL_VOICE_AND_MEDIA</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-VOICE-AND-MEDIA</verification-ref>
+    </M-FINAL-VOICE-AND-MEDIA>
+
+    <M-FINAL-EVIDENCE-PACKET NAME="FinalEvidencePacket" TYPE="UTILITY" LAYER="17" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble a bounded final acceptance packet from both hosts and the operator Telegram Desktop session without requiring blind reruns.</purpose>
+        <inputs>
+          <param name="evidenceInputs" type="FinalEvidenceInputs" />
+        </inputs>
+        <outputs>
+          <param name="evidencePacket" type="FinalEvidencePacketRecord" />
+        </outputs>
+        <errors>
+          <error code="FINAL_EVIDENCE_INSUFFICIENT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-assembleFinalEvidence PURPOSE="Assemble success or failure packets for the final acceptance wave with first-divergent-block discipline." />
+      </interface>
+      <depends>M-FINAL-TELEGRAM-ACCEPTANCE, M-FINAL-VOICE-AND-MEDIA, M-LIVE-OBS-EVIDENCE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <tests>docs/OPERATORS.md</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalEvidencePacket]</log-prefix>
+        <critical-block>BLOCK_FINAL_EVIDENCE_PACKET</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-EVIDENCE-PACKET</verification-ref>
+    </M-FINAL-EVIDENCE-PACKET>
+
+    <M-FINAL-GO-NO-GO NAME="FinalGoNoGo" TYPE="ENTRY_POINT" LAYER="17" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Produce the final go or no-go decision for the Telegram Desktop use case on the rebuilt two-host environment.</purpose>
+        <inputs>
+          <param name="decisionInputs" type="FinalDecisionInputs" />
+        </inputs>
+        <outputs>
+          <param name="decisionRecord" type="FinalDecisionRecord" />
+        </outputs>
+        <errors>
+          <error code="FINAL_DECISION_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-decideFinalAcceptance PURPOSE="Summarize the final acceptance evidence into a go/no-go decision for the operator." />
+      </interface>
+      <depends>M-FINAL-EVIDENCE-PACKET, M-TELEGRAM-COMPAT</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>README.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[FinalGoNoGo]</log-prefix>
+        <critical-block>BLOCK_FINAL_GO_NO_GO</critical-block>
+      </observability>
+      <verification-ref>V-M-FINAL-GO-NO-GO</verification-ref>
+    </M-FINAL-GO-NO-GO>
   </Modules>
 
   <DataFlow>
@@ -2198,6 +2425,18 @@
       <step-3 module="M-RELEASE-GATE-0-3-1" status="done" verification="V-M-RELEASE-GATE-0-3-1">Run the release gate and confirm v0.3.1 is ready to tag</step-3>
       <step-4 module="M-GITHUB-RELEASE-0-3-1" status="done" verification="V-M-GITHUB-RELEASE-0-3-1">Create and push the v0.3.1 tag through the existing GitHub source-release workflow</step-4>
     </Phase-13>
+
+    <Phase-14 name="Final Telegram Acceptance On Fresh Hosts" status="pending">
+      <goal>Rebaseline two fresh Ubuntu hosts, redeploy n0wss, hand off a verified Telegram Desktop path to the operator, and capture final acceptance evidence for real Telegram use.</goal>
+      <step-1 module="M-FINAL-HOST-REBASELINE" status="done" verification="V-M-FINAL-HOST-REBASELINE">Confirm both rebuilt Ubuntu hosts are reachable, clean, and ready for controlled deployment</step-1>
+      <step-2 module="M-FINAL-DEPLOY-BOOTSTRAP" status="pending" verification="V-M-FINAL-DEPLOY-BOOTSTRAP">Redeploy the governed managed n0wss stack onto both fresh hosts</step-2>
+      <step-3 module="M-FINAL-SERVICE-READINESS" status="pending" verification="V-M-FINAL-SERVICE-READINESS">Prove fresh service readiness before the operator Telegram Desktop test begins</step-3>
+      <step-4 module="M-FINAL-TELEGRAM-HANDOFF" status="pending" verification="V-M-FINAL-TELEGRAM-HANDOFF">Prepare the exact SSH forward and SOCKS5 settings for the operator handoff</step-4>
+      <step-5 module="M-FINAL-TELEGRAM-ACCEPTANCE" status="pending" verification="V-M-FINAL-TELEGRAM-ACCEPTANCE">Run the final Telegram Desktop acceptance wave with bounded evidence capture</step-5>
+      <step-6 module="M-FINAL-VOICE-AND-MEDIA" status="pending" verification="V-M-FINAL-VOICE-AND-MEDIA">Capture photo, file, and call-path acceptance results as separable media evidence</step-6>
+      <step-7 module="M-FINAL-EVIDENCE-PACKET" status="pending" verification="V-M-FINAL-EVIDENCE-PACKET">Assemble the bounded final evidence packet from both hosts and the operator session</step-7>
+      <step-8 module="M-FINAL-GO-NO-GO" status="pending" verification="V-M-FINAL-GO-NO-GO">Produce the final go/no-go decision for the Telegram Desktop use case on the rebuilt environment</step-8>
+    </Phase-14>
   </ImplementationOrder>
 
   <ExecutionPolicy>
