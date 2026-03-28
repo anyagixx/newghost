@@ -440,7 +440,7 @@
       </annotations>
     </M-SECRET-HYGIENE>
 
-    <M-DEPLOY-SCRIPTING NAME="DeployScripting" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-DEPLOY-SCRIPTING NAME="DeployScripting" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Define a repeatable deployment and update workflow for server and client hosts rather than manual staging.</purpose>
       <path>scripts/deploy-live.sh</path>
       <depends>M-DEPLOY-LAYOUT, M-SECRET-HYGIENE, M-CLI-BIN</depends>
@@ -448,6 +448,7 @@
       <annotations>
         <fn-deployServer PURPOSE="Stage or update the managed server host under the canonical layout." />
         <fn-deployClient PURPOSE="Stage or update the managed client host under the canonical layout." />
+        <fn-printUsage PURPOSE="Expose the governed CLI surface for managed deployment." />
         <type-DeployRunResult PURPOSE="Carries bounded artifact-switch and deploy evidence for one managed rollout." />
       </annotations>
     </M-DEPLOY-SCRIPTING>

@@ -1182,7 +1182,7 @@
       </notes>
     </M-SECRET-HYGIENE>
 
-    <M-DEPLOY-SCRIPTING NAME="DeployScripting" TYPE="ENTRY_POINT" LAYER="11" ORDER="1" STATUS="planned">
+    <M-DEPLOY-SCRIPTING NAME="DeployScripting" TYPE="ENTRY_POINT" LAYER="11" ORDER="1" STATUS="implemented">
       <contract>
         <purpose>Define a repeatable deployment and update workflow for server and client hosts instead of ad hoc manual staging.</purpose>
         <inputs>
@@ -1213,6 +1213,7 @@
       <verification-ref>V-M-DEPLOY-SCRIPTING</verification-ref>
       <notes>
         <note-1>Repeatable deployment must preserve artifact identity and emit enough evidence to diagnose partial rollout failures.</note-1>
+        <note-2>scripts/deploy-live.sh now provides a governed dry-run plus role-aware canonical staging flow for server and client hosts.</note-2>
       </notes>
     </M-DEPLOY-SCRIPTING>
 
@@ -1587,7 +1588,7 @@
       <goal>Convert the first green live wave into a repeatable service-managed deployment shape with safer secret handling, bounded logs, and a second managed verification wave.</goal>
       <step-1 module="M-DEPLOY-LAYOUT" status="done" verification="V-M-DEPLOY-LAYOUT">Define the canonical host filesystem layout, path ownership, and runtime-state boundaries for managed deployment</step-1>
       <step-2 module="M-SECRET-HYGIENE" status="done" verification="V-M-SECRET-HYGIENE">Replace plaintext-oriented operator secret handling with a governed file or env-based model and explicit rotation follow-up</step-2>
-      <step-3 module="M-DEPLOY-SCRIPTING" status="pending" verification="V-M-DEPLOY-SCRIPTING">Implement repeatable server and client deployment or update scripting around the canonical layout</step-3>
+      <step-3 module="M-DEPLOY-SCRIPTING" status="done" verification="V-M-DEPLOY-SCRIPTING">Implement repeatable server and client deployment or update scripting around the canonical layout</step-3>
       <step-4 module="M-SYSTEMD-UNITS" status="pending" verification="V-M-SYSTEMD-UNITS">Define managed server and client systemd services with explicit readiness and restart evidence</step-4>
       <step-5 module="M-LOG-ROTATION" status="pending" verification="V-M-LOG-ROTATION">Add bounded log-retention policy that preserves current-wave evidence</step-5>
       <step-6 module="M-OPERATOR-RUNBOOK" status="pending" verification="V-M-OPERATOR-RUNBOOK">Document install, start, stop, update, rollback, and evidence capture for the managed deployment shape</step-6>
