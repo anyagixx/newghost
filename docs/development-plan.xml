@@ -2588,7 +2588,7 @@
       <step-4 module="M-GITHUB-RELEASE-0-3-1" status="done" verification="V-M-GITHUB-RELEASE-0-3-1">Create and push the v0.3.1 tag through the existing GitHub source-release workflow</step-4>
     </Phase-13>
 
-    <Phase-14 name="Final Telegram Acceptance On Fresh Hosts" status="pending">
+    <Phase-14 name="Final Telegram Acceptance On Fresh Hosts" status="done">
       <goal>Rebaseline two fresh Ubuntu hosts, redeploy n0wss, hand off a verified Telegram Desktop path to the operator, and capture final acceptance evidence for real Telegram use.</goal>
       <step-1 module="M-FINAL-HOST-REBASELINE" status="done" verification="V-M-FINAL-HOST-REBASELINE">Confirm both rebuilt Ubuntu hosts are reachable, clean, and ready for controlled deployment</step-1>
       <step-2 module="M-FINAL-DEPLOY-BOOTSTRAP" status="done" verification="V-M-FINAL-DEPLOY-BOOTSTRAP">Redeploy the governed managed n0wss stack onto both fresh hosts</step-2>
