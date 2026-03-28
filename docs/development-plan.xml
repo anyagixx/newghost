@@ -2200,7 +2200,7 @@
       </notes>
     </M-BASELINE-SYNC-0-3-2>
 
-    <M-RELEASE-GATE-0-3-2 NAME="ReleaseGate032" TYPE="ENTRY_POINT" LAYER="18" ORDER="4" STATUS="planned">
+    <M-RELEASE-GATE-0-3-2 NAME="ReleaseGate032" TYPE="ENTRY_POINT" LAYER="18" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Run the bounded release gate for v0.3.2 so GitHub can reflect the current local baseline safely.</purpose>
         <inputs>
@@ -2228,6 +2228,9 @@
         <critical-block>BLOCK_RELEASE_GATE_0_3_2</critical-block>
       </observability>
       <verification-ref>V-M-RELEASE-GATE-0-3-2</verification-ref>
+      <notes>
+        <note-1>The v0.3.2 release gate passed with a clean tree, no stale local v0.3.2 tag, remote baseline at v0.3.1, and aligned changelog plus release-facing docs.</note-1>
+      </notes>
     </M-RELEASE-GATE-0-3-2>
 
     <M-GITHUB-RELEASE-0-3-2 NAME="GitHubRelease032" TYPE="INTEGRATION" LAYER="18" ORDER="5" STATUS="planned">
@@ -2614,7 +2617,7 @@
       <step-1 module="M-CHANGELOG-0-3-2" status="done" verification="V-M-CHANGELOG-0-3-2">Add the bounded v0.3.2 changelog entry for the current verified baseline</step-1>
       <step-2 module="M-RELEASE-MESSAGING-0-3-2" status="done" verification="V-M-RELEASE-MESSAGING-0-3-2">Align release-facing docs with the verified Telegram Desktop envelope and current limitations</step-2>
       <step-3 module="M-BASELINE-SYNC-0-3-2" status="done" verification="V-M-BASELINE-SYNC-0-3-2">Synchronize GRACE artifacts with the v0.3.2 release truth</step-3>
-      <step-4 module="M-RELEASE-GATE-0-3-2" status="pending" verification="V-M-RELEASE-GATE-0-3-2">Run the release gate and confirm v0.3.2 is ready to tag</step-4>
+      <step-4 module="M-RELEASE-GATE-0-3-2" status="done" verification="V-M-RELEASE-GATE-0-3-2">Run the release gate and confirm v0.3.2 is ready to tag</step-4>
       <step-5 module="M-GITHUB-RELEASE-0-3-2" status="pending" verification="V-M-GITHUB-RELEASE-0-3-2">Create and push the v0.3.2 tag through the existing GitHub source-release workflow</step-5>
     </Phase-15>
   </ImplementationOrder>

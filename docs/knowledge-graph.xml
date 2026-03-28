@@ -815,7 +815,7 @@
       </annotations>
     </M-BASELINE-SYNC-0-3-2>
 
-    <M-RELEASE-GATE-0-3-2 NAME="ReleaseGate032" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-RELEASE-GATE-0-3-2 NAME="ReleaseGate032" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Run the bounded release gate for v0.3.2 before publishing the new GitHub baseline.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-BASELINE-SYNC-0-3-2, M-CHANGELOG-0-3-2</depends>
