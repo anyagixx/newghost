@@ -965,7 +965,7 @@
       </annotations>
     </M-WSS-DATAGRAM-GATEWAY>
 
-    <M-UDP-EGRESS-RELAY NAME="UdpEgressRelay" TYPE="INTEGRATION" STATUS="planned">
+    <M-UDP-EGRESS-RELAY NAME="UdpEgressRelay" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Relay real UDP traffic on the server side and return inbound packets to the owning association.</purpose>
       <path>src/proxy_bridge/udp_relay.rs</path>
       <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-OBS</depends>
