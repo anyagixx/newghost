@@ -2065,7 +2065,7 @@
       <step-5 module="M-TELEGRAM-COMPAT" status="done" verification="V-M-TELEGRAM-COMPAT">Document the verified Telegram compatibility bounds without overstating unblock guarantees</step-5>
     </Phase-11>
 
-    <Phase-12 name="Telegram Forward Clarification" status="pending">
+    <Phase-12 name="Telegram Forward Clarification" status="done">
       <goal>Repair the operator and verification contract so the proven local Telegram Desktop path explicitly includes the required SSH forward to the remote managed n0wss client.</goal>
       <step-1 module="M-TELEGRAM-FORWARD-RUNBOOK" status="done" verification="V-M-TELEGRAM-FORWARD-RUNBOOK">Document the local-workstation Telegram Desktop path and the SSH local-forward prerequisite explicitly in the operator runbook</step-1>
       <step-2 module="M-TELEGRAM-FORWARD-VERIFICATION" status="done" verification="V-M-TELEGRAM-FORWARD-VERIFICATION">Align LV-007 and Telegram evidence requirements with the forwarded Desktop verification path</step-2>
