@@ -427,7 +427,7 @@
       </annotations>
     </M-DEPLOY-LAYOUT>
 
-    <M-SECRET-HYGIENE NAME="SecretHygiene" TYPE="UTILITY" STATUS="planned">
+    <M-SECRET-HYGIENE NAME="SecretHygiene" TYPE="UTILITY" STATUS="implemented">
       <purpose>Define the managed secret-handling model so runtime auth material and operator credentials stay out of repository artifacts and reusable evidence.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-DEPLOY-LAYOUT, M-AUTH, M-RELEASE-DOCS</depends>
@@ -436,6 +436,7 @@
         <fn-defineSecretInputs PURPOSE="Pin the approved source classes for runtime secrets." />
         <fn-defineRotationFollowUp PURPOSE="Describe required secret cleanup and rotation actions after live testing." />
         <type-SecretHandlingPolicy PURPOSE="Carries the approved Phase-9 secret-placement and redaction rules." />
+        <type-ManagedSecretSources PURPOSE="The current managed secret policy allows only host-local env files, transient operator env vars, and secure out-of-band delivery paths." />
       </annotations>
     </M-SECRET-HYGIENE>
 

@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.5">
+<VerificationPlan VERSION="0.2.8">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -6,9 +6,14 @@
     <wave-level-focus>Checks only merged surfaces touched by the current wave, especially sequential fallback, bounded queue behavior, adapter contract enforcement, sliding-window burst detection, and proxy-path integration.</wave-level-focus>
     <phase-level-focus>Broader transport, reconnect, shutdown, backpressure, burst observability, and regression confidence.</phase-level-focus>
     <live-wave-focus>For the first two-host live wave, prove remote server readiness, remote client readiness, one deterministic SOCKS5 smoke request, one deterministic auth rejection, and clean shutdown with host-local evidence captured on both machines.</live-wave-focus>
+    <managed-wave-focus>For Phase-9 and later managed-service waves, prove deploy layout alignment, service readiness, restart recovery, repeated smoke behavior, bounded log retention, and redacted secret handling under the same governed runtime anchors.</managed-wave-focus>
     <redaction>Never log secrets, raw tokens, proxy credentials, TLS private keys, or proxied traffic payloads.</redaction>
     <remote-operator-rule>Credentials, passwords, and raw host access details stay outside repository artifacts; verification commands must consume them via operator-provided environment variables or an out-of-band secure channel.</remote-operator-rule>
     <manual-docs-driven-rule>When a governed module is documentation-only, workflow-only, or evidence-only and has no repo-local test file, its test-files block points at docs/verification-plan.xml as the canonical review anchor and the real checks live in module-checks plus scenarios.</manual-docs-driven-rule>
+    <substantive-test-governance-rule>When a repo-local test file carries multiple scenarios, custom fixtures, or cross-module verification logic, it should include MODULE_CONTRACT, MODULE_MAP, and CHANGE_SUMMARY markup so future agents can navigate and trust the evidence surface quickly.</substantive-test-governance-rule>
+    <systemd-evidence-rule>Managed-service verification must capture both service-manager evidence such as systemctl or journalctl state and the underlying runtime anchors emitted by n0wss itself.</systemd-evidence-rule>
+    <evidence-packet-separation-rule>Success-path, restart-recovery, and bad-auth-path artifacts must remain separable so later agents can identify the first divergent block without replaying the entire wave.</evidence-packet-separation-rule>
+    <doc-script-alignment-rule>When deploy scripts, unit files, or operator docs change, the verification surface must assert that names, paths, and operator commands still match across all three artifacts.</doc-script-alignment-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -163,6 +168,77 @@
         <trace-sequence>LIVE_REQUEST_COMPLETE -&gt; STOP_ACCEPT -&gt; DRAIN_STREAMS -&gt; TRACKERS_EMPTY -&gt; PROCESS_EXITED</trace-sequence>
       </required-signals>
     </VF-LIVE-005>
+
+    <VF-DEPLOY-001 NAME="ManagedDeployLayout" USE_CASES="UC-003" DATA_FLOW="DF-DEPLOY-PACKAGE" PRIORITY="high">
+      <scenario>A managed deployment or update stages the governed artifact into the canonical on-host layout.</scenario>
+      <expected-outcome>The target hosts receive one approved artifact identity, canonical paths, and bounded evidence without raw secret leakage.</expected-outcome>
+      <required-signals>
+        <trace-sequence>ARTIFACT_SELECTED -&gt; LAYOUT_APPLIED -&gt; IDENTITY_CONFIRMED -&gt; READY_FOR_SERVICE_START</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-001>
+
+    <VF-DEPLOY-002 NAME="ManagedServerServiceReady" USE_CASES="UC-002,UC-003" DATA_FLOW="DF-SERVICE-BOOT" PRIORITY="high">
+      <scenario>The managed server systemd service starts with the governed runtime shape and reaches readiness.</scenario>
+      <expected-outcome>The service becomes active, emits startup anchors, and binds the expected WSS listener.</expected-outcome>
+      <required-signals>
+        <log-marker>[CliApp][run][BLOCK_START_APPLICATION]</log-marker>
+        <log-marker>[TlsContext][fromConfig][BLOCK_LOAD_TLS_MATERIAL]</log-marker>
+        <trace-sequence>SYSTEMD_START -&gt; BLOCK_START_APPLICATION -&gt; BLOCK_RUN_SERVER_MODE -&gt; LISTENER_READY</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-002>
+
+    <VF-DEPLOY-003 NAME="ManagedClientServiceReady" USE_CASES="UC-001,UC-003" DATA_FLOW="DF-SERVICE-BOOT" PRIORITY="high">
+      <scenario>The managed client systemd service starts and exposes the governed SOCKS5 endpoint.</scenario>
+      <expected-outcome>The service becomes active, emits startup anchors, and binds the expected local SOCKS5 listener.</expected-outcome>
+      <required-signals>
+        <log-marker>[CliApp][run][BLOCK_START_APPLICATION]</log-marker>
+        <trace-sequence>SYSTEMD_START -&gt; BLOCK_START_APPLICATION -&gt; BLOCK_RUN_CLIENT_MODE -&gt; SOCKS5_READY</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-003>
+
+    <VF-DEPLOY-004 NAME="ManagedRestartRecovery" USE_CASES="UC-003" DATA_FLOW="DF-SERVICE-UPDATE" PRIORITY="high">
+      <scenario>The operator restarts or updates a managed service and proves recovery without stale listeners.</scenario>
+      <expected-outcome>A new service process reaches readiness, stale listeners disappear, and reconnect-capable flows still work.</expected-outcome>
+      <required-signals>
+        <log-marker>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</log-marker>
+        <trace-sequence>SERVICE_STOP -&gt; BLOCK_COORDINATE_SHUTDOWN -&gt; SYSTEMD_START -&gt; READY_AGAIN</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-004>
+
+    <VF-DEPLOY-005 NAME="ManagedRepeatedSmoke" USE_CASES="UC-001,UC-002" DATA_FLOW="DF-LIVE-WAVE-2" PRIORITY="high">
+      <scenario>Repeated deterministic SOCKS5 smoke requests are run after managed startup.</scenario>
+      <expected-outcome>Each request succeeds with stable output metadata and the trajectory remains anchored through transport selection and pump completion.</expected-outcome>
+      <required-signals>
+        <log-marker>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</log-marker>
+        <log-marker>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</log-marker>
+        <trace-sequence>READY -&gt; BLOCK_SELECT_TRANSPORT -&gt; BLOCK_PUMP_BIDIRECTIONAL -&gt; RESPONSE_RETURNED</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-005>
+
+    <VF-DEPLOY-006 NAME="ManagedBadAuthReject" USE_CASES="UC-002,UC-003" DATA_FLOW="DF-LIVE-WAVE-2" PRIORITY="high">
+      <scenario>A managed bad-auth attempt is executed after the managed success path.</scenario>
+      <expected-outcome>The server rejects the handshake with redacted evidence, the client sees deterministic failure, and no accepted session survives.</expected-outcome>
+      <required-signals>
+        <log-marker>[Auth][validateHandshake][BLOCK_VALIDATE_HANDSHAKE]</log-marker>
+        <trace-sequence>READY -&gt; BLOCK_VALIDATE_HANDSHAKE -&gt; REJECTED -&gt; NO_SESSION_CREATED</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-006>
+
+    <VF-DEPLOY-007 NAME="ManagedLogRotation" USE_CASES="UC-003" DATA_FLOW="DF-SERVICE-UPDATE" PRIORITY="medium">
+      <scenario>Log rotation executes under the managed deployment shape.</scenario>
+      <expected-outcome>Old logs are bounded, current logs remain writable, and the active evidence packet stays available for triage.</expected-outcome>
+      <required-signals>
+        <trace-sequence>LOG_ROTATE_TRIGGERED -&gt; ACTIVE_LOG_CONTINUES -&gt; EVIDENCE_REMAINS_READABLE</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-007>
+
+    <VF-DEPLOY-008 NAME="SecretHandlingDiscipline" USE_CASES="UC-003" DATA_FLOW="DF-SECRET-MATERIAL" PRIORITY="high">
+      <scenario>The managed deployment consumes secret material from approved sources only.</scenario>
+      <expected-outcome>No repository artifact, reusable transcript, or bounded evidence packet stores raw secrets, while startup still succeeds.</expected-outcome>
+      <required-signals>
+        <trace-sequence>SECRET_SOURCE_VALIDATED -&gt; RESTRICTED_PLACEMENT -&gt; STARTUP_SUCCEEDS -&gt; REDACTED_EVIDENCE_ONLY</trace-sequence>
+      </required-signals>
+    </VF-DEPLOY-008>
   </CriticalFlows>
 
   <ModuleVerification>
@@ -705,6 +781,150 @@
       <wave-follow-up>Route live failures into grace-fix or a human repair plan rather than blind retries.</wave-follow-up>
       <phase-follow-up>Keep the failure packet template stable across later live phases.</phase-follow-up>
     </V-M-LIVE-FAILURE-TRIAGE>
+
+    <V-M-DEPLOY-LAYOUT MODULE="M-DEPLOY-LAYOUT" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>test -d /opt/n0wss || true</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The deployment layout is explicit, role-aware, and consistent across scripts, services, and operator documentation.</scenario-1>
+        <scenario-2 kind="failure">Conflicting paths or ownership assumptions make deploy or recovery behavior ambiguous.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Every managed host role must resolve to one canonical binary path, one canonical secret path policy, and one canonical log path policy.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Reuse the same layout during deploy scripting and systemd verification.</wave-follow-up>
+      <phase-follow-up>Do not introduce alternate ad hoc layouts after Phase-9 is approved.</phase-follow-up>
+    </V-M-DEPLOY-LAYOUT>
+
+    <V-M-SECRET-HYGIENE MODULE="M-SECRET-HYGIENE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n '/opt/n0wss/env/(server|client)\\.env|0600|rotation' docs/OPERATORS.md</check-1>
+        <check-2>! rg -n '123eshelop678|ghp_|github_pat_|BEGIN [A-Z ]*PRIVATE KEY' docs/OPERATORS.md scripts/deploy-live.sh 2&gt;/dev/null</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The operator workflow defines approved secret sources and redaction discipline without embedding raw secret values.</scenario-1>
+        <scenario-2 kind="failure">Plaintext secrets remain part of the standard deployment or evidence workflow.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Verification evidence for Phase-9 must describe secret locations or source types without reproducing raw secret contents.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Apply the same secret-discipline rules to Live Wave 2 and later production-like runs.</wave-follow-up>
+      <phase-follow-up>Document token rotation and secret replacement as a required operator action.</phase-follow-up>
+    </V-M-SECRET-HYGIENE>
+
+    <V-M-DEPLOY-SCRIPTING MODULE="M-DEPLOY-SCRIPTING" PRIORITY="high">
+      <test-files>
+        <file>scripts/deploy-live.sh</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>bash -n scripts/deploy-live.sh</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The deploy script stages the governed artifact and switches over to the canonical layout repeatably.</scenario-1>
+        <scenario-2 kind="failure">Partial copy, unsafe overwrite, or inconsistent target paths leave the host in an ambiguous state.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Deploy evidence must show which artifact identity was staged and whether switchover completed.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Use the script as the only approved path for Live Wave 2 staging.</wave-follow-up>
+      <phase-follow-up>Add rollback-aware deploy checks before broader operator handoff.</phase-follow-up>
+    </V-M-DEPLOY-SCRIPTING>
+
+    <V-M-SYSTEMD-UNITS MODULE="M-SYSTEMD-UNITS" PRIORITY="high">
+      <test-files>
+        <file>deploy/systemd/n0wss-server.service</file>
+        <file>deploy/systemd/n0wss-client.service</file>
+      </test-files>
+      <module-checks>
+        <check-1>systemd-analyze verify deploy/systemd/n0wss-server.service deploy/systemd/n0wss-client.service</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Managed services start, stop, and restart the correct runtime surface with canonical paths.</scenario-1>
+        <scenario-2 kind="failure">Broken ExecStart, missing env files, or restart loops block managed launch readiness.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[CliApp][run][BLOCK_START_APPLICATION]</marker-1>
+        <marker-2>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Service-managed runtime must remain observable through the same core startup and shutdown anchors as manual launches.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Validate service readiness on both hosts before repeated managed smoke checks.</wave-follow-up>
+      <phase-follow-up>Keep unit naming, env-source names, and log targets stable across updates.</phase-follow-up>
+    </V-M-SYSTEMD-UNITS>
+
+    <V-M-LOG-ROTATION MODULE="M-LOG-ROTATION" PRIORITY="medium">
+      <test-files>
+        <file>deploy/logrotate/n0wss</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>logrotate -d deploy/logrotate/n0wss</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Log rotation bounds retained evidence while preserving active log continuity.</scenario-1>
+        <scenario-2 kind="failure">Rotation truncates the active evidence packet or leaves the service unable to write logs.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Current-wave evidence must remain readable until the operator closes the wave.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Run one rotation dry run before Live Wave 2 evidence collection.</wave-follow-up>
+      <phase-follow-up>Keep rotation sizing aligned with bounded-evidence expectations.</phase-follow-up>
+    </V-M-LOG-ROTATION>
+
+    <V-M-OPERATOR-RUNBOOK MODULE="M-OPERATOR-RUNBOOK" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>README.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'systemctl|journalctl|deploy-live|rollback|logrotate' docs/OPERATORS.md README.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The runbook covers install, start, stop, update, restart evidence, rollback, and bounded failure triage.</scenario-1>
+        <scenario-2 kind="failure">Operator docs drift from the real deploy scripts, services, or evidence commands.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Every operator action used in Live Wave 2 must map to one documented command path and one evidence path.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Use the runbook directly during Live Wave 2 to prove docs and execution stay aligned.</wave-follow-up>
+      <phase-follow-up>Keep runbook updates in the same change set as deploy or service workflow changes.</phase-follow-up>
+    </V-M-OPERATOR-RUNBOOK>
+
+    <V-M-LIVE-WAVE-2 MODULE="M-LIVE-WAVE-2" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The managed services pass repeated smoke, restart recovery, and bad-auth verification with bounded evidence.</scenario-1>
+        <scenario-2 kind="failure">Managed startup, restart, reconnect, or reject-path evidence diverges before the second live gate closes.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</marker-1>
+        <marker-2>[ProxyBridge][pumpBidirectional][BLOCK_PUMP_BIDIRECTIONAL]</marker-2>
+        <marker-3>[Auth][validateHandshake][BLOCK_VALIDATE_HANDSHAKE]</marker-3>
+        <marker-4>[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]</marker-4>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Live Wave 2 must separate success-path, restart-recovery, and bad-auth evidence into bounded packets rather than one conflated transcript.</assertion-1>
+      </required-trace-assertions>
+      <wave-follow-up>Escalate any managed-service failure into a GRACE failure packet before reruns.</wave-follow-up>
+      <phase-follow-up>Use this wave as the gate before any broader production-like rollout.</phase-follow-up>
+    </V-M-LIVE-WAVE-2>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -773,6 +993,35 @@
       </required-evidence>
       <failure-packet-template>scenario=LiveEvidenceCollection; expected-evidence=both host logs plus socket state plus smoke result; observed-evidence=missing or noisy artifacts; first-divergent-block=EVIDENCE_COLLECTION; next-action=improve log capture or restart with explicit output paths</failure-packet-template>
     </LV-004>
+
+    <LV-005 NAME="ManagedServiceWavePreparation" PRIORITY="high">
+      <goal>Prepare the managed deployment shape for the second live wave without falling back to ad hoc host mutation.</goal>
+      <commands>
+        <command-1>bash scripts/deploy-live.sh --dry-run</command-1>
+        <command-2>systemd-analyze verify deploy/systemd/n0wss-server.service deploy/systemd/n0wss-client.service</command-2>
+      </commands>
+      <required-evidence>
+        <evidence-1>The canonical deploy layout, unit names, env sources, and log targets are fixed before managed live verification starts.</evidence-1>
+        <evidence-2>No approved command requires raw secret material to be embedded in repository files.</evidence-2>
+      </required-evidence>
+      <failure-packet-template>scenario=ManagedServiceWavePreparation; expected-evidence=deploy script, units, and secret inputs are aligned; observed-evidence=dry-run, static verify, or doc drift failure; first-divergent-block=managed prep artifact mismatch; next-action=repair deploy layout, unit files, or secret inputs before service-managed live execution</failure-packet-template>
+    </LV-005>
+
+    <LV-006 NAME="ManagedServiceWaveExecution" PRIORITY="high">
+      <goal>Run the second live wave under managed services with repeated smoke, restart recovery, and bounded bad-auth evidence.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'systemctl restart n0wss-server &amp;&amp; systemctl is-active n0wss-server'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'systemctl restart n0wss-client &amp;&amp; systemctl is-active n0wss-client'</command-2>
+        <command-3>ssh root@$N0WSS_CLIENT_HOST 'curl --proxy socks5h://127.0.0.1:$N0WSS_SOCKS5_PORT --max-time 15 https://example.com -o /tmp/n0wss-smoke-2.out -sS'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 100 --no-pager'</command-4>
+        <command-5>ssh root@$N0WSS_SERVER_HOST 'journalctl -u n0wss-server -n 100 --no-pager'</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>VF-DEPLOY-002, VF-DEPLOY-003, VF-DEPLOY-004, VF-DEPLOY-005, and VF-DEPLOY-006 each produce their required evidence.</evidence-1>
+        <evidence-2>Repeated smoke and restart evidence are captured separately from the bad-auth evidence packet.</evidence-2>
+      </required-evidence>
+      <failure-packet-template>scenario=ManagedServiceWaveExecution; expected-evidence=service-managed readiness, repeated smoke success, restart recovery, and redacted bad-auth reject; observed-evidence=journal, systemctl, socket, and output failure details; first-divergent-block=first missing managed-service marker; next-action=repair service, deploy, or runtime behavior before rerun</failure-packet-template>
+    </LV-006>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -881,6 +1130,22 @@
         <evidence-5>VF-LIVE-005 proves shutdown leaves no live listeners or stuck session cleanup.</evidence-5>
       </required-evidence>
     </Gate-Live-1>
+
+    <Gate-Phase-9 PHASE="Phase-9">
+      <goal>The project is ready for repeatable managed deployment, bounded evidence capture, and a second live verification wave.</goal>
+      <commands>
+        <command-1>bash -n scripts/deploy-live.sh</command-1>
+        <command-2>systemd-analyze verify deploy/systemd/n0wss-server.service deploy/systemd/n0wss-client.service</command-2>
+        <command-3>logrotate -d deploy/logrotate/n0wss</command-3>
+        <command-4>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-4>
+        <command-5>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>Deploy layout, secret handling, deploy scripting, systemd units, and runbook stay aligned.</evidence-1>
+        <evidence-2>Managed startup, restart recovery, repeated smoke, and bad-auth checks produce bounded evidence suitable for another agent to debug.</evidence-2>
+        <evidence-3>Managed-service evidence includes both system-manager state and runtime anchors, with separate packets for success, restart, and reject trajectories.</evidence-3>
+      </required-evidence>
+    </Gate-Phase-9>
   </PhaseGates>
 
   <FailurePackets>
@@ -889,6 +1154,8 @@
       <phase-1-example>Config invalid-path test expected BLOCK_VALIDATE_CONFIGURATION reject marker but observed panic before marker emission; first divergent block is Config::loadConfig::BLOCK_VALIDATE_CONFIGURATION; next action is harden path validation and add deterministic error assertion.</phase-1-example>
       <live-example-success-path>LiveFirstProxyRequest expected server and client startup anchors plus BLOCK_SELECT_TRANSPORT and BLOCK_PUMP_BIDIRECTIONAL, but observed client startup only and no server listener evidence; first divergent block is CliApp::run::BLOCK_START_APPLICATION on the server host; next action is repair server launch, TLS paths, or listener bind before repeating the smoke.</live-example-success-path>
       <live-example-auth-reject>LiveAuthReject expected BLOCK_VALIDATE_HANDSHAKE reject evidence and no surviving session, but observed successful transport selection and no reject marker; first divergent block is AuthPolicy::validateHandshake::BLOCK_VALIDATE_HANDSHAKE; next action is inspect live auth configuration and reject-path handling before any rerun.</live-example-auth-reject>
+      <managed-deploy-example>ManagedDeployLayout expected one canonical artifact path plus aligned service and log targets, but observed deploy script targeting /opt/n0wss while the unit file still referenced a different path; first divergent block is DeployLayout::defineFilesystemLayout::BLOCK_DEPLOY_LAYOUT_ALIGNMENT; next action is realign deploy script, unit files, and operator docs before managed rollout.</managed-deploy-example>
+      <managed-restart-example>ManagedRestartRecovery expected BLOCK_COORDINATE_SHUTDOWN followed by a new managed readiness packet, but observed a restarted unit with no fresh startup anchors and a stale listener; first divergent block is CliApp::coordinateShutdown::BLOCK_COORDINATE_SHUTDOWN; next action is inspect systemd restart behavior, stale process cleanup, and readiness capture before rerun.</managed-restart-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>

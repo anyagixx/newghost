@@ -1148,7 +1148,7 @@
       </notes>
     </M-DEPLOY-LAYOUT>
 
-    <M-SECRET-HYGIENE NAME="SecretHygiene" TYPE="UTILITY" LAYER="10" ORDER="2" STATUS="planned">
+    <M-SECRET-HYGIENE NAME="SecretHygiene" TYPE="UTILITY" LAYER="10" ORDER="2" STATUS="implemented">
       <contract>
         <purpose>Define the operator secret-handling model so runtime auth material and host credentials stay out of repository artifacts and reusable evidence packets.</purpose>
         <inputs>
@@ -1178,6 +1178,7 @@
       <verification-ref>V-M-SECRET-HYGIENE</verification-ref>
       <notes>
         <note-1>Phase-9 must eliminate plaintext-oriented secret handling from the standard operator workflow.</note-1>
+        <note-2>docs/OPERATORS.md now defines approved secret source types, disallowed secret source types, canonical env-file locations, and mandatory rotation follow-up.</note-2>
       </notes>
     </M-SECRET-HYGIENE>
 
@@ -1585,7 +1586,7 @@
     <Phase-9 name="Deployment Hardening" status="pending">
       <goal>Convert the first green live wave into a repeatable service-managed deployment shape with safer secret handling, bounded logs, and a second managed verification wave.</goal>
       <step-1 module="M-DEPLOY-LAYOUT" status="done" verification="V-M-DEPLOY-LAYOUT">Define the canonical host filesystem layout, path ownership, and runtime-state boundaries for managed deployment</step-1>
-      <step-2 module="M-SECRET-HYGIENE" status="pending" verification="V-M-SECRET-HYGIENE">Replace plaintext-oriented operator secret handling with a governed file or env-based model and explicit rotation follow-up</step-2>
+      <step-2 module="M-SECRET-HYGIENE" status="done" verification="V-M-SECRET-HYGIENE">Replace plaintext-oriented operator secret handling with a governed file or env-based model and explicit rotation follow-up</step-2>
       <step-3 module="M-DEPLOY-SCRIPTING" status="pending" verification="V-M-DEPLOY-SCRIPTING">Implement repeatable server and client deployment or update scripting around the canonical layout</step-3>
       <step-4 module="M-SYSTEMD-UNITS" status="pending" verification="V-M-SYSTEMD-UNITS">Define managed server and client systemd services with explicit readiness and restart evidence</step-4>
       <step-5 module="M-LOG-ROTATION" status="pending" verification="V-M-LOG-ROTATION">Add bounded log-retention policy that preserves current-wave evidence</step-5>
