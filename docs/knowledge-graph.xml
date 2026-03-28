@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.5">
+  <Project NAME="n0wss" VERSION="0.2.6">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -491,7 +491,7 @@
       </annotations>
     </M-OPERATOR-RUNBOOK>
 
-    <M-LIVE-WAVE-2 NAME="LiveWave2" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-LIVE-WAVE-2 NAME="LiveWave2" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Define the second live verification wave around service-managed startup, restart recovery, repeated smoke requests, and bounded reject-path evidence.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-DEPLOY-SCRIPTING, M-SYSTEMD-UNITS, M-OPERATOR-RUNBOOK, M-LIVE-PROXY-SMOKE</depends>
@@ -500,6 +500,7 @@
         <fn-runManagedSmoke PURPOSE="Execute repeated service-managed smoke requests through the governed tunnel path." />
         <fn-runRestartRecovery PURPOSE="Exercise controlled service restart and reconnect recovery." />
         <type-LiveWave2Evidence PURPOSE="Carries the bounded evidence packets for managed success, restart, and bad-auth trajectories." />
+        <type-ManagedWave2Result PURPOSE="The March 28, 2026 wave proved success, restart recovery, and redacted bad-auth rejection on systemd-managed ghost-srv and ghost-cli hosts." />
       </annotations>
     </M-LIVE-WAVE-2>
 

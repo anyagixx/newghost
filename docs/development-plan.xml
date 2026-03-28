@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.5">
+<DevelopmentPlan VERSION="0.2.6">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -1318,7 +1318,7 @@
       </notes>
     </M-OPERATOR-RUNBOOK>
 
-    <M-LIVE-WAVE-2 NAME="LiveWave2" TYPE="ENTRY_POINT" LAYER="12" ORDER="2" STATUS="planned">
+    <M-LIVE-WAVE-2 NAME="LiveWave2" TYPE="ENTRY_POINT" LAYER="12" ORDER="2" STATUS="implemented">
       <contract>
         <purpose>Define the second live verification wave around service-managed startup, restart, reconnect, repeated smoke requests, and bounded evidence capture.</purpose>
         <inputs>
@@ -1349,6 +1349,7 @@
       <verification-ref>V-M-LIVE-WAVE-2</verification-ref>
       <notes>
         <note-1>Phase-9 converts the first green live wave into a repeatable service-managed deployment and recovery path.</note-1>
+        <note-2>On March 28, 2026 the managed wave passed on ghost-srv and ghost-cli: repeated smoke requests returned Example Domain through systemd-managed services, restart recovery preserved readiness, and the bad-auth path rejected with redacted credential evidence.</note-2>
       </notes>
     </M-LIVE-WAVE-2>
   </Modules>
@@ -1587,7 +1588,7 @@
       <step-8 module="M-LIVE-FAILURE-TRIAGE" status="done" verification="V-M-LIVE-FAILURE-TRIAGE">Convert any live failure into a GRACE failure packet before reruns</step-8>
     </Phase-8>
 
-    <Phase-9 name="Deployment Hardening" status="pending">
+    <Phase-9 name="Deployment Hardening" status="done">
       <goal>Convert the first green live wave into a repeatable service-managed deployment shape with safer secret handling, bounded logs, and a second managed verification wave.</goal>
       <step-1 module="M-DEPLOY-LAYOUT" status="done" verification="V-M-DEPLOY-LAYOUT">Define the canonical host filesystem layout, path ownership, and runtime-state boundaries for managed deployment</step-1>
       <step-2 module="M-SECRET-HYGIENE" status="done" verification="V-M-SECRET-HYGIENE">Replace plaintext-oriented operator secret handling with a governed file or env-based model and explicit rotation follow-up</step-2>
@@ -1595,7 +1596,7 @@
       <step-4 module="M-SYSTEMD-UNITS" status="done" verification="V-M-SYSTEMD-UNITS">Define managed server and client systemd services with explicit readiness and restart evidence</step-4>
       <step-5 module="M-LOG-ROTATION" status="done" verification="V-M-LOG-ROTATION">Add bounded log-retention policy that preserves current-wave evidence</step-5>
       <step-6 module="M-OPERATOR-RUNBOOK" status="done" verification="V-M-OPERATOR-RUNBOOK">Document install, start, stop, update, rollback, and evidence capture for the managed deployment shape</step-6>
-      <step-7 module="M-LIVE-WAVE-2" status="pending" verification="V-M-LIVE-WAVE-2">Execute the second live wave for service-managed startup, repeated smoke, restart recovery, and bad-auth verification</step-7>
+      <step-7 module="M-LIVE-WAVE-2" status="done" verification="V-M-LIVE-WAVE-2">Execute the second live wave for service-managed startup, repeated smoke, restart recovery, and bad-auth verification</step-7>
     </Phase-9>
   </ImplementationOrder>
 
