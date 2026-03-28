@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.3">
+  <Project NAME="n0wss" VERSION="0.2.5">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -390,7 +390,7 @@
 
     <M-LIVE-OBS-EVIDENCE NAME="LiveObservabilityEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Define the bounded logs, trace anchors, socket listings, and output artifacts that make the live wave debuggable.</purpose>
-      <path>docs/verification-plan.xml</path>
+      <path>docs/development-plan.xml</path>
       <depends>M-OBS, M-LIVE-PROXY-SMOKE, M-RELEASE-DOCS</depends>
       <verification-ref>V-M-LIVE-OBS-EVIDENCE</verification-ref>
       <annotations>
@@ -403,7 +403,7 @@
 
     <M-LIVE-FAILURE-TRIAGE NAME="LiveFailureTriage" TYPE="UTILITY" STATUS="done">
       <purpose>Define the failure-packet workflow for TLS, auth, transport, proxy reply, and shutdown failures in the first live wave.</purpose>
-      <path>docs/verification-plan.xml</path>
+      <path>docs/development-plan.xml</path>
       <depends>M-LIVE-OBS-EVIDENCE, M-SESSION, M-SOCKS5, M-TLS, M-WSS-GATEWAY</depends>
       <verification-ref>V-M-LIVE-FAILURE-TRIAGE</verification-ref>
       <annotations>
@@ -413,6 +413,90 @@
         <type-LiveTriageOutcome PURPOSE="Current first-wave triage closed the earlier binary, TLS, runtime, tracing, and WSS relay failures before the final green gate, so no new failure packet remained open." />
       </annotations>
     </M-LIVE-FAILURE-TRIAGE>
+
+    <M-DEPLOY-LAYOUT NAME="DeployLayout" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Define the canonical Linux deployment layout for binaries, certs, secrets, logs, and runtime state on managed hosts.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CLI-BIN, M-LIVE-BUILD-PACK, M-LIVE-TLS-BOOTSTRAP</depends>
+      <verification-ref>V-M-DEPLOY-LAYOUT</verification-ref>
+      <annotations>
+        <fn-defineFilesystemLayout PURPOSE="Pin canonical host paths for binary, config, cert, log, and runtime-state assets." />
+        <fn-defineOwnershipModel PURPOSE="Pin file ownership, permissions, and write boundaries for managed deployment." />
+        <type-DeployLayoutRecord PURPOSE="Carries the approved managed deployment layout and host-role path invariants." />
+        <type-ManagedLayoutSurface PURPOSE="The current managed layout fixes /opt/n0wss, /etc/systemd/system, and /var/log/n0wss-*.log as the canonical Phase-9 path family." />
+      </annotations>
+    </M-DEPLOY-LAYOUT>
+
+    <M-SECRET-HYGIENE NAME="SecretHygiene" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define the managed secret-handling model so runtime auth material and operator credentials stay out of repository artifacts and reusable evidence.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DEPLOY-LAYOUT, M-AUTH, M-RELEASE-DOCS</depends>
+      <verification-ref>V-M-SECRET-HYGIENE</verification-ref>
+      <annotations>
+        <fn-defineSecretInputs PURPOSE="Pin the approved source classes for runtime secrets." />
+        <fn-defineRotationFollowUp PURPOSE="Describe required secret cleanup and rotation actions after live testing." />
+        <type-SecretHandlingPolicy PURPOSE="Carries the approved Phase-9 secret-placement and redaction rules." />
+      </annotations>
+    </M-SECRET-HYGIENE>
+
+    <M-DEPLOY-SCRIPTING NAME="DeployScripting" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define a repeatable deployment and update workflow for server and client hosts rather than manual staging.</purpose>
+      <path>scripts/deploy-live.sh</path>
+      <depends>M-DEPLOY-LAYOUT, M-SECRET-HYGIENE, M-CLI-BIN</depends>
+      <verification-ref>V-M-DEPLOY-SCRIPTING</verification-ref>
+      <annotations>
+        <fn-deployServer PURPOSE="Stage or update the managed server host under the canonical layout." />
+        <fn-deployClient PURPOSE="Stage or update the managed client host under the canonical layout." />
+        <type-DeployRunResult PURPOSE="Carries bounded artifact-switch and deploy evidence for one managed rollout." />
+      </annotations>
+    </M-DEPLOY-SCRIPTING>
+
+    <M-SYSTEMD-UNITS NAME="SystemdUnits" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define managed systemd services for n0wss server and client roles with explicit startup, restart, and shutdown behavior.</purpose>
+      <path>deploy/systemd/n0wss-server.service</path>
+      <depends>M-DEPLOY-SCRIPTING, M-CLI, M-DEPLOY-LAYOUT</depends>
+      <verification-ref>V-M-SYSTEMD-UNITS</verification-ref>
+      <annotations>
+        <fn-defineServerUnit PURPOSE="Pin the managed service contract for the n0wss server role." />
+        <fn-defineClientUnit PURPOSE="Pin the managed service contract for the n0wss client role." />
+        <type-SystemdUnitSet PURPOSE="Carries the approved managed service names, env sources, and ExecStart invariants." />
+      </annotations>
+    </M-SYSTEMD-UNITS>
+
+    <M-LOG-ROTATION NAME="LogRotation" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define bounded retention and rotation for n0wss logs so operators keep useful evidence without unbounded growth.</purpose>
+      <path>deploy/logrotate/n0wss</path>
+      <depends>M-SYSTEMD-UNITS, M-OBS</depends>
+      <verification-ref>V-M-LOG-ROTATION</verification-ref>
+      <annotations>
+        <fn-defineRotationPolicy PURPOSE="Pin retention count, rollover behavior, and active-log continuity guarantees." />
+        <type-LogRotationPolicy PURPOSE="Carries the approved rotation behavior for managed n0wss logs." />
+      </annotations>
+    </M-LOG-ROTATION>
+
+    <M-OPERATOR-RUNBOOK NAME="OperatorRunbook" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define the stable operator runbook for install, start, stop, update, rollback, and evidence capture in the managed deployment shape.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DEPLOY-LAYOUT, M-SYSTEMD-UNITS, M-LOG-ROTATION, M-LIVE-OBS-EVIDENCE</depends>
+      <verification-ref>V-M-OPERATOR-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-documentInstall PURPOSE="Describe the managed install and first-start procedure." />
+        <fn-documentRecovery PURPOSE="Describe restart, rollback, and evidence-capture procedures." />
+        <type-OperatorRunbookRecord PURPOSE="Carries the approved operator workflow for the managed deployment shape." />
+      </annotations>
+    </M-OPERATOR-RUNBOOK>
+
+    <M-LIVE-WAVE-2 NAME="LiveWave2" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the second live verification wave around service-managed startup, restart recovery, repeated smoke requests, and bounded reject-path evidence.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-DEPLOY-SCRIPTING, M-SYSTEMD-UNITS, M-OPERATOR-RUNBOOK, M-LIVE-PROXY-SMOKE</depends>
+      <verification-ref>V-M-LIVE-WAVE-2</verification-ref>
+      <annotations>
+        <fn-runManagedSmoke PURPOSE="Execute repeated service-managed smoke requests through the governed tunnel path." />
+        <fn-runRestartRecovery PURPOSE="Exercise controlled service restart and reconnect recovery." />
+        <type-LiveWave2Evidence PURPOSE="Carries the bounded evidence packets for managed success, restart, and bad-auth trajectories." />
+      </annotations>
+    </M-LIVE-WAVE-2>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -456,6 +540,16 @@
     <CrossLink from="M-LIVE-CLIENT-LAUNCH" to="M-LIVE-PROXY-SMOKE" relation="provides the local SOCKS5 ingress used by the live smoke request" />
     <CrossLink from="M-LIVE-PROXY-SMOKE" to="M-LIVE-OBS-EVIDENCE" relation="produces the trajectory and output artifacts captured for live debugging" />
     <CrossLink from="M-LIVE-OBS-EVIDENCE" to="M-LIVE-FAILURE-TRIAGE" relation="supplies bounded host-local evidence for failure packets" />
+    <CrossLink from="M-LIVE-BUILD-PACK" to="M-DEPLOY-LAYOUT" relation="supplies the live artifact identity and on-host path assumptions reused by managed deployment" />
+    <CrossLink from="M-DEPLOY-LAYOUT" to="M-SECRET-HYGIENE" relation="pins the approved locations and permissions for host-local secret material" />
+    <CrossLink from="M-DEPLOY-LAYOUT" to="M-DEPLOY-SCRIPTING" relation="defines the canonical target paths used by the deploy workflow" />
+    <CrossLink from="M-SECRET-HYGIENE" to="M-DEPLOY-SCRIPTING" relation="constrains how deploy automation may consume and place secret material" />
+    <CrossLink from="M-DEPLOY-SCRIPTING" to="M-SYSTEMD-UNITS" relation="stages the files and env sources consumed by managed services" />
+    <CrossLink from="M-SYSTEMD-UNITS" to="M-LOG-ROTATION" relation="defines the active log files whose retention policy must stay bounded" />
+    <CrossLink from="M-SYSTEMD-UNITS" to="M-OPERATOR-RUNBOOK" relation="provides the managed service actions documented for operators" />
+    <CrossLink from="M-LOG-ROTATION" to="M-OPERATOR-RUNBOOK" relation="supplies the bounded log-retention behavior documented for evidence capture" />
+    <CrossLink from="M-OPERATOR-RUNBOOK" to="M-LIVE-WAVE-2" relation="provides the approved operational procedure for the second live verification wave" />
+    <CrossLink from="M-SYSTEMD-UNITS" to="M-LIVE-WAVE-2" relation="provides the managed startup and restart surface exercised in the second live wave" />
 
   </Project>
 </KnowledgeGraph>

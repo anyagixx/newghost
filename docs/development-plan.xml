@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.4">
+<DevelopmentPlan VERSION="0.2.5">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -1112,6 +1112,240 @@
         <note-3>The final green run required no new failure packet because success-path evidence, bad-auth rejection evidence, and controlled shutdown evidence all satisfied Gate-Live-1.</note-3>
       </notes>
     </M-LIVE-FAILURE-TRIAGE>
+
+    <M-DEPLOY-LAYOUT NAME="DeployLayout" TYPE="UTILITY" LAYER="10" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Define the canonical Linux deployment layout for binaries, certs, secret files, logs, and runtime state on managed hosts.</purpose>
+        <inputs>
+          <param name="hostRole" type="HostRole" />
+          <param name="artifactIdentity" type="ReleaseArtifact" />
+        </inputs>
+        <outputs>
+          <param name="layoutRecord" type="DeployLayoutRecord" />
+        </outputs>
+        <errors>
+          <error code="DEPLOY_LAYOUT_AMBIGUOUS" />
+          <error code="DEPLOY_PATH_UNSAFE" />
+        </errors>
+      </contract>
+      <interface>
+        <export-defineFilesystemLayout PURPOSE="Pin canonical binary, config, cert, log, and runtime-state paths for each host role." />
+        <export-defineOwnershipModel PURPOSE="Pin required file owners, modes, and write boundaries for managed deployment." />
+      </interface>
+      <depends>M-CLI-BIN, M-LIVE-BUILD-PACK, M-LIVE-TLS-BOOTSTRAP</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[DeployLayout]</log-prefix>
+        <critical-block>BLOCK_DEPLOY_LAYOUT_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-DEPLOY-LAYOUT</verification-ref>
+      <notes>
+        <note-1>Phase-9 targets /opt/n0wss for runtime assets, /etc/systemd/system for services, and bounded logs under /var/log.</note-1>
+        <note-2>docs/OPERATORS.md now pins one canonical layout for shared paths, server-role paths, client-role paths, and ownership or mode rules.</note-2>
+      </notes>
+    </M-DEPLOY-LAYOUT>
+
+    <M-SECRET-HYGIENE NAME="SecretHygiene" TYPE="UTILITY" LAYER="10" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define the operator secret-handling model so runtime auth material and host credentials stay out of repository artifacts and reusable evidence packets.</purpose>
+        <inputs>
+          <param name="secretSources" type="Vec&lt;SecretSource&gt;" />
+        </inputs>
+        <outputs>
+          <param name="secretPolicy" type="SecretHandlingPolicy" />
+        </outputs>
+        <errors>
+          <error code="SECRET_SOURCE_UNSAFE" />
+          <error code="SECRET_ROTATION_MISSING" />
+        </errors>
+      </contract>
+      <interface>
+        <export-defineSecretInputs PURPOSE="Pin which inputs come from operator-managed files, env vars, or secure out-of-band channels." />
+        <export-defineRotationFollowUp PURPOSE="Describe secret cleanup and rotation actions after live testing." />
+      </interface>
+      <depends>M-DEPLOY-LAYOUT, M-AUTH, M-RELEASE-DOCS</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[SecretHygiene]</log-prefix>
+        <critical-block>BLOCK_SECRET_HYGIENE</critical-block>
+      </observability>
+      <verification-ref>V-M-SECRET-HYGIENE</verification-ref>
+      <notes>
+        <note-1>Phase-9 must eliminate plaintext-oriented secret handling from the standard operator workflow.</note-1>
+      </notes>
+    </M-SECRET-HYGIENE>
+
+    <M-DEPLOY-SCRIPTING NAME="DeployScripting" TYPE="ENTRY_POINT" LAYER="11" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Define a repeatable deployment and update workflow for server and client hosts instead of ad hoc manual staging.</purpose>
+        <inputs>
+          <param name="deployBundle" type="ReleaseArtifact" />
+          <param name="operatorConfig" type="DeployOperatorConfig" />
+        </inputs>
+        <outputs>
+          <param name="deployResult" type="DeployRunResult" />
+        </outputs>
+        <errors>
+          <error code="DEPLOY_COPY_FAILED" />
+          <error code="DEPLOY_SWITCHOVER_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-deployServer PURPOSE="Stage or update the server role with the canonical layout and bounded evidence." />
+        <export-deployClient PURPOSE="Stage or update the client role with the canonical layout and bounded evidence." />
+      </interface>
+      <depends>M-DEPLOY-LAYOUT, M-SECRET-HYGIENE, M-CLI-BIN</depends>
+      <target>
+        <source>scripts/deploy-live.sh</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[DeployScripting]</log-prefix>
+        <critical-block>BLOCK_DEPLOY_SWITCHOVER</critical-block>
+      </observability>
+      <verification-ref>V-M-DEPLOY-SCRIPTING</verification-ref>
+      <notes>
+        <note-1>Repeatable deployment must preserve artifact identity and emit enough evidence to diagnose partial rollout failures.</note-1>
+      </notes>
+    </M-DEPLOY-SCRIPTING>
+
+    <M-SYSTEMD-UNITS NAME="SystemdUnits" TYPE="INTEGRATION" LAYER="11" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define managed systemd services for n0wss server and client roles with explicit start, stop, restart, and evidence behavior.</purpose>
+        <inputs>
+          <param name="deployLayout" type="DeployLayoutRecord" />
+          <param name="runtimeArgs" type="Vec&lt;String&gt;" />
+        </inputs>
+        <outputs>
+          <param name="serviceUnits" type="SystemdUnitSet" />
+        </outputs>
+        <errors>
+          <error code="UNIT_EXECSTART_INVALID" />
+          <error code="UNIT_ENV_MISSING" />
+        </errors>
+      </contract>
+      <interface>
+        <export-defineServerUnit PURPOSE="Pin the server service ExecStart, restart policy, and environment sources." />
+        <export-defineClientUnit PURPOSE="Pin the client service ExecStart, restart policy, and environment sources." />
+      </interface>
+      <depends>M-DEPLOY-SCRIPTING, M-CLI, M-DEPLOY-LAYOUT</depends>
+      <target>
+        <source>deploy/systemd/n0wss-server.service</source>
+        <tests>deploy/systemd/n0wss-client.service</tests>
+      </target>
+      <observability>
+        <log-prefix>[SystemdUnits]</log-prefix>
+        <critical-block>BLOCK_SYSTEMD_UNIT_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-SYSTEMD-UNITS</verification-ref>
+      <notes>
+        <note-1>Service-managed startup must remain traceable through the same CliApp and SessionManager anchors as manual live waves.</note-1>
+      </notes>
+    </M-SYSTEMD-UNITS>
+
+    <M-LOG-ROTATION NAME="LogRotation" TYPE="INTEGRATION" LAYER="11" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define bounded retention and rotation for n0wss logs so operators retain useful evidence without unbounded log growth.</purpose>
+        <inputs>
+          <param name="logPaths" type="Vec&lt;PathBuf&gt;" />
+        </inputs>
+        <outputs>
+          <param name="rotationPolicy" type="LogRotationPolicy" />
+        </outputs>
+        <errors>
+          <error code="ROTATION_POLICY_UNSAFE" />
+        </errors>
+      </contract>
+      <interface>
+        <export-defineRotationPolicy PURPOSE="Pin retention count, file size policy, and post-rotate behavior for n0wss logs." />
+      </interface>
+      <depends>M-SYSTEMD-UNITS, M-OBS</depends>
+      <target>
+        <source>deploy/logrotate/n0wss</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LogRotation]</log-prefix>
+        <critical-block>BLOCK_LOG_ROTATION_POLICY</critical-block>
+      </observability>
+      <verification-ref>V-M-LOG-ROTATION</verification-ref>
+      <notes>
+        <note-1>Rotation policy must preserve the current-wave evidence packet until the operator explicitly closes it.</note-1>
+      </notes>
+    </M-LOG-ROTATION>
+
+    <M-OPERATOR-RUNBOOK NAME="OperatorRunbook" TYPE="UTILITY" LAYER="12" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Define the stable operator runbook for install, start, stop, update, rollback, restart evidence, and bounded failure triage.</purpose>
+        <inputs>
+          <param name="serviceUnits" type="SystemdUnitSet" />
+          <param name="deployWorkflow" type="DeployRunResult" />
+        </inputs>
+        <outputs>
+          <param name="runbook" type="OperatorRunbookRecord" />
+        </outputs>
+        <errors>
+          <error code="RUNBOOK_DRIFT" />
+        </errors>
+      </contract>
+      <interface>
+        <export-documentInstall PURPOSE="Describe the canonical install and first-start procedure." />
+        <export-documentRecovery PURPOSE="Describe restart, rollback, and evidence-capture actions." />
+      </interface>
+      <depends>M-DEPLOY-LAYOUT, M-SYSTEMD-UNITS, M-LOG-ROTATION, M-LIVE-OBS-EVIDENCE</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <tests>README.md</tests>
+      </target>
+      <observability>
+        <log-prefix>[OperatorRunbook]</log-prefix>
+        <critical-block>BLOCK_OPERATOR_RUNBOOK_ALIGNMENT</critical-block>
+      </observability>
+      <verification-ref>V-M-OPERATOR-RUNBOOK</verification-ref>
+      <notes>
+        <note-1>The runbook must describe only proven paths and must reference the same evidence commands used by the verification plan.</note-1>
+      </notes>
+    </M-OPERATOR-RUNBOOK>
+
+    <M-LIVE-WAVE-2 NAME="LiveWave2" TYPE="ENTRY_POINT" LAYER="12" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define the second live verification wave around service-managed startup, restart, reconnect, repeated smoke requests, and bounded evidence capture.</purpose>
+        <inputs>
+          <param name="serviceState" type="SystemdUnitSet" />
+          <param name="waveInputs" type="LiveWave2Inputs" />
+        </inputs>
+        <outputs>
+          <param name="waveResult" type="LiveWave2Evidence" />
+        </outputs>
+        <errors>
+          <error code="LIVE_WAVE_2_FAILED" />
+          <error code="SERVICE_RECOVERY_UNVERIFIED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runManagedSmoke PURPOSE="Execute repeated service-managed smoke requests after systemd launch." />
+        <export-runRestartRecovery PURPOSE="Exercise controlled restart and reconnect behavior under managed services." />
+      </interface>
+      <depends>M-DEPLOY-SCRIPTING, M-SYSTEMD-UNITS, M-OPERATOR-RUNBOOK, M-LIVE-PROXY-SMOKE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LiveWave2]</log-prefix>
+        <critical-block>BLOCK_LIVE_WAVE_2</critical-block>
+      </observability>
+      <verification-ref>V-M-LIVE-WAVE-2</verification-ref>
+      <notes>
+        <note-1>Phase-9 converts the first green live wave into a repeatable service-managed deployment and recovery path.</note-1>
+      </notes>
+    </M-LIVE-WAVE-2>
   </Modules>
 
   <DataFlow>
@@ -1245,6 +1479,42 @@
       <step-3>The operator captures final log tails and socket state to prove no hung listeners remain.</step-3>
       <evidence>Shutdown anchors, empty listener state, and bounded final evidence artifacts from both hosts.</evidence>
     </DF-LIVE-SHUTDOWN>
+
+    <DF-DEPLOY-PACKAGE NAME="Managed deployment packaging" TRIGGER="The operator prepares a repeatable deployment or update for managed hosts.">
+      <step-1>The operator builds or selects one governed release artifact.</step-1>
+      <step-2>DeployScripting stages the artifact into the canonical DeployLayout on the target host.</step-2>
+      <step-3>The deploy workflow emits bounded evidence for artifact identity, switched paths, and service inputs.</step-3>
+      <evidence>Release checksum, target path proof, and bounded deploy output without raw secrets.</evidence>
+    </DF-DEPLOY-PACKAGE>
+
+    <DF-SERVICE-BOOT NAME="Managed service startup" TRIGGER="Systemd starts or restarts an n0wss unit on a managed host.">
+      <step-1>Systemd resolves the environment file, working directory, and ExecStart command for the selected role.</step-1>
+      <step-2>CliApp starts the requested runtime mode and emits startup anchors.</step-2>
+      <step-3>The operator captures service state, socket state, and bounded logs to prove readiness.</step-3>
+      <evidence>systemctl active state, MainPID, startup anchors, and bound socket proof.</evidence>
+    </DF-SERVICE-BOOT>
+
+    <DF-SERVICE-UPDATE NAME="Managed service update" TRIGGER="The operator rolls out a new binary or config under the managed deployment shape.">
+      <step-1>DeployScripting copies the new artifact into a non-live path and validates identity.</step-1>
+      <step-2>The active service is stopped or restarted through SystemdUnits under bounded operator control.</step-2>
+      <step-3>The updated service emits a fresh readiness packet and leaves no stale listeners behind.</step-3>
+      <evidence>Changed checksum, new MainPID, restart evidence, and no stale listener state.</evidence>
+    </DF-SERVICE-UPDATE>
+
+    <DF-SECRET-MATERIAL NAME="Secret material handling" TRIGGER="The operator supplies runtime auth or host-side deployment secrets.">
+      <step-1>SecretHygiene pins the accepted source for the secret material.</step-1>
+      <step-2>DeployLayout and DeployScripting place the secret into the approved host-local location with restricted permissions.</step-2>
+      <step-3>OperatorRunbook captures only redacted evidence that the secret source was consumed correctly.</step-3>
+      <evidence>Restricted file mode or env-source proof, redacted logs, and no repository-stored raw secret values.</evidence>
+    </DF-SECRET-MATERIAL>
+
+    <DF-LIVE-WAVE-2 NAME="Managed restart and reconnect wave" TRIGGER="The operator validates managed startup, repeated requests, restart recovery, and bad-auth behavior after Phase-9 deployment hardening.">
+      <step-1>The managed server and client services start through systemd using the canonical deploy layout.</step-1>
+      <step-2>The operator runs repeated deterministic smoke requests through the managed SOCKS5 endpoint.</step-2>
+      <step-3>The operator restarts one or both services and confirms reconnect plus readiness evidence.</step-3>
+      <step-4>The operator runs one bounded bad-auth check and captures a separate redacted evidence packet.</step-4>
+      <evidence>Service readiness, repeated smoke success, restart-recovery evidence, reject-path evidence, and bounded logs.</evidence>
+    </DF-LIVE-WAVE-2>
   </DataFlow>
 
   <ImplementationOrder>
@@ -1311,6 +1581,17 @@
       <step-7 module="M-LIVE-OBS-EVIDENCE" status="done" verification="V-M-LIVE-OBS-EVIDENCE">Collect narrow high-signal logs, socket state, and smoke output artifacts from both hosts</step-7>
       <step-8 module="M-LIVE-FAILURE-TRIAGE" status="done" verification="V-M-LIVE-FAILURE-TRIAGE">Convert any live failure into a GRACE failure packet before reruns</step-8>
     </Phase-8>
+
+    <Phase-9 name="Deployment Hardening" status="pending">
+      <goal>Convert the first green live wave into a repeatable service-managed deployment shape with safer secret handling, bounded logs, and a second managed verification wave.</goal>
+      <step-1 module="M-DEPLOY-LAYOUT" status="done" verification="V-M-DEPLOY-LAYOUT">Define the canonical host filesystem layout, path ownership, and runtime-state boundaries for managed deployment</step-1>
+      <step-2 module="M-SECRET-HYGIENE" status="pending" verification="V-M-SECRET-HYGIENE">Replace plaintext-oriented operator secret handling with a governed file or env-based model and explicit rotation follow-up</step-2>
+      <step-3 module="M-DEPLOY-SCRIPTING" status="pending" verification="V-M-DEPLOY-SCRIPTING">Implement repeatable server and client deployment or update scripting around the canonical layout</step-3>
+      <step-4 module="M-SYSTEMD-UNITS" status="pending" verification="V-M-SYSTEMD-UNITS">Define managed server and client systemd services with explicit readiness and restart evidence</step-4>
+      <step-5 module="M-LOG-ROTATION" status="pending" verification="V-M-LOG-ROTATION">Add bounded log-retention policy that preserves current-wave evidence</step-5>
+      <step-6 module="M-OPERATOR-RUNBOOK" status="pending" verification="V-M-OPERATOR-RUNBOOK">Document install, start, stop, update, rollback, and evidence capture for the managed deployment shape</step-6>
+      <step-7 module="M-LIVE-WAVE-2" status="pending" verification="V-M-LIVE-WAVE-2">Execute the second live wave for service-managed startup, repeated smoke, restart recovery, and bad-auth verification</step-7>
+    </Phase-9>
   </ImplementationOrder>
 
   <ExecutionPolicy>
