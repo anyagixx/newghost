@@ -108,6 +108,12 @@ Bounded claim surface:
 - unsupported claim: `n0wss` defines a Telegram-specific client protocol
 - unverified claim: `n0wss` guarantees bypass of every possible Telegram blocking regime or acts like a whole-device VPN
 
+Verified envelope as of 2026-03-28:
+
+- Telegram Desktop was exercised through a governed SOCKS5 path backed by the managed `n0wss` client and server services
+- separate initial-connect and reconnect packets were observed on Telegram network IPs with anchored SOCKS5 parse, transport selection, bridge pump, and accepted WSS handshake evidence
+- the evidence applies to the tested desktop build and host setup only
+
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.
 
 ## Release Notes

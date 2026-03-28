@@ -295,6 +295,7 @@ Bounded claim rule:
 
 - a green Telegram wave proves SOCKS5 client compatibility for the tested Telegram build and host setup
 - it does not prove universal unblock behavior across all Telegram builds, all networks, or all blocking regimes
+- the current verified example is Telegram Desktop on the local operator workstation routed into the managed client host listener through a governed local SOCKS5 forward
 
 ## Burst Detection Tuning
 
