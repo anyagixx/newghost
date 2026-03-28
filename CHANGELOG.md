@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.2] - 2026-03-29
+
+Baseline publication release for the rebuilt-host Telegram Desktop acceptance wave after `v0.3.1`.
+
+Included in this release:
+
+- Rebuilt-host acceptance evidence for the governed Telegram Desktop path through `ssh -L 127.0.0.1:1080:127.0.0.1:1080`
+- Bounded final decision showing green text messaging, photo send, ordinary media send, and large-file transfer on the tested two-host environment
+- Separated final evidence packet for readiness, basic acceptance, media success, and call-path failure
+- Release baseline sync before the future UDP-capable Telegram calls architecture phase
+
+Verification baseline:
+
+- `Gate-Phase-14`
+- bounded final Telegram Desktop acceptance packet on rebuilt hosts
+- scoped GRACE integrity sync before the release baseline gate
+
+Notes:
+
+- This release publishes the current verified local baseline to GitHub; it does not claim Telegram voice or video call support.
+- Telegram Desktop calls remain outside the proven envelope and are deferred to a later UDP-capable phase.
+
 ## [0.3.1] - 2026-03-28
 
 Patch release for the Telegram Desktop forward clarification wave after the published `v0.3.0` baseline.
