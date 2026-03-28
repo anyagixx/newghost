@@ -935,7 +935,7 @@
       </annotations>
     </M-SOCKS5-UDP-ASSOCIATE>
 
-    <M-UDP-ASSOCIATION-REGISTRY NAME="UdpAssociationRegistry" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-UDP-ASSOCIATION-REGISTRY NAME="UdpAssociationRegistry" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Track active UDP associations, relay metadata, idle timers, and deterministic cleanup.</purpose>
       <path>src/session/udp_registry.rs</path>
       <depends>M-DATAGRAM-CONTRACT, M-SESSION-REGISTRY, M-OBS</depends>

@@ -2566,7 +2566,7 @@
       <verification-ref>V-M-SOCKS5-UDP-ASSOCIATE</verification-ref>
     </M-SOCKS5-UDP-ASSOCIATE>
 
-    <M-UDP-ASSOCIATION-REGISTRY NAME="UdpAssociationRegistry" TYPE="CORE_LOGIC" LAYER="21" ORDER="3" STATUS="planned">
+    <M-UDP-ASSOCIATION-REGISTRY NAME="UdpAssociationRegistry" TYPE="CORE_LOGIC" LAYER="21" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Track active UDP associations, governed relay endpoints, idle timers, and deterministic cleanup for datagram traffic.</purpose>
         <inputs>
@@ -3252,7 +3252,7 @@
       <goal>Extend the governed proxy path with UDP-capable architecture so Telegram Desktop voice and video calls can be tested through SOCKS5 UDP ASSOCIATE and bounded datagram relay.</goal>
       <step-1 module="M-DATAGRAM-CONTRACT" status="done" verification="V-M-DATAGRAM-CONTRACT">Define the transport-agnostic datagram contract, association identity, and error taxonomy</step-1>
       <step-2 module="M-SOCKS5-UDP-ASSOCIATE" status="done" verification="V-M-SOCKS5-UDP-ASSOCIATE">Add governed SOCKS5 UDP ASSOCIATE ingress and datagram normalization</step-2>
-      <step-3 module="M-UDP-ASSOCIATION-REGISTRY" status="pending" verification="V-M-UDP-ASSOCIATION-REGISTRY">Track active UDP associations, idle timers, and deterministic cleanup</step-3>
+      <step-3 module="M-UDP-ASSOCIATION-REGISTRY" status="done" verification="V-M-UDP-ASSOCIATION-REGISTRY">Track active UDP associations, idle timers, and deterministic cleanup</step-3>
       <step-4 module="M-DATAGRAM-SESSION-MANAGER" status="pending" verification="V-M-DATAGRAM-SESSION-MANAGER">Coordinate datagram association lifecycle and outbound or inbound dispatch</step-4>
       <step-5 module="M-WSS-DATAGRAM-GATEWAY" status="pending" verification="V-M-WSS-DATAGRAM-GATEWAY">Carry governed datagrams over the existing WSS security boundary</step-5>
       <step-6 module="M-UDP-EGRESS-RELAY" status="pending" verification="V-M-UDP-EGRESS-RELAY">Relay real UDP traffic on the server side and return inbound packets</step-6>
