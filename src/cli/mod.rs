@@ -1,5 +1,5 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
 //   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing.
 //   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, and local shutdown-state coordination.
@@ -20,7 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added async runtime launch wiring so client and server modes stay alive, bind listeners, and react to shutdown cancellation.
+//   LAST_CHANGE: v0.1.4 - Wired the client bootstrap into the datagram runtime bridge so live SOCKS5 UDP ingress can reach the real WSS datagram path.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -41,8 +41,10 @@ use crate::config::{load_config_from, AppConfig, RuntimeMode};
 use crate::obs::{init_observability, ObservabilityConfig, ObservabilityHandles};
 use crate::proxy_bridge::{ProxyBridge, ProxyBridgeConfig};
 use crate::session::{
-    EffectHandler, MetricEffectTarget, MetricEvent, SessionManager, SessionManagerConfig,
-    SessionRegistry, TimerCommand, TimerEffectTarget, TransportSelector, TransportSelectorConfig,
+    DatagramDispatchTarget, DatagramRuntimeBridge, DatagramTransportSelector,
+    DatagramTransportSelectorConfig, EffectHandler, MetricEffectTarget, MetricEvent,
+    SessionManager, SessionManagerConfig, SessionRegistry, TimerCommand, TimerEffectTarget,
+    TransportSelector, TransportSelectorConfig, UdpAssociationRegistry,
 };
 use crate::socks5::{Socks5Proxy, Socks5ProxyConfig};
 use crate::tls::{ClientTlsConfig, TlsConfig, TlsContextHandle, TlsError};
@@ -173,6 +175,9 @@ struct NoopTimerTarget;
 #[derive(Clone, Default)]
 struct NoopMetricTarget;
 
+#[derive(Clone, Default)]
+struct NoopDatagramTarget;
+
 #[derive(Clone)]
 struct UnavailableTransportAdapter {
     task_tracker: Arc<AdapterTaskTracker>,
@@ -212,6 +217,18 @@ impl TimerEffectTarget for NoopTimerTarget {
 
 impl MetricEffectTarget for NoopMetricTarget {
     fn emit(&self, _event: MetricEvent) {}
+}
+
+#[async_trait]
+impl DatagramDispatchTarget for NoopDatagramTarget {
+    type Error = std::convert::Infallible;
+
+    async fn dispatch(
+        &self,
+        _envelope: &crate::transport::datagram_contract::DatagramEnvelope,
+    ) -> Result<(), Self::Error> {
+        Ok(())
+    }
 }
 
 // START_CONTRACT: run_from
@@ -395,8 +412,21 @@ async fn run_client_mode(
     let socks5_config = Socks5ProxyConfig::from_app_config(app_config)
         .ok_or_else(|| CliRuntimeError::ClientRuntime("missing client socks5 config".to_string()))?;
     let (intent_tx, intent_rx) = mpsc::channel(app_config.limits.max_pending_intents);
-    let proxy = Socks5Proxy::new(socks5_config, intent_tx.clone());
     let wss_gateway = build_client_gateway(startup).await?;
+    let datagram_registry = Arc::new(UdpAssociationRegistry::new(app_config.limits.max_sessions));
+    let datagram_selector = DatagramTransportSelector::new(
+        wss_gateway.clone(),
+        DatagramTransportSelectorConfig {
+            wss_timeout: app_config.timeouts.wss_connect_timeout,
+        },
+    );
+    let datagram_runtime_target = Arc::new(DatagramRuntimeBridge::new(
+        datagram_registry,
+        datagram_selector,
+        NoopDatagramTarget,
+    ));
+    let proxy = Socks5Proxy::new(socks5_config, intent_tx.clone())
+        .with_udp_runtime_target(datagram_runtime_target);
     let selector = TransportSelector::new(
         UnavailableTransportAdapter::new(),
         wss_gateway,

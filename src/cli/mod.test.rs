@@ -1,9 +1,9 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, and shutdown sequencing for client and server startup paths.
-//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, and shutdown ordering.
-//   DEPENDS: src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs
+//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, and shutdown sequencing for client and server startup paths.
+//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, and shutdown ordering.
+//   DEPENDS: src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs
 //   LINKS: V-M-CLI, V-M-TLS
 // END_MODULE_CONTRACT
 //
@@ -13,20 +13,23 @@
 //   selects_server_mode_and_builds_tls_on_valid_startup - proves server TLS bootstrap
 //   server_runtime_binds_listener_until_cancelled - proves server runtime stays alive and binds a socket until cancellation
 //   client_runtime_binds_socks5_listener_until_cancelled - proves client runtime stays alive and binds a SOCKS5 socket until cancellation
+//   client_runtime_forwards_udp_datagram_through_runtime_bridge - proves the live client bootstrap wires UDP ingress into the datagram runtime bridge and reaches a real UDP target
 //   shutdown_stops_accepts_before_drain_and_release - proves deterministic shutdown ordering
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added runtime launch coverage so server and client modes prove real listener binding before shutdown.
+//   LAST_CHANGE: v0.1.3 - Added raw UDP runtime coverage so the client bootstrap now proves datagram delivery beyond association-only handling.
 // END_CHANGE_SUMMARY
 
 use std::fs;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::net::TcpListener as StdTcpListener;
 use std::time::Duration;
 
 use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
 use tempfile::tempdir;
-use tokio::net::TcpStream;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpStream, UdpSocket};
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
@@ -146,6 +149,42 @@ async fn wait_for_listener(addr: &str) {
     panic!("listener {addr} did not become reachable");
 }
 
+async fn socks5_udp_associate(listen_addr: &str) -> (TcpStream, SocketAddr) {
+    let mut control = TcpStream::connect(listen_addr)
+        .await
+        .expect("control channel should connect");
+    control
+        .write_all(&[0x05, 0x01, 0x00])
+        .await
+        .expect("auth greeting should write");
+    let mut auth_reply = [0_u8; 2];
+    control
+        .read_exact(&mut auth_reply)
+        .await
+        .expect("auth reply should read");
+    assert_eq!(auth_reply, [0x05, 0x00]);
+
+    control
+        .write_all(&[0x05, 0x03, 0x00, 0x01, 0, 0, 0, 0, 0, 0])
+        .await
+        .expect("udp associate request should write");
+    let mut reply = [0_u8; 10];
+    control
+        .read_exact(&mut reply)
+        .await
+        .expect("udp associate reply should read");
+    assert_eq!(reply[0], 0x05);
+    assert_eq!(reply[1], 0x00);
+    assert_eq!(reply[2], 0x00);
+    assert_eq!(reply[3], 0x01);
+
+    let relay_addr = SocketAddr::new(
+        IpAddr::V4(Ipv4Addr::new(reply[4], reply[5], reply[6], reply[7])),
+        u16::from_be_bytes([reply[8], reply[9]]),
+    );
+    (control, relay_addr)
+}
+
 #[tokio::test]
 async fn server_runtime_binds_listener_until_cancelled() {
     let (_dir, cert_path, key_path) = write_server_tls_fixture();
@@ -219,6 +258,113 @@ async fn client_runtime_binds_socks5_listener_until_cancelled() {
     task.await
         .expect("client runtime task should join")
         .expect("client runtime should shut down cleanly");
+}
+
+#[tokio::test]
+async fn client_runtime_forwards_udp_datagram_through_runtime_bridge() {
+    let (_dir, cert_path, key_path) = write_server_tls_fixture();
+    let server_addr = reserve_local_addr();
+    let client_addr = reserve_local_addr();
+    let server_cancel = CancellationToken::new();
+    let client_cancel = CancellationToken::new();
+
+    let server_task = tokio::spawn({
+        let server_cancel = server_cancel.clone();
+        let cert_path = cert_path.clone();
+        let key_path = key_path.clone();
+        let server_addr = server_addr.clone();
+        async move {
+            run_until_shutdown_from(
+                [
+                    "n0wss",
+                    "--auth-token",
+                    "token-12345",
+                    "server",
+                    "--listen-addr",
+                    server_addr.as_str(),
+                    "--tls-cert-path",
+                    cert_path.as_str(),
+                    "--tls-key-path",
+                    key_path.as_str(),
+                ],
+                server_cancel,
+            )
+            .await
+        }
+    });
+
+    wait_for_listener(&server_addr).await;
+
+    let client_task = tokio::spawn({
+        let client_cancel = client_cancel.clone();
+        let cert_path = cert_path.clone();
+        let client_addr = client_addr.clone();
+        let server_url = format!("wss://{server_addr}/tunnel");
+        async move {
+            run_until_shutdown_from(
+                [
+                    "n0wss",
+                    "--auth-token",
+                    "token-12345",
+                    "client",
+                    "--listen-addr",
+                    client_addr.as_str(),
+                    "--remote-wss-url",
+                    server_url.as_str(),
+                    "--tls-trust-anchor-path",
+                    cert_path.as_str(),
+                    "--tls-server-name-override",
+                    "localhost",
+                ],
+                client_cancel,
+            )
+            .await
+        }
+    });
+
+    wait_for_listener(&client_addr).await;
+
+    let remote = UdpSocket::bind("127.0.0.1:0")
+        .await
+        .expect("remote udp target should bind");
+    let remote_addr = remote.local_addr().expect("remote addr should resolve");
+    let (_control, relay_addr) = socks5_udp_associate(&client_addr).await;
+
+    let udp = UdpSocket::bind("127.0.0.1:0")
+        .await
+        .expect("local udp socket should bind");
+    let payload = b"cli-phase25-udp".to_vec();
+    let mut packet = Vec::with_capacity(3 + 1 + 4 + 2 + payload.len());
+    packet.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
+    packet.extend_from_slice(&match remote_addr.ip() {
+        IpAddr::V4(ipv4) => ipv4.octets(),
+        IpAddr::V6(_) => panic!("test uses ipv4 target"),
+    });
+    packet.extend_from_slice(&remote_addr.port().to_be_bytes());
+    packet.extend_from_slice(&payload);
+    udp.send_to(&packet, relay_addr)
+        .await
+        .expect("udp datagram should send to relay");
+
+    let mut buffer = [0_u8; 128];
+    let (bytes_read, _source) =
+        tokio::time::timeout(Duration::from_secs(2), remote.recv_from(&mut buffer))
+            .await
+            .expect("runtime bridge should reach remote udp target in time")
+            .expect("remote recv should succeed");
+    assert_eq!(&buffer[..bytes_read], payload.as_slice());
+
+    client_cancel.cancel();
+    server_cancel.cancel();
+
+    client_task
+        .await
+        .expect("client runtime task should join")
+        .expect("client runtime should shut down cleanly");
+    server_task
+        .await
+        .expect("server runtime task should join")
+        .expect("server runtime should shut down cleanly");
 }
 
 #[test]
