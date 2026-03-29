@@ -587,6 +587,54 @@ Interpretation boundary:
 3. only `probe_status=reply-received` proves a full controlled round trip through the governed datagram path
 4. if the controlled probe is green while Telegram still shows `Connecting`, the next suspicion moves toward Telegram app behavior or external filtering, not back to the old topology question
 
+### Phase-22 Bounded Packet Capture
+
+Capture must stay bounded by interface, duration, and scenario. Do not take workstation-wide unbounded dumps.
+
+Workstation capture during one Telegram call attempt:
+
+```bash
+timeout 20 tcpdump -i lo -nn \
+  '(tcp port 1080) or (udp port 1080)' \
+  -c 200 -w /tmp/n0wss-calls-local-loopback.pcap
+```
+
+Optional workstation uplink capture toward the governed server:
+
+```bash
+timeout 20 tcpdump -i any -nn \
+  "host $N0WSS_SERVER_HOST and tcp port 7443" \
+  -c 200 -w /tmp/n0wss-calls-wss-uplink.pcap
+```
+
+Remote client-host bounded capture:
+
+```bash
+ssh root@$N0WSS_CLIENT_HOST \
+  "timeout 20 tcpdump -i any -nn '(tcp port 7443) or udp' -c 200 -w /tmp/n0wss-client-calls.pcap"
+```
+
+Remote server-host bounded capture:
+
+```bash
+ssh root@$N0WSS_SERVER_HOST \
+  "timeout 20 tcpdump -i any -nn '(tcp port 7443) or udp' -c 200 -w /tmp/n0wss-server-calls.pcap"
+```
+
+Fallback when `tcpdump` is unavailable:
+
+```bash
+ss -uapn
+ss -tapn | grep ':1080\\|:7443' || true
+```
+
+Capture interpretation boundary:
+
+1. loopback capture shows whether Telegram Desktop touched the local SOCKS5 listener at all during the call attempt
+2. uplink capture shows whether the workstation maintained the WSS path while the call attempt was active
+3. remote captures stay separate from workstation captures so app behavior and relay behavior can be compared instead of blended
+4. if capture is missing, keep that as a separate evidence gap; do not silently infer app behavior from runtime logs alone
+
 Repository publication note:
 
 - tag `v0.3.2` already captures this approved baseline
