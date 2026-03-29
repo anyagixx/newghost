@@ -1435,7 +1435,7 @@
       </annotations>
     </M-WSS-DATAGRAM-EMIT-REPAIR>
 
-    <M-UDP-RELAY-OUTBOUND-REPAIR NAME="UdpRelayOutboundRepair" TYPE="INTEGRATION" STATUS="planned">
+    <M-UDP-RELAY-OUTBOUND-REPAIR NAME="UdpRelayOutboundRepair" TYPE="INTEGRATION" STATUS="done">
       <purpose>Repair the server-side UDP relay until outbound datagrams become proven remote echo-target ingress.</purpose>
       <path>src/proxy_bridge/udp_relay.rs</path>
       <depends>M-UDP-EGRESS-RELAY, M-WSS-DATAGRAM-EMIT-REPAIR, M-OBS</depends>

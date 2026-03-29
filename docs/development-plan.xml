@@ -3954,7 +3954,7 @@
       <verification-ref>V-M-WSS-DATAGRAM-EMIT-REPAIR</verification-ref>
     </M-WSS-DATAGRAM-EMIT-REPAIR>
 
-    <M-UDP-RELAY-OUTBOUND-REPAIR NAME="UdpRelayOutboundRepair" TYPE="INTEGRATION" LAYER="27" ORDER="5" STATUS="planned">
+    <M-UDP-RELAY-OUTBOUND-REPAIR NAME="UdpRelayOutboundRepair" TYPE="INTEGRATION" LAYER="27" ORDER="5" STATUS="done">
       <contract>
         <purpose>Repair the server-side UDP relay so outbound datagrams become proven remote echo-target ingress instead of only local send intent.</purpose>
         <inputs>
@@ -3974,6 +3974,7 @@
         <log-prefix>[UdpRelayOutboundRepair]</log-prefix>
         <critical-block>BLOCK_UDP_RELAY_OUTBOUND_REPAIR</critical-block>
       </observability>
+      <note-1>The server-side outbound relay now preserves a bounded receipt packet with relay local address, remote peer, and sent payload length. This gives the repair wave explicit relay-side evidence before any later remote echo-target capture is interpreted.</note-1>
       <verification-ref>V-M-UDP-RELAY-OUTBOUND-REPAIR</verification-ref>
     </M-UDP-RELAY-OUTBOUND-REPAIR>
 
@@ -4672,7 +4673,7 @@
       <step-2 module="M-DATAGRAM-DISPATCH-INSTRUMENTATION" status="done" verification="V-M-DATAGRAM-DISPATCH-INSTRUMENTATION">Strengthen dispatch-side instrumentation between local UDP ingress and transport selection</step-2>
       <step-3 module="M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR" status="done" verification="V-M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR">Repair the local handoff from governed relay ingress to outbound datagram dispatch</step-3>
       <step-4 module="M-WSS-DATAGRAM-EMIT-REPAIR" status="done" verification="V-M-WSS-DATAGRAM-EMIT-REPAIR">Repair or narrow the WSS datagram emission path so outbound packets actually leave the client runtime</step-4>
-      <step-5 module="M-UDP-RELAY-OUTBOUND-REPAIR" status="pending" verification="V-M-UDP-RELAY-OUTBOUND-REPAIR">Repair the server-side outbound UDP relay until remote echo-target ingress is proven</step-5>
+      <step-5 module="M-UDP-RELAY-OUTBOUND-REPAIR" status="done" verification="V-M-UDP-RELAY-OUTBOUND-REPAIR">Repair the server-side outbound UDP relay until remote echo-target ingress is proven</step-5>
       <step-6 module="M-DATAGRAM-ROUNDTRIP-RERUN" status="pending" verification="V-M-DATAGRAM-ROUNDTRIP-RERUN">Replay one bounded controlled probe after repairs and classify the new deepest proven layer</step-6>
       <step-7 module="M-DATAGRAM-REPAIR-EVIDENCE" status="pending" verification="V-M-DATAGRAM-REPAIR-EVIDENCE">Assemble the pre-fix versus post-fix datagram comparison packet</step-7>
       <step-8 module="M-DATAGRAM-REPAIR-DECISION" status="pending" verification="V-M-DATAGRAM-REPAIR-DECISION">Issue the bounded post-repair decision on whether a new Telegram-specific wave is justified</step-8>
