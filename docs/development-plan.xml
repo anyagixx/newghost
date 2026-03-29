@@ -3528,7 +3528,7 @@
       <step-10 module="M-TELEGRAM-CALLS-EVIDENCE" status="done" verification="V-M-TELEGRAM-CALLS-EVIDENCE">Capture bounded evidence packets for call setup, media flow, and failure triage</step-10>
     </Phase-18>
 
-    <Phase-19 name="Telegram Calls Live Verification" status="pending">
+    <Phase-19 name="Telegram Calls Live Verification" status="done">
       <goal>Deploy the UDP-capable n0wss baseline onto the fresh server pair and collect bounded live Telegram Desktop voice or video call evidence on the tested setup.</goal>
       <step-1 module="M-CALLS-HOST-REBASELINE" status="done" verification="V-M-CALLS-HOST-REBASELINE">Capture fresh-host identity and baseline tooling evidence for the live calls wave</step-1>
       <step-2 module="M-CALLS-DEPLOY-BOOTSTRAP" status="done" verification="V-M-CALLS-DEPLOY-BOOTSTRAP">Deploy the UDP-capable n0wss build to the fresh client and server hosts</step-2>
