@@ -2916,7 +2916,7 @@
       <verification-ref>V-M-CALLS-HANDOFF</verification-ref>
     </M-CALLS-HANDOFF>
 
-    <M-CALLS-VOICE-WAVE NAME="CallsVoiceWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="5" STATUS="planned">
+    <M-CALLS-VOICE-WAVE NAME="CallsVoiceWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="5" STATUS="implemented">
       <contract>
         <purpose>Run one bounded Telegram voice-call live wave across the governed UDP-capable path and capture separate signaling and media evidence.</purpose>
         <inputs>
@@ -2941,10 +2941,11 @@
         <log-prefix>[CallsVoiceWave]</log-prefix>
         <critical-block>BLOCK_CALLS_VOICE_WAVE</critical-block>
       </observability>
+      <note-1>On 2026-03-29 the operator-reported live voice-call attempt reached the same Telegram key-exchange stall seen earlier. Signaling remained green on the existing TCP path toward Telegram IPs under 149.154.167.0/24, but no BLOCK_HANDLE_UDP_ASSOCIATE marker appeared in the client logs, so the first divergent layer stayed at UDP ingress rather than transport selection or relay.</note-1>
       <verification-ref>V-M-CALLS-VOICE-WAVE</verification-ref>
     </M-CALLS-VOICE-WAVE>
 
-    <M-CALLS-VIDEO-WAVE NAME="CallsVideoWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="6" STATUS="planned">
+    <M-CALLS-VIDEO-WAVE NAME="CallsVideoWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="6" STATUS="implemented">
       <contract>
         <purpose>Run a separate Telegram video-call live wave so video behavior does not get conflated with the voice result.</purpose>
         <inputs>
@@ -2969,10 +2970,11 @@
         <log-prefix>[CallsVideoWave]</log-prefix>
         <critical-block>BLOCK_CALLS_VIDEO_WAVE</critical-block>
       </observability>
+      <note-1>On 2026-03-29 the operator-reported live video-call attempt remained in the same no-go envelope as voice: Telegram progressed through signaling over the governed TCP path but stalled before any UDP association evidence appeared, so video did not establish a separate green media path.</note-1>
       <verification-ref>V-M-CALLS-VIDEO-WAVE</verification-ref>
     </M-CALLS-VIDEO-WAVE>
 
-    <M-CALLS-RECONNECT-WAVE NAME="CallsReconnectWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="7" STATUS="planned">
+    <M-CALLS-RECONNECT-WAVE NAME="CallsReconnectWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="7" STATUS="implemented">
       <contract>
         <purpose>Prove that a second Telegram call attempt opens a fresh UDP association after call end or idle timeout and does not reuse stale relay state.</purpose>
         <inputs>
@@ -2997,10 +2999,11 @@
         <log-prefix>[CallsReconnectWave]</log-prefix>
         <critical-block>BLOCK_CALLS_RECONNECT_WAVE</critical-block>
       </observability>
+      <note-1>On 2026-03-29 repeated call attempts remained bounded to the same failure class: the operator observed the same key-exchange stall while the client logs continued to show only TCP signaling requests and fresh WSS transport streams without any UDP association lifecycle markers, so reconnect could not be classified as a fresh green UDP path.</note-1>
       <verification-ref>V-M-CALLS-RECONNECT-WAVE</verification-ref>
     </M-CALLS-RECONNECT-WAVE>
 
-    <M-CALLS-EVIDENCE-PACKET NAME="CallsEvidencePacket" TYPE="UTILITY" LAYER="22" ORDER="8" STATUS="planned">
+    <M-CALLS-EVIDENCE-PACKET NAME="CallsEvidencePacket" TYPE="UTILITY" LAYER="22" ORDER="8" STATUS="implemented">
       <contract>
         <purpose>Assemble separate live packets for call setup, media flow, reconnect, and failure triage so later agents can debug without blind reruns.</purpose>
         <inputs>
@@ -3026,10 +3029,11 @@
         <log-prefix>[CallsEvidencePacket]</log-prefix>
         <critical-block>BLOCK_CALLS_EVIDENCE_PACKET</critical-block>
       </observability>
+      <note-1>The 2026-03-29 live packet set separates host baseline, deploy, readiness, handoff, voice no-go, video no-go, reconnect no-go, and the final bounded decision. The decisive failure evidence is the absence of BLOCK_HANDLE_UDP_ASSOCIATE, BLOCK_OPEN_DATAGRAM_ASSOCIATION, BLOCK_SELECT_DATAGRAM_TRANSPORT, BLOCK_SEND_WSS_DATAGRAM, and UDP relay markers during the operator-reported call attempts.</note-1>
       <verification-ref>V-M-CALLS-EVIDENCE-PACKET</verification-ref>
     </M-CALLS-EVIDENCE-PACKET>
 
-    <M-CALLS-GO-NO-GO NAME="CallsGoNoGo" TYPE="ENTRY_POINT" LAYER="22" ORDER="9" STATUS="planned">
+    <M-CALLS-GO-NO-GO NAME="CallsGoNoGo" TYPE="ENTRY_POINT" LAYER="22" ORDER="9" STATUS="implemented">
       <contract>
         <purpose>Issue the bounded go-or-no-go decision for Telegram Desktop voice and video calls on the tested live setup.</purpose>
         <inputs>
@@ -3056,6 +3060,7 @@
         <log-prefix>[CallsGoNoGo]</log-prefix>
         <critical-block>BLOCK_CALLS_GO_NO_GO</critical-block>
       </observability>
+      <note-1>Bounded live decision on 2026-03-29: Telegram Desktop voice and video calls are still no-go on the tested fresh host pair. The proven envelope remains text, media upload, and large-file transfer over the governed SOCKS5 or TCP path; the live calls wave did not reach UDP ingress evidence and therefore cannot claim working Telegram call support.</note-1>
       <verification-ref>V-M-CALLS-GO-NO-GO</verification-ref>
     </M-CALLS-GO-NO-GO>
   </Modules>
@@ -3529,11 +3534,11 @@
       <step-2 module="M-CALLS-DEPLOY-BOOTSTRAP" status="done" verification="V-M-CALLS-DEPLOY-BOOTSTRAP">Deploy the UDP-capable n0wss build to the fresh client and server hosts</step-2>
       <step-3 module="M-CALLS-SERVICE-READINESS" status="done" verification="V-M-CALLS-SERVICE-READINESS">Prove client or server service readiness and UDP-capable runtime markers before operator handoff</step-3>
       <step-4 module="M-CALLS-HANDOFF" status="done" verification="V-M-CALLS-HANDOFF">Prepare the exact SSH-forward and SOCKS5 handoff for Telegram Desktop calls</step-4>
-      <step-5 module="M-CALLS-VOICE-WAVE" status="pending" verification="V-M-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call live wave and capture separate signaling and media evidence</step-5>
-      <step-6 module="M-CALLS-VIDEO-WAVE" status="pending" verification="V-M-CALLS-VIDEO-WAVE">Run a separate Telegram video-call live wave without conflating it with the voice result</step-6>
-      <step-7 module="M-CALLS-RECONNECT-WAVE" status="pending" verification="V-M-CALLS-RECONNECT-WAVE">Trigger one fresh second call attempt and prove a new UDP association lifecycle</step-7>
-      <step-8 module="M-CALLS-EVIDENCE-PACKET" status="pending" verification="V-M-CALLS-EVIDENCE-PACKET">Assemble separate call-setup, media-flow, reconnect, and failure packets</step-8>
-      <step-9 module="M-CALLS-GO-NO-GO" status="pending" verification="V-M-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram Desktop calls on the tested setup</step-9>
+      <step-5 module="M-CALLS-VOICE-WAVE" status="done" verification="V-M-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call live wave and capture separate signaling and media evidence</step-5>
+      <step-6 module="M-CALLS-VIDEO-WAVE" status="done" verification="V-M-CALLS-VIDEO-WAVE">Run a separate Telegram video-call live wave without conflating it with the voice result</step-6>
+      <step-7 module="M-CALLS-RECONNECT-WAVE" status="done" verification="V-M-CALLS-RECONNECT-WAVE">Trigger one fresh second call attempt and prove a new UDP association lifecycle</step-7>
+      <step-8 module="M-CALLS-EVIDENCE-PACKET" status="done" verification="V-M-CALLS-EVIDENCE-PACKET">Assemble separate call-setup, media-flow, reconnect, and failure packets</step-8>
+      <step-9 module="M-CALLS-GO-NO-GO" status="done" verification="V-M-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram Desktop calls on the tested setup</step-9>
     </Phase-19>
   </ImplementationOrder>
 

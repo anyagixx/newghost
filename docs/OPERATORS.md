@@ -403,6 +403,19 @@ ss -ltnp | grep ":1080" || true
 
 The controller must not ask the operator to start the live calls wave before fresh-host baseline, governed deploy, service readiness, and pre-handoff smoke are already green.
 
+Observed live calls outcome on 2026-03-29:
+
+- voice call: not green
+- video call: not green
+- repeated call attempt: not green
+- user-visible symptom: call stays at Telegram key exchange
+- bounded classification: Telegram signaling remained active on the already proven TCP path, but the live logs did not show
+  `[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]`
+  or any later datagram markers
+- first divergent layer: UDP ingress, before datagram transport selection or UDP relay
+
+This means the new UDP-capable repository baseline is present on the hosts, but the tested Telegram Desktop setup still did not yield a governed SOCKS5 UDP ASSOCIATE trajectory during the live wave.
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.

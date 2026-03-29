@@ -128,7 +128,7 @@ Current calls-profile status:
 - Phase-18 adds a governed UDP-capable architecture to the repository:
   `SOCKS5 UDP ASSOCIATE` ingress, datagram association ownership, a bounded WSS-backed datagram carrier, and server-side UDP relay helpers
 - this is an implementation baseline for a later dedicated calls wave, not a retroactive proof that the old key-exchange failure is solved
-- until the dedicated Telegram calls wave is run, Telegram Desktop voice and video calls remain under validation rather than green
+- the dedicated live Telegram calls wave on 2026-03-29 still did not reach a green calls result on the tested setup: signaling stayed on the proven TCP path, but no governed UDP ingress markers appeared during the observed key-exchange stall
 - the current governed live calls handoff for that later wave is still the SSH-forwarded local Desktop path through `127.0.0.1:1080` to the managed client host at `178.104.104.208`, backed by the WSS server at `91.99.128.146:7443`
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 

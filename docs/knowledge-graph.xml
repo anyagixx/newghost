@@ -1055,7 +1055,7 @@
       </annotations>
     </M-CALLS-HANDOFF>
 
-    <M-CALLS-VOICE-WAVE NAME="CallsVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALLS-VOICE-WAVE NAME="CallsVoiceWave" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Run one bounded Telegram voice-call live wave with separate signaling and media evidence.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-CALLS-SERVICE-READINESS, M-CALLS-HANDOFF, M-TELEGRAM-CALLS-WAVE</depends>
@@ -1065,7 +1065,7 @@
       </annotations>
     </M-CALLS-VOICE-WAVE>
 
-    <M-CALLS-VIDEO-WAVE NAME="CallsVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALLS-VIDEO-WAVE NAME="CallsVideoWave" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Run a separate Telegram video-call live wave so video behavior is not conflated with the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-CALLS-VOICE-WAVE, M-TELEGRAM-CALLS-WAVE</depends>
@@ -1075,7 +1075,7 @@
       </annotations>
     </M-CALLS-VIDEO-WAVE>
 
-    <M-CALLS-RECONNECT-WAVE NAME="CallsReconnectWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALLS-RECONNECT-WAVE NAME="CallsReconnectWave" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Prove that a second call attempt opens a fresh UDP association after the first call ends or idles out.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-CALLS-VOICE-WAVE, M-UDP-ASSOCIATION-REGISTRY</depends>
@@ -1085,7 +1085,7 @@
       </annotations>
     </M-CALLS-RECONNECT-WAVE>
 
-    <M-CALLS-EVIDENCE-PACKET NAME="CallsEvidencePacket" TYPE="UTILITY" STATUS="planned">
+    <M-CALLS-EVIDENCE-PACKET NAME="CallsEvidencePacket" TYPE="UTILITY" STATUS="implemented">
       <purpose>Assemble separate live packets for call setup, media flow, reconnect, and failure triage.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-CALLS-VOICE-WAVE, M-CALLS-VIDEO-WAVE, M-CALLS-RECONNECT-WAVE, M-TELEGRAM-CALLS-EVIDENCE</depends>
@@ -1095,7 +1095,7 @@
       </annotations>
     </M-CALLS-EVIDENCE-PACKET>
 
-    <M-CALLS-GO-NO-GO NAME="CallsGoNoGo" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-CALLS-GO-NO-GO NAME="CallsGoNoGo" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Issue the bounded go-or-no-go decision for Telegram Desktop voice and video calls on the tested live setup.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CALLS-EVIDENCE-PACKET, M-TELEGRAM-CALLS-PROFILE</depends>
