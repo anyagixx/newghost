@@ -844,8 +844,25 @@ Observed Phase-26 inbound-return outcome on 2026-03-29:
   treat the generic datagram path as green baseline evidence during the next Telegram calls wave; if calls still fail, classify the first divergent layer as app-facing, media-profile-specific, or Telegram-behavior-specific rather than reopening generic transport repair
 - same-window precondition for the next calls wave:
   before the first manual voice or video attempt, replay one bounded `phase27-probe` on the same deployment window and keep its `reply-received` packet together with the calls evidence
+- exact readiness path for that probe:
+  run the bounded `phase27-probe` directly on `ghost-cli` against the managed local SOCKS5 listener at `127.0.0.1:1080`; do not treat a local workstation `ssh -L` as valid proof for `UDP ASSOCIATE`, because the relay datagrams stay local to the client runtime rather than following the forwarded TCP control socket
 - packet split rule for the next calls wave:
   keep readiness, voice, video, reconnect, app-classifier, and final decision as separate packets; do not blend them into one calls transcript and do not let the video or reconnect result silently inherit the voice result
+
+Observed Phase-28 readiness outcome on 2026-03-29:
+
+- `ghost-srv` `91.99.128.146`: `n0wss-server` still active and listening on `0.0.0.0:7443`
+- `ghost-cli` `178.104.104.208`: `n0wss-client` still active and listening on `127.0.0.1:1080`
+- same-window bounded readiness probe had one invalid operator variant:
+  replaying `phase27-probe` through a local workstation `ssh -L 127.0.0.1:11080:127.0.0.1:1080 ...` only proved the TCP control path and ended with `inbound_result=timeout`; that path is not valid UDP readiness evidence
+- the valid readiness probe was replayed directly on `ghost-cli` against `127.0.0.1:1080`:
+  it again produced `probe_status=reply-received`
+- same-window server evidence for that valid packet:
+  `received=b'phase27-probe'`, `replied_to=...`, `SERVER_DATAGRAM_RECEIVED`, `BLOCK_RELAY_UDP_OUTBOUND`, `SERVER_DATAGRAM_INBOUND_RECEIVED`, `SERVER_DATAGRAM_RETURN_EMITTED`
+- same-window client evidence for that valid packet:
+  `BLOCK_HANDLE_UDP_ASSOCIATE`, `BLOCK_PARSE_UDP_DATAGRAM`, `BLOCK_FORWARD_OUTBOUND_DATAGRAM`, `BLOCK_SEND_WSS_DATAGRAM`, `BLOCK_DELIVER_INBOUND_DATAGRAM`
+- bounded readiness decision:
+  the Phase-27 green controlled datagram round-trip is still valid in the same deployment window, so the next approved step is the bounded Telegram voice-call rerun rather than another transport readiness repair
 
 Remote server-host bounded capture:
 
