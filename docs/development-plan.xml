@@ -5634,6 +5634,9 @@
       <step-6 module="M-TELEGRAM-CALLS-RECONNECT-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-RECONNECT-RERUN">Replay one fresh second call attempt after the first rerun</step-6>
       <step-7 module="M-TELEGRAM-CALLS-RERUN-EVIDENCE" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-EVIDENCE">Assemble the bounded readiness, voice, video, reconnect, and comparison packets</step-7>
       <step-8 module="M-TELEGRAM-CALLS-RERUN-DECISION" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-DECISION">Issue the bounded Telegram calls decision after the post-Phase-27 rerun wave</step-8>
+      <note-1>The bounded voice rerun on 2026-03-29 advanced beyond the older no-go symptom: ringing and answer were immediate, Telegram showed key-exchange emoji on both devices, and then the call moved into `Connecting...` before ending.</note-1>
+      <note-2>The same client-side call window still showed only SOCKS5 CONNECT parsing and WSS transport-selection markers to Telegram network IPs, with no fresh governed UDP or datagram media markers for the voice attempt.</note-2>
+      <note-3>The bounded voice packet is therefore signaling-green but media-not-green, and the next step remains a separate video rerun rather than a transport repair rollback.</note-3>
     </Phase-28>
   </ImplementationOrder>
 
