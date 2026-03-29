@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.37">
+<VerificationPlan VERSION="0.2.39">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -61,6 +61,12 @@
     <wss-datagram-runtime-split-rule>Production WSS datagram carrier evidence must stay separate from selector-level emit intent so a selected transport or helper call cannot be mistaken for a real websocket frame emission.</wss-datagram-runtime-split-rule>
     <server-datagram-demux-rule>Server-side runtime glue must prove that datagram frames are decoded and routed without silently collapsing into the existing stream tunnel semantics.</server-datagram-demux-rule>
     <phase24-runtime-baseline-lock-rule>Every Phase-25 comparison packet must preserve the stopped Phase-24 baseline: repaired helper surfaces exist, but no real runtime caller, no proven production WSS datagram carrier, and no proven server-side datagram ingress.</phase24-runtime-baseline-lock-rule>
+    <inbound-after-outbound-rule>No new Telegram-specific rerun may be approved while the first unresolved layer still sits after proven server relay outbound and before proven inbound reply delivery to the local probe.</inbound-after-outbound-rule>
+    <phase25-inbound-baseline-lock-rule>Every Phase-26 comparison packet must preserve the Phase-25 baseline: outbound runtime glue is proven through SERVER_DATAGRAM_RECEIVED and BLOCK_RELAY_UDP_OUTBOUND, but the bounded result still ends with inbound_result=timeout.</phase25-inbound-baseline-lock-rule>
+    <no-telegram-rerun-before-reply-rule>Telegram-specific reruns remain blocked until one bounded controlled datagram packet proves inbound reply return all the way back to local delivery or names the next missing inbound marker explicitly.</no-telegram-rerun-before-reply-rule>
+    <inbound-source-validation-rule>Inbound-return verification must classify reply-source acceptance separately from reply delivery; a received packet from the wrong peer or wrong association must count as a bounded reject, not as reply success.</inbound-source-validation-rule>
+    <inbound-layer-split-rule>Phase-26 must keep server inbound receive, WSS return emission, client inbound delivery, and probe-visible reply as separate evidence classes; one missing layer must not be hidden by adjacent green layers.</inbound-layer-split-rule>
+    <phase24-supersede-queue-rule>Once Phase-26 is active, any remaining Phase-24 tail must stay explicitly superseded in the shared artifacts so no autonomous execution queue can reopen it by mistake.</phase24-supersede-queue-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -3171,6 +3177,210 @@
         <scenario-1>The decision falls back to vague language such as “try Telegram again” without naming the deepest proven post-glue layer.</scenario-1>
       </failure-scenarios>
     </V-M-DATAGRAM-RUNTIME-DECISION>
+
+    <V-M-DATAGRAM-INBOUND-HYPOTHESIS MODULE="M-DATAGRAM-INBOUND-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'inbound reply|Phase-25|server relay outbound|inbound_result=timeout' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The hypothesis keeps the next blocker bounded to inbound reply return after already-proven outbound runtime glue.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The wording reopens outbound runtime glue, Telegram UI behavior, or provider filtering as if Phase-25 had not already fixed the earlier boundary.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The hypothesis must preserve the exact Phase-25 tuple: SERVER_DATAGRAM_RECEIVED, BLOCK_RELAY_UDP_OUTBOUND, and inbound_result=timeout.</assertion-1>
+        <assertion-2>The hypothesis must forbid a Telegram-specific rerun until one deeper inbound marker is proven in the same bounded packet.</assertion-2>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-INBOUND-HYPOTHESIS>
+
+    <V-M-PHASE24-SUPERSEDE MODULE="M-PHASE24-SUPERSEDE" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/knowledge-graph.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Phase-24|superseded|M-PHASE24-SUPERSEDE' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The old pending Phase-24 tail is explicitly marked as superseded so execution truth no longer queues it as live work.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The shared artifacts still leave Phase-24 step 6 through 8 looking pending, so the queue remains ambiguous.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>Phase-24 must remain superseded in plan, graph, and verification simultaneously.</assertion-1>
+      </required-trace-assertions>
+    </V-M-PHASE24-SUPERSEDE>
+
+    <V-M-DATAGRAM-RELAY-STATE MODULE="M-DATAGRAM-RELAY-STATE" PRIORITY="high">
+      <test-files>
+        <file>src/proxy_bridge/udp_relay.rs</file>
+        <file>src/proxy_bridge/udp_relay.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test udp_relay</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The relay keeps enough association and remote-peer state to map one inbound reply back to the correct governed association.</scenario-1>
+        <scenario-2>The relay-state surface can reject replies from an unexpected peer or stale association deterministically.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The outbound relay send succeeds but the server runtime cannot tell which association should receive the reply.</scenario-1>
+        <scenario-2>Reply state leaks across associations and an inbound packet can be misattributed to the wrong caller.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>Relay state must preserve association identity, reply peer, and return metadata separately from raw socket handles.</assertion-1>
+        <assertion-2>Reply mapping must remain bounded to the specific association opened by the same controlled probe window.</assertion-2>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-RELAY-STATE>
+
+    <V-M-SERVER-DATAGRAM-INBOUND-RECEIVE MODULE="M-SERVER-DATAGRAM-INBOUND-RECEIVE" PRIORITY="high">
+      <test-files>
+        <file>src/proxy_bridge/udp_relay.rs</file>
+        <file>src/wss_gateway/mod.rs</file>
+        <file>src/wss_gateway/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test udp_relay</check-1>
+        <check-2>cargo test wss_gateway</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The server runtime reads one inbound UDP reply after relay outbound and normalizes it into an association-scoped inbound envelope.</scenario-1>
+        <scenario-2>The server receive loop classifies unexpected-source or malformed replies deterministically without silently dropping trajectory evidence.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>Server relay outbound is proven but no inbound receive marker ever appears for the same bounded probe window.</scenario-1>
+        <scenario-2>A reply reaches the server socket, but the runtime cannot distinguish accepted inbound reply from rejected foreign-source traffic.</scenario-2>
+      </failure-scenarios>
+      <required-signals>
+        <log-marker>[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]</log-marker>
+        <trace-sequence>BLOCK_RELAY_UDP_OUTBOUND -&gt; SERVER_DATAGRAM_INBOUND_RECEIVED -&gt; BLOCK_RELAY_UDP_INBOUND</trace-sequence>
+      </required-signals>
+    </V-M-SERVER-DATAGRAM-INBOUND-RECEIVE>
+
+    <V-M-WSS-DATAGRAM-INBOUND-EMIT MODULE="M-WSS-DATAGRAM-INBOUND-EMIT" PRIORITY="high">
+      <test-files>
+        <file>src/wss_gateway/mod.rs</file>
+        <file>src/wss_gateway/datagram.rs</file>
+        <file>src/wss_gateway/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test wss_gateway</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>One server-side inbound datagram is emitted back over the governed WSS carrier instead of stopping at relay outbound.</scenario-1>
+        <scenario-2>The return emission preserves association identity so the client runtime can still map the datagram back to the correct local relay socket.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The server runtime reads an inbound reply but the return datagram never reaches the WSS carrier or client runtime.</scenario-1>
+        <scenario-2>The return path emits a frame without preserving association metadata, so the client runtime cannot deliver it deterministically.</scenario-2>
+      </failure-scenarios>
+      <required-signals>
+        <log-marker>[WssDatagramGateway][sendDatagram][BLOCK_SEND_WSS_DATAGRAM]</log-marker>
+        <trace-sequence>BLOCK_RELAY_UDP_INBOUND -&gt; BLOCK_SEND_WSS_DATAGRAM</trace-sequence>
+      </required-signals>
+    </V-M-WSS-DATAGRAM-INBOUND-EMIT>
+
+    <V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE MODULE="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" PRIORITY="high">
+      <test-files>
+        <file>src/socks5/udp_associate.rs</file>
+        <file>src/session/datagram_manager.rs</file>
+        <file>src/cli/mod.rs</file>
+        <file>src/cli/mod.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test datagram_manager</check-1>
+        <check-2>cargo test cli</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The client runtime maps one returned WSS datagram back into the owning local UDP relay socket and the local probe can receive it.</scenario-1>
+        <scenario-2>Client-side inbound delivery remains bounded to the association that opened the original UDP ASSOCIATE path.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The server proves inbound reply handling but the client runtime never emits a local inbound delivery marker or probe-visible reply.</scenario-1>
+        <scenario-2>The client receives a returned datagram but cannot map it to the correct relay socket or local address tuple.</scenario-2>
+      </failure-scenarios>
+      <required-signals>
+        <log-marker>[DatagramSessionManager][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
+        <trace-sequence>BLOCK_SEND_WSS_DATAGRAM -&gt; CLIENT_DATAGRAM_RETURN_RECEIVED -&gt; BLOCK_DELIVER_INBOUND_DATAGRAM</trace-sequence>
+      </required-signals>
+    </V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE>
+
+    <V-M-DATAGRAM-INBOUND-RERUN MODULE="M-DATAGRAM-INBOUND-RERUN" PRIORITY="high">
+      <test-files>
+        <file>scripts/udp_probe.sh</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target $N0WSS_UDP_ECHO_TARGET --payload phase26-probe --timeout 5</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The bounded rerun proves `reply-received` or names the next first missing inbound marker after server relay outbound.</scenario-1>
+        <scenario-2>The rerun separates `server-received`, `wss-returned`, `client-delivered`, and `reply-received` as distinct evidence layers.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The rerun still ends in `inbound_result=timeout` without any stronger inbound receive or local delivery evidence than Phase-25.</scenario-1>
+        <scenario-2>The rerun reports reply success without preserving a bounded correlation to the same probe payload and association window.</scenario-2>
+      </failure-scenarios>
+      <required-signals>
+        <log-marker>[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]</log-marker>
+        <log-marker>[DatagramSessionManager][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
+      </required-signals>
+      <required-trace-assertions>
+        <assertion-1>The rerun must preserve the Phase-25 baseline if `reply-received` is still absent.</assertion-1>
+        <assertion-2>The rerun must name the first missing inbound layer explicitly: server receive, WSS return, client delivery, or probe receive.</assertion-2>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-INBOUND-RERUN>
+
+    <V-M-DATAGRAM-INBOUND-EVIDENCE MODULE="M-DATAGRAM-INBOUND-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Phase-23|Phase-24|Phase-25|phase26-probe|reply-received|inbound reply' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet preserves the earlier Phase-23, superseded Phase-24, and done Phase-25 baselines while stating exactly which inbound-return layer moved.</scenario-1>
+        <scenario-2>The packet keeps reply success or reply timeout separate from server-side or client-side partial progress.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The post-inbound-repair packet cannot be distinguished from the Phase-25 inbound-timeout baseline, so progress remains ambiguous.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The comparison packet must preserve the exact Phase-25 tuple and say whether the new packet moved to server receive, WSS return, client delivery, or full reply receipt.</assertion-1>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-INBOUND-EVIDENCE>
+
+    <V-M-DATAGRAM-INBOUND-DECISION MODULE="M-DATAGRAM-INBOUND-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'reply-received|Telegram-specific wave|inbound reply|Phase-26' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision explicitly separates “controlled datagram round-trip complete enough for Telegram-specific verification” from “inbound return still blocked”.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The decision falls back to a vague “try calls again” without proving bounded inbound reply return.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>No Telegram-specific rerun is allowed unless the controlled packet proves inbound reply return or names a deeper first missing inbound marker than Phase-25.</assertion-1>
+        <assertion-2>The decision must explicitly state whether the new deepest proven layer is server receive, WSS return, client delivery, or reply receipt.</assertion-2>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-INBOUND-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -3496,6 +3706,28 @@
       </required-evidence>
       <failure-packet-template>scenario=DatagramRuntimeGlueWave; expected-evidence=live UDP runtime receive evidence, production WSS datagram carrier evidence, server-side datagram ingress evidence, and a post-glue comparison packet; observed-evidence=module-local checks, bounded probe packet, local and remote runtime capture, and bounded decision; first-divergent-block=first missing live-runtime, carrier-emission, or server-ingress layer; next-action=repair only the first unresolved runtime glue layer before any Telegram-specific rerun</failure-packet-template>
     </LV-016>
+    <LV-017 NAME="DatagramInboundReplyWave" PRIORITY="high">
+      <goal>Repair and prove the bounded inbound datagram return path from remote reply receive through WSS return and local relay delivery before any Telegram-specific rerun is approved.</goal>
+      <commands>
+        <command-1>cargo test udp_relay</command-1>
+        <command-2>cargo test wss_gateway</command-2>
+        <command-3>cargo test datagram_manager</command-3>
+        <command-4>cargo test cli</command-4>
+        <command-5>prepare the bounded remote UDP echo target and replay `scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target $N0WSS_UDP_ECHO_TARGET --payload phase26-probe --timeout 5`</command-5>
+        <command-6>capture bounded local and remote runtime evidence for the same inbound-repair probe window</command-6>
+        <command-7>assemble a comparison packet against Phase-23, superseded Phase-24, and done Phase-25</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave preserves the Phase-25 baseline that already proves outbound runtime glue through server relay outbound.</evidence-1>
+        <evidence-2>The wave proves or rejects server-side inbound receive as a separate layer from outbound relay send.</evidence-2>
+        <evidence-3>The wave proves or rejects WSS return and client-side local delivery as separate layers from server-side inbound receive.</evidence-3>
+        <evidence-4>The final comparison packet states whether the bounded result advanced from `inbound_result=timeout` to `reply-received` or names the next first missing inbound marker.</evidence-4>
+        <evidence-5>No Telegram-specific rerun is allowed unless the bounded packet proves the inbound return path far enough for controlled round-trip completion.</evidence-5>
+        <evidence-6>The wave keeps reply-source validation evidence separate from successful reply delivery evidence.</evidence-6>
+        <evidence-7>The wave must not treat `BLOCK_RELAY_UDP_INBOUND` alone as reply success unless client-side delivery and probe-visible receive are also classified.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=DatagramInboundReplyWave; expected-evidence=server inbound receive evidence, WSS return evidence, client local-delivery evidence, and a bounded comparison packet against Phase-23 through Phase-25; observed-evidence=module-local checks, bounded probe packet, local and remote runtime capture, and bounded decision; first-divergent-block=first missing server-inbound, WSS-return, or client-delivery layer; next-action=repair only the first unresolved inbound-return layer before any Telegram-specific rerun</failure-packet-template>
+    </LV-017>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -3923,6 +4155,26 @@
         <evidence-7>The gate preserves the stopped Phase-24 baseline so Phase-25 can only claim progress if live runtime evidence moves beyond helper-only surfaces.</evidence-7>
       </required-evidence>
     </Gate-Phase-25>
+    <Gate-Phase-26 PHASE="Phase-26">
+      <goal>The project has an execution-ready inbound-return wave that can advance the controlled datagram packet beyond the Phase-25 inbound-timeout boundary before any Telegram-specific rerun is attempted.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-26|M-DATAGRAM-INBOUND-HYPOTHESIS|M-DATAGRAM-INBOUND-DECISION|M-PHASE24-SUPERSEDE' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-017|phase26-probe|reply-received|inbound reply|Phase-24.*superseded' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>cargo test udp_relay</command-3>
+        <command-4>cargo test wss_gateway</command-4>
+        <command-5>cargo test datagram_manager</command-5>
+        <command-6>cargo test cli</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>The phase keeps the blocker bounded to inbound reply return after already-proven outbound runtime glue through server relay outbound.</evidence-1>
+        <evidence-2>The phase explicitly supersedes the stale pending Phase-24 tail so execution truth no longer queues it as active work.</evidence-2>
+        <evidence-3>The phase defines one bounded server-side inbound receive layer, one bounded WSS return layer, and one bounded client-side local delivery layer.</evidence-3>
+        <evidence-4>The post-repair rerun uses one bounded controlled probe and one bounded comparison packet against the Phase-23, Phase-24, and Phase-25 baselines.</evidence-4>
+        <evidence-5>The final decision is bounded to saying whether controlled round-trip is complete enough for a Telegram-specific wave or inbound return still blocks progress.</evidence-5>
+        <evidence-6>The gate preserves the exact Phase-25 tuple so Phase-26 can only claim progress if a deeper inbound layer is proven in the same bounded packet.</evidence-6>
+        <evidence-7>The gate requires separate classification of server inbound receive, WSS return, client local delivery, and probe-visible reply.</evidence-7>
+      </required-evidence>
+    </Gate-Phase-26>
   </PhaseGates>
 
   <FailurePackets>

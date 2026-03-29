@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.22">
+  <Project NAME="n0wss" VERSION="0.2.23">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1445,7 +1445,7 @@
       </annotations>
     </M-UDP-RELAY-OUTBOUND-REPAIR>
 
-    <M-DATAGRAM-ROUNDTRIP-RERUN NAME="DatagramRoundTripRerun" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-DATAGRAM-ROUNDTRIP-RERUN NAME="DatagramRoundTripRerun" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Replay the controlled datagram probe after repairs and classify the new deepest proven layer.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-DATAGRAM-ECHO-TARGET, M-UDP-RELAY-OUTBOUND-REPAIR, M-DATAGRAM-INBOUND-TRACE</depends>
@@ -1455,7 +1455,7 @@
       </annotations>
     </M-DATAGRAM-ROUNDTRIP-RERUN>
 
-    <M-DATAGRAM-REPAIR-EVIDENCE NAME="DatagramRepairEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-DATAGRAM-REPAIR-EVIDENCE NAME="DatagramRepairEvidence" TYPE="UTILITY" STATUS="superseded">
       <purpose>Assemble the pre-fix versus post-fix comparison packet for the repaired datagram path.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-DATAGRAM-ROUNDTRIP-RERUN, M-DATAGRAM-CAPTURE-CORRELATION</depends>
@@ -1465,7 +1465,7 @@
       </annotations>
     </M-DATAGRAM-REPAIR-EVIDENCE>
 
-    <M-DATAGRAM-REPAIR-DECISION NAME="DatagramRepairDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-DATAGRAM-REPAIR-DECISION NAME="DatagramRepairDecision" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Issue the bounded post-repair decision on whether the project can return to Telegram-specific verification.</purpose>
       <path>README.md</path>
       <depends>M-DATAGRAM-REPAIR-EVIDENCE</depends>
@@ -1554,6 +1554,96 @@
         <fn-issueDatagramRuntimeDecision PURPOSE="Issue the bounded decision after the runtime-glue comparison packet." />
       </annotations>
     </M-DATAGRAM-RUNTIME-DECISION>
+
+    <M-DATAGRAM-INBOUND-HYPOTHESIS NAME="DatagramInboundHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the inbound-only blocker after Phase-25 so the next wave repairs inbound reply return rather than reopening proven outbound runtime glue.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-DATAGRAM-RUNTIME-DECISION, M-DATAGRAM-RUNTIME-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-INBOUND-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeDatagramInboundHypothesis PURPOSE="Freeze the bounded inbound-return hypothesis after Phase-25." />
+      </annotations>
+    </M-DATAGRAM-INBOUND-HYPOTHESIS>
+
+    <M-PHASE24-SUPERSEDE NAME="Phase24Supersede" TYPE="UTILITY" STATUS="planned">
+      <purpose>Explicitly supersede the stale pending tail of Phase-24 so execution truth no longer queues the older repair rerun path.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-DATAGRAM-INBOUND-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE24-SUPERSEDE</verification-ref>
+      <annotations>
+        <fn-supersedePhase24Tail PURPOSE="Mark the stale Phase-24 tail as superseded across the shared artifacts." />
+      </annotations>
+    </M-PHASE24-SUPERSEDE>
+
+    <M-DATAGRAM-RELAY-STATE NAME="DatagramRelayState" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Retain server-side association context so inbound UDP replies can be mapped back to the correct governed datagram association.</purpose>
+      <path>src/proxy_bridge/udp_relay.rs</path>
+      <depends>M-UDP-RELAY-OUTBOUND-REPAIR, M-UDP-ASSOCIATION-REGISTRY, M-DATAGRAM-SESSION-MANAGER</depends>
+      <verification-ref>V-M-DATAGRAM-RELAY-STATE</verification-ref>
+      <annotations>
+        <fn-recordDatagramRelayState PURPOSE="Retain bounded association and peer-return state for inbound datagram mapping." />
+      </annotations>
+    </M-DATAGRAM-RELAY-STATE>
+
+    <M-SERVER-DATAGRAM-INBOUND-RECEIVE NAME="ServerDatagramInboundReceive" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Add the server-side receive loop for inbound reply datagrams after relay outbound is already proven.</purpose>
+      <path>src/proxy_bridge/udp_relay.rs</path>
+      <depends>M-DATAGRAM-RELAY-STATE, M-SERVER-DATAGRAM-INGRESS</depends>
+      <verification-ref>V-M-SERVER-DATAGRAM-INBOUND-RECEIVE</verification-ref>
+      <annotations>
+        <fn-receiveServerDatagramReply PURPOSE="Read and normalize one inbound UDP reply on the server runtime." />
+      </annotations>
+    </M-SERVER-DATAGRAM-INBOUND-RECEIVE>
+
+    <M-WSS-DATAGRAM-INBOUND-EMIT NAME="WssDatagramInboundEmit" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Emit one inbound datagram back over the governed WSS datagram path from server runtime to client runtime.</purpose>
+      <path>src/wss_gateway/mod.rs</path>
+      <depends>M-WSS-DATAGRAM-RUNTIME-CARRIER, M-SERVER-DATAGRAM-INBOUND-RECEIVE</depends>
+      <verification-ref>V-M-WSS-DATAGRAM-INBOUND-EMIT</verification-ref>
+      <annotations>
+        <fn-emitInboundDatagram PURPOSE="Return one server-side inbound datagram through the production WSS carrier." />
+      </annotations>
+    </M-WSS-DATAGRAM-INBOUND-EMIT>
+
+    <M-CLIENT-DATAGRAM-INBOUND-BRIDGE NAME="ClientDatagramInboundBridge" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Bridge one returned WSS datagram back into the local UDP relay socket that owns the original association.</purpose>
+      <path>src/session/datagram_manager.rs</path>
+      <depends>M-DATAGRAM-RUNTIME-BRIDGE, M-SOCKS5-UDP-RUNTIME-LOOP, M-DATAGRAM-SESSION-MANAGER</depends>
+      <verification-ref>V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE</verification-ref>
+      <annotations>
+        <fn-deliverInboundDatagram PURPOSE="Deliver one bounded inbound datagram from client runtime to local UDP relay ownership." />
+      </annotations>
+    </M-CLIENT-DATAGRAM-INBOUND-BRIDGE>
+
+    <M-DATAGRAM-INBOUND-RERUN NAME="DatagramInboundRerun" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Replay the controlled datagram probe after inbound-return repairs and classify whether reply delivery is finally proven.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-CLIENT-DATAGRAM-INBOUND-BRIDGE, M-WSS-DATAGRAM-INBOUND-EMIT, M-DATAGRAM-ECHO-TARGET</depends>
+      <verification-ref>V-M-DATAGRAM-INBOUND-RERUN</verification-ref>
+      <annotations>
+        <fn-rerunDatagramInboundProbe PURPOSE="Replay one bounded probe focused on inbound reply return." />
+      </annotations>
+    </M-DATAGRAM-INBOUND-RERUN>
+
+    <M-DATAGRAM-INBOUND-EVIDENCE NAME="DatagramInboundEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the post-inbound-repair packet and compare it against the earlier datagram baselines.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DATAGRAM-INBOUND-RERUN, M-DATAGRAM-RUNTIME-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-INBOUND-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleDatagramInboundEvidence PURPOSE="Assemble the bounded inbound-return comparison packet." />
+      </annotations>
+    </M-DATAGRAM-INBOUND-EVIDENCE>
+
+    <M-DATAGRAM-INBOUND-DECISION NAME="DatagramInboundDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded post-inbound-repair decision on whether a Telegram-specific wave is finally justified.</purpose>
+      <path>README.md</path>
+      <depends>M-DATAGRAM-INBOUND-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-INBOUND-DECISION</verification-ref>
+      <annotations>
+        <fn-issueDatagramInboundDecision PURPOSE="Issue the bounded decision after the inbound-return comparison packet." />
+      </annotations>
+    </M-DATAGRAM-INBOUND-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -1817,6 +1907,22 @@
     <CrossLink from="M-DATAGRAM-RUNTIME-RERUN" to="M-DATAGRAM-RUNTIME-EVIDENCE" relation="supplies the bounded post-glue probe packet used for runtime comparison" />
     <CrossLink from="M-DATAGRAM-REPAIR-EVIDENCE" to="M-DATAGRAM-RUNTIME-EVIDENCE" relation="supplies the stopped Phase-24 packet used as the immediate baseline for runtime comparison" />
     <CrossLink from="M-DATAGRAM-RUNTIME-EVIDENCE" to="M-DATAGRAM-RUNTIME-DECISION" relation="supplies the bounded runtime-glue comparison packet for the final decision" />
+    <CrossLink from="M-DATAGRAM-RUNTIME-DECISION" to="M-DATAGRAM-INBOUND-HYPOTHESIS" relation="supplies the Phase-25 decision that freezes inbound reply return as the next blocker" />
+    <CrossLink from="M-DATAGRAM-RUNTIME-EVIDENCE" to="M-DATAGRAM-INBOUND-HYPOTHESIS" relation="supplies the Phase-25 bounded packet that still ends with inbound_result=timeout" />
+    <CrossLink from="M-DATAGRAM-INBOUND-HYPOTHESIS" to="M-PHASE24-SUPERSEDE" relation="supplies the new phase truth that supersedes the stale Phase-24 tail" />
+    <CrossLink from="M-UDP-RELAY-OUTBOUND-REPAIR" to="M-DATAGRAM-RELAY-STATE" relation="supplies the proven outbound relay surface that now needs bounded return-state retention" />
+    <CrossLink from="M-UDP-ASSOCIATION-REGISTRY" to="M-DATAGRAM-RELAY-STATE" relation="supplies the existing association ownership model reused for inbound reply mapping" />
+    <CrossLink from="M-DATAGRAM-RELAY-STATE" to="M-SERVER-DATAGRAM-INBOUND-RECEIVE" relation="supplies the server-side association and peer-return context needed to read inbound replies" />
+    <CrossLink from="M-SERVER-DATAGRAM-INGRESS" to="M-SERVER-DATAGRAM-INBOUND-RECEIVE" relation="supplies the already-proven server runtime boundary that the inbound receive loop now extends" />
+    <CrossLink from="M-SERVER-DATAGRAM-INBOUND-RECEIVE" to="M-WSS-DATAGRAM-INBOUND-EMIT" relation="supplies the bounded server-side inbound datagram envelope that must be returned over WSS" />
+    <CrossLink from="M-WSS-DATAGRAM-RUNTIME-CARRIER" to="M-WSS-DATAGRAM-INBOUND-EMIT" relation="supplies the production carrier used for the inbound datagram return path" />
+    <CrossLink from="M-WSS-DATAGRAM-INBOUND-EMIT" to="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" relation="supplies the returned client-side datagram that must be delivered to the owning local relay socket" />
+    <CrossLink from="M-DATAGRAM-RUNTIME-BRIDGE" to="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" relation="supplies the client runtime ownership context reused for inbound local delivery" />
+    <CrossLink from="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" to="M-DATAGRAM-INBOUND-RERUN" relation="supplies the repaired client-side local delivery path exercised by the bounded inbound rerun" />
+    <CrossLink from="M-DATAGRAM-ECHO-TARGET" to="M-DATAGRAM-INBOUND-RERUN" relation="provides the bounded remote reply source for the inbound-return probe wave" />
+    <CrossLink from="M-DATAGRAM-INBOUND-RERUN" to="M-DATAGRAM-INBOUND-EVIDENCE" relation="supplies the post-inbound-repair probe packet for comparison against the earlier datagram baselines" />
+    <CrossLink from="M-DATAGRAM-RUNTIME-EVIDENCE" to="M-DATAGRAM-INBOUND-EVIDENCE" relation="supplies the completed Phase-25 packet used as the immediate baseline for inbound-return comparison" />
+    <CrossLink from="M-DATAGRAM-INBOUND-EVIDENCE" to="M-DATAGRAM-INBOUND-DECISION" relation="supplies the bounded inbound-return comparison packet for the final decision" />
 
   </Project>
 </KnowledgeGraph>
