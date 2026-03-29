@@ -209,6 +209,12 @@ Current calls-profile status:
   both bounded media packets now reused the exact Desktop handoff profile, preserved their own capture packets, and converged on the same `signaling-only stall` class above the green transport baseline
 - the bounded Phase-29 decision therefore still remains no-go for the tested Desktop setup:
   the preserved transport-green packet stays intact, but the media-behavior packet now points to a Telegram-specific workaround or alternate app-topology phase rather than another generic transport repair
+- the bounded Phase-30 workaround hypothesis now freezes that next branch more tightly:
+  generic datagram transport remains closed as green baseline evidence, and the only approved next question is whether one alternate app topology changes the Telegram no-go class on the tested Desktop setup
+- the chosen alternate topology for Phase-30 is intentionally narrow:
+  Telegram Desktop will return to a truly local `n0wss-client` listener on the same workstation instead of the exact Phase-29 SSH-forwarded Desktop route, while the same-window `phase27-probe` precondition stays mandatory
+- the comparison rule remains explicit:
+  if that alternate topology still reproduces the same media no-go class, the result strengthens the Telegram-specific boundary rather than reopening transport work
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

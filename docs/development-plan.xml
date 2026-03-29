@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.27">
+<DevelopmentPlan VERSION="0.2.28">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -5018,6 +5018,192 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-MEDIA-DECISION</verification-ref>
     </M-TELEGRAM-MEDIA-DECISION>
+
+    <M-TELEGRAM-WORKAROUND-HYPOTHESIS NAME="TelegramWorkaroundHypothesis" TYPE="UTILITY" LAYER="33" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the post-Phase-29 truth-boundary where transport remains green but the tested Telegram Desktop setup still needs a Telegram-specific workaround or alternate app topology.</purpose>
+        <inputs>
+          <input-1>The completed Phase-29 decision packet.</input-1>
+          <input-2>The completed Telegram proxy-behavior comparison packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded workaround hypothesis packet that keeps future work inside Telegram-specific workaround space.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-MEDIA-DECISION, M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramWorkaroundHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_WORKAROUND_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-WORKAROUND-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-WORKAROUND-HYPOTHESIS>
+
+    <M-ALTERNATE-TOPOLOGY-PROFILE NAME="AlternateTopologyProfile" TYPE="ENTRY_POINT" LAYER="33" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Freeze one bounded alternate app topology for Telegram diagnostics so the workaround wave does not silently reuse the same Desktop handoff path from Phase-29.</purpose>
+        <inputs>
+          <input-1>The completed Phase-29 Desktop handoff profile.</input-1>
+          <input-2>The completed Phase-29 decision packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded alternate-topology handoff packet for the workaround wave.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-DESKTOP-HANDOFF-PROFILE, M-TELEGRAM-MEDIA-DECISION</depends>
+      <observability>
+        <log-prefix>[AlternateTopologyProfile]</log-prefix>
+        <critical-block>BLOCK_ALTERNATE_TOPOLOGY_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-ALTERNATE-TOPOLOGY-PROFILE</verification-ref>
+    </M-ALTERNATE-TOPOLOGY-PROFILE>
+
+    <M-TELEGRAM-WORKAROUND-CAPTURE NAME="TelegramWorkaroundCapture" TYPE="INTEGRATION" LAYER="33" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded capture and evidence packet for the workaround wave so alternate-topology results stay comparable with Phase-29.</purpose>
+        <inputs>
+          <input-1>The completed Phase-29 capture packet.</input-1>
+          <input-2>The bounded alternate-topology handoff packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded workaround capture packet that can be compared directly against the completed Phase-29 media packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-MEDIA-CAPTURE, M-ALTERNATE-TOPOLOGY-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramWorkaroundCapture]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_WORKAROUND_CAPTURE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-WORKAROUND-CAPTURE</verification-ref>
+    </M-TELEGRAM-WORKAROUND-CAPTURE>
+
+    <M-ALTERNATE-VOICE-WAVE NAME="AlternateVoiceWave" TYPE="CORE_LOGIC" LAYER="33" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded Telegram voice-call attempt on the alternate topology and classify whether the no-go class changes.</purpose>
+        <inputs>
+          <input-1>The bounded alternate-topology handoff packet.</input-1>
+          <input-2>The bounded workaround capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded alternate-topology voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-ALTERNATE-TOPOLOGY-PROFILE, M-TELEGRAM-WORKAROUND-CAPTURE</depends>
+      <observability>
+        <log-prefix>[AlternateVoiceWave]</log-prefix>
+        <critical-block>BLOCK_ALTERNATE_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-ALTERNATE-VOICE-WAVE</verification-ref>
+    </M-ALTERNATE-VOICE-WAVE>
+
+    <M-ALTERNATE-VIDEO-WAVE NAME="AlternateVideoWave" TYPE="CORE_LOGIC" LAYER="33" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded Telegram video-call attempt on the alternate topology without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded alternate-topology voice packet.</input-1>
+          <input-2>The bounded workaround capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded alternate-topology video packet kept separate from voice.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-ALTERNATE-VOICE-WAVE, M-TELEGRAM-WORKAROUND-CAPTURE</depends>
+      <observability>
+        <log-prefix>[AlternateVideoWave]</log-prefix>
+        <critical-block>BLOCK_ALTERNATE_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-ALTERNATE-VIDEO-WAVE</verification-ref>
+    </M-ALTERNATE-VIDEO-WAVE>
+
+    <M-WORKAROUND-BEHAVIOR-COMPARISON NAME="WorkaroundBehaviorComparison" TYPE="CORE_LOGIC" LAYER="33" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Compare alternate-topology media packets against the completed Phase-29 packets and determine whether topology changes the Telegram no-go class.</purpose>
+        <inputs>
+          <input-1>The bounded alternate-topology voice and video packets.</input-1>
+          <input-2>The completed Phase-29 media evidence packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded workaround comparison packet for Telegram-specific behavior.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-ALTERNATE-VOICE-WAVE, M-ALTERNATE-VIDEO-WAVE, M-TELEGRAM-MEDIA-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[WorkaroundBehaviorComparison]</log-prefix>
+        <critical-block>BLOCK_WORKAROUND_BEHAVIOR_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-WORKAROUND-BEHAVIOR-COMPARISON</verification-ref>
+    </M-WORKAROUND-BEHAVIOR-COMPARISON>
+
+    <M-WORKAROUND-EVIDENCE NAME="WorkaroundEvidence" TYPE="UTILITY" LAYER="33" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble the bounded alternate-topology handoff, capture, voice, video, and comparison packets for the workaround wave.</purpose>
+        <inputs>
+          <input-1>The bounded alternate-topology handoff, capture, and media packets.</input-1>
+          <input-2>The completed Phase-29 media packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded workaround evidence packet that stays separate from the completed Phase-29 no-go packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-WORKAROUND-BEHAVIOR-COMPARISON</depends>
+      <observability>
+        <log-prefix>[WorkaroundEvidence]</log-prefix>
+        <critical-block>BLOCK_WORKAROUND_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-WORKAROUND-EVIDENCE</verification-ref>
+    </M-WORKAROUND-EVIDENCE>
+
+    <M-WORKAROUND-DECISION NAME="WorkaroundDecision" TYPE="ENTRY_POINT" LAYER="33" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded workaround decision for the tested Telegram setup after the alternate-topology wave.</purpose>
+        <inputs>
+          <input-1>The bounded workaround evidence packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded decision stating whether the alternate topology helps, still stays no-go, or points to another Telegram-specific branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-WORKAROUND-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[WorkaroundDecision]</log-prefix>
+        <critical-block>BLOCK_WORKAROUND_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-WORKAROUND-DECISION</verification-ref>
+    </M-WORKAROUND-DECISION>
   </Modules>
 
   <DataFlow>
@@ -5565,6 +5751,36 @@
       <step-2>The final decision says whether the tested Desktop setup remains no-go, needs a Telegram-specific workaround phase, or justifies an alternate app topology.</step-2>
       <evidence>A bounded Telegram media decision for the tested Desktop setup.</evidence>
     </DF-TELEGRAM-MEDIA-DECISION>
+
+    <DF-TELEGRAM-WORKAROUND-HYPOTHESIS NAME="Telegram workaround hypothesis" TRIGGER="Phase-29 completed with a bounded media-behavior no-go packet above the green transport baseline.">
+      <step-1>The completed Phase-29 decision freezes generic transport as green and names the next branch as workaround-only or alternate-topology-only work.</step-1>
+      <step-2>The hypothesis packet preserves the completed Phase-29 no-go media class as historical baseline.</step-2>
+      <evidence>A bounded workaround hypothesis packet above the preserved green transport baseline.</evidence>
+    </DF-TELEGRAM-WORKAROUND-HYPOTHESIS>
+
+    <DF-ALTERNATE-TOPOLOGY-HANDOFF NAME="Alternate topology handoff" TRIGGER="A bounded Telegram workaround wave begins on a topology different from the exact Phase-29 Desktop route.">
+      <step-1>The operator applies one bounded alternate topology instead of silently reusing the old Desktop handoff packet.</step-1>
+      <step-2>The same-wave green `phase27-probe` precondition is preserved before any new media packet is interpreted.</step-2>
+      <evidence>A bounded alternate-topology handoff packet.</evidence>
+    </DF-ALTERNATE-TOPOLOGY-HANDOFF>
+
+    <DF-ALTERNATE-VOICE NAME="Alternate topology voice wave" TRIGGER="A bounded Telegram voice-call attempt runs on the alternate topology.">
+      <step-1>The alternate-topology voice attempt produces one bounded voice packet with its own capture evidence.</step-1>
+      <step-2>The packet states whether the Telegram no-go class changed relative to Phase-29.</step-2>
+      <evidence>A bounded alternate-topology voice packet.</evidence>
+    </DF-ALTERNATE-VOICE>
+
+    <DF-ALTERNATE-VIDEO NAME="Alternate topology video wave" TRIGGER="A bounded Telegram video-call attempt runs on the alternate topology after the voice packet is complete.">
+      <step-1>The alternate-topology video attempt stays separate from voice and preserves its own capture evidence.</step-1>
+      <step-2>The packet states whether video changed behavior relative to the Phase-29 video packet.</step-2>
+      <evidence>A bounded alternate-topology video packet.</evidence>
+    </DF-ALTERNATE-VIDEO>
+
+    <DF-WORKAROUND-COMPARISON NAME="Workaround behavior comparison" TRIGGER="The alternate-topology voice and video packets are available for comparison against the completed Phase-29 packet.">
+      <step-1>The new packets are compared directly against the completed Phase-29 media packet.</step-1>
+      <step-2>The comparison packet states whether topology changed the Telegram no-go class or preserved it.</step-2>
+      <evidence>A bounded workaround comparison packet.</evidence>
+    </DF-WORKAROUND-COMPARISON>
   </DataFlow>
 
   <ImplementationOrder>
@@ -5879,6 +6095,21 @@
       <note-8>The completed Phase-29 comparison packet keeps the exact Desktop handoff, bounded capture, and separate voice/video media packets intact while showing that both media profiles converge on the same `signaling-only stall` class above the preserved green transport baseline.</note-8>
       <note-9>The bounded Phase-29 decision on 2026-03-30 remains no-go for the tested Telegram Desktop setup and points the next justified phase toward Telegram-specific workaround or alternate app-topology work rather than any renewed generic transport repair.</note-9>
     </Phase-29>
+    <Phase-30 name="Telegram Workaround And Alternate Topology" status="pending">
+      <goal>Evaluate one bounded Telegram-specific workaround or alternate app topology above the green transport baseline and compare it directly against the completed Phase-29 media packet.</goal>
+      <step-1 module="M-TELEGRAM-WORKAROUND-HYPOTHESIS" status="pending" verification="V-M-TELEGRAM-WORKAROUND-HYPOTHESIS">Freeze the post-Phase-29 workaround-only boundary</step-1>
+      <step-2 module="M-ALTERNATE-TOPOLOGY-PROFILE" status="pending" verification="V-M-ALTERNATE-TOPOLOGY-PROFILE">Freeze one bounded alternate app topology for the workaround wave</step-2>
+      <step-3 module="M-TELEGRAM-WORKAROUND-CAPTURE" status="pending" verification="V-M-TELEGRAM-WORKAROUND-CAPTURE">Define the bounded capture packet for the workaround wave</step-3>
+      <step-4 module="M-ALTERNATE-VOICE-WAVE" status="pending" verification="V-M-ALTERNATE-VOICE-WAVE">Replay one bounded voice attempt on the alternate topology</step-4>
+      <step-5 module="M-ALTERNATE-VIDEO-WAVE" status="pending" verification="V-M-ALTERNATE-VIDEO-WAVE">Replay one bounded video attempt on the alternate topology</step-5>
+      <step-6 module="M-WORKAROUND-BEHAVIOR-COMPARISON" status="pending" verification="V-M-WORKAROUND-BEHAVIOR-COMPARISON">Compare alternate-topology media packets against the completed Phase-29 packet</step-6>
+      <step-7 module="M-WORKAROUND-EVIDENCE" status="pending" verification="V-M-WORKAROUND-EVIDENCE">Assemble the bounded workaround handoff, capture, media, and comparison packets</step-7>
+      <step-8 module="M-WORKAROUND-DECISION" status="pending" verification="V-M-WORKAROUND-DECISION">Issue the bounded workaround decision for the tested Telegram setup</step-8>
+      <note-1>Phase-30 starts only after the completed Phase-29 no-go media packet, which already preserved the green transport baseline and therefore forbids reopening generic datagram repair.</note-1>
+      <note-2>The new phase must keep alternate-topology or workaround work distinct from the exact Phase-29 Desktop handoff packet so a later comparison can say whether topology changed the no-go class.</note-2>
+      <note-3>The chosen alternate topology for Phase-30 reuses the older truly local `n0wss-client` workstation shape as a new bounded comparison packet, but now under the completed Phase-27 green round-trip baseline and the completed Phase-29 no-go media baseline.</note-3>
+      <note-4>The only intended topology delta in Phase-30 is `local SSH-forwarded remote listener` versus `truly local n0wss-client listener`; if other setup variables drift, the packet must be classified as handoff ambiguity rather than workaround progress.</note-4>
+    </Phase-30>
   </ImplementationOrder>
 
   <ExecutionPolicy>

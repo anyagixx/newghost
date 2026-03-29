@@ -974,6 +974,64 @@ Observed Phase-29 comparison and decision packet on 2026-03-30:
 - bounded decision:
   the tested Telegram Desktop setup remains no-go, and the next justified phase must be Telegram-specific workaround or alternate app-topology work rather than another generic transport repair
 
+### Phase-30 Workaround Hypothesis Boundary
+
+The completed Phase-29 packet freezes the next question narrowly:
+
+1. generic datagram transport remains green baseline evidence and must not be reopened here
+2. the next approved wave is workaround-only or alternate-topology-only work above that green baseline
+3. the completed Phase-29 `signaling-only stall` class remains the historical comparison packet
+4. Phase-30 must say explicitly whether one alternate topology changes that no-go class or reproduces it unchanged
+
+### Exact Phase-30 Alternate Topology Profile
+
+The bounded Phase-30 alternate topology changes one handoff dimension relative to Phase-29:
+
+- Phase-29 route:
+  local Telegram Desktop -> local `ssh -L 127.0.0.1:1080:127.0.0.1:1080` -> remote managed `n0wss-client`
+- Phase-30 route:
+  local Telegram Desktop -> truly local `n0wss-client` listener on the same workstation
+
+Keep everything else fixed where possible:
+
+1. start only after the same live window still preserves one bounded `phase27-probe` packet with `reply-received`
+2. do not keep the old `ssh -L 127.0.0.1:1080:127.0.0.1:1080 ...` forward alive during the alternate-topology wave
+3. launch exactly one local `n0wss-client` on the Telegram Desktop workstation and bind it to `127.0.0.1:1080`
+4. confirm the local listener owner before opening Telegram:
+   `ss -ltnp | grep ':1080' || true`
+5. keep Telegram Desktop on exactly:
+   host `127.0.0.1`
+   port `1080`
+   type `SOCKS5`
+   username empty
+   password empty
+6. do not mix this wave with:
+   an SSH local forward
+   a second local `n0wss-client`
+   a different SOCKS port
+   or the old Phase-29 Desktop route in parallel
+
+Phase-30 handoff boundary:
+
+- the only intended topology delta is `ssh-forwarded remote listener` -> `truly local n0wss-client listener`
+- the preserved green `phase27-probe` packet still stays mandatory before any new media packet is interpreted
+- if Telegram proxy setup itself stays at `Соединение...`, classify that as alternate-topology handoff failure before any voice or video packet is interpreted
+
+### Phase-30 Workaround Capture Surface
+
+The workaround wave must keep its capture packet directly comparable with Phase-29 while reflecting the new local-client topology:
+
+- workstation loopback capture:
+  `sudo timeout 20 tcpdump -i lo -nn '(tcp port 1080) or (udp port 1080)' -c 200 -w /tmp/n0wss-phase30-loopback.pcap`
+- workstation uplink capture:
+  `sudo timeout 20 tcpdump -i any -nn 'host 91.99.128.146 and tcp port 7443' -c 200 -w /tmp/n0wss-phase30-uplink.pcap`
+- local client log capture:
+  keep the local `n0wss-client` stdout or log file for the same packet window
+- capture split:
+  keep alternate-topology handoff, capture, voice, and video packets separate even if they happen in one operator session
+- comparison rule:
+  Phase-30 may compare itself directly against Phase-29 only if the alternate-topology handoff packet says exactly what changed and what stayed fixed
+
 Remote server-host bounded capture:
 
 ```bash
