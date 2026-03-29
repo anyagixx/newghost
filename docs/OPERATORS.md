@@ -965,6 +965,15 @@ Observed Phase-29 video-media packet on 2026-03-30:
 - comparison boundary:
   the repeated symptom does not let video inherit voice silently; it only proves that the bounded video packet converged on the same no-go class under its own capture packet
 
+Observed Phase-29 comparison and decision packet on 2026-03-30:
+
+- comparison packet:
+  the bounded voice-media and video-media packets now converge on the same `signaling-only stall` class while preserving separate Desktop handoff and capture evidence
+- transport boundary:
+  the same decision still keeps the green `phase27-probe` packet intact, so generic datagram diagnosis remains closed
+- bounded decision:
+  the tested Telegram Desktop setup remains no-go, and the next justified phase must be Telegram-specific workaround or alternate app-topology work rather than another generic transport repair
+
 Remote server-host bounded capture:
 
 ```bash

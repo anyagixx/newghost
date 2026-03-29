@@ -3853,6 +3853,7 @@
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The comparison packet must preserve the completed Phase-28 no-go packet and the same-window green transport baseline at the same time.</assertion-1>
+        <assertion-2>If voice and video converge on the same no-go class, the comparison packet must still say that each packet carried its own bounded capture evidence.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON>
 
@@ -3874,6 +3875,7 @@
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The evidence packet must preserve separate handoff, capture, voice, video, and comparison sections before the final decision is formed.</assertion-1>
+        <assertion-2>The evidence packet must explicitly compare the completed Phase-29 media packet against the completed Phase-28 calls packet.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-MEDIA-EVIDENCE>
 
@@ -3895,6 +3897,7 @@
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The final decision must remain bounded to the tested Desktop setup and explicitly say whether the next justified phase is a workaround phase, alternate topology, or continued no-go.</assertion-1>
+        <assertion-2>The final decision must preserve the green transport baseline while explaining why the completed media packet still remains no-go.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-MEDIA-DECISION>
   </ModuleVerification>

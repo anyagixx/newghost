@@ -205,6 +205,10 @@ Current calls-profile status:
   controlled datagram transport stays green, while the tested Desktop setup still needs a media-behavior phase that explains how calls fail above that transport baseline
 - the new hypothesis packet must preserve both sides at once:
   the same deployment window already proved one bounded green `phase27-probe`, and the completed Phase-28 calls packet still ended as app-facing no-go for voice, video, and reconnect
+- the completed Phase-29 comparison packet on 2026-03-30 is narrower than Phase-28 without becoming greener:
+  both bounded media packets now reused the exact Desktop handoff profile, preserved their own capture packets, and converged on the same `signaling-only stall` class above the green transport baseline
+- the bounded Phase-29 decision therefore still remains no-go for the tested Desktop setup:
+  the preserved transport-green packet stays intact, but the media-behavior packet now points to a Telegram-specific workaround or alternate app-topology phase rather than another generic transport repair
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
