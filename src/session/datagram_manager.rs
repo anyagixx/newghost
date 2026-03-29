@@ -1,5 +1,5 @@
 // FILE: src/session/datagram_manager.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Coordinate UDP association lifecycle, outbound or inbound datagram dispatch, and session-side cleanup rules.
 //   SCOPE: Association open, outbound dispatch, inbound dispatch, activity refresh, and explicit association close over the governed UDP registry.
@@ -12,13 +12,15 @@
 //   DatagramSessionError - deterministic lifecycle and dispatch failure surface
 //   DatagramSessionManager - orchestrate association open, outbound, inbound, and close trajectories
 //   open_association - create one session-owned UDP association
+//   ensure_outbound_association - open or reuse the session-owned UDP association for one governed relay and client endpoint pair
+//   accept_outbound_datagram - bind local relay ownership to one outbound datagram and forward it through the manager dispatch path
 //   forward_outbound_datagram - dispatch one outbound datagram while refreshing activity and emit bounded manager-side dispatch anchors
 //   forward_inbound_datagram - dispatch one inbound datagram while refreshing activity and emit bounded manager-side dispatch anchors
 //   close_association - close one UDP association and free its owned relay state
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added bounded outbound and inbound dispatch anchors so repair waves can distinguish local relay acceptance from manager-side datagram progression.
+//   LAST_CHANGE: v0.1.2 - Added a deterministic open-or-reuse outbound handoff so governed relay ingress can reach manager-owned dispatch through one bounded path.
 // END_CHANGE_SUMMARY
 
 use std::net::SocketAddr;
@@ -33,7 +35,7 @@ use crate::session::udp_registry::{
     UdpAssociationLimitReached, UdpAssociationNotFound, UdpAssociationRecord,
     UdpAssociationRegistry,
 };
-use crate::transport::datagram_contract::{DatagramAssociationId, DatagramEnvelope};
+use crate::transport::datagram_contract::{DatagramAssociationId, DatagramEnvelope, DatagramError, DatagramTarget};
 
 #[cfg(test)]
 #[path = "datagram_manager.test.rs"]
@@ -52,6 +54,8 @@ pub enum DatagramSessionError {
     AssociationLimitReached,
     #[error("udp association not found: {0}")]
     AssociationNotFound(DatagramAssociationId),
+    #[error("datagram contract violation: {0}")]
+    ContractViolation(#[from] DatagramError),
     #[error("datagram dispatch failed: {0}")]
     DispatchFailed(String),
 }
@@ -107,6 +111,86 @@ where
 
         Ok((association_id, record))
         // END_BLOCK_OPEN_DATAGRAM_ASSOCIATION
+    }
+
+    // START_CONTRACT: ensure_outbound_association
+    //   PURPOSE: Reuse one existing governed UDP association for the same relay and client endpoints or open a fresh one when no owned association exists.
+    //   INPUTS: { relay_addr: SocketAddr - governed relay bind, expected_client_addr: SocketAddr - only allowed UDP client source, now: Instant - current activity timestamp }
+    //   OUTPUTS: { Result<(DatagramAssociationId, UdpAssociationRecord), DatagramSessionError> - resolved association id and its current ownership record }
+    //   SIDE_EFFECTS: [may open a new association or refresh activity on an existing one, and emits a stable ownership-resolution anchor]
+    //   LINKS: [M-DATAGRAM-SESSION-MANAGER, M-UDP-ASSOCIATION-REGISTRY, V-M-DATAGRAM-SESSION-MANAGER]
+    // END_CONTRACT: ensure_outbound_association
+    pub fn ensure_outbound_association(
+        &self,
+        relay_addr: SocketAddr,
+        expected_client_addr: SocketAddr,
+        now: Instant,
+    ) -> Result<(DatagramAssociationId, UdpAssociationRecord), DatagramSessionError> {
+        // START_BLOCK_ENSURE_OUTBOUND_ASSOCIATION
+        if let Some((association_id, record)) = self
+            .registry
+            .find_by_endpoints(relay_addr, expected_client_addr)
+        {
+            self.registry
+                .touch_association(association_id, now)
+                .map_err(map_not_found)?;
+            info!(
+                association_id,
+                relay_addr = %relay_addr,
+                expected_client_addr = %expected_client_addr,
+                "[DatagramSessionManager][ensureOutboundAssociation][BLOCK_ENSURE_OUTBOUND_ASSOCIATION] reused datagram association for outbound dispatch"
+            );
+            let mut refreshed = record;
+            refreshed.last_activity = now;
+            return Ok((association_id, refreshed));
+        }
+
+        let opened = self.open_association(relay_addr, expected_client_addr, now)?;
+        info!(
+            association_id = opened.0,
+            relay_addr = %relay_addr,
+            expected_client_addr = %expected_client_addr,
+            "[DatagramSessionManager][ensureOutboundAssociation][BLOCK_ENSURE_OUTBOUND_ASSOCIATION] opened fresh datagram association for outbound dispatch"
+        );
+        Ok(opened)
+        // END_BLOCK_ENSURE_OUTBOUND_ASSOCIATION
+    }
+
+    // START_CONTRACT: accept_outbound_datagram
+    //   PURPOSE: Resolve or open the owned UDP association for one governed relay ingress event, normalize the resulting envelope, and forward it through the outbound manager dispatch path.
+    //   INPUTS: { relay_addr: SocketAddr - governed relay bind that received the packet, expected_client_addr: SocketAddr - only allowed UDP source, target: DatagramTarget - normalized UDP target, payload: Vec<u8> - UDP payload bytes, now: Instant - current activity timestamp }
+    //   OUTPUTS: { Result<DatagramEnvelope, DatagramSessionError> - validated outbound envelope after successful manager-side dispatch }
+    //   SIDE_EFFECTS: [may open or reuse an association, forwards one outbound datagram, and emits a stable local-handoff anchor]
+    //   LINKS: [M-DATAGRAM-SESSION-MANAGER, V-M-DATAGRAM-SESSION-MANAGER]
+    // END_CONTRACT: accept_outbound_datagram
+    pub async fn accept_outbound_datagram(
+        &self,
+        relay_addr: SocketAddr,
+        expected_client_addr: SocketAddr,
+        target: DatagramTarget,
+        payload: Vec<u8>,
+        now: Instant,
+    ) -> Result<DatagramEnvelope, DatagramSessionError> {
+        // START_BLOCK_ACCEPT_OUTBOUND_DATAGRAM
+        let (association_id, _) = self.ensure_outbound_association(relay_addr, expected_client_addr, now)?;
+        let envelope = DatagramEnvelope {
+            association_id,
+            relay_client_addr: expected_client_addr,
+            target,
+            payload,
+        };
+        envelope.validate()?;
+        info!(
+            association_id,
+            relay_addr = %relay_addr,
+            relay_client_addr = %expected_client_addr,
+            target = ?envelope.target,
+            payload_len = envelope.payload.len(),
+            "[DatagramSessionManager][acceptOutboundDatagram][BLOCK_ACCEPT_OUTBOUND_DATAGRAM] accepted governed outbound datagram for manager dispatch"
+        );
+        self.forward_outbound_datagram(envelope.clone(), now).await?;
+        Ok(envelope)
+        // END_BLOCK_ACCEPT_OUTBOUND_DATAGRAM
     }
 
     pub async fn forward_outbound_datagram(

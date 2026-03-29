@@ -1,5 +1,5 @@
 // FILE: src/session/datagram_manager.test.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify datagram association open, outbound dispatch, inbound dispatch, and cleanup trajectories over the governed UDP registry.
 //   SCOPE: Open success, explicit close, outbound dispatch, inbound dispatch, explicit dispatch failure, and missing-association failure behavior.
@@ -10,6 +10,8 @@
 // START_MODULE_MAP
 //   open_association_records_owned_udp_state - proves opening an association allocates deterministic owned state
 //   outbound_dispatch_refreshes_activity_and_hits_outbound_target - proves outbound datagrams stay associated with the correct session identity
+//   accept_outbound_datagram_opens_and_dispatches_owned_association - proves the local handoff can open an owned association and forward one outbound datagram through the manager
+//   accept_outbound_datagram_reuses_existing_owned_association - proves repeated local handoffs for the same relay and client pair reuse the same association id
 //   inbound_dispatch_refreshes_activity_and_hits_inbound_target - proves inbound datagrams stay associated with the correct session identity
 //   close_association_releases_owned_state - proves explicit close frees registry-owned state
 //   outbound_dispatch_failure_is_explicit - proves manager-side dispatch failures stay deterministic after activity refresh
@@ -17,7 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added deterministic dispatch-failure coverage so repair waves can trust manager-side dispatch evidence and failure boundaries.
+//   LAST_CHANGE: v0.1.2 - Added deterministic local-handoff coverage so outbound repair work can reuse or open the correct UDP association before manager dispatch.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -151,6 +153,70 @@ async fn inbound_dispatch_refreshes_activity_and_hits_inbound_target() {
         registry.get(association_id).expect("registry record").last_activity,
         later
     );
+}
+
+#[tokio::test]
+async fn accept_outbound_datagram_opens_and_dispatches_owned_association() {
+    let registry = Arc::new(UdpAssociationRegistry::new(1));
+    let outbound = Arc::new(RecordingTarget::default());
+    let manager = DatagramSessionManager::new(
+        registry.clone(),
+        outbound.clone(),
+        Arc::new(RecordingTarget::default()),
+    );
+    let now = Instant::now();
+
+    let envelope = manager
+        .accept_outbound_datagram(
+            target_addr(40000),
+            target_addr(50000),
+            DatagramTarget::Ip(target_addr(443)),
+            vec![0xaa, 0xbb],
+            now,
+        )
+        .await
+        .expect("accept outbound datagram");
+
+    assert_eq!(envelope.association_id, 1);
+    assert_eq!(registry.association_count(), 1);
+    assert_eq!(outbound.seen.lock().expect("seen").len(), 1);
+}
+
+#[tokio::test]
+async fn accept_outbound_datagram_reuses_existing_owned_association() {
+    let registry = Arc::new(UdpAssociationRegistry::new(2));
+    let outbound = Arc::new(RecordingTarget::default());
+    let manager = DatagramSessionManager::new(
+        registry.clone(),
+        outbound.clone(),
+        Arc::new(RecordingTarget::default()),
+    );
+    let now = Instant::now();
+
+    let first = manager
+        .accept_outbound_datagram(
+            target_addr(40000),
+            target_addr(50000),
+            DatagramTarget::Ip(target_addr(443)),
+            vec![0xaa],
+            now,
+        )
+        .await
+        .expect("first datagram");
+    let second = manager
+        .accept_outbound_datagram(
+            target_addr(40000),
+            target_addr(50000),
+            DatagramTarget::Ip(target_addr(444)),
+            vec![0xbb],
+            now + Duration::from_secs(1),
+        )
+        .await
+        .expect("second datagram");
+
+    assert_eq!(first.association_id, second.association_id);
+    assert_eq!(registry.association_count(), 1);
+    assert_eq!(outbound.seen.lock().expect("seen").len(), 2);
 }
 
 #[test]

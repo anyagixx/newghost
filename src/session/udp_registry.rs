@@ -1,5 +1,5 @@
 // FILE: src/session/udp_registry.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Track active UDP associations, governed relay endpoints, idle timers, and deterministic cleanup for datagram traffic.
 //   SCOPE: Capacity reservation, association open/get/touch/close, idle reaping, and stable association-count reporting.
@@ -13,13 +13,14 @@
 //   UdpAssociationLimitReached - deterministic capacity exhaustion error
 //   UdpAssociationNotFound - deterministic lookup failure error
 //   open_association - register one active UDP association
+//   find_by_endpoints - look up one active UDP association by governed relay and expected client endpoints
 //   touch_association - refresh the activity timestamp for one association
 //   close_association - remove one UDP association and release its reserved slot
 //   reap_idle - close stale UDP associations whose idle lifetime exceeds the configured bound
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added a dedicated UDP association registry so datagram ownership and cleanup stay deterministic before transport integration work begins.
+//   LAST_CHANGE: v0.1.1 - Added endpoint-based association lookup so outbound repair work can reuse owned UDP associations instead of reopening them blindly.
 // END_CHANGE_SUMMARY
 
 use std::collections::HashMap;
@@ -141,6 +142,26 @@ impl UdpAssociationRegistry {
             .expect("udp association registry lock poisoned")
             .get(&association_id)
             .map(|stored| stored.record.clone())
+    }
+
+    pub fn find_by_endpoints(
+        &self,
+        relay_addr: SocketAddr,
+        expected_client_addr: SocketAddr,
+    ) -> Option<(DatagramAssociationId, UdpAssociationRecord)> {
+        self.associations
+            .lock()
+            .expect("udp association registry lock poisoned")
+            .iter()
+            .find_map(|(association_id, stored)| {
+                if stored.record.relay_addr == relay_addr
+                    && stored.record.expected_client_addr == expected_client_addr
+                {
+                    Some((*association_id, stored.record.clone()))
+                } else {
+                    None
+                }
+            })
     }
 
     pub fn touch_association(

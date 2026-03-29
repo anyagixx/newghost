@@ -1,21 +1,22 @@
 // FILE: src/session/udp_registry.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify UDP association capacity control, deterministic close behavior, idle cleanup, and activity refresh semantics.
-//   SCOPE: Association open, capacity exhaustion, close, touch, and idle reap behavior.
+//   SCOPE: Association open, endpoint lookup, capacity exhaustion, close, touch, and idle reap behavior.
 //   DEPENDS: src/session/udp_registry.rs
 //   LINKS: V-M-UDP-ASSOCIATION-REGISTRY
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   open_and_close_release_capacity - proves explicit close returns registry capacity
+//   endpoint_lookup_returns_the_owned_association - proves relay and client endpoints deterministically resolve to one owned association
 //   capacity_exhaustion_is_deterministic - proves registry rejects opens beyond the configured limit
 //   touch_updates_only_target_association - proves activity refresh mutates only the addressed association
 //   reap_idle_closes_stale_associations - proves stale associations are reaped while fresh ones remain
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added deterministic UDP association registry tests so later datagram work can rely on bounded ownership semantics.
+//   LAST_CHANGE: v0.1.1 - Added endpoint lookup coverage so outbound repair work can reuse the correct owned UDP association deterministically.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -45,6 +46,23 @@ fn open_and_close_release_capacity() {
     assert_eq!(closed.expected_client_addr, socket(50000));
     assert_eq!(registry.available_slots(), 1);
     assert_eq!(registry.association_count(), 0);
+}
+
+#[test]
+fn endpoint_lookup_returns_the_owned_association() {
+    let registry = UdpAssociationRegistry::new(2);
+    let now = Instant::now();
+    let (association_id, record) = registry
+        .open_association(socket(40000), socket(50000), now)
+        .expect("association should open");
+
+    let lookup = registry
+        .find_by_endpoints(socket(40000), socket(50000))
+        .expect("owned association should resolve");
+
+    assert_eq!(lookup.0, association_id);
+    assert_eq!(lookup.1, record);
+    assert!(registry.find_by_endpoints(socket(40001), socket(50000)).is_none());
 }
 
 #[test]
