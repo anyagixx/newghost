@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.25">
+<VerificationPlan VERSION="0.2.26">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -25,6 +25,10 @@
     <udp-associate-boundary-rule>The initial UDP-capable phase must explicitly separate SOCKS5 UDP ASSOCIATE relay semantics from the existing CONNECT path and must reject unsupported fragmentation or foreign-source packet reuse deterministically.</udp-associate-boundary-rule>
     <telegram-calls-split-rule>Telegram calls verification must keep signaling success, UDP association success, media-path success, reconnect behavior, and failure packets separable; a green TCP path alone is insufficient evidence for call support.</telegram-calls-split-rule>
     <datagram-scope-rule>The first datagram architecture wave is bounded to the governed WSS-backed UDP path and explicit extension points; verification must reject silent broadening into unplanned transport parity claims.</datagram-scope-rule>
+    <live-calls-wave-rule>A live Telegram calls wave must separately prove host baseline, managed deploy, readiness, operator handoff, voice result, video result, reconnect behavior, and the final bounded decision; one blended transcript is insufficient evidence.</live-calls-wave-rule>
+    <calls-signaling-vs-media-rule>A live Telegram calls wave must treat signaling success and UDP media success as separate evidence classes; ringing or answered-call UI alone is insufficient to classify the tunnel path as green.</calls-signaling-vs-media-rule>
+    <calls-voice-video-split-rule>Voice-call and video-call results must remain separable because one media profile may succeed while the other fails on the same governed setup.</calls-voice-video-split-rule>
+    <calls-reconnect-fresh-association-rule>Reconnect verification must prove a fresh UDP association lifecycle after the prior call ends or idles out and must reject stale relay-state reuse as success evidence.</calls-reconnect-fresh-association-rule>
     <telegram-compat-boundary-rule>Telegram verification may prove only standard SOCKS5 client compatibility over the governed n0wss tunnel and must not silently escalate into claims of universal unblock capability or Telegram-specific protocol support.</telegram-compat-boundary-rule>
     <manual-client-evidence-rule>When a live wave depends on a third-party interactive client, the verification packet must capture app-side action, n0wss-side anchored logs, socket state, and a first-divergent-block summary so another agent can debug without repeating blind manual steps.</manual-client-evidence-rule>
     <local-forward-proof-rule>When a verified local-workstation scenario reaches a remote localhost listener through SSH forwarding, the verification contract must require explicit evidence that the forward command, forwarded bind, and downstream managed listener were all present during the app-side attempt.</local-forward-proof-rule>
@@ -2054,6 +2058,181 @@
         <assertion-3>The reconnect packet must carry fresh association identity evidence instead of only restating the first call logs.</assertion-3>
       </required-trace-assertions>
     </V-M-TELEGRAM-CALLS-EVIDENCE>
+
+    <V-M-CALLS-HOST-REBASELINE MODULE="M-CALLS-HOST-REBASELINE" PRIORITY="medium">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Both live hosts yield baseline identity and tooling evidence before the calls deploy starts.</scenario-1>
+        <scenario-2 kind="failure">The calls wave does not proceed if either host lacks SSH reachability or baseline tooling.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Host baseline evidence must be captured before deploy output, service state, or Telegram call symptoms are interpreted.</assertion-1>
+      </required-trace-assertions>
+    </V-M-CALLS-HOST-REBASELINE>
+
+    <V-M-CALLS-DEPLOY-BOOTSTRAP MODULE="M-CALLS-DEPLOY-BOOTSTRAP" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>bash -n scripts/deploy-live.sh</check-1>
+        <check-2>ssh root@$N0WSS_SERVER_HOST 'test -x /opt/n0wss/n0wss'</check-2>
+        <check-3>ssh root@$N0WSS_CLIENT_HOST 'test -x /opt/n0wss/n0wss'</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The approved UDP-capable build is deployed to both hosts using the governed layout.</scenario-1>
+        <scenario-2 kind="failure">Deploy drift or missing staged binaries blocks the live calls wave before readiness is interpreted.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The live calls deploy path must remain the governed deploy path and must not fall back to ad hoc host mutation.</assertion-1>
+      </required-trace-assertions>
+    </V-M-CALLS-DEPLOY-BOOTSTRAP>
+
+    <V-M-CALLS-SERVICE-READINESS MODULE="M-CALLS-SERVICE-READINESS" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</check-2>
+        <check-3>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</check-3>
+        <check-4>ssh root@$N0WSS_SERVER_HOST 'journalctl -u n0wss-server -n 100 --no-pager'</check-4>
+        <check-5>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 100 --no-pager'</check-5>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Readiness evidence includes service state, bound listener state, and UDP-capable runtime markers before app testing starts.</scenario-1>
+        <scenario-2 kind="failure">Operator handoff is blocked if readiness lacks either service-manager proof or the expected runtime anchors.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]</marker-1>
+        <marker-2>[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Readiness must prove both the already-known signaling path and the new UDP-capable runtime markers before any operator call attempt is trusted.</assertion-1>
+      </required-trace-assertions>
+    </V-M-CALLS-SERVICE-READINESS>
+
+    <V-M-CALLS-HANDOFF MODULE="M-CALLS-HANDOFF" PRIORITY="medium">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'ssh -N -L 127.0.0.1:1080:127.0.0.1:1080|Telegram Desktop|voice|video|SOCKS5' docs/OPERATORS.md README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The handoff packet gives one exact local-workstation Telegram Desktop route for the calls wave.</scenario-1>
+        <scenario-2 kind="failure">No live calls result is trusted if the SSH-forward or SOCKS5 handoff is still ambiguous.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The handoff must tell the operator to keep SSH-forward liveness evidence separate from UDP media diagnosis.</assertion-1>
+      </required-trace-assertions>
+    </V-M-CALLS-HANDOFF>
+
+    <V-M-CALLS-VOICE-WAVE MODULE="M-CALLS-VOICE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-010|voice|call-setup|media-flow' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">One operator voice call produces signaling evidence plus UDP association and media-path evidence.</scenario-1>
+        <scenario-2 kind="failure">Voice-call failure is classified at the first missing UDP layer instead of being reduced to a generic Telegram symptom.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]</marker-1>
+        <marker-2>[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]</marker-2>
+        <marker-3>[UdpEgressRelay][relayOutbound][BLOCK_RELAY_UDP_OUTBOUND]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>A voice-call packet must keep signaling evidence separate from UDP media evidence.</assertion-1>
+        <assertion-2>Voice success is not inferred from ringing or answered-call UI without the UDP markers.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-VOICE-WAVE>
+
+    <V-M-CALLS-VIDEO-WAVE MODULE="M-CALLS-VIDEO-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-010|video|call-setup|media-flow' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">One operator video call produces its own setup and media evidence packet.</scenario-1>
+        <scenario-2 kind="failure">Video-call failure remains separate from the voice result so a narrower media defect can be isolated.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT]</marker-1>
+        <marker-2>[WssDatagramGateway][sendDatagram][BLOCK_SEND_WSS_DATAGRAM]</marker-2>
+        <marker-3>[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>Video-call evidence must remain separate from the voice-call packet rather than inheriting the voice result.</assertion-1>
+        <assertion-2>Video success is not inferred from a green voice call without its own media markers.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-VIDEO-WAVE>
+
+    <V-M-CALLS-RECONNECT-WAVE MODULE="M-CALLS-RECONNECT-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-010|reconnect|new UDP association|idle' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">A second call attempt yields evidence for a new UDP association after the first call ends.</scenario-1>
+        <scenario-2 kind="failure">Reconnect evidence rejects stale association reuse and points at the lifecycle layer if it occurs.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The reconnect packet must show a fresh association lifecycle after the prior call ends or idles out.</assertion-1>
+        <assertion-2>Reused stale relay state is a failure, not a reconnect success.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-RECONNECT-WAVE>
+
+    <V-M-CALLS-EVIDENCE-PACKET MODULE="M-CALLS-EVIDENCE-PACKET" PRIORITY="medium">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'call-setup|media-flow|reconnect|failure packet|LV-010' docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The calls wave stores separate packets for call setup, media flow, reconnect, and failure classification.</scenario-1>
+        <scenario-2 kind="failure">A blended transcript without the separate packet boundaries is treated as insufficient evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The packet set must remain split into voice, video, reconnect, and failure evidence instead of one blended manual summary.</assertion-1>
+      </required-trace-assertions>
+    </V-M-CALLS-EVIDENCE-PACKET>
+
+    <V-M-CALLS-GO-NO-GO MODULE="M-CALLS-GO-NO-GO" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'voice|video|go/no-go|tested setup|bounded' README.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The final decision is anchored to the tested Telegram Desktop setup only.</scenario-1>
+        <scenario-2 kind="failure">The live calls phase rejects any broader claim than the tested setup and captured evidence support.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must separately state the bounded result for voice, video, and reconnect behavior if they diverge.</assertion-1>
+      </required-trace-assertions>
+    </V-M-CALLS-GO-NO-GO>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -2229,6 +2408,35 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsWave; expected-evidence=signaling green, UDP ASSOCIATE green, and bounded media-path evidence for one call; observed-evidence=Telegram call result, UDP association state, datagram transport logs, relay logs, and reconnect outcome; first-divergent-block=first missing UDP ASSOCIATE, datagram transport, relay, or inbound media marker; next-action=repair the first divergent layer before replaying the calls wave</failure-packet-template>
     </LV-009>
+
+    <LV-010 NAME="TelegramCallsLiveAcceptanceWave" PRIORITY="high">
+      <goal>Redeploy the UDP-capable baseline to the fresh host pair, hand off one exact Telegram Desktop route to the operator, and collect separate voice, video, reconnect, and failure packets for the live calls setup.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-2>
+        <command-3>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-4>
+        <command-5>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-5>
+        <command-6>operator starts and keeps alive `ssh -N -L 127.0.0.1:$N0WSS_SOCKS5_PORT:127.0.0.1:$N0WSS_SOCKS5_PORT root@$N0WSS_CLIENT_HOST`</command-6>
+        <command-7>operator proves the local forwarded bind with `ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true` before starting the first call</command-7>
+        <command-8>operator configures Telegram Desktop to use SOCKS5 127.0.0.1:$N0WSS_SOCKS5_PORT with no username and no password</command-8>
+        <command-9>operator runs one voice call and one video call as separate attempts</command-9>
+        <command-10>capture client and server logs for signaling, UDP ASSOCIATE, datagram transport, WSS datagram, and UDP relay markers during each attempt</command-10>
+        <command-11>end the first call and run one fresh second call attempt to capture reconnect evidence</command-11>
+        <command-12>if any call stalls, classify the first missing layer before rerun and keep SSH-forward liveness separate from UDP diagnosis</command-12>
+      </commands>
+      <required-evidence>
+        <evidence-1>The live wave yields a fresh-host baseline packet before deployment or app-side interpretation begins.</evidence-1>
+        <evidence-2>The readiness packet proves active services, bound listener state, and UDP-capable runtime anchors before the operator starts Telegram calls testing.</evidence-2>
+        <evidence-3>The handoff packet contains the exact SSH-forward command, SOCKS5 parameters, and the ordered call-check sequence.</evidence-3>
+        <evidence-4>Voice and video results are kept as separate setup or media packets and are not blended.</evidence-4>
+        <evidence-5>The reconnect packet shows whether a fresh UDP association was opened after the prior call ended or idled out.</evidence-5>
+        <evidence-6>The failure packet identifies the first divergent layer as SSH-forward, UDP ASSOCIATE, datagram session, transport selection, relay, or app-side behavior.</evidence-6>
+        <evidence-7>The final go-or-no-go decision remains explicitly bounded to Telegram Desktop on the tested fresh host pair.</evidence-7>
+        <evidence-8>Voice and video outcomes remain separately reportable even if one succeeds and the other fails.</evidence-8>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsLiveAcceptanceWave; expected-evidence=fresh-host baseline, managed readiness, explicit SSH-forward handoff, separate voice and video packets, reconnect packet, and bounded failure packet; observed-evidence=host baseline output, service state, forward state, Telegram call result, and anchored client-server logs; first-divergent-block=first missing readiness, SSH-forward, UDP ASSOCIATE, datagram transport, relay, or app-side marker; next-action=repair the first divergent layer before repeating only the dependent call step</failure-packet-template>
+    </LV-010>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -2526,6 +2734,28 @@
         <evidence-4>The initial UDP-capable phase explicitly proves the WSS-backed datagram path and does not silently claim parity for any unimplemented datagram transport backend.</evidence-4>
       </required-evidence>
     </Gate-Phase-18>
+
+    <Gate-Phase-19 PHASE="Phase-19">
+      <goal>The fresh host pair is redeployed with the UDP-capable baseline and yields bounded live Telegram Desktop calls evidence without widening the claim beyond the tested setup.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'uname -a &amp;&amp; id &amp;&amp; command -v bash &amp;&amp; command -v systemctl &amp;&amp; command -v ss'</command-2>
+        <command-3>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-4>
+        <command-5>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-5>
+        <command-6>ssh root@$N0WSS_SERVER_HOST 'journalctl -u n0wss-server -n 100 --no-pager'</command-6>
+        <command-7>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 100 --no-pager'</command-7>
+        <command-8>rg -n 'LV-010|voice|video|reconnect|UDP ASSOCIATE|go/no-go' docs/verification-plan.xml docs/OPERATORS.md README.md docs/development-plan.xml</command-8>
+      </commands>
+      <required-evidence>
+        <evidence-1>The fresh-host baseline packet exists for both hosts before the calls wave begins.</evidence-1>
+        <evidence-2>The managed deploy and readiness packets prove the UDP-capable live baseline before the operator starts calls testing.</evidence-2>
+        <evidence-3>The operator receives one exact SSH-forward and SOCKS5 handoff for Telegram Desktop calls.</evidence-3>
+        <evidence-4>Voice, video, reconnect, and failure packets remain separable.</evidence-4>
+        <evidence-5>The final calls decision is bounded to the tested Telegram Desktop setup and does not imply universal unblock or broader client parity.</evidence-5>
+        <evidence-6>The gate does not allow ringing or answered-call UI alone to be treated as media-path success without UDP evidence.</evidence-6>
+      </required-evidence>
+    </Gate-Phase-19>
   </PhaseGates>
 
   <FailurePackets>
@@ -2544,6 +2774,7 @@
       <branch-sync-example>GitHubMasterBaselineSync expected local HEAD and v0.3.2 to identify the same stable baseline while origin/master lagged behind, but observed a different local HEAD or a dirty tree before push; first divergent block is BranchSyncGate::runBranchSyncGate::BLOCK_BRANCH_SYNC_GATE; next action is restore the approved baseline identity and clean tree before syncing origin/master.</branch-sync-example>
       <released-master-sync-example>ReleasedCommitMasterSync expected v0.3.2 to remain the only allowed publish target while local HEAD had already moved beyond it, but observed a corrective push attempt still deriving its target from HEAD; first divergent block is ReleasedMasterGate::runReleasedMasterGate::BLOCK_RELEASED_MASTER_GATE; next action is freeze the released target explicitly and retry only the bounded push of v0.3.2:master.</released-master-sync-example>
       <telegram-calls-example>TelegramCallsWave expected signaling green plus UDP ASSOCIATE, datagram transport, and UDP relay evidence for one voice or video call, but observed Telegram stuck after signaling while no UDP media markers appeared; first divergent block is Socks5Proxy::handleUdpAssociate::BLOCK_HANDLE_UDP_ASSOCIATE if no association is created, otherwise DatagramTransportSelector::selectTransport::BLOCK_SELECT_DATAGRAM_TRANSPORT or UdpEgressRelay::relayOutbound::BLOCK_RELAY_UDP_OUTBOUND depending on the first missing media marker; next action is repair the first divergent UDP layer before replaying the calls wave.</telegram-calls-example>
+      <live-calls-acceptance-example>TelegramCallsLiveAcceptanceWave expected fresh-host baseline, managed readiness, an explicit SSH-forward handoff, separate voice and video packets, reconnect evidence, and a bounded final decision, but observed a call symptom without the expected UDP markers or without a live forward; first divergent block is CallsHandoff::prepareCallsHandoff::BLOCK_CALLS_HANDOFF if the local path is ambiguous, otherwise Socks5Proxy::handleUdpAssociate::BLOCK_HANDLE_UDP_ASSOCIATE, DatagramTransportSelector::selectTransport::BLOCK_SELECT_DATAGRAM_TRANSPORT, or UdpEgressRelay::relayOutbound::BLOCK_RELAY_UDP_OUTBOUND depending on the first missing media marker; next action is repair the first divergent layer before replaying only the dependent live call step.</live-calls-acceptance-example>
     </packet-template>
   </FailurePackets>
 </VerificationPlan>

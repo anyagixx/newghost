@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.15">
+  <Project NAME="n0wss" VERSION="0.2.16">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1015,6 +1015,96 @@
       </annotations>
     </M-TELEGRAM-CALLS-EVIDENCE>
 
+    <M-CALLS-HOST-REBASELINE NAME="CallsHostRebaseline" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Confirm that both fresh Ubuntu hosts are reachable and suitable for the controlled live Telegram calls deploy wave.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-FINAL-HOST-REBASELINE, M-DATAGRAM-CONTRACT</depends>
+      <verification-ref>V-M-CALLS-HOST-REBASELINE</verification-ref>
+      <annotations>
+        <fn-captureCallsHostBaseline PURPOSE="Capture fresh-host identity and baseline tooling evidence for the live calls wave." />
+      </annotations>
+    </M-CALLS-HOST-REBASELINE>
+
+    <M-CALLS-DEPLOY-BOOTSTRAP NAME="CallsDeployBootstrap" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Deploy the UDP-capable n0wss baseline onto the fresh host pair for the live Telegram calls wave.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-FINAL-DEPLOY-BOOTSTRAP, M-SOCKS5-UDP-ASSOCIATE, M-WSS-DATAGRAM-GATEWAY, M-UDP-EGRESS-RELAY</depends>
+      <verification-ref>V-M-CALLS-DEPLOY-BOOTSTRAP</verification-ref>
+      <annotations>
+        <fn-deployCallsBaseline PURPOSE="Deploy the approved UDP-capable build to the live client and server hosts." />
+      </annotations>
+    </M-CALLS-DEPLOY-BOOTSTRAP>
+
+    <M-CALLS-SERVICE-READINESS NAME="CallsServiceReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Prove that the live client and server are ready for Telegram calls, including UDP-capable runtime markers.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-DEPLOY-BOOTSTRAP, M-DATAGRAM-SESSION-MANAGER, M-DATAGRAM-TRANSPORT-SELECTOR</depends>
+      <verification-ref>V-M-CALLS-SERVICE-READINESS</verification-ref>
+      <annotations>
+        <fn-captureCallsReadiness PURPOSE="Collect service-manager and runtime evidence before operator handoff." />
+      </annotations>
+    </M-CALLS-SERVICE-READINESS>
+
+    <M-CALLS-HANDOFF NAME="CallsHandoff" TYPE="UTILITY" STATUS="planned">
+      <purpose>Prepare one exact operator path for Telegram Desktop calls, including SSH-forward and SOCKS5 settings.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-CALLS-PROFILE, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-CALLS-HANDOFF</verification-ref>
+      <annotations>
+        <fn-prepareCallsHandoff PURPOSE="Prepare the exact operator instructions for the live calls wave." />
+      </annotations>
+    </M-CALLS-HANDOFF>
+
+    <M-CALLS-VOICE-WAVE NAME="CallsVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded Telegram voice-call live wave with separate signaling and media evidence.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-SERVICE-READINESS, M-CALLS-HANDOFF, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-CALLS-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runCallsVoiceWave PURPOSE="Coordinate the operator voice-call attempt and bounded UDP evidence capture." />
+      </annotations>
+    </M-CALLS-VOICE-WAVE>
+
+    <M-CALLS-VIDEO-WAVE NAME="CallsVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run a separate Telegram video-call live wave so video behavior is not conflated with the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-VOICE-WAVE, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-CALLS-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runCallsVideoWave PURPOSE="Coordinate the operator video-call attempt and bounded UDP evidence capture." />
+      </annotations>
+    </M-CALLS-VIDEO-WAVE>
+
+    <M-CALLS-RECONNECT-WAVE NAME="CallsReconnectWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Prove that a second call attempt opens a fresh UDP association after the first call ends or idles out.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-VOICE-WAVE, M-UDP-ASSOCIATION-REGISTRY</depends>
+      <verification-ref>V-M-CALLS-RECONNECT-WAVE</verification-ref>
+      <annotations>
+        <fn-runCallsReconnectWave PURPOSE="Run one fresh reconnect call attempt and capture association-lifecycle evidence." />
+      </annotations>
+    </M-CALLS-RECONNECT-WAVE>
+
+    <M-CALLS-EVIDENCE-PACKET NAME="CallsEvidencePacket" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble separate live packets for call setup, media flow, reconnect, and failure triage.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-VOICE-WAVE, M-CALLS-VIDEO-WAVE, M-CALLS-RECONNECT-WAVE, M-TELEGRAM-CALLS-EVIDENCE</depends>
+      <verification-ref>V-M-CALLS-EVIDENCE-PACKET</verification-ref>
+      <annotations>
+        <fn-captureCallsEvidencePacket PURPOSE="Capture the bounded packet set for the live Telegram calls wave." />
+      </annotations>
+    </M-CALLS-EVIDENCE-PACKET>
+
+    <M-CALLS-GO-NO-GO NAME="CallsGoNoGo" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded go-or-no-go decision for Telegram Desktop voice and video calls on the tested live setup.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALLS-EVIDENCE-PACKET, M-TELEGRAM-CALLS-PROFILE</depends>
+      <verification-ref>V-M-CALLS-GO-NO-GO</verification-ref>
+      <annotations>
+        <fn-issueCallsDecision PURPOSE="Issue the final bounded calls support decision from the live evidence packets." />
+      </annotations>
+    </M-CALLS-GO-NO-GO>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1149,6 +1239,31 @@
     <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-TELEGRAM-CALLS-PROFILE" relation="defines the client-facing UDP path used by Telegram calls" />
     <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-TELEGRAM-CALLS-WAVE" relation="defines the bounded support claim exercised by the calls wave" />
     <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-TELEGRAM-CALLS-EVIDENCE" relation="produces bounded setup, media, reconnect, and failure packets for calls verification" />
+    <CrossLink from="M-FINAL-HOST-REBASELINE" to="M-CALLS-HOST-REBASELINE" relation="supplies the known fresh-host baseline shape reused for the live calls wave" />
+    <CrossLink from="M-DATAGRAM-CONTRACT" to="M-CALLS-HOST-REBASELINE" relation="scopes the live host baseline specifically to the UDP-capable calls stack" />
+    <CrossLink from="M-FINAL-DEPLOY-BOOTSTRAP" to="M-CALLS-DEPLOY-BOOTSTRAP" relation="supplies the governed deploy path now reused for the UDP-capable calls baseline" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-CALLS-DEPLOY-BOOTSTRAP" relation="adds the new UDP ingress surface that must be present in the live deploy" />
+    <CrossLink from="M-WSS-DATAGRAM-GATEWAY" to="M-CALLS-DEPLOY-BOOTSTRAP" relation="adds the governed WSS datagram carrier required by the live calls stack" />
+    <CrossLink from="M-UDP-EGRESS-RELAY" to="M-CALLS-DEPLOY-BOOTSTRAP" relation="adds the server-side real UDP relay surface required by the live calls stack" />
+    <CrossLink from="M-CALLS-DEPLOY-BOOTSTRAP" to="M-CALLS-SERVICE-READINESS" relation="provides the deployed UDP-capable services whose readiness must be proven before handoff" />
+    <CrossLink from="M-DATAGRAM-SESSION-MANAGER" to="M-CALLS-SERVICE-READINESS" relation="supplies the UDP association runtime anchors required in readiness packets" />
+    <CrossLink from="M-DATAGRAM-TRANSPORT-SELECTOR" to="M-CALLS-SERVICE-READINESS" relation="supplies the datagram transport-selection evidence required before live calls testing" />
+    <CrossLink from="M-TELEGRAM-FORWARD-RUNBOOK" to="M-CALLS-HANDOFF" relation="supplies the local-workstation SSH-forward pattern reused for live calls" />
+    <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-CALLS-HANDOFF" relation="defines the bounded public claim that the live handoff must stay within" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-CALLS-HANDOFF" relation="supplies the existing calls-wave shape that the live operator handoff now instantiates" />
+    <CrossLink from="M-CALLS-SERVICE-READINESS" to="M-CALLS-VOICE-WAVE" relation="blocks voice testing until the UDP-capable runtime is proven ready" />
+    <CrossLink from="M-CALLS-HANDOFF" to="M-CALLS-VOICE-WAVE" relation="provides the exact local Telegram Desktop path used for the live voice attempt" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-CALLS-VOICE-WAVE" relation="supplies the bounded evidence model reused for the live voice attempt" />
+    <CrossLink from="M-CALLS-VOICE-WAVE" to="M-CALLS-VIDEO-WAVE" relation="ensures the video attempt is evaluated after, but separately from, the voice attempt" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-CALLS-VIDEO-WAVE" relation="supplies the bounded evidence model reused for the live video attempt" />
+    <CrossLink from="M-CALLS-VOICE-WAVE" to="M-CALLS-RECONNECT-WAVE" relation="provides the first live call result whose lifecycle must end before a fresh second attempt" />
+    <CrossLink from="M-UDP-ASSOCIATION-REGISTRY" to="M-CALLS-RECONNECT-WAVE" relation="supplies the deterministic association lifecycle that reconnect evidence must verify" />
+    <CrossLink from="M-CALLS-VOICE-WAVE" to="M-CALLS-EVIDENCE-PACKET" relation="produces the live voice packet included in the bounded calls evidence set" />
+    <CrossLink from="M-CALLS-VIDEO-WAVE" to="M-CALLS-EVIDENCE-PACKET" relation="produces the live video packet included in the bounded calls evidence set" />
+    <CrossLink from="M-CALLS-RECONNECT-WAVE" to="M-CALLS-EVIDENCE-PACKET" relation="produces the reconnect packet included in the bounded calls evidence set" />
+    <CrossLink from="M-TELEGRAM-CALLS-EVIDENCE" to="M-CALLS-EVIDENCE-PACKET" relation="supplies the packet separation rules reused in the live calls acceptance wave" />
+    <CrossLink from="M-CALLS-EVIDENCE-PACKET" to="M-CALLS-GO-NO-GO" relation="supplies the bounded live packets required for the final calls decision" />
+    <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-CALLS-GO-NO-GO" relation="bounds the final decision to Telegram Desktop on the tested setup only" />
 
   </Project>
 </KnowledgeGraph>

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.15">
+<DevelopmentPlan VERSION="0.2.16">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -2797,6 +2797,264 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-EVIDENCE</verification-ref>
     </M-TELEGRAM-CALLS-EVIDENCE>
+
+    <M-CALLS-HOST-REBASELINE NAME="CallsHostRebaseline" TYPE="UTILITY" LAYER="22" ORDER="1" STATUS="implemented">
+      <contract>
+        <purpose>Confirm that both fresh Ubuntu hosts are reachable, clean, and suitable for a controlled live Telegram calls deploy wave.</purpose>
+        <inputs>
+          <param name="callsHostInputs" type="CallsHostRebaselineInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsHostPacket" type="CallsHostBaselinePacket" />
+        </outputs>
+        <errors>
+          <error code="CALLS_HOST_BASELINE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureCallsHostBaseline PURPOSE="Capture fresh-host identity and baseline tooling evidence for the live calls wave." />
+      </interface>
+      <depends>M-FINAL-HOST-REBASELINE, M-DATAGRAM-CONTRACT</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsHostRebaseline]</log-prefix>
+        <critical-block>BLOCK_CALLS_HOST_REBASELINE</critical-block>
+      </observability>
+      <note-1>On 2026-03-29 the fresh live hosts were revalidated before the calls wave: ghost-srv at 91.99.128.146 and ghost-cli at 178.104.104.208 both returned uname, id, bash, systemctl, and ss evidence under root SSH access.</note-1>
+      <verification-ref>V-M-CALLS-HOST-REBASELINE</verification-ref>
+    </M-CALLS-HOST-REBASELINE>
+
+    <M-CALLS-DEPLOY-BOOTSTRAP NAME="CallsDeployBootstrap" TYPE="ENTRY_POINT" LAYER="22" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Deploy the UDP-capable n0wss build onto the fresh server pair so the live calls wave uses the governed SOCKS5 UDP ASSOCIATE path.</purpose>
+        <inputs>
+          <param name="callsDeployInputs" type="CallsDeployBootstrapInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsDeployPacket" type="CallsDeployBootstrapPacket" />
+        </outputs>
+        <errors>
+          <error code="CALLS_DEPLOY_BOOTSTRAP_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-deployCallsBaseline PURPOSE="Deploy the approved UDP-capable build to the live client and server hosts." />
+      </interface>
+      <depends>M-FINAL-DEPLOY-BOOTSTRAP, M-SOCKS5-UDP-ASSOCIATE, M-WSS-DATAGRAM-GATEWAY, M-UDP-EGRESS-RELAY</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <source>scripts/deploy-live.sh</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsDeployBootstrap]</log-prefix>
+        <critical-block>BLOCK_CALLS_DEPLOY_BOOTSTRAP</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-DEPLOY-BOOTSTRAP</verification-ref>
+    </M-CALLS-DEPLOY-BOOTSTRAP>
+
+    <M-CALLS-SERVICE-READINESS NAME="CallsServiceReadiness" TYPE="ENTRY_POINT" LAYER="22" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Prove that the deployed client and server are ready for Telegram calls, including UDP-capable runtime markers, before operator handoff.</purpose>
+        <inputs>
+          <param name="callsReadinessInputs" type="CallsServiceReadinessInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsReadinessPacket" type="CallsServiceReadinessPacket" />
+        </outputs>
+        <errors>
+          <error code="CALLS_SERVICE_READINESS_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureCallsReadiness PURPOSE="Collect the bounded service and runtime evidence required before Telegram calls testing starts." />
+      </interface>
+      <depends>M-CALLS-DEPLOY-BOOTSTRAP, M-DATAGRAM-SESSION-MANAGER, M-DATAGRAM-TRANSPORT-SELECTOR</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsServiceReadiness]</log-prefix>
+        <critical-block>BLOCK_CALLS_SERVICE_READINESS</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-SERVICE-READINESS</verification-ref>
+    </M-CALLS-SERVICE-READINESS>
+
+    <M-CALLS-HANDOFF NAME="CallsHandoff" TYPE="UTILITY" LAYER="22" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Prepare one exact operator handoff for Telegram Desktop calls, including SSH-forward, SOCKS5 settings, and the ordered call checks.</purpose>
+        <inputs>
+          <param name="callsHandoffInputs" type="CallsHandoffInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsHandoffPacket" type="CallsHandoffPacket" />
+        </outputs>
+        <errors>
+          <error code="CALLS_HANDOFF_PREPARATION_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-prepareCallsHandoff PURPOSE="Prepare the exact operator instructions for the live Telegram Desktop calls wave." />
+      </interface>
+      <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-CALLS-PROFILE, M-TELEGRAM-CALLS-WAVE</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <source>README.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsHandoff]</log-prefix>
+        <critical-block>BLOCK_CALLS_HANDOFF</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-HANDOFF</verification-ref>
+    </M-CALLS-HANDOFF>
+
+    <M-CALLS-VOICE-WAVE NAME="CallsVoiceWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Telegram voice-call live wave across the governed UDP-capable path and capture separate signaling and media evidence.</purpose>
+        <inputs>
+          <param name="callsVoiceInputs" type="CallsVoiceWaveInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsVoicePacket" type="CallsVoiceWavePacket" />
+        </outputs>
+        <errors>
+          <error code="CALLS_VOICE_WAVE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runCallsVoiceWave PURPOSE="Coordinate the operator voice-call attempt and bounded UDP evidence capture." />
+      </interface>
+      <depends>M-CALLS-SERVICE-READINESS, M-CALLS-HANDOFF, M-TELEGRAM-CALLS-WAVE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsVoiceWave]</log-prefix>
+        <critical-block>BLOCK_CALLS_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-VOICE-WAVE</verification-ref>
+    </M-CALLS-VOICE-WAVE>
+
+    <M-CALLS-VIDEO-WAVE NAME="CallsVideoWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run a separate Telegram video-call live wave so video behavior does not get conflated with the voice result.</purpose>
+        <inputs>
+          <param name="callsVideoInputs" type="CallsVideoWaveInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsVideoPacket" type="CallsVideoWavePacket" />
+        </outputs>
+        <errors>
+          <error code="CALLS_VIDEO_WAVE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runCallsVideoWave PURPOSE="Coordinate the operator video-call attempt and bounded UDP evidence capture." />
+      </interface>
+      <depends>M-CALLS-VOICE-WAVE, M-TELEGRAM-CALLS-WAVE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsVideoWave]</log-prefix>
+        <critical-block>BLOCK_CALLS_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-VIDEO-WAVE</verification-ref>
+    </M-CALLS-VIDEO-WAVE>
+
+    <M-CALLS-RECONNECT-WAVE NAME="CallsReconnectWave" TYPE="CORE_LOGIC" LAYER="22" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Prove that a second Telegram call attempt opens a fresh UDP association after call end or idle timeout and does not reuse stale relay state.</purpose>
+        <inputs>
+          <param name="callsReconnectInputs" type="CallsReconnectWaveInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsReconnectPacket" type="CallsReconnectWavePacket" />
+        </outputs>
+        <errors>
+          <error code="CALLS_RECONNECT_WAVE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runCallsReconnectWave PURPOSE="Run one fresh reconnect call attempt and capture association-lifecycle evidence." />
+      </interface>
+      <depends>M-CALLS-VOICE-WAVE, M-UDP-ASSOCIATION-REGISTRY</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsReconnectWave]</log-prefix>
+        <critical-block>BLOCK_CALLS_RECONNECT_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-RECONNECT-WAVE</verification-ref>
+    </M-CALLS-RECONNECT-WAVE>
+
+    <M-CALLS-EVIDENCE-PACKET NAME="CallsEvidencePacket" TYPE="UTILITY" LAYER="22" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Assemble separate live packets for call setup, media flow, reconnect, and failure triage so later agents can debug without blind reruns.</purpose>
+        <inputs>
+          <param name="callsEvidenceInputs" type="CallsEvidencePacketInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsEvidencePacket" type="CallsEvidencePacketRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_EVIDENCE_PACKET_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureCallsEvidencePacket PURPOSE="Capture the bounded packet set for the live Telegram calls wave." />
+      </interface>
+      <depends>M-CALLS-VOICE-WAVE, M-CALLS-VIDEO-WAVE, M-CALLS-RECONNECT-WAVE, M-TELEGRAM-CALLS-EVIDENCE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsEvidencePacket]</log-prefix>
+        <critical-block>BLOCK_CALLS_EVIDENCE_PACKET</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-EVIDENCE-PACKET</verification-ref>
+    </M-CALLS-EVIDENCE-PACKET>
+
+    <M-CALLS-GO-NO-GO NAME="CallsGoNoGo" TYPE="ENTRY_POINT" LAYER="22" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded go-or-no-go decision for Telegram Desktop voice and video calls on the tested live setup.</purpose>
+        <inputs>
+          <param name="callsDecisionInputs" type="CallsGoNoGoInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsDecisionRecord" type="CallsGoNoGoRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_GO_NO_GO_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-issueCallsDecision PURPOSE="Issue the final bounded calls support decision from the live evidence packets." />
+      </interface>
+      <depends>M-CALLS-EVIDENCE-PACKET, M-TELEGRAM-CALLS-PROFILE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>README.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsGoNoGo]</log-prefix>
+        <critical-block>BLOCK_CALLS_GO_NO_GO</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-GO-NO-GO</verification-ref>
+    </M-CALLS-GO-NO-GO>
   </Modules>
 
   <DataFlow>
@@ -3261,6 +3519,19 @@
       <step-9 module="M-TELEGRAM-CALLS-WAVE" status="done" verification="V-M-TELEGRAM-CALLS-WAVE">Run a dedicated Telegram calls verification wave over the UDP-capable path</step-9>
       <step-10 module="M-TELEGRAM-CALLS-EVIDENCE" status="done" verification="V-M-TELEGRAM-CALLS-EVIDENCE">Capture bounded evidence packets for call setup, media flow, and failure triage</step-10>
     </Phase-18>
+
+    <Phase-19 name="Telegram Calls Live Verification" status="pending">
+      <goal>Deploy the UDP-capable n0wss baseline onto the fresh server pair and collect bounded live Telegram Desktop voice or video call evidence on the tested setup.</goal>
+      <step-1 module="M-CALLS-HOST-REBASELINE" status="done" verification="V-M-CALLS-HOST-REBASELINE">Capture fresh-host identity and baseline tooling evidence for the live calls wave</step-1>
+      <step-2 module="M-CALLS-DEPLOY-BOOTSTRAP" status="pending" verification="V-M-CALLS-DEPLOY-BOOTSTRAP">Deploy the UDP-capable n0wss build to the fresh client and server hosts</step-2>
+      <step-3 module="M-CALLS-SERVICE-READINESS" status="pending" verification="V-M-CALLS-SERVICE-READINESS">Prove client or server service readiness and UDP-capable runtime markers before operator handoff</step-3>
+      <step-4 module="M-CALLS-HANDOFF" status="pending" verification="V-M-CALLS-HANDOFF">Prepare the exact SSH-forward and SOCKS5 handoff for Telegram Desktop calls</step-4>
+      <step-5 module="M-CALLS-VOICE-WAVE" status="pending" verification="V-M-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call live wave and capture separate signaling and media evidence</step-5>
+      <step-6 module="M-CALLS-VIDEO-WAVE" status="pending" verification="V-M-CALLS-VIDEO-WAVE">Run a separate Telegram video-call live wave without conflating it with the voice result</step-6>
+      <step-7 module="M-CALLS-RECONNECT-WAVE" status="pending" verification="V-M-CALLS-RECONNECT-WAVE">Trigger one fresh second call attempt and prove a new UDP association lifecycle</step-7>
+      <step-8 module="M-CALLS-EVIDENCE-PACKET" status="pending" verification="V-M-CALLS-EVIDENCE-PACKET">Assemble separate call-setup, media-flow, reconnect, and failure packets</step-8>
+      <step-9 module="M-CALLS-GO-NO-GO" status="pending" verification="V-M-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram Desktop calls on the tested setup</step-9>
+    </Phase-19>
   </ImplementationOrder>
 
   <ExecutionPolicy>
