@@ -138,6 +138,9 @@ Current calls-profile status:
 - the next bootstrap shape is intentionally bounded: one local `n0wss-client` process, one local trust anchor, one local SOCKS5 listener, and explicit cleanup before reruns
 - the first local-client topology wave on 2026-03-29 proved that Telegram Desktop did reach the truly local `n0wss-client` path: local `127.0.0.1:1080` was owned by `n0wss`, local Telegram generated SOCKS5 requests toward Telegram IPs, and the remote WSS server accepted handshakes from the workstation IP
 - changing the operator topology still did not produce governed UDP markers or a green Telegram session, so the earlier no-go is no longer attributable only to the old SSH-forwarded path
+- Phase-22 freezes the remaining bounded hypotheses after that result:
+  Telegram Desktop may still avoid the proxy-governed UDP media path, may bypass or stall before media on the tested build, or may still hit a deeper governed datagram or remote-media boundary that is not visible from the UI alone
+- external filtering remains only a later hypothesis; it is not allowed to become the leading explanation before a controlled UDP probe and remote-media reachability packet are captured
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.

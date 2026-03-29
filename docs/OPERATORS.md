@@ -505,6 +505,21 @@ Observed first local-client topology outcome on 2026-03-29:
 - no governed UDP markers were observed during that local-client wave
 - bounded comparison result: removing the SSH-forwarded operator topology did not widen the calls evidence envelope by itself
 
+### Phase-22 Root Cause Isolation Hypothesis Set
+
+After the local-client wave the remaining allowed hypotheses are bounded as follows:
+
+1. Telegram Desktop may still avoid the proxy-governed UDP media path on this tested build or may stall before it begins.
+2. Telegram Desktop may attempt media in a way that bypasses the expected SOCKS5 UDP shape, so app behavior must be classified separately from tunnel behavior.
+3. The governed datagram path or remote UDP relay may still contain a deeper defect that was not reachable from the observed UI-only symptom.
+4. External filtering or provider-side blocking remains possible, but only after a controlled UDP probe and a separate remote-media reachability packet leave no earlier unresolved governed-path gap.
+
+Operator boundary for the next diagnostic wave:
+
+- do not treat `Connecting` or key-exchange UI text as root-cause evidence by itself
+- do not jump straight to provider or regulator blame before the controlled probe packet is captured
+- keep app-behavior evidence, controlled datagram evidence, and remote-media evidence as separate packets
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
