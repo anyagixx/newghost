@@ -4693,7 +4693,7 @@
       <verification-ref>V-M-TELEGRAM-CALLS-RERUN-READINESS</verification-ref>
     </M-TELEGRAM-CALLS-RERUN-READINESS>
 
-    <M-TELEGRAM-CALLS-VOICE-RERUN NAME="TelegramCallsVoiceRerun" TYPE="CORE_LOGIC" LAYER="31" ORDER="3" STATUS="planned">
+    <M-TELEGRAM-CALLS-VOICE-RERUN NAME="TelegramCallsVoiceRerun" TYPE="CORE_LOGIC" LAYER="31" ORDER="3" STATUS="done">
       <contract>
         <purpose>Replay one bounded Telegram Desktop voice-call wave after the green datagram round-trip baseline and classify whether media now follows the governed path.</purpose>
         <inputs>
@@ -5628,7 +5628,7 @@
       <goal>Replay the Telegram calls verification wave on top of the now-green controlled datagram round-trip and classify the remaining app-facing outcome without widening public claims.</goal>
       <step-1 module="M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE">Freeze the new post-Phase-27 Telegram calls truth-boundary</step-1>
       <step-2 module="M-TELEGRAM-CALLS-RERUN-READINESS" status="done" verification="V-M-TELEGRAM-CALLS-RERUN-READINESS">Prove fresh readiness and a green controlled datagram round-trip in the same deployment window</step-2>
-      <step-3 module="M-TELEGRAM-CALLS-VOICE-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-VOICE-RERUN">Replay one bounded Telegram Desktop voice-call wave after the green datagram baseline</step-3>
+      <step-3 module="M-TELEGRAM-CALLS-VOICE-RERUN" status="done" verification="V-M-TELEGRAM-CALLS-VOICE-RERUN">Replay one bounded Telegram Desktop voice-call wave after the green datagram baseline</step-3>
       <step-4 module="M-TELEGRAM-CALLS-VIDEO-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-VIDEO-RERUN">Replay one bounded Telegram Desktop video-call wave without conflating it with voice</step-4>
       <step-5 module="M-TELEGRAM-CALLS-APP-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-CALLS-APP-CLASSIFIER">Classify the new Telegram calls outcome as governed media, direct-media behavior, or signaling-only stall</step-5>
       <step-6 module="M-TELEGRAM-CALLS-RECONNECT-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-RECONNECT-RERUN">Replay one fresh second call attempt after the first rerun</step-6>

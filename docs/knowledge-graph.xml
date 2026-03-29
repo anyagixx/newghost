@@ -1745,7 +1745,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-RERUN-READINESS>
 
-    <M-TELEGRAM-CALLS-VOICE-RERUN NAME="TelegramCallsVoiceRerun" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-VOICE-RERUN NAME="TelegramCallsVoiceRerun" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Replay one bounded Telegram Desktop voice-call wave after the green datagram round-trip baseline.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-RERUN-READINESS, M-TELEGRAM-CALLS-WAVE</depends>
