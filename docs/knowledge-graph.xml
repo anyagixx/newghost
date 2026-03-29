@@ -1195,7 +1195,7 @@
       </annotations>
     </M-LOCAL-CLIENT-BOOTSTRAP>
 
-    <M-LOCAL-CALLS-READINESS NAME="LocalCallsReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-LOCAL-CALLS-READINESS NAME="LocalCallsReadiness" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Prove local listener, local smoke, and local UDP ASSOCIATE readiness before Telegram calls start on the workstation topology.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-LOCAL-CLIENT-BOOTSTRAP, M-CALLS-RERUN-READINESS, M-SOCKS5-UDP-ASSOCIATE</depends>
