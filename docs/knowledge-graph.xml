@@ -1505,7 +1505,7 @@
       </annotations>
     </M-WSS-DATAGRAM-RUNTIME-CARRIER>
 
-    <M-DATAGRAM-RUNTIME-BRIDGE NAME="DatagramRuntimeBridge" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-RUNTIME-BRIDGE NAME="DatagramRuntimeBridge" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Bind the live local UDP runtime loop, manager handoff, and production carrier emit path into one bounded runtime bridge.</purpose>
       <path>src/session/datagram_manager.rs</path>
       <depends>M-SOCKS5-UDP-RUNTIME-LOOP, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR, M-WSS-DATAGRAM-RUNTIME-CARRIER</depends>
