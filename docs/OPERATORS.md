@@ -899,6 +899,33 @@ Observed Phase-29 hypothesis boundary:
 - hypothesis decision:
   the next approved wave must explain Telegram-specific media behavior above the green SOCKS-governed transport envelope rather than reopen generic datagram repair or repeat blind calls
 
+Exact Phase-29 Desktop handoff profile:
+
+1. Start only after the same live window still preserves one bounded `phase27-probe` packet with `reply-received`.
+2. Use one local forward shape only:
+   `sshpass -p '123eshelop678' ssh -o StrictHostKeyChecking=no -N -L 127.0.0.1:1080:127.0.0.1:1080 root@178.104.104.208`
+3. Confirm the local bind before opening Telegram Desktop:
+   `ss -ltnp | grep ':1080' || true`
+4. In Telegram Desktop use exactly:
+   host `127.0.0.1`
+   port `1080`
+   type `SOCKS5`
+   username empty
+   password empty
+5. Do not mix this wave with:
+   a different local port
+   an old local `n0wss-client`
+   a second SSH forward
+   or a local workstation `phase27-probe` through the forwarded socket
+6. Preserve the exact call action separately:
+   one bounded voice attempt and one bounded video attempt, never blended into one app transcript
+
+Phase-29 handoff boundary:
+
+- a green `ss` listener on `127.0.0.1:1080` is necessary but not sufficient
+- the same wave still needs the same-window remote `phase27-probe` packet as the transport-green precondition
+- if Telegram proxy setup itself stays at `Соединение...`, classify that as Desktop handoff failure before any media classifier runs
+
 Remote server-host bounded capture:
 
 ```bash

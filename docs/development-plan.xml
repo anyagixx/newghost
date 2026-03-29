@@ -4857,7 +4857,7 @@
       <verification-ref>V-M-TELEGRAM-MEDIA-HYPOTHESIS</verification-ref>
     </M-TELEGRAM-MEDIA-HYPOTHESIS>
 
-    <M-TELEGRAM-DESKTOP-HANDOFF-PROFILE NAME="TelegramDesktopHandoffProfile" TYPE="ENTRY_POINT" LAYER="32" ORDER="2" STATUS="planned">
+    <M-TELEGRAM-DESKTOP-HANDOFF-PROFILE NAME="TelegramDesktopHandoffProfile" TYPE="ENTRY_POINT" LAYER="32" ORDER="2" STATUS="done">
       <contract>
         <purpose>Fix the exact Telegram Desktop proxy handoff and operator path for post-Phase-28 diagnostics so new media packets stay reproducible.</purpose>
         <inputs>
@@ -5862,7 +5862,7 @@
     <Phase-29 name="Telegram Media Behavior Above Green Transport" status="pending">
       <goal>Classify Telegram-specific media behavior on the tested Desktop setup after Phase-28 confirmed that the controlled datagram baseline stays green while calls remain app-facing no-go.</goal>
       <step-1 module="M-TELEGRAM-MEDIA-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-MEDIA-HYPOTHESIS">Freeze the new post-Phase-28 Telegram media-behavior boundary</step-1>
-      <step-2 module="M-TELEGRAM-DESKTOP-HANDOFF-PROFILE" status="pending" verification="V-M-TELEGRAM-DESKTOP-HANDOFF-PROFILE">Fix the exact Desktop handoff profile for the next bounded media-behavior wave</step-2>
+      <step-2 module="M-TELEGRAM-DESKTOP-HANDOFF-PROFILE" status="done" verification="V-M-TELEGRAM-DESKTOP-HANDOFF-PROFILE">Fix the exact Desktop handoff profile for the next bounded media-behavior wave</step-2>
       <step-3 module="M-TELEGRAM-MEDIA-CAPTURE" status="pending" verification="V-M-TELEGRAM-MEDIA-CAPTURE">Define the bounded capture surface around the Telegram Desktop media wave</step-3>
       <step-4 module="M-TELEGRAM-VOICE-MEDIA-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-VOICE-MEDIA-CLASSIFIER">Classify the post-answer voice media packet above the green transport baseline</step-4>
       <step-5 module="M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER">Classify the bounded video media packet separately from voice</step-5>
@@ -5872,6 +5872,7 @@
       <note-1>Phase-29 starts only after the completed Phase-28 no-go packet, which already preserved the same-window green controlled datagram baseline and therefore forbids reopening generic transport repair.</note-1>
       <note-2>The new phase is intentionally Telegram-specific: it must explain the media-path behavior above a green SOCKS-governed transport envelope rather than rerunning blind calls or broad proxy diagnostics.</note-2>
       <note-3>The Phase-29 hypothesis boundary keeps the same-window green `phase27-probe` packet and the completed Phase-28 app-facing no-go packets alive at once, so future media work cannot silently reopen transport diagnosis.</note-3>
+      <note-4>The exact Phase-29 Desktop handoff packet is now frozen around one SSH-forwarded local SOCKS5 route on `127.0.0.1:1080`, plus the same-window remote `phase27-probe` precondition, so future media packets can separate setup defects from Telegram-specific media behavior.</note-4>
     </Phase-29>
   </ImplementationOrder>
 
