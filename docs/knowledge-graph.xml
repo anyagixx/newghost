@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.23">
+  <Project NAME="n0wss" VERSION="0.2.25">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1645,6 +1645,86 @@
       </annotations>
     </M-DATAGRAM-INBOUND-DECISION>
 
+    <M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS NAME="DatagramServerInboundHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the new bounded blocker after Phase-26 so the next wave repairs server-side inbound receive and return emission instead of reopening outbound glue.</purpose>
+      <path>README.md</path>
+      <depends>M-DATAGRAM-INBOUND-DECISION, M-DATAGRAM-INBOUND-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeServerInboundBoundary PURPOSE="Freeze the new server-inbound-only repair boundary after Phase-26." />
+      </annotations>
+    </M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS>
+
+    <M-SERVER-RELAY-SESSION-STATE NAME="ServerRelaySessionState" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Retain enough server-side relay session state for inbound replies to map back to the owning datagram association.</purpose>
+      <path>src/proxy_bridge/udp_relay.rs</path>
+      <depends>M-DATAGRAM-RELAY-STATE, M-UDP-EGRESS-RELAY, M-SERVER-DATAGRAM-INGRESS</depends>
+      <verification-ref>V-M-SERVER-RELAY-SESSION-STATE</verification-ref>
+      <annotations>
+        <fn-retainRelaySessionState PURPOSE="Retain server-side relay state long enough for inbound reply receive and return mapping." />
+      </annotations>
+    </M-SERVER-RELAY-SESSION-STATE>
+
+    <M-SERVER-INBOUND-RECEIVE-LOOP NAME="ServerInboundReceiveLoop" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Add the real server-side inbound UDP receive loop after proven outbound relay.</purpose>
+      <path>src/wss_gateway/mod.rs</path>
+      <depends>M-SERVER-RELAY-SESSION-STATE, M-SERVER-DATAGRAM-INBOUND-RECEIVE</depends>
+      <verification-ref>V-M-SERVER-INBOUND-RECEIVE-LOOP</verification-ref>
+      <annotations>
+        <fn-readServerInboundReply PURPOSE="Read one inbound UDP reply for the owning datagram association on the server runtime." />
+      </annotations>
+    </M-SERVER-INBOUND-RECEIVE-LOOP>
+
+    <M-SERVER-INBOUND-SOURCE-VALIDATION NAME="ServerInboundSourceValidation" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Classify valid inbound replies versus foreign-source or wrong-association packets deterministically.</purpose>
+      <path>src/proxy_bridge/udp_relay.rs</path>
+      <depends>M-SERVER-INBOUND-RECEIVE-LOOP, M-DATAGRAM-RELAY-STATE</depends>
+      <verification-ref>V-M-SERVER-INBOUND-SOURCE-VALIDATION</verification-ref>
+      <annotations>
+        <fn-validateInboundReplySource PURPOSE="Validate one server-side inbound reply source against the retained relay session state." />
+      </annotations>
+    </M-SERVER-INBOUND-SOURCE-VALIDATION>
+
+    <M-WSS-SERVER-RETURN-EMIT NAME="WssServerReturnEmit" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Emit one validated inbound datagram reply back over the governed WSS carrier from server runtime to client runtime.</purpose>
+      <path>src/wss_gateway/mod.rs</path>
+      <depends>M-WSS-DATAGRAM-INBOUND-EMIT, M-SERVER-INBOUND-RECEIVE-LOOP</depends>
+      <verification-ref>V-M-WSS-SERVER-RETURN-EMIT</verification-ref>
+      <annotations>
+        <fn-emitServerInboundReturn PURPOSE="Emit one validated server-side inbound reply back over the WSS datagram carrier." />
+      </annotations>
+    </M-WSS-SERVER-RETURN-EMIT>
+
+    <M-CLIENT-INBOUND-RETURN-RERUN NAME="ClientInboundReturnRerun" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Replay the bounded controlled probe after server-side inbound-return repairs and classify whether inbound delivery now reaches the client relay socket.</purpose>
+      <path>scripts/udp_probe.sh</path>
+      <depends>M-WSS-SERVER-RETURN-EMIT, M-CLIENT-DATAGRAM-INBOUND-BRIDGE, M-DATAGRAM-ECHO-TARGET</depends>
+      <verification-ref>V-M-CLIENT-INBOUND-RETURN-RERUN</verification-ref>
+      <annotations>
+        <fn-rerunInboundProbe PURPOSE="Replay one bounded UDP probe against the repaired server-side inbound-return path." />
+      </annotations>
+    </M-CLIENT-INBOUND-RETURN-RERUN>
+
+    <M-DATAGRAM-SERVER-INBOUND-EVIDENCE NAME="DatagramServerInboundEvidence" TYPE="UTILITY" STATUS="done">
+      <purpose>Assemble the comparison packet against the completed Phase-25 and Phase-26 datagram baselines after server-side inbound repairs.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-CLIENT-INBOUND-RETURN-RERUN</depends>
+      <verification-ref>V-M-DATAGRAM-SERVER-INBOUND-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleServerInboundEvidence PURPOSE="Assemble the bounded server-side inbound-return comparison packet." />
+      </annotations>
+    </M-DATAGRAM-SERVER-INBOUND-EVIDENCE>
+
+    <M-DATAGRAM-SERVER-INBOUND-DECISION NAME="DatagramServerInboundDecision" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Issue the bounded post-server-inbound-repair decision on whether a Telegram-specific wave is finally justified.</purpose>
+      <path>README.md</path>
+      <depends>M-DATAGRAM-SERVER-INBOUND-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-SERVER-INBOUND-DECISION</verification-ref>
+      <annotations>
+        <fn-issueServerInboundDecision PURPOSE="Issue the bounded decision after the server-side inbound-return comparison packet." />
+      </annotations>
+    </M-DATAGRAM-SERVER-INBOUND-DECISION>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1923,6 +2003,14 @@
     <CrossLink from="M-DATAGRAM-INBOUND-RERUN" to="M-DATAGRAM-INBOUND-EVIDENCE" relation="supplies the post-inbound-repair probe packet for comparison against the earlier datagram baselines" />
     <CrossLink from="M-DATAGRAM-RUNTIME-EVIDENCE" to="M-DATAGRAM-INBOUND-EVIDENCE" relation="supplies the completed Phase-25 packet used as the immediate baseline for inbound-return comparison" />
     <CrossLink from="M-DATAGRAM-INBOUND-EVIDENCE" to="M-DATAGRAM-INBOUND-DECISION" relation="supplies the bounded inbound-return comparison packet for the final decision" />
+    <CrossLink from="M-DATAGRAM-INBOUND-DECISION" to="M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS" relation="supplies the completed Phase-26 boundary that freezes the next server-side inbound repair scope" />
+    <CrossLink from="M-DATAGRAM-RELAY-STATE" to="M-SERVER-RELAY-SESSION-STATE" relation="supplies the retained relay metadata reused by the next inbound-return repair wave" />
+    <CrossLink from="M-SERVER-RELAY-SESSION-STATE" to="M-SERVER-INBOUND-RECEIVE-LOOP" relation="supplies the association-scoped relay state needed to read one inbound reply" />
+    <CrossLink from="M-SERVER-INBOUND-RECEIVE-LOOP" to="M-SERVER-INBOUND-SOURCE-VALIDATION" relation="supplies the raw inbound reply candidate that must be validated before return emission" />
+    <CrossLink from="M-SERVER-INBOUND-SOURCE-VALIDATION" to="M-WSS-SERVER-RETURN-EMIT" relation="supplies the validated inbound reply that can now be emitted back over WSS" />
+    <CrossLink from="M-WSS-SERVER-RETURN-EMIT" to="M-CLIENT-INBOUND-RETURN-RERUN" relation="supplies the repaired server-side return path exercised by the next bounded probe rerun" />
+    <CrossLink from="M-CLIENT-INBOUND-RETURN-RERUN" to="M-DATAGRAM-SERVER-INBOUND-EVIDENCE" relation="supplies the post-repair rerun packet for comparison against the Phase-25 and Phase-26 baselines" />
+    <CrossLink from="M-DATAGRAM-SERVER-INBOUND-EVIDENCE" to="M-DATAGRAM-SERVER-INBOUND-DECISION" relation="supplies the bounded comparison packet for the final server-inbound return decision" />
 
   </Project>
 </KnowledgeGraph>

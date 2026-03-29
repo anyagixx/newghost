@@ -834,6 +834,12 @@ Observed Phase-26 inbound-return outcome on 2026-03-29:
   the remaining blocker is no longer target ingress or client outbound glue; it is the server-side inbound receive and WSS return segment before any client-side local delivery can happen
 - operator consequence:
   do not rerun Telegram Desktop calls yet; the next approved wave must repair server-side inbound reply return inside the datagram path
+- the completed Phase-27 rerun on 2026-03-29 removed that server-side inbound boundary on the deterministic server-local target:
+  after redeploying SHA `ce49836d3c19a3b881927e97653f001f936ea649d0337fb3aa8ee1e767535b15`, `scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target 127.0.0.1:55123 --payload phase27-probe --timeout 5` on `ghost-cli` returned `probe_status=reply-received`
+- bounded evidence for the same live window:
+  `/tmp/phase27-echo.log` on `ghost-srv` recorded `received=b'phase27-probe'` and `replied_to=...`, `/var/log/n0wss-server.log` recorded `SERVER_DATAGRAM_INBOUND_RECEIVED` plus `SERVER_DATAGRAM_RETURN_EMITTED`, and `/var/log/n0wss-client.log` recorded `BLOCK_DELIVER_INBOUND_DATAGRAM`
+- updated operator consequence:
+  the controlled datagram round-trip is now green against the deterministic server-local echo target, so the next approved wave is a new Telegram-specific verification wave rather than another inbound-return repair
 
 Remote server-host bounded capture:
 

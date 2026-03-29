@@ -182,6 +182,12 @@ Current calls-profile status:
   no `SERVER_DATAGRAM_INBOUND_RECEIVED`, no `SERVER_DATAGRAM_RETURN_EMITTED`, no `BLOCK_RELAY_UDP_INBOUND`, no `BLOCK_FORWARD_INBOUND_DATAGRAM`, and no `BLOCK_DELIVER_INBOUND_DATAGRAM`
 - the bounded Phase-26 decision therefore stays transport-scoped:
   outbound delivery to a deterministic server-local echo target is now proven, but the first unresolved layer remains the server-side inbound receive and return-emission path, so another Telegram-specific wave is still blocked
+- the completed Phase-27 server-inbound-return wave on 2026-03-29 moved the controlled packet beyond that boundary:
+  after redeploying binary `ce49836d3c19a3b881927e97653f001f936ea649d0337fb3aa8ee1e767535b15` to `ghost-srv` and `ghost-cli`, the bounded live `phase27-probe` to `127.0.0.1:55123` produced `probe_status=reply-received`
+- the same bounded evidence packet is now fully anchored end to end:
+  server-local echo evidence recorded `received=b'phase27-probe'` and `replied_to=...`, live server logs recorded `SERVER_DATAGRAM_INBOUND_RECEIVED` plus `SERVER_DATAGRAM_RETURN_EMITTED`, and live client logs recorded `BLOCK_DELIVER_INBOUND_DATAGRAM`
+- the bounded Phase-27 decision is therefore narrower and greener than the old transport diagnosis:
+  the controlled datagram round-trip is now proven through reply return, so the next justified wave is a new Telegram-specific verification phase rather than another datagram repair
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

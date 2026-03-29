@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.23">
+<DevelopmentPlan VERSION="0.2.25">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -4457,6 +4457,194 @@
       </observability>
       <verification-ref>V-M-DATAGRAM-INBOUND-DECISION</verification-ref>
     </M-DATAGRAM-INBOUND-DECISION>
+
+    <M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS NAME="DatagramServerInboundHypothesis" TYPE="UTILITY" LAYER="30" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the new bounded blocker after Phase-26 so the next wave repairs server-side inbound receive and return emission instead of reopening already-proven outbound glue.</purpose>
+        <inputs>
+          <input-1>The completed Phase-26 decision packet.</input-1>
+          <input-2>The completed Phase-26 evidence packet showing server-local echo-target ingress but no inbound-return markers.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded repair scope pinned to server-side inbound receive and WSS return emission.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-INBOUND-DECISION, M-DATAGRAM-INBOUND-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[DatagramServerInboundHypothesis]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_SERVER_INBOUND_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS</verification-ref>
+    </M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS>
+
+    <M-SERVER-RELAY-SESSION-STATE NAME="ServerRelaySessionState" TYPE="CORE_LOGIC" LAYER="30" ORDER="2" STATUS="done">
+      <contract>
+        <purpose>Retain enough server-side relay session state for inbound replies to map back to the owning datagram association and return path.</purpose>
+        <inputs>
+          <input-1>The outbound relay record created for one governed association.</input-1>
+          <input-2>The inbound return requirements fixed by Phase-26.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded relay-session state surface that survives long enough for reply receive and return emit.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/proxy_bridge/udp_relay.rs</file-1>
+        <file-2>src/proxy_bridge/udp_relay.test.rs</file-2>
+      </target-files>
+      <depends>M-DATAGRAM-RELAY-STATE, M-UDP-EGRESS-RELAY, M-SERVER-DATAGRAM-INGRESS</depends>
+      <observability>
+        <log-prefix>[ServerRelaySessionState]</log-prefix>
+        <critical-block>BLOCK_SERVER_RELAY_SESSION_STATE</critical-block>
+      </observability>
+      <verification-ref>V-M-SERVER-RELAY-SESSION-STATE</verification-ref>
+    </M-SERVER-RELAY-SESSION-STATE>
+
+    <M-SERVER-INBOUND-RECEIVE-LOOP NAME="ServerInboundReceiveLoop" TYPE="INTEGRATION" LAYER="30" ORDER="3" STATUS="done">
+      <contract>
+        <purpose>Add the real server-side inbound UDP receive loop after proven outbound relay so replies are actually read instead of stopping at outbound send.</purpose>
+        <inputs>
+          <input-1>The retained server relay-session state.</input-1>
+          <input-2>The active server-side datagram runtime path.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded server runtime surface that reads one inbound reply for the owning association.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/wss_gateway/mod.rs</file-1>
+        <file-2>src/proxy_bridge/udp_relay.rs</file-2>
+        <file-3>src/wss_gateway/mod.test.rs</file-3>
+      </target-files>
+      <depends>M-SERVER-RELAY-SESSION-STATE, M-SERVER-DATAGRAM-INBOUND-RECEIVE</depends>
+      <observability>
+        <log-prefix>[ServerInboundReceiveLoop]</log-prefix>
+        <critical-block>BLOCK_SERVER_INBOUND_RECEIVE_LOOP</critical-block>
+      </observability>
+      <verification-ref>V-M-SERVER-INBOUND-RECEIVE-LOOP</verification-ref>
+    </M-SERVER-INBOUND-RECEIVE-LOOP>
+
+    <M-SERVER-INBOUND-SOURCE-VALIDATION NAME="ServerInboundSourceValidation" TYPE="CORE_LOGIC" LAYER="30" ORDER="4" STATUS="done">
+      <contract>
+        <purpose>Separate valid inbound replies from foreign-source or wrong-association packets so partial progress cannot be misclassified as success.</purpose>
+        <inputs>
+          <input-1>The server-side inbound UDP packet.</input-1>
+          <input-2>The retained relay-session state for the owning association.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A deterministic accept-or-reject result for one inbound reply source.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/proxy_bridge/udp_relay.rs</file-1>
+        <file-2>src/proxy_bridge/udp_relay.test.rs</file-2>
+      </target-files>
+      <depends>M-SERVER-INBOUND-RECEIVE-LOOP, M-DATAGRAM-RELAY-STATE</depends>
+      <observability>
+        <log-prefix>[ServerInboundSourceValidation]</log-prefix>
+        <critical-block>BLOCK_SERVER_INBOUND_SOURCE_VALIDATION</critical-block>
+      </observability>
+      <verification-ref>V-M-SERVER-INBOUND-SOURCE-VALIDATION</verification-ref>
+    </M-SERVER-INBOUND-SOURCE-VALIDATION>
+
+    <M-WSS-SERVER-RETURN-EMIT NAME="WssServerReturnEmit" TYPE="INTEGRATION" LAYER="30" ORDER="5" STATUS="done">
+      <contract>
+        <purpose>Emit one validated inbound datagram reply back over the governed WSS carrier from server runtime to client runtime.</purpose>
+        <inputs>
+          <input-1>The validated inbound datagram envelope.</input-1>
+          <input-2>The active server-side WSS datagram runtime session.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded server-side return-emission path for one inbound reply.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/wss_gateway/mod.rs</file-1>
+        <file-2>src/wss_gateway/mod.test.rs</file-2>
+      </target-files>
+      <depends>M-WSS-DATAGRAM-INBOUND-EMIT, M-SERVER-INBOUND-RECEIVE-LOOP</depends>
+      <observability>
+        <log-prefix>[WssServerReturnEmit]</log-prefix>
+        <critical-block>BLOCK_WSS_SERVER_RETURN_EMIT</critical-block>
+      </observability>
+      <verification-ref>V-M-WSS-SERVER-RETURN-EMIT</verification-ref>
+    </M-WSS-SERVER-RETURN-EMIT>
+
+    <M-CLIENT-INBOUND-RETURN-RERUN NAME="ClientInboundReturnRerun" TYPE="ENTRY_POINT" LAYER="30" ORDER="6" STATUS="done">
+      <contract>
+        <purpose>Replay one bounded controlled probe after server-side inbound-return repairs and classify whether inbound delivery now reaches the client relay socket or full reply receipt.</purpose>
+        <inputs>
+          <input-1>The repaired server-side receive and return-emission runtime.</input-1>
+          <input-2>The existing client-side inbound bridge and bounded UDP probe tooling.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A fresh controlled rerun packet pinned to the repaired server-side inbound path.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>scripts/udp_probe.sh</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-WSS-SERVER-RETURN-EMIT, M-CLIENT-DATAGRAM-INBOUND-BRIDGE, M-DATAGRAM-ECHO-TARGET</depends>
+      <observability>
+        <log-prefix>[ClientInboundReturnRerun]</log-prefix>
+        <critical-block>BLOCK_CLIENT_INBOUND_RETURN_RERUN</critical-block>
+      </observability>
+      <verification-ref>V-M-CLIENT-INBOUND-RETURN-RERUN</verification-ref>
+    </M-CLIENT-INBOUND-RETURN-RERUN>
+
+    <M-DATAGRAM-SERVER-INBOUND-EVIDENCE NAME="DatagramServerInboundEvidence" TYPE="UTILITY" LAYER="30" ORDER="7" STATUS="done">
+      <contract>
+        <purpose>Assemble the post-server-inbound-repair comparison packet against the completed Phase-25 and Phase-26 datagram baselines.</purpose>
+        <inputs>
+          <input-1>The bounded rerun packet after server-side inbound repairs.</input-1>
+          <input-2>The completed Phase-25 and Phase-26 comparison packets.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded comparison packet stating whether progress moved to server receive, return emit, client delivery, or reply receipt.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-CLIENT-INBOUND-RETURN-RERUN</depends>
+      <observability>
+        <log-prefix>[DatagramServerInboundEvidence]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_SERVER_INBOUND_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-SERVER-INBOUND-EVIDENCE</verification-ref>
+    </M-DATAGRAM-SERVER-INBOUND-EVIDENCE>
+
+    <M-DATAGRAM-SERVER-INBOUND-DECISION NAME="DatagramServerInboundDecision" TYPE="ENTRY_POINT" LAYER="30" ORDER="8" STATUS="done">
+      <contract>
+        <purpose>Issue the bounded decision on whether the controlled datagram round-trip is finally complete enough for a Telegram-specific wave or remains blocked inside server-side inbound return.</purpose>
+        <inputs>
+          <input-1>The bounded server-side inbound evidence packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded next-step decision stating whether Telegram-specific verification is now justified or server-side inbound return still blocks progress.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-SERVER-INBOUND-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[DatagramServerInboundDecision]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_SERVER_INBOUND_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-SERVER-INBOUND-DECISION</verification-ref>
+    </M-DATAGRAM-SERVER-INBOUND-DECISION>
   </Modules>
 
   <DataFlow>
@@ -4915,6 +5103,35 @@
       <step-2>The execution queue excludes the old repair rerun tail and points only at the inbound-return phase for further datagram work.</step-2>
       <evidence>Explicit supersede note, synchronized statuses for the old Phase-24 tail, and a clean execution queue truth across plan, graph, and verification.</evidence>
     </DF-PHASE24-SUPERSEDE>
+
+    <DF-SERVER-INBOUND-REPLY-READ NAME="Server inbound reply read" TRIGGER="A deterministic echo target sends a reply back after the server-side outbound relay already proved ingress.">
+      <step-1>The server relay socket waits for one inbound UDP reply from the expected remote peer.</step-1>
+      <step-2>The server runtime validates the inbound source against the owning relay session state.</step-2>
+      <step-3>The server runtime normalizes the accepted reply into a governed inbound datagram envelope.</step-3>
+      <evidence>Server-side inbound receive marker, source-validation evidence, and one accepted inbound envelope for the owning association.</evidence>
+    </DF-SERVER-INBOUND-REPLY-READ>
+
+    <DF-SERVER-INBOUND-RETURN-EMIT NAME="Server inbound return emit" TRIGGER="The server runtime accepts one inbound reply for an existing datagram association.">
+      <step-1>The server runtime takes the validated inbound datagram envelope.</step-1>
+      <step-2>The runtime emits the reply back through the governed WSS datagram carrier.</step-2>
+      <step-3>The client-side datagram runtime receives the return frame for later local delivery.</step-3>
+      <evidence>Server return-emission marker, client-side receive evidence, and no silent drop after server receive.</evidence>
+    </DF-SERVER-INBOUND-RETURN-EMIT>
+
+    <DF-CLIENT-INBOUND-DELIVERY-RERUN NAME="Client inbound delivery rerun" TRIGGER="The repaired server-side inbound path is exercised by one bounded controlled probe.">
+      <step-1>The probe opens SOCKS5 UDP ASSOCIATE and sends one bounded UDP payload.</step-1>
+      <step-2>The already-proven outbound path reaches the deterministic echo target.</step-2>
+      <step-3>The repaired server-side inbound return path attempts to deliver the reply back to the owning local relay socket.</step-3>
+      <step-4>The probe either reports reply-received or preserves the first missing inbound-return layer.</step-4>
+      <evidence>Probe output, local and remote datagram markers, and an exact first-divergent-layer classification.</evidence>
+    </DF-CLIENT-INBOUND-DELIVERY-RERUN>
+
+    <DF-SERVER-INBOUND-COMPARISON NAME="Server inbound comparison" TRIGGER="A new inbound-return rerun packet is available after server-side repairs.">
+      <step-1>The new rerun packet is compared against the completed Phase-25 baseline.</step-1>
+      <step-2>The same packet is compared against the completed Phase-26 loopback packet.</step-2>
+      <step-3>The decision states whether the new deepest proven layer is server receive, WSS return emit, client delivery, or full reply receipt.</step-3>
+      <evidence>A bounded comparison packet and one explicit next-step decision.</evidence>
+    </DF-SERVER-INBOUND-COMPARISON>
   </DataFlow>
 
   <ImplementationOrder>
@@ -5172,6 +5389,23 @@
       <note-3>The same loopback packet still produced inbound_result=timeout and no SERVER_DATAGRAM_INBOUND_RECEIVED, SERVER_DATAGRAM_RETURN_EMITTED, BLOCK_RELAY_UDP_INBOUND, BLOCK_FORWARD_INBOUND_DATAGRAM, or BLOCK_DELIVER_INBOUND_DATAGRAM, so the first unresolved layer now sits inside server-side inbound receive and WSS return emit rather than client outbound glue or target ingress.</note-3>
       <note-4>Because the controlled datagram round-trip is still not green, a Telegram-specific rerun remains methodologically blocked after Phase-26.</note-4>
     </Phase-26>
+
+    <Phase-27 name="Datagram Server Inbound Return Repair" status="done">
+      <goal>Repair and prove the server-side inbound receive and return-emission path so the controlled datagram round-trip can advance beyond the completed Phase-26 boundary.</goal>
+      <step-1 module="M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-SERVER-INBOUND-HYPOTHESIS">Freeze the new server-inbound-only blocker after Phase-26</step-1>
+      <step-2 module="M-SERVER-RELAY-SESSION-STATE" status="done" verification="V-M-SERVER-RELAY-SESSION-STATE">Retain enough server-side relay-session state for reply receive and return mapping</step-2>
+      <step-3 module="M-SERVER-INBOUND-RECEIVE-LOOP" status="done" verification="V-M-SERVER-INBOUND-RECEIVE-LOOP">Add the real server-side inbound UDP receive loop after proven outbound relay</step-3>
+      <step-4 module="M-SERVER-INBOUND-SOURCE-VALIDATION" status="done" verification="V-M-SERVER-INBOUND-SOURCE-VALIDATION">Separate valid inbound replies from foreign-source or wrong-association packets</step-4>
+      <step-5 module="M-WSS-SERVER-RETURN-EMIT" status="done" verification="V-M-WSS-SERVER-RETURN-EMIT">Emit one validated inbound reply back over the governed WSS carrier</step-5>
+      <step-6 module="M-CLIENT-INBOUND-RETURN-RERUN" status="done" verification="V-M-CLIENT-INBOUND-RETURN-RERUN">Replay one bounded controlled probe after the server-side inbound-return repairs</step-6>
+      <step-7 module="M-DATAGRAM-SERVER-INBOUND-EVIDENCE" status="done" verification="V-M-DATAGRAM-SERVER-INBOUND-EVIDENCE">Assemble the comparison packet against the completed Phase-25 and Phase-26 baselines</step-7>
+      <step-8 module="M-DATAGRAM-SERVER-INBOUND-DECISION" status="done" verification="V-M-DATAGRAM-SERVER-INBOUND-DECISION">Issue the bounded decision on whether a Telegram-specific wave is finally justified</step-8>
+      <note-1>On 2026-03-29 the repair wave wired server-side inbound receive plus governed return emit into the real runtime and added client-side inbound callback wiring so controlled replies could reach the owning local relay socket.</note-1>
+      <note-2>Module-level verification passed locally with `cargo test udp_relay`, `cargo test wss_gateway`, and `cargo test cli`, including a new runtime end-to-end WSS datagram reply test that proved server receive, return emit, and client-side inbound handler delivery.</note-2>
+      <note-3>After redeploying binary ce49836d3c19a3b881927e97653f001f936ea649d0337fb3aa8ee1e767535b15 to ghost-srv and ghost-cli, the bounded live `phase27-probe` to 127.0.0.1:55123 returned `probe_status=reply-received`.</note-3>
+      <note-4>The same live packet is anchored by `/tmp/phase27-echo.log` on ghost-srv, `SERVER_DATAGRAM_INBOUND_RECEIVED` plus `SERVER_DATAGRAM_RETURN_EMITTED` in `/var/log/n0wss-server.log`, and `BLOCK_DELIVER_INBOUND_DATAGRAM` in `/var/log/n0wss-client.log`.</note-4>
+      <note-5>The bounded Phase-27 decision is that the controlled datagram round-trip is now green enough to justify a fresh Telegram-specific verification wave, while any public claim remains limited to the tested Desktop setup and this deterministic datagram evidence.</note-5>
+    </Phase-27>
   </ImplementationOrder>
 
   <ExecutionPolicy>
