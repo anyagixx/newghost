@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.27">
+  <Project NAME="n0wss" VERSION="0.2.28">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1885,6 +1885,86 @@
       </annotations>
     </M-TELEGRAM-MEDIA-DECISION>
 
+    <M-TELEGRAM-WORKAROUND-HYPOTHESIS NAME="TelegramWorkaroundHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the post-Phase-29 truth-boundary where transport remains green but the tested Telegram Desktop setup still needs a Telegram-specific workaround or alternate topology.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MEDIA-DECISION, M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-WORKAROUND-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramWorkaroundHypothesis PURPOSE="Freeze the workaround-only boundary above the completed Phase-29 media packet." />
+      </annotations>
+    </M-TELEGRAM-WORKAROUND-HYPOTHESIS>
+
+    <M-ALTERNATE-TOPOLOGY-PROFILE NAME="AlternateTopologyProfile" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Freeze one bounded alternate app topology for the Telegram workaround wave.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-DESKTOP-HANDOFF-PROFILE, M-TELEGRAM-MEDIA-DECISION</depends>
+      <verification-ref>V-M-ALTERNATE-TOPOLOGY-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeAlternateTopology PURPOSE="Freeze one bounded alternate app topology distinct from the exact Phase-29 Desktop route." />
+      </annotations>
+    </M-ALTERNATE-TOPOLOGY-PROFILE>
+
+    <M-TELEGRAM-WORKAROUND-CAPTURE NAME="TelegramWorkaroundCapture" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Define the bounded capture packet for the workaround wave so alternate-topology results stay comparable with Phase-29.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-MEDIA-CAPTURE, M-ALTERNATE-TOPOLOGY-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-WORKAROUND-CAPTURE</verification-ref>
+      <annotations>
+        <fn-prepareTelegramWorkaroundCapture PURPOSE="Prepare the workaround capture packet for alternate-topology Telegram media diagnostics." />
+      </annotations>
+    </M-TELEGRAM-WORKAROUND-CAPTURE>
+
+    <M-ALTERNATE-VOICE-WAVE NAME="AlternateVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded Telegram voice-call attempt on the alternate topology and classify whether the no-go class changes.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-ALTERNATE-TOPOLOGY-PROFILE, M-TELEGRAM-WORKAROUND-CAPTURE</depends>
+      <verification-ref>V-M-ALTERNATE-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runAlternateVoiceWave PURPOSE="Run one bounded Telegram voice-call attempt on the alternate topology." />
+      </annotations>
+    </M-ALTERNATE-VOICE-WAVE>
+
+    <M-ALTERNATE-VIDEO-WAVE NAME="AlternateVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded Telegram video-call attempt on the alternate topology without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-ALTERNATE-VOICE-WAVE, M-TELEGRAM-WORKAROUND-CAPTURE</depends>
+      <verification-ref>V-M-ALTERNATE-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runAlternateVideoWave PURPOSE="Run one bounded Telegram video-call attempt on the alternate topology." />
+      </annotations>
+    </M-ALTERNATE-VIDEO-WAVE>
+
+    <M-WORKAROUND-BEHAVIOR-COMPARISON NAME="WorkaroundBehaviorComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare alternate-topology media packets against the completed Phase-29 packet and determine whether topology changes the Telegram no-go class.</purpose>
+      <path>README.md</path>
+      <depends>M-ALTERNATE-VOICE-WAVE, M-ALTERNATE-VIDEO-WAVE, M-TELEGRAM-MEDIA-EVIDENCE</depends>
+      <verification-ref>V-M-WORKAROUND-BEHAVIOR-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareWorkaroundBehavior PURPOSE="Compare alternate-topology media packets against the completed Phase-29 packet." />
+      </annotations>
+    </M-WORKAROUND-BEHAVIOR-COMPARISON>
+
+    <M-WORKAROUND-EVIDENCE NAME="WorkaroundEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the bounded alternate-topology handoff, capture, voice, video, and comparison packets for the workaround wave.</purpose>
+      <path>README.md</path>
+      <depends>M-WORKAROUND-BEHAVIOR-COMPARISON</depends>
+      <verification-ref>V-M-WORKAROUND-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleWorkaroundEvidence PURPOSE="Assemble the workaround evidence packet above the preserved green transport baseline." />
+      </annotations>
+    </M-WORKAROUND-EVIDENCE>
+
+    <M-WORKAROUND-DECISION NAME="WorkaroundDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded workaround decision for the tested Telegram setup after the alternate-topology wave.</purpose>
+      <path>README.md</path>
+      <depends>M-WORKAROUND-EVIDENCE</depends>
+      <verification-ref>V-M-WORKAROUND-DECISION</verification-ref>
+      <annotations>
+        <fn-issueWorkaroundDecision PURPOSE="Issue the bounded alternate-topology workaround decision for the tested Telegram setup." />
+      </annotations>
+    </M-WORKAROUND-DECISION>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -2189,6 +2269,15 @@
     <CrossLink from="M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER" to="M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON" relation="supplies the bounded video-media classifier packet for Telegram-specific comparison" />
     <CrossLink from="M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON" to="M-TELEGRAM-MEDIA-EVIDENCE" relation="supplies the bounded Telegram-specific comparison packet for the media evidence assembly" />
     <CrossLink from="M-TELEGRAM-MEDIA-EVIDENCE" to="M-TELEGRAM-MEDIA-DECISION" relation="supplies the bounded Telegram media evidence packet for the next-step decision" />
+    <CrossLink from="M-TELEGRAM-MEDIA-DECISION" to="M-TELEGRAM-WORKAROUND-HYPOTHESIS" relation="supplies the completed Phase-29 no-go decision that now freezes workaround-only work above the green transport baseline" />
+    <CrossLink from="M-TELEGRAM-WORKAROUND-HYPOTHESIS" to="M-ALTERNATE-TOPOLOGY-PROFILE" relation="supplies the workaround-only boundary used to freeze one alternate app topology" />
+    <CrossLink from="M-ALTERNATE-TOPOLOGY-PROFILE" to="M-TELEGRAM-WORKAROUND-CAPTURE" relation="supplies the bounded alternate-topology handoff packet for the workaround capture surface" />
+    <CrossLink from="M-TELEGRAM-WORKAROUND-CAPTURE" to="M-ALTERNATE-VOICE-WAVE" relation="supplies the workaround capture packet for the alternate voice wave" />
+    <CrossLink from="M-ALTERNATE-VOICE-WAVE" to="M-ALTERNATE-VIDEO-WAVE" relation="supplies the alternate voice packet that the video wave must remain separate from" />
+    <CrossLink from="M-ALTERNATE-VOICE-WAVE" to="M-WORKAROUND-BEHAVIOR-COMPARISON" relation="supplies the alternate voice packet for comparison against Phase-29" />
+    <CrossLink from="M-ALTERNATE-VIDEO-WAVE" to="M-WORKAROUND-BEHAVIOR-COMPARISON" relation="supplies the alternate video packet for comparison against Phase-29" />
+    <CrossLink from="M-WORKAROUND-BEHAVIOR-COMPARISON" to="M-WORKAROUND-EVIDENCE" relation="supplies the workaround comparison packet for evidence assembly" />
+    <CrossLink from="M-WORKAROUND-EVIDENCE" to="M-WORKAROUND-DECISION" relation="supplies the bounded workaround evidence packet for the final alternate-topology decision" />
 
   </Project>
 </KnowledgeGraph>

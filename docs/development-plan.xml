@@ -5019,7 +5019,7 @@
       <verification-ref>V-M-TELEGRAM-MEDIA-DECISION</verification-ref>
     </M-TELEGRAM-MEDIA-DECISION>
 
-    <M-TELEGRAM-WORKAROUND-HYPOTHESIS NAME="TelegramWorkaroundHypothesis" TYPE="UTILITY" LAYER="33" ORDER="1" STATUS="planned">
+    <M-TELEGRAM-WORKAROUND-HYPOTHESIS NAME="TelegramWorkaroundHypothesis" TYPE="UTILITY" LAYER="33" ORDER="1" STATUS="done">
       <contract>
         <purpose>Freeze the post-Phase-29 truth-boundary where transport remains green but the tested Telegram Desktop setup still needs a Telegram-specific workaround or alternate app topology.</purpose>
         <inputs>
@@ -5043,7 +5043,7 @@
       <verification-ref>V-M-TELEGRAM-WORKAROUND-HYPOTHESIS</verification-ref>
     </M-TELEGRAM-WORKAROUND-HYPOTHESIS>
 
-    <M-ALTERNATE-TOPOLOGY-PROFILE NAME="AlternateTopologyProfile" TYPE="ENTRY_POINT" LAYER="33" ORDER="2" STATUS="planned">
+    <M-ALTERNATE-TOPOLOGY-PROFILE NAME="AlternateTopologyProfile" TYPE="ENTRY_POINT" LAYER="33" ORDER="2" STATUS="done">
       <contract>
         <purpose>Freeze one bounded alternate app topology for Telegram diagnostics so the workaround wave does not silently reuse the same Desktop handoff path from Phase-29.</purpose>
         <inputs>
@@ -5066,7 +5066,7 @@
       <verification-ref>V-M-ALTERNATE-TOPOLOGY-PROFILE</verification-ref>
     </M-ALTERNATE-TOPOLOGY-PROFILE>
 
-    <M-TELEGRAM-WORKAROUND-CAPTURE NAME="TelegramWorkaroundCapture" TYPE="INTEGRATION" LAYER="33" ORDER="3" STATUS="planned">
+    <M-TELEGRAM-WORKAROUND-CAPTURE NAME="TelegramWorkaroundCapture" TYPE="INTEGRATION" LAYER="33" ORDER="3" STATUS="done">
       <contract>
         <purpose>Define the bounded capture and evidence packet for the workaround wave so alternate-topology results stay comparable with Phase-29.</purpose>
         <inputs>
@@ -6097,9 +6097,9 @@
     </Phase-29>
     <Phase-30 name="Telegram Workaround And Alternate Topology" status="pending">
       <goal>Evaluate one bounded Telegram-specific workaround or alternate app topology above the green transport baseline and compare it directly against the completed Phase-29 media packet.</goal>
-      <step-1 module="M-TELEGRAM-WORKAROUND-HYPOTHESIS" status="pending" verification="V-M-TELEGRAM-WORKAROUND-HYPOTHESIS">Freeze the post-Phase-29 workaround-only boundary</step-1>
-      <step-2 module="M-ALTERNATE-TOPOLOGY-PROFILE" status="pending" verification="V-M-ALTERNATE-TOPOLOGY-PROFILE">Freeze one bounded alternate app topology for the workaround wave</step-2>
-      <step-3 module="M-TELEGRAM-WORKAROUND-CAPTURE" status="pending" verification="V-M-TELEGRAM-WORKAROUND-CAPTURE">Define the bounded capture packet for the workaround wave</step-3>
+      <step-1 module="M-TELEGRAM-WORKAROUND-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-WORKAROUND-HYPOTHESIS">Freeze the post-Phase-29 workaround-only boundary</step-1>
+      <step-2 module="M-ALTERNATE-TOPOLOGY-PROFILE" status="done" verification="V-M-ALTERNATE-TOPOLOGY-PROFILE">Freeze one bounded alternate app topology for the workaround wave</step-2>
+      <step-3 module="M-TELEGRAM-WORKAROUND-CAPTURE" status="done" verification="V-M-TELEGRAM-WORKAROUND-CAPTURE">Define the bounded capture packet for the workaround wave</step-3>
       <step-4 module="M-ALTERNATE-VOICE-WAVE" status="pending" verification="V-M-ALTERNATE-VOICE-WAVE">Replay one bounded voice attempt on the alternate topology</step-4>
       <step-5 module="M-ALTERNATE-VIDEO-WAVE" status="pending" verification="V-M-ALTERNATE-VIDEO-WAVE">Replay one bounded video attempt on the alternate topology</step-5>
       <step-6 module="M-WORKAROUND-BEHAVIOR-COMPARISON" status="pending" verification="V-M-WORKAROUND-BEHAVIOR-COMPARISON">Compare alternate-topology media packets against the completed Phase-29 packet</step-6>
