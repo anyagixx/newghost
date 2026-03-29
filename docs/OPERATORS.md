@@ -779,6 +779,25 @@ Operator boundary for Phase-24:
   `association-ok`, local `BLOCK_HANDLE_UDP_ASSOCIATE`, zero proven remote ingress, `inbound_result=timeout`
 - if the repaired packet still does not reach remote ingress, classify the first missing repair layer inside transport-side datagram work and do not reopen provider-blame or Telegram-behavior hypotheses yet
 
+### Phase-25 Datagram Runtime Glue Boundary
+
+The stopped Phase-24 wave changed the bounded blocker again:
+
+1. helper-level datagram repair surfaces now exist for local manager handoff, selector emit, and server-side relay outbound
+2. those helper surfaces are still not enough to justify a new controlled rerun, because the live runtime path does not call them yet
+3. the next approved scope is therefore runtime glue only:
+   live local UDP receive, manager handoff wiring, production WSS datagram carrier wiring, and server-side datagram-frame ingress
+4. no new Telegram Desktop rerun is allowed while the bounded packet still lacks proof of real runtime callers on those layers
+
+Operator boundary for Phase-25:
+
+- do not treat helper-only tests or mock-only carrier packets as runtime progress
+- keep the stopped Phase-24 packet as the exact comparison baseline:
+  helper surfaces exist, but no real runtime caller, no proven production WSS datagram carrier, and no proven server-side datagram ingress
+- the next controlled probe is meaningful only after the runtime wave can separately classify:
+  local UDP receive, manager handoff, production WSS emission, server-side datagram receive, and remote echo-target ingress
+- if one of those runtime layers stays silent, classify that as the first unresolved layer and do not reopen Telegram UI diagnosis yet
+
 Remote server-host bounded capture:
 
 ```bash

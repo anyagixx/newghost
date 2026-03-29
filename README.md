@@ -162,6 +162,12 @@ Current calls-profile status:
 - Phase-24 must not reopen Telegram UI diagnosis while that repair scope is unresolved:
   the expected progression is local dispatch evidence, WSS datagram emission evidence, server-side relay outbound evidence, and only then remote echo-target ingress or inbound reply evidence
 - `outbound_result=sent` remains a bounded local outcome until one of those deeper layers is proven for the same controlled probe packet
+- the stopped Phase-24 wave on 2026-03-29 narrowed the blocker again:
+  repaired helper surfaces now exist for local manager handoff, selector emit, and relay outbound, but the live runtime still does not call them
+- bounded runtime-glue classification after that stop packet:
+  there is still no proven production `WssDatagramPath`, no proven live client UDP receive loop feeding the manager, and no proven server-side runtime datagram ingress
+- Phase-25 is therefore not another datagram diagnosis wave and not a Telegram rerun:
+  it is a runtime-glue wave that must wire the repaired helpers into the real client and server path before any new controlled probe or Telegram-specific rerun is treated as meaningful
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.
