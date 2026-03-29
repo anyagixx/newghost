@@ -4312,7 +4312,7 @@
       <verification-ref>V-M-DATAGRAM-RELAY-STATE</verification-ref>
     </M-DATAGRAM-RELAY-STATE>
 
-    <M-SERVER-DATAGRAM-INBOUND-RECEIVE NAME="ServerDatagramInboundReceive" TYPE="INTEGRATION" LAYER="29" ORDER="4" STATUS="planned">
+    <M-SERVER-DATAGRAM-INBOUND-RECEIVE NAME="ServerDatagramInboundReceive" TYPE="INTEGRATION" LAYER="29" ORDER="4" STATUS="done">
       <contract>
         <purpose>Add the server-side receive loop after relay outbound so reply datagrams from the remote UDP peer are read and normalized into an inbound datagram envelope.</purpose>
         <inputs>
@@ -5159,7 +5159,7 @@
       <step-1 module="M-DATAGRAM-INBOUND-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-INBOUND-HYPOTHESIS">Freeze the bounded inbound-only blocker after Phase-25</step-1>
       <step-2 module="M-PHASE24-SUPERSEDE" status="done" verification="V-M-PHASE24-SUPERSEDE">Explicitly supersede the stale pending Phase-24 tail in the shared artifacts</step-2>
       <step-3 module="M-DATAGRAM-RELAY-STATE" status="done" verification="V-M-DATAGRAM-RELAY-STATE">Introduce the bounded relay-state surface required for inbound reply mapping</step-3>
-      <step-4 module="M-SERVER-DATAGRAM-INBOUND-RECEIVE" status="pending" verification="V-M-SERVER-DATAGRAM-INBOUND-RECEIVE">Add the server-side inbound UDP receive loop after relay outbound</step-4>
+      <step-4 module="M-SERVER-DATAGRAM-INBOUND-RECEIVE" status="done" verification="V-M-SERVER-DATAGRAM-INBOUND-RECEIVE">Add the server-side inbound UDP receive loop after relay outbound</step-4>
       <step-5 module="M-WSS-DATAGRAM-INBOUND-EMIT" status="pending" verification="V-M-WSS-DATAGRAM-INBOUND-EMIT">Return one server-side inbound datagram back over the governed WSS path</step-5>
       <step-6 module="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" status="pending" verification="V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE">Deliver inbound datagrams from the client runtime back into the owning local relay socket</step-6>
       <step-7 module="M-DATAGRAM-INBOUND-RERUN" status="pending" verification="V-M-DATAGRAM-INBOUND-RERUN">Replay one bounded controlled probe and classify whether `reply-received` is finally proven</step-7>

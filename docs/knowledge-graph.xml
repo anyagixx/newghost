@@ -1585,7 +1585,7 @@
       </annotations>
     </M-DATAGRAM-RELAY-STATE>
 
-    <M-SERVER-DATAGRAM-INBOUND-RECEIVE NAME="ServerDatagramInboundReceive" TYPE="INTEGRATION" STATUS="planned">
+    <M-SERVER-DATAGRAM-INBOUND-RECEIVE NAME="ServerDatagramInboundReceive" TYPE="INTEGRATION" STATUS="done">
       <purpose>Add the server-side receive loop for inbound reply datagrams after relay outbound is already proven.</purpose>
       <path>src/proxy_bridge/udp_relay.rs</path>
       <depends>M-DATAGRAM-RELAY-STATE, M-SERVER-DATAGRAM-INGRESS</depends>
