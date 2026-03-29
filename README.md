@@ -132,6 +132,8 @@ Current calls-profile status:
 - the current governed live calls handoff for that later wave is still the SSH-forwarded local Desktop path through `127.0.0.1:1080` to the managed client host at `178.104.104.208`, backed by the WSS server at `91.99.128.146:7443`
 - the post-fix rerun on 2026-03-29 proved that live `SOCKS5 UDP ASSOCIATE` ingress now works on the managed client host itself, but the SSH-forwarded local Desktop call attempts still did not emit governed UDP markers
 - inference from that bounded evidence: the old ingress defect is fixed, but the current local-workstation `ssh -L 127.0.0.1:1080:127.0.0.1:1080` handoff is still not a proven end-to-end Telegram calls path
+- Phase-21 changes the target verification topology: the next calls wave must use a truly local `n0wss-client` on the Telegram Desktop workstation instead of the historical SSH-forwarded path
+- the older SSH-forwarded Desktop packet remains valid historical evidence and comparison baseline; it is not the next execution target
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.

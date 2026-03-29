@@ -425,6 +425,13 @@ Observed post-fix rerun outcome on 2026-03-29:
 - during those SSH-forwarded Desktop reruns, live logs still did not show governed UDP markers
 - bounded inference: the ingress defect is fixed on the managed client runtime, but the current SSH-forwarded local Desktop operator path is still not a proven end-to-end calls path
 
+Current topology target after Phase-20:
+
+- historical packet: local Telegram Desktop -> `ssh -L 127.0.0.1:1080:127.0.0.1:1080` -> remote managed `n0wss-client`
+- next execution target: local Telegram Desktop -> truly local `n0wss-client` listener on the same workstation
+- bounded reason for the topology change: the managed client runtime now proves `SOCKS5 UDP ASSOCIATE` in isolation, so the next wave must remove the SSH-forwarded operator path from the calls trajectory before blaming deeper datagram code or the external network
+- until the local-client topology wave is executed, do not treat the old SSH-forwarded Desktop path as the default calls runbook anymore
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
