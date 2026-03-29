@@ -1,5 +1,5 @@
 // FILE: src/session/mod.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify the thin SessionManager orchestration surface over registry, selector, state machine, and effect handling.
 //   SCOPE: Session registration, resolved-stream success and failure behavior, event forwarding, shutdown behavior, and module re-export stability.
@@ -17,7 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added GRACE markup so the SessionManager orchestration tests remain navigable and reviewable after the release wave.
+//   LAST_CHANGE: v0.1.1 - Final stream-close coverage now proves completed CONNECT sessions release capacity immediately instead of lingering until idle timeout.
 // END_CHANGE_SUMMARY
 
 use std::future::Future;
@@ -339,31 +339,35 @@ async fn handle_event_dispatches_effects_for_stream_close() {
         .await
         .expect("handle_event should succeed");
 
-    assert!(matches!(
-        handle.snapshot().state,
-        SessionState::Active {
-            stream_count: 0,
-            ..
-        }
-    ));
+    assert_eq!(handle.snapshot().state, SessionState::Closed);
     assert_eq!(
         metrics
             .calls
             .lock()
             .expect("metric lock poisoned")
             .as_slice(),
-        &[MetricEvent::StreamClosed {
-            session_id,
-            stream_count: 0,
-        }]
+        &[
+            MetricEvent::StreamClosed {
+                session_id,
+                stream_count: 0,
+            },
+            MetricEvent::SessionClosed {
+                session_id,
+                reason: "client_disconnect",
+            },
+        ]
     );
     assert_eq!(
         timer.calls.lock().expect("timer lock poisoned").as_slice(),
-        &[TimerCommand::ScheduleIdle {
-            session_id,
-            timeout: Duration::from_secs(15),
-        }]
+        &[TimerCommand::CancelIdle { session_id }]
     );
+
+    manager
+        .register_session(&SessionRequest {
+            started_at: Instant::now(),
+            peer_label: "peer-after-close".to_string(),
+        })
+        .expect("final stream close should release session capacity");
 }
 
 #[tokio::test]

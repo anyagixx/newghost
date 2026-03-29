@@ -58,18 +58,12 @@ fn stream_opened_increments_count_and_cancels_idle_timer() {
 }
 
 #[test]
-fn final_stream_close_schedules_idle_timer() {
+fn final_stream_close_removes_session_immediately() {
     let idle_timeout = Duration::from_secs(45);
     let (next_state, effects) =
         active_state(1).transition(22, SessionEvent::StreamClosed, idle_timeout);
 
-    assert!(matches!(
-        next_state,
-        SessionState::Active {
-            stream_count: 0,
-            ..
-        }
-    ));
+    assert_eq!(next_state, SessionState::Closed);
     assert_eq!(
         effects,
         vec![
@@ -77,9 +71,11 @@ fn final_stream_close_schedules_idle_timer() {
                 session_id: 22,
                 stream_count: 0,
             }),
-            SessionEffect::Timer(TimerCommand::ScheduleIdle {
+            SessionEffect::Timer(TimerCommand::CancelIdle { session_id: 22 }),
+            SessionEffect::Registry(RegistryCommand::Remove { session_id: 22 }),
+            SessionEffect::Metric(MetricEvent::SessionClosed {
                 session_id: 22,
-                timeout: idle_timeout,
+                reason: "client_disconnect",
             }),
         ]
     );

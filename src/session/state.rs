@@ -1,5 +1,5 @@
 // FILE: src/session/state.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Provide the pure per-session state machine used by later session orchestration layers.
 //   SCOPE: Session states, state-transition events, close reasons, and deterministic typed effect generation with no IO.
@@ -15,7 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added a pure session state machine with deterministic transition effects and tests.
+//   LAST_CHANGE: v0.1.1 - Final stream close now retires the session immediately so bursty CONNECT traffic cannot leak capacity until idle timeout.
 // END_CHANGE_SUMMARY
 
 use std::time::{Duration, Instant};
@@ -82,7 +82,7 @@ impl SessionState {
         self,
         session_id: SessionId,
         event: SessionEvent,
-        idle_timeout: Duration,
+        _idle_timeout: Duration,
     ) -> (SessionState, Vec<SessionEffect>) {
         // START_BLOCK_TRANSITION_SESSION_STATE
         match (self, event) {
@@ -122,19 +122,22 @@ impl SessionState {
                 })];
 
                 if next_count == 0 {
-                    effects.push(SessionEffect::Timer(TimerCommand::ScheduleIdle {
+                    effects.push(SessionEffect::Timer(TimerCommand::CancelIdle { session_id }));
+                    effects.push(SessionEffect::Registry(RegistryCommand::Remove { session_id }));
+                    effects.push(SessionEffect::Metric(MetricEvent::SessionClosed {
                         session_id,
-                        timeout: idle_timeout,
+                        reason: CloseReason::ClientDisconnect.as_metric_reason(),
                     }));
+                    (SessionState::Closed, effects)
+                } else {
+                    (
+                        SessionState::Active {
+                            since,
+                            stream_count: next_count,
+                        },
+                        effects,
+                    )
                 }
-
-                (
-                    SessionState::Active {
-                        since,
-                        stream_count: next_count,
-                    },
-                    effects,
-                )
             }
             (SessionState::Active { .. }, SessionEvent::TransportLost { deadline }) => (
                 SessionState::Closing {
