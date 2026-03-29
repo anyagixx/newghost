@@ -738,6 +738,15 @@ Observed Phase-23 outbound trace packet on 2026-03-29:
 - first missing outbound layer for the current packet:
   after local `BLOCK_HANDLE_UDP_ASSOCIATE` and before any proven remote echo-target ingress
 
+Observed Phase-23 inbound trace packet on 2026-03-29:
+
+- repeated controlled probes continued to end with `inbound_result=timeout`
+- no bounded `probe_status=reply-received` packet was produced for the same controlled target
+- the remote echo-target capture remained empty during the bounded window, so inbound diagnosis cannot yet claim a reply was generated and then lost later
+- bounded inbound classification: the controlled reply path is still unresolved, but the current packet does not justify blaming Telegram Desktop because the controlled datagram round-trip itself is not green
+- first missing inbound layer for the current packet:
+  before any proven inbound reply reaches the local probe receive surface
+
 Remote server-host bounded capture:
 
 ```bash
