@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.16">
+<DevelopmentPlan VERSION="0.2.17">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -3063,6 +3063,185 @@
       <note-1>Bounded live decision on 2026-03-29: Telegram Desktop voice and video calls are still no-go on the tested fresh host pair. The proven envelope remains text, media upload, and large-file transfer over the governed SOCKS5 or TCP path; the live calls wave did not reach UDP ingress evidence and therefore cannot claim working Telegram call support.</note-1>
       <verification-ref>V-M-CALLS-GO-NO-GO</verification-ref>
     </M-CALLS-GO-NO-GO>
+
+    <M-CALLS-RERUN-DEPLOY NAME="CallsRerunDeploy" TYPE="ENTRY_POINT" LAYER="23" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Redeploy the live host pair with the repaired UDP ASSOCIATE ingress baseline from commit 5d8b598 before rerunning Telegram calls.</purpose>
+        <inputs>
+          <param name="callsRerunDeployInputs" type="CallsRerunDeployInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsRerunDeployRecord" type="CallsRerunDeployRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_RERUN_DEPLOY_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-deployCallsRerunBaseline PURPOSE="Redeploy the repaired live baseline to the Telegram calls test hosts." />
+      </interface>
+      <depends>M-CALLS-DEPLOY-BOOTSTRAP, M-SOCKS5, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/knowledge-graph.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsRerunDeploy]</log-prefix>
+        <critical-block>BLOCK_CALLS_RERUN_DEPLOY</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-RERUN-DEPLOY</verification-ref>
+    </M-CALLS-RERUN-DEPLOY>
+
+    <M-CALLS-RERUN-READINESS NAME="CallsRerunReadiness" TYPE="ENTRY_POINT" LAYER="23" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Prove that the live client runtime now accepts UDP ASSOCIATE ingress before another operator call attempt begins.</purpose>
+        <inputs>
+          <param name="callsRerunReadinessInputs" type="CallsRerunReadinessInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsRerunReadinessRecord" type="CallsRerunReadinessRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_RERUN_READINESS_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureCallsRerunReadiness PURPOSE="Capture redeploy and UDP-ingress readiness evidence for the rerun wave." />
+      </interface>
+      <depends>M-CALLS-RERUN-DEPLOY, M-CALLS-SERVICE-READINESS, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsRerunReadiness]</log-prefix>
+        <critical-block>BLOCK_CALLS_RERUN_READINESS</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-RERUN-READINESS</verification-ref>
+    </M-CALLS-RERUN-READINESS>
+
+    <M-CALLS-RERUN-VOICE NAME="CallsRerunVoice" TYPE="CORE_LOGIC" LAYER="23" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Repeat one bounded Telegram voice-call live wave after the UDP ingress repair and record whether media reaches the next governed layer.</purpose>
+        <inputs>
+          <param name="callsRerunVoiceInputs" type="CallsRerunVoiceInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsRerunVoiceRecord" type="CallsRerunVoiceRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_RERUN_VOICE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runCallsRerunVoice PURPOSE="Run the repaired live voice-call rerun and capture the first post-fix divergent layer." />
+      </interface>
+      <depends>M-CALLS-RERUN-READINESS, M-CALLS-HANDOFF, M-TELEGRAM-CALLS-WAVE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsRerunVoice]</log-prefix>
+        <critical-block>BLOCK_CALLS_RERUN_VOICE</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-RERUN-VOICE</verification-ref>
+    </M-CALLS-RERUN-VOICE>
+
+    <M-CALLS-RERUN-VIDEO NAME="CallsRerunVideo" TYPE="CORE_LOGIC" LAYER="23" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Repeat a separate Telegram video-call live wave after the UDP ingress repair without inheriting the voice result.</purpose>
+        <inputs>
+          <param name="callsRerunVideoInputs" type="CallsRerunVideoInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsRerunVideoRecord" type="CallsRerunVideoRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_RERUN_VIDEO_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runCallsRerunVideo PURPOSE="Run the repaired live video-call rerun and keep its evidence separate from voice." />
+      </interface>
+      <depends>M-CALLS-RERUN-VOICE, M-TELEGRAM-CALLS-WAVE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsRerunVideo]</log-prefix>
+        <critical-block>BLOCK_CALLS_RERUN_VIDEO</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-RERUN-VIDEO</verification-ref>
+    </M-CALLS-RERUN-VIDEO>
+
+    <M-CALLS-RERUN-EVIDENCE NAME="CallsRerunEvidence" TYPE="UTILITY" LAYER="23" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Capture the post-fix deploy, readiness, voice, video, and first-divergent-block evidence packet for the rerun wave.</purpose>
+        <inputs>
+          <param name="callsRerunEvidenceInputs" type="CallsRerunEvidenceInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsRerunEvidenceRecord" type="CallsRerunEvidenceRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_RERUN_EVIDENCE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureCallsRerunEvidence PURPOSE="Assemble the bounded post-fix rerun packet set for Telegram calls." />
+      </interface>
+      <depends>M-CALLS-RERUN-VOICE, M-CALLS-RERUN-VIDEO, M-CALLS-EVIDENCE-PACKET</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsRerunEvidence]</log-prefix>
+        <critical-block>BLOCK_CALLS_RERUN_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-RERUN-EVIDENCE</verification-ref>
+    </M-CALLS-RERUN-EVIDENCE>
+
+    <M-CALLS-RERUN-DECISION NAME="CallsRerunDecision" TYPE="ENTRY_POINT" LAYER="23" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Issue the updated bounded Telegram calls decision after the repaired rerun wave on the tested setup.</purpose>
+        <inputs>
+          <param name="callsRerunDecisionInputs" type="CallsRerunDecisionInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsRerunDecisionRecord" type="CallsRerunDecisionRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_RERUN_DECISION_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-issueCallsRerunDecision PURPOSE="Issue the bounded post-fix calls decision for the tested Telegram Desktop setup." />
+      </interface>
+      <depends>M-CALLS-RERUN-EVIDENCE, M-CALLS-GO-NO-GO, M-TELEGRAM-CALLS-PROFILE</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsRerunDecision]</log-prefix>
+        <critical-block>BLOCK_CALLS_RERUN_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-RERUN-DECISION</verification-ref>
+    </M-CALLS-RERUN-DECISION>
   </Modules>
 
   <DataFlow>
@@ -3180,6 +3359,27 @@
       <step-3>Success requires both signaling evidence and datagram media evidence; failure packets must classify the first divergent layer.</step-3>
       <evidence>Separated TCP signaling markers, UDP association markers, media relay markers, and bounded call-failure packets.</evidence>
     </DF-TELEGRAM-CALL-PATH>
+
+    <DF-CALLS-RERUN-DEPLOY NAME="Telegram calls rerun deploy" TRIGGER="A post-fix Telegram calls rerun is approved after the live UDP ingress defect is repaired.">
+      <step-1>The controller pins the repaired baseline at commit 5d8b598.</step-1>
+      <step-2>The governed deploy path restages and restarts the repaired client and server services.</step-2>
+      <step-3>The rerun wave records deploy evidence separately from the original failed live calls packet set.</step-3>
+      <evidence>Deployed artifact identity, fresh service restart evidence, and no ambiguity between pre-fix and post-fix live runs.</evidence>
+    </DF-CALLS-RERUN-DEPLOY>
+
+    <DF-CALLS-RERUN-READINESS NAME="Telegram calls rerun readiness" TRIGGER="The repaired baseline is live and must prove UDP ingress readiness before a new operator call attempt.">
+      <step-1>The controller proves service state and listener state on both hosts.</step-1>
+      <step-2>The controller collects bounded evidence that the repaired listener can now negotiate UDP ASSOCIATE instead of rejecting command 0x03.</step-2>
+      <step-3>The operator handoff is released only after the post-fix readiness packet is complete.</step-3>
+      <evidence>Fresh service state, repaired UDP ingress proof, and a bounded handoff-ready decision.</evidence>
+    </DF-CALLS-RERUN-READINESS>
+
+    <DF-CALLS-RERUN-DECISION NAME="Telegram calls rerun decision" TRIGGER="The repaired rerun wave completes and the controller must update the bounded Telegram calls claim.">
+      <step-1>The rerun packet separates deploy, readiness, voice, video, and first-divergent-block evidence.</step-1>
+      <step-2>The final decision compares the repaired rerun evidence against the older Phase-19 no-go packet without erasing history.</step-2>
+      <step-3>The public claim remains bounded to the tested Telegram Desktop setup only.</step-3>
+      <evidence>An updated bounded decision packet that states exactly what changed after the ingress fix.</evidence>
+    </DF-CALLS-RERUN-DECISION>
 
     <DF-REPLY-MAPPING NAME="SOCKS5 reply mapping" TRIGGER="A proxy request fails before or after pump startup.">
       <step-1>Socks5Proxy or ProxyBridge classifies ProxyError as infrastructure, policy, target, or post-pump failure.</step-1>
@@ -3540,6 +3740,16 @@
       <step-8 module="M-CALLS-EVIDENCE-PACKET" status="done" verification="V-M-CALLS-EVIDENCE-PACKET">Assemble separate call-setup, media-flow, reconnect, and failure packets</step-8>
       <step-9 module="M-CALLS-GO-NO-GO" status="done" verification="V-M-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram Desktop calls on the tested setup</step-9>
     </Phase-19>
+
+    <Phase-20 name="Telegram Calls Live Rerun After UDP Ingress Fix" status="done">
+      <goal>Redeploy the repaired live baseline with the SOCKS5 UDP ASSOCIATE ingress fix and rerun the Telegram Desktop calls wave with a new bounded evidence packet.</goal>
+      <step-1 module="M-CALLS-RERUN-DEPLOY" status="done" verification="V-M-CALLS-RERUN-DEPLOY">Redeploy the repaired live baseline with commit 5d8b598 to both Telegram calls test hosts</step-1>
+      <step-2 module="M-CALLS-RERUN-READINESS" status="done" verification="V-M-CALLS-RERUN-READINESS">Prove post-fix service state and UDP ASSOCIATE ingress readiness before another operator call attempt</step-2>
+      <step-3 module="M-CALLS-RERUN-VOICE" status="done" verification="V-M-CALLS-RERUN-VOICE">Repeat one bounded Telegram voice-call wave and capture the first post-fix divergent layer</step-3>
+      <step-4 module="M-CALLS-RERUN-VIDEO" status="done" verification="V-M-CALLS-RERUN-VIDEO">Repeat one bounded Telegram video-call wave without conflating it with the voice rerun</step-4>
+      <step-5 module="M-CALLS-RERUN-EVIDENCE" status="done" verification="V-M-CALLS-RERUN-EVIDENCE">Assemble the post-fix deploy, readiness, voice, video, and failure packets</step-5>
+      <step-6 module="M-CALLS-RERUN-DECISION" status="done" verification="V-M-CALLS-RERUN-DECISION">Issue the updated bounded Telegram calls decision after the repaired rerun wave</step-6>
+    </Phase-20>
   </ImplementationOrder>
 
   <ExecutionPolicy>

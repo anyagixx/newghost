@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.26">
+<VerificationPlan VERSION="0.2.27">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -36,6 +36,9 @@
     <operator-handoff-readiness-rule>A manual operator handoff may begin only after governed readiness evidence proves the remote server service, remote client service, remote SOCKS5 listener, and local SSH-forward prerequisites are all green.</operator-handoff-readiness-rule>
     <media-scenario-separation-rule>Photo transfer, large-file transfer, voice call, video call, reconnect, and idle-resume observations must remain separable in the acceptance packet so a later agent can isolate the first divergent media path.</media-scenario-separation-rule>
     <final-go-no-go-boundary-rule>The final go or no-go decision must stay bounded to the exact tested Telegram Desktop setup, host pair, and operator workflow, and must not silently generalize to mobile clients or universal censorship-resilience claims.</final-go-no-go-boundary-rule>
+    <post-fix-rerun-boundary-rule>A post-fix live rerun must preserve the pre-fix evidence packet as historical baseline and must not overwrite or silently reinterpret the old divergent block without new bounded evidence.</post-fix-rerun-boundary-rule>
+    <repair-provenance-rule>When a live rerun depends on a targeted repair, verification must prove which repaired baseline was deployed and must keep deploy provenance separate from runtime symptoms.</repair-provenance-rule>
+    <udp-marker-promotion-rule>If BLOCK_HANDLE_UDP_ASSOCIATE appears after a repair, the rerun must classify the next missing governed datagram marker as the new first divergent block instead of reporting the old ingress defect again.</udp-marker-promotion-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -2236,6 +2239,131 @@
         <assertion-1>The final decision must separately state the bounded result for voice, video, and reconnect behavior if they diverge.</assertion-1>
       </required-trace-assertions>
     </V-M-CALLS-GO-NO-GO>
+
+    <V-M-CALLS-RERUN-DEPLOY MODULE="M-CALLS-RERUN-DEPLOY" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>bash -n scripts/deploy-live.sh</check-1>
+        <check-2>ssh root@$N0WSS_SERVER_HOST 'test -x /opt/n0wss/n0wss'</check-2>
+        <check-3>ssh root@$N0WSS_CLIENT_HOST 'test -x /opt/n0wss/n0wss'</check-3>
+        <check-4>rg -n '5d8b598|post-fix|rerun' docs/verification-plan.xml docs/development-plan.xml docs/OPERATORS.md README.md</check-4>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The repaired baseline containing commit 5d8b598 is redeployed to both live hosts through the governed deploy path.</scenario-1>
+        <scenario-2 kind="failure">The rerun wave stops if the repaired baseline is not what reaches the live hosts.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The rerun deploy packet must distinguish the repaired baseline from the older pre-fix Phase-19 deploy state.</assertion-1>
+        <assertion-2>The rerun deploy wording must stay bounded to the ingress repair and must not imply that working Telegram calls are already proven.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-RERUN-DEPLOY>
+
+    <V-M-CALLS-RERUN-READINESS MODULE="M-CALLS-RERUN-READINESS" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</check-1>
+        <check-2>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</check-2>
+        <check-3>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</check-3>
+        <check-4>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 150 --no-pager'</check-4>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Post-fix readiness proves the live listener no longer rejects UDP ASSOCIATE before the governed control session starts.</scenario-1>
+        <scenario-2 kind="failure">If UDP ASSOCIATE still never appears, the rerun stops at readiness rather than reusing the old call packet blindly.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The post-fix readiness packet must explicitly prove whether the first divergent layer moved beyond UDP ingress.</assertion-1>
+        <assertion-2>The readiness packet must keep generic TCP signaling readiness separate from repaired UDP ingress proof.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-RERUN-READINESS>
+
+    <V-M-CALLS-RERUN-VOICE MODULE="M-CALLS-RERUN-VOICE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-011|voice|post-fix|rerun|UDP ASSOCIATE' docs/verification-plan.xml docs/OPERATORS.md docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The repaired voice rerun yields a new bounded packet that either reaches UDP ingress or classifies a deeper first divergent block.</scenario-1>
+        <scenario-2 kind="failure">The repaired voice rerun must not silently reuse the original Phase-19 no-go packet.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]</marker-1>
+        <marker-2>[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]</marker-2>
+        <marker-3>[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The repaired voice rerun must classify the first missing post-fix media marker instead of collapsing back to a generic key-exchange symptom.</assertion-1>
+        <assertion-2>If BLOCK_HANDLE_UDP_ASSOCIATE appears, the packet must promote the next missing datagram marker to the first divergent block.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-RERUN-VOICE>
+
+    <V-M-CALLS-RERUN-VIDEO MODULE="M-CALLS-RERUN-VIDEO" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-011|video|post-fix|rerun' docs/verification-plan.xml docs/OPERATORS.md docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The repaired video rerun yields its own bounded packet after the ingress fix.</scenario-1>
+        <scenario-2 kind="failure">The repaired video rerun cannot inherit the repaired voice result without its own packetized evidence.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[WssDatagramGateway][sendDatagram][BLOCK_SEND_WSS_DATAGRAM]</marker-1>
+        <marker-2>[UdpEgressRelay][relayOutbound][BLOCK_RELAY_UDP_OUTBOUND]</marker-2>
+        <marker-3>[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The repaired video rerun must remain separately classified even if the repaired voice rerun is still no-go.</assertion-1>
+        <assertion-2>Video rerun evidence must explicitly say whether failure matched the repaired voice divergent layer or diverged later.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-RERUN-VIDEO>
+
+    <V-M-CALLS-RERUN-EVIDENCE MODULE="M-CALLS-RERUN-EVIDENCE" PRIORITY="medium">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-011|post-fix|rerun|voice|video|failure packet' docs/verification-plan.xml docs/OPERATORS.md docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The rerun packet set stores deploy, readiness, voice, video, and updated first-divergent-block evidence separately from Phase-19.</scenario-1>
+        <scenario-2 kind="failure">A blended summary that erases the pre-fix versus post-fix boundary is rejected as insufficient evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The rerun evidence packet must preserve the distinction between the original no-go packet and the repaired rerun results.</assertion-1>
+        <assertion-2>The rerun packet must remain split into deploy, readiness, voice, video, and failure sections rather than only a post-fix prose summary.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-RERUN-EVIDENCE>
+
+    <V-M-CALLS-RERUN-DECISION MODULE="M-CALLS-RERUN-DECISION" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'post-fix|rerun|voice|video|bounded|tested setup' README.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The updated decision states exactly what changed after the repaired rerun and remains bounded to the tested setup.</scenario-1>
+        <scenario-2 kind="failure">The rerun decision must not overclaim working calls if the repaired wave only moved the divergent block deeper.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The updated decision must compare against the old Phase-19 no-go packet without silently overwriting it.</assertion-1>
+        <assertion-2>The updated decision must state separately whether the ingress defect is fixed even if end-to-end call success is still not proven.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-RERUN-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -2440,6 +2568,27 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsLiveAcceptanceWave; expected-evidence=fresh-host baseline, managed readiness, explicit SSH-forward handoff, separate voice and video packets, reconnect packet, and bounded failure packet; observed-evidence=host baseline output, service state, forward state, Telegram call result, and anchored client-server logs; first-divergent-block=first missing readiness, SSH-forward, UDP ASSOCIATE, datagram transport, relay, or app-side marker; next-action=repair the first divergent layer before repeating only the dependent call step</failure-packet-template>
     </LV-010>
+
+    <LV-011 NAME="TelegramCallsLiveRerunAfterIngressFix" PRIORITY="high">
+      <goal>Redeploy the repaired UDP ASSOCIATE ingress baseline, prove post-fix readiness, and collect a new bounded Telegram calls rerun packet.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-2>
+        <command-3>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 150 --no-pager'</command-4>
+        <command-5>operator reruns one Telegram Desktop voice call through the same SSH-forward and SOCKS5 path</command-5>
+        <command-6>operator reruns one Telegram Desktop video call through the same SSH-forward and SOCKS5 path</command-6>
+        <command-7>collect bounded client and server log tails separately for post-fix voice and post-fix video attempts</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The rerun packet is explicitly post-fix and tied to the repaired baseline rather than the older Phase-19 deploy.</evidence-1>
+        <evidence-2>The rerun proves whether BLOCK_HANDLE_UDP_ASSOCIATE now appears in live logs.</evidence-2>
+        <evidence-3>If the first divergent block moved forward, the packet identifies the first missing deeper datagram marker.</evidence-3>
+        <evidence-4>Voice and video rerun packets remain separate.</evidence-4>
+        <evidence-5>The rerun packet states explicitly whether the ingress defect is fixed even if calls remain no-go overall.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsLiveRerunAfterIngressFix; expected-evidence=post-fix readiness plus a new voice and video rerun packet; observed-evidence=deploy provenance, service state, operator symptom, and bounded log tails; first-divergent-block=first missing post-fix UDP ingress, datagram transport, or relay marker; next-action=repair the first post-fix divergent layer before another live rerun</failure-packet-template>
+    </LV-011>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -2759,6 +2908,25 @@
         <evidence-6>The gate does not allow ringing or answered-call UI alone to be treated as media-path success without UDP evidence.</evidence-6>
       </required-evidence>
     </Gate-Phase-19>
+
+    <Gate-Phase-20 PHASE="Phase-20">
+      <goal>The repaired UDP ASSOCIATE ingress baseline is redeployed, rerun live evidence is captured, and the updated calls decision remains bounded to the tested Telegram Desktop setup.</goal>
+      <commands>
+        <command-1>ssh root@$N0WSS_SERVER_HOST 'systemctl is-active n0wss-server'</command-1>
+        <command-2>ssh root@$N0WSS_CLIENT_HOST 'systemctl is-active n0wss-client'</command-2>
+        <command-3>ssh root@$N0WSS_CLIENT_HOST 'ss -ltnp | grep \":$N0WSS_SOCKS5_PORT\" || true'</command-3>
+        <command-4>ssh root@$N0WSS_CLIENT_HOST 'journalctl -u n0wss-client -n 150 --no-pager'</command-4>
+        <command-5>rg -n 'LV-011|post-fix|rerun|voice|video|bounded' docs/verification-plan.xml docs/OPERATORS.md README.md docs/development-plan.xml</command-5>
+        <command-6>rg -n '5d8b598|BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_OPEN_DATAGRAM_ASSOCIATION|BLOCK_SELECT_DATAGRAM_TRANSPORT' docs/verification-plan.xml docs/development-plan.xml README.md</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>The repaired deploy packet is explicitly tied to the post-fix baseline.</evidence-1>
+        <evidence-2>The rerun readiness packet proves whether UDP ASSOCIATE ingress now appears on the live client runtime.</evidence-2>
+        <evidence-3>The rerun voice and video packets stay separate from each other and from the original Phase-19 no-go packet.</evidence-3>
+        <evidence-4>The updated decision remains bounded to the tested Telegram Desktop setup and does not overclaim green call support unless the rerun evidence proves it.</evidence-4>
+        <evidence-5>The gate must distinguish “ingress defect fixed” from “calls fully green” if the rerun only moves the divergent block deeper.</evidence-5>
+      </required-evidence>
+    </Gate-Phase-20>
   </PhaseGates>
 
   <FailurePackets>

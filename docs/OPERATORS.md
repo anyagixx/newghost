@@ -416,6 +416,15 @@ Observed live calls outcome on 2026-03-29:
 
 This means the new UDP-capable repository baseline is present on the hosts, but the tested Telegram Desktop setup still did not yield a governed SOCKS5 UDP ASSOCIATE trajectory during the live wave.
 
+Observed post-fix rerun outcome on 2026-03-29:
+
+- repaired baseline `5d8b598` was redeployed to both managed hosts
+- raw post-fix probe on `ghost-cli` succeeded for `SOCKS5 UDP ASSOCIATE` and produced
+  `[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]`
+- repeated local-workstation Telegram Desktop voice and video calls still stayed at Telegram key exchange
+- during those SSH-forwarded Desktop reruns, live logs still did not show governed UDP markers
+- bounded inference: the ingress defect is fixed on the managed client runtime, but the current SSH-forwarded local Desktop operator path is still not a proven end-to-end calls path
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
@@ -451,6 +460,7 @@ If the call stalls:
 - if signaling is green but no UDP ASSOCIATE marker appears, classify the first divergent layer at UDP ingress
 - if UDP ASSOCIATE appears but no datagram transport marker follows, classify the first divergent layer at datagram transport selection
 - if outbound relay appears without inbound relay, classify the first divergent layer at remote relay or remote media path
+- if a raw managed-host UDP ASSOCIATE probe is green but the SSH-forwarded local Desktop wave still produces no UDP marker, classify the first divergent layer at the current operator topology before changing the transport core again
 
 Repository publication note:
 

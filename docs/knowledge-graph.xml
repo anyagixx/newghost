@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.16">
+  <Project NAME="n0wss" VERSION="0.2.17">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1105,6 +1105,66 @@
       </annotations>
     </M-CALLS-GO-NO-GO>
 
+    <M-CALLS-RERUN-DEPLOY NAME="CallsRerunDeploy" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Redeploy the repaired UDP ASSOCIATE ingress baseline to the Telegram calls test hosts before a post-fix rerun.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALLS-DEPLOY-BOOTSTRAP, M-SOCKS5, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <verification-ref>V-M-CALLS-RERUN-DEPLOY</verification-ref>
+      <annotations>
+        <fn-deployCallsRerunBaseline PURPOSE="Redeploy the repaired live baseline for the Telegram calls rerun wave." />
+      </annotations>
+    </M-CALLS-RERUN-DEPLOY>
+
+    <M-CALLS-RERUN-READINESS NAME="CallsRerunReadiness" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Prove post-fix service state and UDP ASSOCIATE ingress readiness before another operator call attempt.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-RERUN-DEPLOY, M-CALLS-SERVICE-READINESS, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <verification-ref>V-M-CALLS-RERUN-READINESS</verification-ref>
+      <annotations>
+        <fn-captureCallsRerunReadiness PURPOSE="Capture post-fix readiness and UDP ingress evidence for the rerun wave." />
+      </annotations>
+    </M-CALLS-RERUN-READINESS>
+
+    <M-CALLS-RERUN-VOICE NAME="CallsRerunVoice" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Repeat one bounded Telegram voice-call wave after the UDP ingress fix and record the first post-fix divergent layer.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-RERUN-READINESS, M-CALLS-HANDOFF, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-CALLS-RERUN-VOICE</verification-ref>
+      <annotations>
+        <fn-runCallsRerunVoice PURPOSE="Run the repaired live voice-call rerun and capture post-fix media evidence." />
+      </annotations>
+    </M-CALLS-RERUN-VOICE>
+
+    <M-CALLS-RERUN-VIDEO NAME="CallsRerunVideo" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Repeat a separate Telegram video-call wave after the UDP ingress fix without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-RERUN-VOICE, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-CALLS-RERUN-VIDEO</verification-ref>
+      <annotations>
+        <fn-runCallsRerunVideo PURPOSE="Run the repaired live video-call rerun with a separate evidence packet." />
+      </annotations>
+    </M-CALLS-RERUN-VIDEO>
+
+    <M-CALLS-RERUN-EVIDENCE NAME="CallsRerunEvidence" TYPE="UTILITY" STATUS="done">
+      <purpose>Assemble the post-fix deploy, readiness, voice, video, and failure packets for the Telegram calls rerun wave.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-RERUN-VOICE, M-CALLS-RERUN-VIDEO, M-CALLS-EVIDENCE-PACKET</depends>
+      <verification-ref>V-M-CALLS-RERUN-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-captureCallsRerunEvidence PURPOSE="Capture the bounded post-fix packet set for the Telegram calls rerun." />
+      </annotations>
+    </M-CALLS-RERUN-EVIDENCE>
+
+    <M-CALLS-RERUN-DECISION NAME="CallsRerunDecision" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Issue the updated bounded Telegram calls decision after the repaired rerun wave.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALLS-RERUN-EVIDENCE, M-CALLS-GO-NO-GO, M-TELEGRAM-CALLS-PROFILE</depends>
+      <verification-ref>V-M-CALLS-RERUN-DECISION</verification-ref>
+      <annotations>
+        <fn-issueCallsRerunDecision PURPOSE="Issue the bounded post-fix Telegram calls decision for the tested setup." />
+      </annotations>
+    </M-CALLS-RERUN-DECISION>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1264,6 +1324,23 @@
     <CrossLink from="M-TELEGRAM-CALLS-EVIDENCE" to="M-CALLS-EVIDENCE-PACKET" relation="supplies the packet separation rules reused in the live calls acceptance wave" />
     <CrossLink from="M-CALLS-EVIDENCE-PACKET" to="M-CALLS-GO-NO-GO" relation="supplies the bounded live packets required for the final calls decision" />
     <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-CALLS-GO-NO-GO" relation="bounds the final decision to Telegram Desktop on the tested setup only" />
+    <CrossLink from="M-CALLS-DEPLOY-BOOTSTRAP" to="M-CALLS-RERUN-DEPLOY" relation="supplies the governed live deploy shape reused by the post-fix rerun wave" />
+    <CrossLink from="M-SOCKS5" to="M-CALLS-RERUN-DEPLOY" relation="carries the repaired live SOCKS5 listener path that must reach UDP ASSOCIATE on the rerun hosts" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-CALLS-RERUN-DEPLOY" relation="defines the repaired UDP ASSOCIATE ingress surface delivered by the rerun deploy" />
+    <CrossLink from="M-CALLS-RERUN-DEPLOY" to="M-CALLS-RERUN-READINESS" relation="provides the repaired live baseline whose readiness must be proven before another call attempt" />
+    <CrossLink from="M-CALLS-SERVICE-READINESS" to="M-CALLS-RERUN-READINESS" relation="supplies the original live readiness shape now repeated after the ingress fix" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-CALLS-RERUN-READINESS" relation="defines the UDP ASSOCIATE ingress proof required by the rerun readiness packet" />
+    <CrossLink from="M-CALLS-RERUN-READINESS" to="M-CALLS-RERUN-VOICE" relation="blocks the repaired voice rerun until post-fix ingress readiness is proven" />
+    <CrossLink from="M-CALLS-HANDOFF" to="M-CALLS-RERUN-VOICE" relation="reuses the exact operator SSH-forward path for the repaired voice rerun" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-CALLS-RERUN-VOICE" relation="supplies the bounded calls-wave evidence shape reused after the ingress fix" />
+    <CrossLink from="M-CALLS-RERUN-VOICE" to="M-CALLS-RERUN-VIDEO" relation="keeps the repaired video rerun separate from the repaired voice result" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-CALLS-RERUN-VIDEO" relation="supplies the bounded calls-wave evidence shape reused for the repaired video rerun" />
+    <CrossLink from="M-CALLS-RERUN-VOICE" to="M-CALLS-RERUN-EVIDENCE" relation="produces the repaired voice packet included in the rerun evidence set" />
+    <CrossLink from="M-CALLS-RERUN-VIDEO" to="M-CALLS-RERUN-EVIDENCE" relation="produces the repaired video packet included in the rerun evidence set" />
+    <CrossLink from="M-CALLS-EVIDENCE-PACKET" to="M-CALLS-RERUN-EVIDENCE" relation="supplies the earlier live calls packet structure that the post-fix rerun extends without erasing history" />
+    <CrossLink from="M-CALLS-RERUN-EVIDENCE" to="M-CALLS-RERUN-DECISION" relation="supplies the post-fix rerun packet set required for the updated bounded decision" />
+    <CrossLink from="M-CALLS-GO-NO-GO" to="M-CALLS-RERUN-DECISION" relation="provides the pre-fix no-go baseline that the rerun decision must compare against" />
+    <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-CALLS-RERUN-DECISION" relation="keeps the post-fix calls claim bounded to the tested Telegram Desktop setup" />
 
   </Project>
 </KnowledgeGraph>
