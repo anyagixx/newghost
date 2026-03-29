@@ -141,6 +141,13 @@ Current calls-profile status:
 - Phase-22 freezes the remaining bounded hypotheses after that result:
   Telegram Desktop may still avoid the proxy-governed UDP media path, may bypass or stall before media on the tested build, or may still hit a deeper governed datagram or remote-media boundary that is not visible from the UI alone
 - external filtering remains only a later hypothesis; it is not allowed to become the leading explanation before a controlled UDP probe and remote-media reachability packet are captured
+- the completed Phase-22 packet on 2026-03-29 narrowed the boundary further:
+  a bounded live call capture showed TCP traffic to the local SOCKS5 listener and a live WSS uplink to `91.99.128.146:7443`, but no UDP on local port `1080` during the Telegram call attempt
+- the same phase proved that controlled UDP ingress is alive and outbound probe traffic can be sent, but the controlled round trip is still incomplete:
+  `scripts/udp_probe.sh` returned `probe_status=association-ok`, `outbound_result=sent`, and `inbound_result=timeout`, while a bounded remote capture on UDP port `55123` saw zero packets
+- bounded root-cause classification after Phase-22:
+  Telegram Desktop calls on the tested setup remain outside the proven proxy-governed UDP envelope, and the governed datagram path still lacks a proven inbound round trip
+- external filtering is still not the first unresolved layer; the next phase should isolate datagram round-trip behavior and app-specific media handoff before any network-workaround phase is approved
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.

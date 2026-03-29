@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.29">
+<VerificationPlan VERSION="0.2.31">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -42,6 +42,11 @@
     <local-client-topology-rule>A local-client Telegram calls wave must prove that Telegram Desktop and n0wss-client share the same workstation topology and that the path no longer depends on SSH port forwarding.</local-client-topology-rule>
     <topology-comparison-rule>When a new operator topology is introduced after a prior no-go wave, verification must preserve both packet histories and compare them explicitly instead of silently replacing the old conclusion.</topology-comparison-rule>
     <network-block-boundary-rule>External filtering or provider blocking may be considered only after the local topology, local UDP ingress, governed datagram path, and remote relay evidence are all classified; it must not be used as the first explanation while earlier layers remain unproven.</network-block-boundary-rule>
+    <controlled-probe-before-blame-rule>Any Telegram-calls root-cause phase must first run a controlled datagram probe outside Telegram UI before provider, regulator, or generic network blocking is treated as the leading explanation.</controlled-probe-before-blame-rule>
+    <app-vs-tunnel-classification-rule>Root-cause verification must explicitly classify whether Telegram Desktop emits proxy-governed media traffic, emits direct or bypass traffic, or never leaves the signaling envelope; tunnel defects must not be inferred before this split is evidenced.</app-vs-tunnel-classification-rule>
+    <bounded-capture-rule>Workstation and host packet capture must stay bounded by interface, duration, and scenario correlation so later agents can compare traces without rereading unbounded dumps.</bounded-capture-rule>
+    <remote-probe-independence-rule>The remote-media probe must remain independent of Telegram UI outcomes so relay reachability can be proven or rejected even when the app path is ambiguous.</remote-probe-independence-rule>
+    <next-architecture-decision-rule>The final decision for a root-cause isolation phase must name the next required architecture or workaround direction rather than claiming the current phase already fixed Telegram calls.</next-architecture-decision-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -2540,6 +2545,135 @@
         <assertion-2>If all governed markers are green and calls still fail, only then may the decision classify the remaining risk as likely external network filtering or provider-side blocking.</assertion-2>
       </required-trace-assertions>
     </V-M-LOCAL-CALLS-GO-NO-GO>
+
+    <V-M-CALLS-FAILURE-HYPOTHESIS MODULE="M-CALLS-FAILURE-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'hypothesis|Telegram Desktop|external filtering|remote media|SOCKS5 UDP' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The hypothesis set remains bounded to app behavior, governed datagram path, and external filtering only after earlier layers are classified.</scenario-1>
+        <scenario-2 kind="failure">The phase must not jump straight to provider or regulator blocking without controlled-probe evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The hypothesis set must preserve the already proven facts from Phase-21 instead of reopening topology questions as unresolved.</assertion-1>
+        <assertion-2>The hypothesis set must keep app behavior, datagram-path defects, and external filtering as distinct branches rather than a blended “network problem” bucket.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-FAILURE-HYPOTHESIS>
+
+    <V-M-CALLS-UDP-PROBE-TOOLING MODULE="M-CALLS-UDP-PROBE-TOOLING" PRIORITY="high">
+      <test-files>
+        <file>scripts/udp_probe.sh</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'UDP ASSOCIATE|udp_probe|datagram|echo|probe' scripts/udp_probe.sh docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Controlled tooling can open SOCKS5 UDP ASSOCIATE and send bounded datagrams without Telegram UI.</scenario-1>
+        <scenario-2 kind="failure">The probe path must not blur success of raw association with success of end-to-end datagram exchange.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The tooling must preserve the UDP ASSOCIATE marker and at least one deeper datagram marker in its success path.</assertion-1>
+        <assertion-2>The tooling must leave an evidence shape that can distinguish association success, outbound datagram success, and inbound reply success as separate stages.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-UDP-PROBE-TOOLING>
+
+    <V-M-CALLS-LIVE-PACKET-CAPTURE MODULE="M-CALLS-LIVE-PACKET-CAPTURE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'tcpdump|tshark|packet capture|socket capture|workstation' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The capture surface is bounded by time and location so app and tunnel traffic can be compared without noisy unbounded dumps.</scenario-1>
+        <scenario-2 kind="failure">Capture guidance must not rely on unconstrained workstation-wide packet logs that are too noisy to classify.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Capture commands must preserve correlation between workstation events and n0wss runtime markers.</assertion-1>
+        <assertion-2>Capture guidance must name the minimal interface, duration, and packet scope needed for later comparison against controlled probes.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-LIVE-PACKET-CAPTURE>
+
+    <V-M-CALLS-APP-BEHAVIOR-CLASSIFIER MODULE="M-CALLS-APP-BEHAVIOR-CLASSIFIER" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'app behavior|bypass|proxy-governed UDP|stalls before media' docs/development-plan.xml docs/verification-plan.xml README.md</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The classifier distinguishes proxy-governed UDP usage from bypass or pre-media stalling behavior.</scenario-1>
+        <scenario-2 kind="failure">The classifier must not report a transport-core defect if the app never attempts the governed media path.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Classification must compare workstation capture evidence with runtime markers instead of relying on Telegram UI text alone.</assertion-1>
+        <assertion-2>The classifier must explicitly say whether Telegram produced proxy-governed UDP, bypass traffic, or no media-path attempt at all.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-APP-BEHAVIOR-CLASSIFIER>
+
+    <V-M-CALLS-REMOTE-MEDIA-PROBE MODULE="M-CALLS-REMOTE-MEDIA-PROBE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'remote media|UDP relay|echo target|inbound|outbound' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The remote relay path is exercised independently of Telegram and captures outbound and inbound datagram evidence.</scenario-1>
+        <scenario-2 kind="failure">A remote-media probe must not be mistaken for Telegram app success.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The probe must preserve outbound and inbound relay markers separately so asymmetric failures stay visible.</assertion-1>
+        <assertion-2>The probe packet must remain independent from Telegram Desktop symptoms so relay reachability is not inferred from UI behavior.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-REMOTE-MEDIA-PROBE>
+
+    <V-M-CALLS-BLOCKING-BOUNDARY MODULE="M-CALLS-BLOCKING-BOUNDARY" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'blocking boundary|external filtering|app behavior mismatch|datagram-path defect' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The boundary packet distinguishes app behavior, governed-path defects, and only then plausible external filtering.</scenario-1>
+        <scenario-2 kind="failure">Provider-blocking language must not appear before controlled probes and app classification are complete.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The boundary packet must point to the first still-unresolved layer rather than repeat already-closed topology questions.</assertion-1>
+        <assertion-2>External filtering may be elevated only if both the controlled probe and the remote media probe leave no earlier unresolved governed-path gap.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-BLOCKING-BOUNDARY>
+
+    <V-M-CALLS-DECISION-NEXT-ARCH MODULE="M-CALLS-DECISION-NEXT-ARCH" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'next-step|next architecture|workaround phase|bounded decision' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The final decision names the next architectural phase without overstating certainty beyond the evidence packet.</scenario-1>
+        <scenario-2 kind="failure">The final decision must not claim universal provider blocking or universal Telegram incompatibility without bounded proof.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The decision must say whether the next phase is transport, app-specific handoff, or external-network workaround oriented.</assertion-1>
+        <assertion-2>The decision must preserve the bounded reason why that next phase is needed, using the blocking-boundary packet rather than a generic “calls still do not work” summary.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-DECISION-NEXT-ARCH>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -2786,6 +2920,25 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsLocalClientTopologyWave; expected-evidence=local listener proof, local UDP ASSOCIATE proof, separate voice and video packets, and a topology comparison packet; observed-evidence=local bootstrap state, local operator symptom, bounded local client logs, bounded remote server logs, and any governed UDP markers; first-divergent-block=first missing local readiness, local UDP ingress, datagram transport, relay, or app-side marker; next-action=repair only the first divergent local-topology layer before another rerun</failure-packet-template>
     </LV-012>
+
+    <LV-013 NAME="TelegramCallsRootCauseIsolationWave" PRIORITY="high">
+      <goal>Run controlled datagram probes, bounded packet capture, and Telegram Desktop classification so the remaining calls blocker is isolated before any new transport or workaround phase.</goal>
+      <commands>
+        <command-1>bash scripts/udp_probe.sh --socks5 127.0.0.1:$N0WSS_SOCKS5_PORT --target $N0WSS_UDP_ECHO_TARGET</command-1>
+        <command-2>capture a bounded workstation packet or socket trace during one Telegram Desktop voice-call attempt</command-2>
+        <command-3>capture bounded client and server log tails covering UDP ASSOCIATE, datagram transport, and relay markers during the same attempt</command-3>
+        <command-4>run one remote media reachability probe through the governed UDP relay path independent of Telegram UI</command-4>
+        <command-5>assemble a bounded comparison packet covering controlled probe, live app behavior, and remote media reachability</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The controlled probe proves or falsifies end-to-end datagram reachability independently of Telegram Desktop.</evidence-1>
+        <evidence-2>The workstation capture proves whether Telegram Desktop emits media-path traffic through the proxy-governed path.</evidence-2>
+        <evidence-3>The remote media probe proves or falsifies relay reachability independently of Telegram UI state.</evidence-3>
+        <evidence-4>The final packet separates app behavior mismatch, datagram-path defect, and plausible external filtering.</evidence-4>
+        <evidence-5>The wave keeps controlled-probe, live-app, and remote-media packets separate so the first unresolved layer can be promoted cleanly.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsRootCauseIsolationWave; expected-evidence=controlled datagram probe, bounded workstation capture, remote media probe, and bounded root-cause packet; observed-evidence=probe output, capture evidence, runtime markers, and relay evidence; first-divergent-block=first missing controlled-probe, app-behavior, or remote-media marker; next-action=repair or narrow the first unresolved layer before any new workaround phase</failure-packet-template>
+    </LV-013>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -3140,6 +3293,22 @@
         <evidence-5>The phase forbids jumping straight to provider-blocking explanations before the local topology and governed datagram path are classified.</evidence-5>
       </required-evidence>
     </Gate-Phase-21>
+
+    <Gate-Phase-22 PHASE="Phase-22">
+      <goal>The project has a bounded root-cause isolation plan for Telegram calls that distinguishes controlled datagram reachability, Telegram app behavior, and plausible external filtering.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-22|M-CALLS-FAILURE-HYPOTHESIS|M-CALLS-DECISION-NEXT-ARCH' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-013|udp_probe|packet capture|app behavior|remote media' docs/verification-plan.xml docs/development-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md</command-2>
+        <command-3>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_OPEN_DATAGRAM_ASSOCIATION|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_SEND_WSS_DATAGRAM|BLOCK_RELAY_UDP_OUTBOUND|BLOCK_RELAY_UDP_INBOUND' docs/verification-plan.xml</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>The phase defines a controlled datagram probe outside Telegram UI before blaming the provider or network.</evidence-1>
+        <evidence-2>The phase defines a bounded workstation packet-capture or socket-evidence surface for live Telegram calls attempts.</evidence-2>
+        <evidence-3>The phase defines an explicit app-behavior classifier and a separate remote-media probe.</evidence-3>
+        <evidence-4>The final decision is bounded to naming the next architecture or workaround phase, not to claiming the root cause is already fixed.</evidence-4>
+        <evidence-5>The phase makes it impossible to collapse controlled-probe, live-app, and remote-media evidence into one blended conclusion without naming the first unresolved layer.</evidence-5>
+      </required-evidence>
+    </Gate-Phase-22>
   </PhaseGates>
 
   <FailurePackets>

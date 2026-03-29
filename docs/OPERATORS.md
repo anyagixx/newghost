@@ -518,6 +518,44 @@ Operator boundary for the next diagnostic wave:
 
 - do not treat `Connecting` or key-exchange UI text as root-cause evidence by itself
 - do not jump straight to provider or regulator blame before the controlled probe packet is captured
+
+Observed controlled probe and app-behavior packet on 2026-03-29:
+
+- the local bounded Telegram call attempt still stopped at Telegram key exchange
+- the workstation loopback capture recorded `133` packets on local TCP port `1080`
+- the same loopback capture recorded no UDP packets on local port `1080` during the call attempt
+- the workstation uplink capture recorded `200` packets on live TCP sessions toward `91.99.128.146:7443`
+- local runtime logs continued to show SOCKS5 `CONNECT` requests toward Telegram addresses and WSS transport resolution
+- local runtime logs did not show
+  `[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]`
+  or any later datagram markers during the Telegram call attempt
+- bounded app classification: on the tested Telegram Desktop build and workstation path, the live call attempt stayed inside the already proven TCP signaling envelope and did not emit observable proxy-governed UDP media on the local SOCKS5 path
+
+Observed remote media probe packet on 2026-03-29:
+
+- `scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target 91.99.128.146:55123 --payload phase22-probe --timeout 5`
+  returned
+  `probe_status=association-ok`
+  `outbound_result=sent`
+  `inbound_result=timeout`
+- the same probe produced a governed relay bind reply on `127.0.0.1`
+- the remote capture on server host `91.99.128.146` for UDP port `55123` captured `0` packets during that bounded probe window
+- bounded remote-media classification: ingress and outbound send are proven deeper than the older listener bug, but end-to-end inbound media reachability is still not proven on the controlled datagram path
+
+Current root-cause boundary after Phase-22:
+
+- first resolved layer: the old `UDP ASSOCIATE` ingress defect is gone
+- second resolved layer: Telegram Desktop does reach the local SOCKS5 TCP path and the remote WSS uplink during calls attempts
+- first unresolved app layer: the tested Telegram Desktop calls attempt did not yield observable proxy-governed UDP media on the local loopback path
+- first unresolved transport layer: the controlled UDP probe still lacks a proven inbound reply and the remote echo target did not observe datagrams in the bounded capture window
+- bounded no-blame rule: external filtering remains possible, but it is still not the first unresolved layer in this packet set
+
+Next architecture direction after Phase-22:
+
+- do not start another blind Telegram calls rerun on the same operator path
+- next phase should focus on datagram round-trip isolation and app-specific handoff classification:
+  proving why controlled outbound UDP does not become an observed inbound reply, and whether Telegram Desktop media on this build expects a path outside the currently observed SOCKS5 envelope
+- provider or regulator workaround work is not yet justified as the next phase, because the controlled datagram round-trip boundary is still unresolved
 - keep app-behavior evidence, controlled datagram evidence, and remote-media evidence as separate packets
 
 ### Telegram Calls Wave Runbook
