@@ -3061,10 +3061,13 @@
         <file>src/session/datagram_manager.rs</file>
         <file>src/session/mod.rs</file>
         <file>src/session/datagram_manager.test.rs</file>
+        <file>src/cli/mod.rs</file>
+        <file>src/cli/mod.test.rs</file>
       </test-files>
       <module-checks>
         <check-1>cargo test datagram_manager</check-1>
         <check-2>cargo test session</check-2>
+        <check-3>cargo test cli</check-3>
       </module-checks>
       <success-scenarios>
         <scenario-1>The bridge preserves association ownership while handing one normalized runtime datagram from local ingress to carrier emission.</scenario-1>
@@ -3120,6 +3123,7 @@
       <success-scenarios>
         <scenario-1>The rerun proves that the deepest controlled datagram layer advanced beyond the stopped Phase-24 runtime-caller boundary.</scenario-1>
         <scenario-2>The rerun either proves remote echo-target ingress or names the next first missing runtime marker explicitly.</scenario-2>
+        <scenario-3>The rerun may stop at inbound timeout only after client-side emission and server-side relay outbound are both proven in the same bounded packet.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The rerun repeats `association-ok` with only local ingress markers and no stronger runtime evidence than Phase-23 or Phase-24.</scenario-1>
@@ -3476,9 +3480,10 @@
         <command-3>cargo test datagram_transport_selector</command-3>
         <command-4>cargo test wss_gateway</command-4>
         <command-5>cargo test udp_relay</command-5>
-        <command-6>prepare the bounded remote UDP echo target and replay `scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target $N0WSS_UDP_ECHO_TARGET --payload phase25-probe --timeout 5`</command-6>
-        <command-7>capture bounded local and remote runtime evidence for the same runtime-glue probe window</command-7>
-        <command-8>assemble a comparison packet against Phase-23 and the stopped Phase-24 packet</command-8>
+        <command-6>cargo test cli</command-6>
+        <command-7>prepare the bounded remote UDP echo target and replay `scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target $N0WSS_UDP_ECHO_TARGET --payload phase25-probe --timeout 5`</command-7>
+        <command-8>capture bounded local and remote runtime evidence for the same runtime-glue probe window</command-8>
+        <command-9>assemble a comparison packet against Phase-23 and the stopped Phase-24 packet</command-9>
       </commands>
       <required-evidence>
         <evidence-1>The runtime-glue wave proves that live client code now reads the UDP relay socket and enters the repaired manager handoff path.</evidence-1>
@@ -3487,6 +3492,7 @@
         <evidence-4>The final comparison packet states whether the deepest proven datagram layer moved beyond both the Phase-23 and stopped Phase-24 boundaries.</evidence-4>
         <evidence-5>The wave keeps local receive, manager handoff, production WSS emission, server-side ingress, and remote echo-target ingress as separate evidence classes.</evidence-5>
         <evidence-6>The wave does not allow a helper-only packet or mock-only carrier packet to count as runtime-glue progress.</evidence-6>
+        <evidence-7>An inbound timeout is acceptable only after client-side emission and server-side relay outbound are already proven in the same bounded packet.</evidence-7>
       </required-evidence>
       <failure-packet-template>scenario=DatagramRuntimeGlueWave; expected-evidence=live UDP runtime receive evidence, production WSS datagram carrier evidence, server-side datagram ingress evidence, and a post-glue comparison packet; observed-evidence=module-local checks, bounded probe packet, local and remote runtime capture, and bounded decision; first-divergent-block=first missing live-runtime, carrier-emission, or server-ingress layer; next-action=repair only the first unresolved runtime glue layer before any Telegram-specific rerun</failure-packet-template>
     </LV-016>
@@ -3905,6 +3911,7 @@
         <command-5>cargo test datagram_transport_selector</command-5>
         <command-6>cargo test wss_gateway</command-6>
         <command-7>cargo test udp_relay</command-7>
+        <command-8>cargo test cli</command-8>
       </commands>
       <required-evidence>
         <evidence-1>The phase keeps the blocker bounded to missing live runtime callers rather than reopening already-repaired helper-level work.</evidence-1>

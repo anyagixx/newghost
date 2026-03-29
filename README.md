@@ -168,6 +168,10 @@ Current calls-profile status:
   there is still no proven production `WssDatagramPath`, no proven live client UDP receive loop feeding the manager, and no proven server-side runtime datagram ingress
 - Phase-25 is therefore not another datagram diagnosis wave and not a Telegram rerun:
   it is a runtime-glue wave that must wire the repaired helpers into the real client and server path before any new controlled probe or Telegram-specific rerun is treated as meaningful
+- the completed Phase-25 runtime-glue wave on 2026-03-29 advanced the controlled packet beyond that stopped boundary:
+  live client logs now prove `BLOCK_PARSE_UDP_DATAGRAM`, `BLOCK_FORWARD_OUTBOUND_DATAGRAM`, and `BLOCK_SEND_WSS_DATAGRAM`, while live server logs prove `SERVER_DATAGRAM_RECEIVED` and `BLOCK_RELAY_UDP_OUTBOUND`
+- the same bounded rerun still ended with `inbound_result=timeout`, so the post-glue decision remains narrow:
+  outbound runtime glue is now proven through server-side relay outbound, but inbound reply return is still unresolved and a new Telegram-specific calls wave would still be premature
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.

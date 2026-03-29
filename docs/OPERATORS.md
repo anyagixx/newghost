@@ -798,6 +798,17 @@ Operator boundary for Phase-25:
   local UDP receive, manager handoff, production WSS emission, server-side datagram receive, and remote echo-target ingress
 - if one of those runtime layers stays silent, classify that as the first unresolved layer and do not reopen Telegram UI diagnosis yet
 
+Observed Phase-25 runtime-glue outcome on 2026-03-29:
+
+- live client runtime on `178.104.104.208` now shows:
+  `BLOCK_HANDLE_UDP_ASSOCIATE`, `BLOCK_PARSE_UDP_DATAGRAM`, `BLOCK_FORWARD_OUTBOUND_DATAGRAM`, `BLOCK_SEND_WSS_DATAGRAM`, and `BLOCK_EMIT_OUTBOUND_DATAGRAM`
+- live server runtime on `91.99.128.146` now shows:
+  `SERVER_DATAGRAM_RECEIVED` and `BLOCK_RELAY_UDP_OUTBOUND`
+- bounded classification:
+  the runtime-glue blocker between local ingress and server-side outbound relay is gone
+- remaining bounded blocker:
+  the same controlled probe still ended with `inbound_result=timeout`, so inbound reply return is not proven yet and another Telegram Desktop calls rerun would still be blind
+
 Remote server-host bounded capture:
 
 ```bash
