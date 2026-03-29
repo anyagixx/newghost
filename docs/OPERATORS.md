@@ -448,6 +448,45 @@ Operator boundaries for the next wave:
 3. keep Telegram Desktop on SOCKS5 `127.0.0.1:1080` with no username and no password
 4. run voice and video attempts only after the controller confirms local raw `UDP ASSOCIATE` readiness on the same workstation
 
+### Phase-21 Local Client Bootstrap Shape
+
+The next wave uses one bounded local bootstrap:
+
+- local binary: the current `n0wss` build on the Telegram Desktop workstation
+- local auth source: one local env file exporting `N0WSS_AUTH_TOKEN`
+- local remote endpoint: one `N0WSS_REMOTE_WSS_URL`
+- local trust anchor: one local copy of the server trust anchor
+- local listener target: `127.0.0.1:1080`
+
+Planned local launch shape:
+
+```bash
+set -a
+source /secure-inputs/client.env
+set +a
+
+./target/release/n0wss \
+  --auth-token "$N0WSS_AUTH_TOKEN" \
+  client \
+  --listen-addr 127.0.0.1:1080 \
+  --remote-wss-url "$N0WSS_REMOTE_WSS_URL" \
+  --tls-trust-anchor-path /secure-inputs/server.pem
+```
+
+Planned local cleanup shape before reruns:
+
+```bash
+pkill -f 'n0wss .* client' || true
+ss -ltnp | grep ':1080' || true
+```
+
+Bootstrap boundaries:
+
+1. do not start more than one local `n0wss-client` for the calls wave
+2. do not reuse a stale listener from an older local experiment
+3. keep the trust anchor local and explicit instead of silently reusing remote host paths
+4. if local bootstrap changes, treat it as a new readiness packet before opening Telegram
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
