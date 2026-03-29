@@ -1615,7 +1615,7 @@
       </annotations>
     </M-CLIENT-DATAGRAM-INBOUND-BRIDGE>
 
-    <M-DATAGRAM-INBOUND-RERUN NAME="DatagramInboundRerun" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-DATAGRAM-INBOUND-RERUN NAME="DatagramInboundRerun" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Replay the controlled datagram probe after inbound-return repairs and classify whether reply delivery is finally proven.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-CLIENT-DATAGRAM-INBOUND-BRIDGE, M-WSS-DATAGRAM-INBOUND-EMIT, M-DATAGRAM-ECHO-TARGET</depends>
@@ -1625,7 +1625,7 @@
       </annotations>
     </M-DATAGRAM-INBOUND-RERUN>
 
-    <M-DATAGRAM-INBOUND-EVIDENCE NAME="DatagramInboundEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-DATAGRAM-INBOUND-EVIDENCE NAME="DatagramInboundEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Assemble the post-inbound-repair packet and compare it against the earlier datagram baselines.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-DATAGRAM-INBOUND-RERUN, M-DATAGRAM-RUNTIME-EVIDENCE</depends>
@@ -1635,7 +1635,7 @@
       </annotations>
     </M-DATAGRAM-INBOUND-EVIDENCE>
 
-    <M-DATAGRAM-INBOUND-DECISION NAME="DatagramInboundDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-DATAGRAM-INBOUND-DECISION NAME="DatagramInboundDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded post-inbound-repair decision on whether a Telegram-specific wave is finally justified.</purpose>
       <path>README.md</path>
       <depends>M-DATAGRAM-INBOUND-EVIDENCE</depends>

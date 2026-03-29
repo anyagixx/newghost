@@ -823,6 +823,18 @@ The next approved scope is now inbound-only:
 5. the old Phase-24 tail is superseded:
    its pending rerun/evidence/decision steps are no longer source-of-truth for execution
 
+Observed Phase-26 inbound-return outcome on 2026-03-29:
+
+- bounded public-IP probe from `ghost-cli` to `91.99.128.146:55123` still ended with `inbound_result=timeout`, and the temporary echo target on `ghost-srv` saw no ingress
+- bounded loopback probe from `ghost-cli` to `127.0.0.1:55123` on `ghost-srv` proved deeper progress:
+  the echo target logged `echo-recv ... payload=b'phase26-loopback'`
+- the same loopback packet still did not produce any inbound return markers in `n0wss`:
+  no `SERVER_DATAGRAM_INBOUND_RECEIVED`, no `SERVER_DATAGRAM_RETURN_EMITTED`, no `BLOCK_RELAY_UDP_INBOUND`, no `BLOCK_FORWARD_INBOUND_DATAGRAM`, and no `BLOCK_DELIVER_INBOUND_DATAGRAM`
+- bounded classification:
+  the remaining blocker is no longer target ingress or client outbound glue; it is the server-side inbound receive and WSS return segment before any client-side local delivery can happen
+- operator consequence:
+  do not rerun Telegram Desktop calls yet; the next approved wave must repair server-side inbound reply return inside the datagram path
+
 Remote server-host bounded capture:
 
 ```bash

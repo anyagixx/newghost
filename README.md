@@ -176,6 +176,12 @@ Current calls-profile status:
   it is an inbound-return wave that must separately prove server-side reply receive, WSS return emission, client-side local delivery, and only then `reply-received`
 - the Phase-26 baseline is locked to the completed Phase-25 tuple:
   `SERVER_DATAGRAM_RECEIVED`, `BLOCK_RELAY_UDP_OUTBOUND`, and `inbound_result=timeout`
+- the completed Phase-26 inbound-return wave on 2026-03-29 tightened the boundary further with two bounded packets:
+  the public-IP probe to `91.99.128.146:55123` still timed out with no echo-target ingress, while the loopback probe to `127.0.0.1:55123` on the server host proved deeper progress because the echo target received `phase26-loopback`
+- the same loopback packet still ended with `inbound_result=timeout`, and no deeper inbound markers appeared:
+  no `SERVER_DATAGRAM_INBOUND_RECEIVED`, no `SERVER_DATAGRAM_RETURN_EMITTED`, no `BLOCK_RELAY_UDP_INBOUND`, no `BLOCK_FORWARD_INBOUND_DATAGRAM`, and no `BLOCK_DELIVER_INBOUND_DATAGRAM`
+- the bounded Phase-26 decision therefore stays transport-scoped:
+  outbound delivery to a deterministic server-local echo target is now proven, but the first unresolved layer remains the server-side inbound receive and return-emission path, so another Telegram-specific wave is still blocked
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

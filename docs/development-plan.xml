@@ -4387,7 +4387,7 @@
       <verification-ref>V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE</verification-ref>
     </M-CLIENT-DATAGRAM-INBOUND-BRIDGE>
 
-    <M-DATAGRAM-INBOUND-RERUN NAME="DatagramInboundRerun" TYPE="ENTRY_POINT" LAYER="29" ORDER="7" STATUS="planned">
+    <M-DATAGRAM-INBOUND-RERUN NAME="DatagramInboundRerun" TYPE="ENTRY_POINT" LAYER="29" ORDER="7" STATUS="done">
       <contract>
         <purpose>Replay one controlled datagram probe after inbound-return repairs and classify whether the bounded result finally becomes `reply-received`.</purpose>
         <inputs>
@@ -4411,7 +4411,7 @@
       <verification-ref>V-M-DATAGRAM-INBOUND-RERUN</verification-ref>
     </M-DATAGRAM-INBOUND-RERUN>
 
-    <M-DATAGRAM-INBOUND-EVIDENCE NAME="DatagramInboundEvidence" TYPE="UTILITY" LAYER="29" ORDER="8" STATUS="planned">
+    <M-DATAGRAM-INBOUND-EVIDENCE NAME="DatagramInboundEvidence" TYPE="UTILITY" LAYER="29" ORDER="8" STATUS="done">
       <contract>
         <purpose>Assemble the post-inbound-repair comparison packet against the earlier Phase-23, superseded Phase-24, and completed Phase-25 datagram boundaries.</purpose>
         <inputs>
@@ -4435,7 +4435,7 @@
       <verification-ref>V-M-DATAGRAM-INBOUND-EVIDENCE</verification-ref>
     </M-DATAGRAM-INBOUND-EVIDENCE>
 
-    <M-DATAGRAM-INBOUND-DECISION NAME="DatagramInboundDecision" TYPE="ENTRY_POINT" LAYER="29" ORDER="9" STATUS="planned">
+    <M-DATAGRAM-INBOUND-DECISION NAME="DatagramInboundDecision" TYPE="ENTRY_POINT" LAYER="29" ORDER="9" STATUS="done">
       <contract>
         <purpose>Issue the bounded decision on whether the controlled datagram round-trip is finally complete enough for a Telegram-specific wave or the inbound reply path remains blocked.</purpose>
         <inputs>
@@ -5156,7 +5156,7 @@
       <step-7 module="M-DATAGRAM-RUNTIME-EVIDENCE" status="done" verification="V-M-DATAGRAM-RUNTIME-EVIDENCE">Assemble the bounded post-runtime-glue comparison packet</step-7>
       <step-8 module="M-DATAGRAM-RUNTIME-DECISION" status="done" verification="V-M-DATAGRAM-RUNTIME-DECISION">Issue the bounded decision on whether a Telegram-specific calls wave is now justified</step-8>
     </Phase-25>
-    <Phase-26 name="Datagram Inbound Reply Return" status="pending">
+    <Phase-26 name="Datagram Inbound Reply Return" status="done">
       <goal>Repair and prove the controlled inbound datagram return path from remote reply receive through WSS return and local relay delivery before any Telegram-specific rerun is allowed.</goal>
       <step-1 module="M-DATAGRAM-INBOUND-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-INBOUND-HYPOTHESIS">Freeze the bounded inbound-only blocker after Phase-25</step-1>
       <step-2 module="M-PHASE24-SUPERSEDE" status="done" verification="V-M-PHASE24-SUPERSEDE">Explicitly supersede the stale pending Phase-24 tail in the shared artifacts</step-2>
@@ -5164,9 +5164,13 @@
       <step-4 module="M-SERVER-DATAGRAM-INBOUND-RECEIVE" status="done" verification="V-M-SERVER-DATAGRAM-INBOUND-RECEIVE">Add the server-side inbound UDP receive loop after relay outbound</step-4>
       <step-5 module="M-WSS-DATAGRAM-INBOUND-EMIT" status="done" verification="V-M-WSS-DATAGRAM-INBOUND-EMIT">Return one server-side inbound datagram back over the governed WSS path</step-5>
       <step-6 module="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" status="done" verification="V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE">Deliver inbound datagrams from the client runtime back into the owning local relay socket</step-6>
-      <step-7 module="M-DATAGRAM-INBOUND-RERUN" status="pending" verification="V-M-DATAGRAM-INBOUND-RERUN">Replay one bounded controlled probe and classify whether `reply-received` is finally proven</step-7>
-      <step-8 module="M-DATAGRAM-INBOUND-EVIDENCE" status="pending" verification="V-M-DATAGRAM-INBOUND-EVIDENCE">Assemble the post-inbound-repair comparison packet against Phase-23, Phase-24, and Phase-25</step-8>
-      <step-9 module="M-DATAGRAM-INBOUND-DECISION" status="pending" verification="V-M-DATAGRAM-INBOUND-DECISION">Issue the bounded decision on whether a new Telegram-specific wave is now justified</step-9>
+      <step-7 module="M-DATAGRAM-INBOUND-RERUN" status="done" verification="V-M-DATAGRAM-INBOUND-RERUN">Replay one bounded controlled probe and classify whether `reply-received` is finally proven</step-7>
+      <step-8 module="M-DATAGRAM-INBOUND-EVIDENCE" status="done" verification="V-M-DATAGRAM-INBOUND-EVIDENCE">Assemble the post-inbound-repair comparison packet against Phase-23, Phase-24, and Phase-25</step-8>
+      <step-9 module="M-DATAGRAM-INBOUND-DECISION" status="done" verification="V-M-DATAGRAM-INBOUND-DECISION">Issue the bounded decision on whether a new Telegram-specific wave is now justified</step-9>
+      <note-1>On 2026-03-29 the first public-IP rerun to 91.99.128.146:55123 still ended with inbound_result=timeout and the temporary echo target on ghost-srv observed no ingress, so target topology ambiguity remained for that packet.</note-1>
+      <note-2>On the same date the bounded loopback rerun to 127.0.0.1:55123 on ghost-srv proved deeper progress: the echo target logged phase26-loopback, live client logs still showed BLOCK_HANDLE_UDP_ASSOCIATE, BLOCK_PARSE_UDP_DATAGRAM, BLOCK_FORWARD_OUTBOUND_DATAGRAM, and BLOCK_SEND_WSS_DATAGRAM, and live server logs still showed SERVER_DATAGRAM_RECEIVED plus BLOCK_RELAY_UDP_OUTBOUND.</note-2>
+      <note-3>The same loopback packet still produced inbound_result=timeout and no SERVER_DATAGRAM_INBOUND_RECEIVED, SERVER_DATAGRAM_RETURN_EMITTED, BLOCK_RELAY_UDP_INBOUND, BLOCK_FORWARD_INBOUND_DATAGRAM, or BLOCK_DELIVER_INBOUND_DATAGRAM, so the first unresolved layer now sits inside server-side inbound receive and WSS return emit rather than client outbound glue or target ingress.</note-3>
+      <note-4>Because the controlled datagram round-trip is still not green, a Telegram-specific rerun remains methodologically blocked after Phase-26.</note-4>
     </Phase-26>
   </ImplementationOrder>
 
