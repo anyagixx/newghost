@@ -890,6 +890,15 @@ Observed Phase-28 evidence packet on 2026-03-29:
 - comparison packet:
   unlike the older pre-Phase-27 no-go waves, the new packet set no longer needs to reopen generic datagram diagnosis because the same window already preserved the controlled round-trip baseline
 
+Observed Phase-29 hypothesis boundary:
+
+- transport side:
+  keep the same-window `phase27-probe` packet as preserved green baseline evidence
+- app-facing side:
+  keep the completed Phase-28 voice, video, and reconnect packets as bounded no-go evidence for the tested Desktop setup
+- hypothesis decision:
+  the next approved wave must explain Telegram-specific media behavior above the green SOCKS-governed transport envelope rather than reopen generic datagram repair or repeat blind calls
+
 Remote server-host bounded capture:
 
 ```bash

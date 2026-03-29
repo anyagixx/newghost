@@ -201,6 +201,10 @@ Current calls-profile status:
   voice, video, and reconnect all remained below a green media packet even though the transport baseline stayed green in the same window
 - the remaining blocker is now classified as app-facing rather than transport-facing:
   voice advanced far enough to show answer plus key-exchange emoji before `Соединение...`, while video and reconnect still stalled at key exchange; none of those packets justify reopening generic datagram repair
+- the next approved diagnostic boundary after Phase-28 is therefore narrower and explicitly Telegram-specific:
+  controlled datagram transport stays green, while the tested Desktop setup still needs a media-behavior phase that explains how calls fail above that transport baseline
+- the new hypothesis packet must preserve both sides at once:
+  the same deployment window already proved one bounded green `phase27-probe`, and the completed Phase-28 calls packet still ended as app-facing no-go for voice, video, and reconnect
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

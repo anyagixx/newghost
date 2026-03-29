@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.26">
+<DevelopmentPlan VERSION="0.2.27">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -4832,6 +4832,192 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-RERUN-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-RERUN-DECISION>
+
+    <M-TELEGRAM-MEDIA-HYPOTHESIS NAME="TelegramMediaHypothesis" TYPE="UTILITY" LAYER="32" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the new post-Phase-28 truth-boundary where controlled datagram transport is green but Telegram calls still fail at an app-facing media layer on the tested Desktop setup.</purpose>
+        <inputs>
+          <input-1>The completed Phase-28 decision packet.</input-1>
+          <input-2>The earlier post-roundtrip Telegram calls profile.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded Telegram-media hypothesis packet that keeps future work above the transport layer.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-RERUN-DECISION, M-TELEGRAM-CALLS-APP-CLASSIFIER</depends>
+      <observability>
+        <log-prefix>[TelegramMediaHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MEDIA_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MEDIA-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-MEDIA-HYPOTHESIS>
+
+    <M-TELEGRAM-DESKTOP-HANDOFF-PROFILE NAME="TelegramDesktopHandoffProfile" TYPE="ENTRY_POINT" LAYER="32" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Fix the exact Telegram Desktop proxy handoff and operator path for post-Phase-28 diagnostics so new media packets stay reproducible.</purpose>
+        <inputs>
+          <input-1>The completed Phase-28 readiness packet.</input-1>
+          <input-2>The earlier post-roundtrip Telegram calls profile.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded Desktop handoff packet that keeps proxy setup, local forward state, and operator action deterministic.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-RERUN-READINESS, M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramDesktopHandoffProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_DESKTOP_HANDOFF_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-DESKTOP-HANDOFF-PROFILE</verification-ref>
+    </M-TELEGRAM-DESKTOP-HANDOFF-PROFILE>
+
+    <M-TELEGRAM-MEDIA-CAPTURE NAME="TelegramMediaCapture" TYPE="INTEGRATION" LAYER="32" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded capture surface around Telegram Desktop calls so SOCKS-governed traffic, WSS transport, and app-facing divergence can be compared deterministically.</purpose>
+        <inputs>
+          <input-1>The exact Desktop handoff profile.</input-1>
+          <input-2>The earlier live packet-capture guidance for Telegram calls.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded capture packet contract for post-Phase-28 Telegram media diagnostics.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-CALLS-LIVE-PACKET-CAPTURE, M-TELEGRAM-DESKTOP-HANDOFF-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramMediaCapture]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MEDIA_CAPTURE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MEDIA-CAPTURE</verification-ref>
+    </M-TELEGRAM-MEDIA-CAPTURE>
+
+    <M-TELEGRAM-VOICE-MEDIA-CLASSIFIER NAME="TelegramVoiceMediaClassifier" TYPE="CORE_LOGIC" LAYER="32" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Classify the post-answer voice-call outcome above the green datagram baseline as signaling-only stall, governed-media progress, or other app-facing media behavior.</purpose>
+        <inputs>
+          <input-1>The completed voice-call rerun packet.</input-1>
+          <input-2>The bounded Telegram media capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded voice-media classifier packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-MEDIA-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramVoiceMediaClassifier]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VOICE_MEDIA_CLASSIFIER</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VOICE-MEDIA-CLASSIFIER</verification-ref>
+    </M-TELEGRAM-VOICE-MEDIA-CLASSIFIER>
+
+    <M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER NAME="TelegramVideoMediaClassifier" TYPE="CORE_LOGIC" LAYER="32" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Classify the bounded video-call outcome separately from voice and determine whether video diverges earlier or at the same app-facing layer.</purpose>
+        <inputs>
+          <input-1>The completed video-call rerun packet.</input-1>
+          <input-2>The bounded Telegram media capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded video-media classifier packet kept separate from the voice result.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-VIDEO-RERUN, M-TELEGRAM-MEDIA-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramVideoMediaClassifier]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VIDEO_MEDIA_CLASSIFIER</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER</verification-ref>
+    </M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER>
+
+    <M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON NAME="TelegramProxyBehaviorComparison" TYPE="CORE_LOGIC" LAYER="32" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Compare the post-Phase-28 voice and video media classifiers against the green transport baseline and older calls packets to isolate Telegram-specific proxy behavior.</purpose>
+        <inputs>
+          <input-1>The bounded voice-media and video-media classifier packets.</input-1>
+          <input-2>The completed post-roundtrip Telegram calls evidence packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded comparison packet describing whether Telegram is stalling after signaling, diverging by media profile, or showing another app-facing behavior.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-VOICE-MEDIA-CLASSIFIER, M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER, M-TELEGRAM-CALLS-RERUN-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[TelegramProxyBehaviorComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_PROXY_BEHAVIOR_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON</verification-ref>
+    </M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON>
+
+    <M-TELEGRAM-MEDIA-EVIDENCE NAME="TelegramMediaEvidence" TYPE="UTILITY" LAYER="32" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble the bounded handoff, capture, voice, video, and comparison packets for the Telegram-specific media-behavior phase.</purpose>
+        <inputs>
+          <input-1>The Desktop handoff packet, capture packet, and classifier packets.</input-1>
+          <input-2>The completed Phase-28 calls evidence packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded Telegram media evidence packet that stays separate from the older calls no-go waves.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramMediaEvidence]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MEDIA_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MEDIA-EVIDENCE</verification-ref>
+    </M-TELEGRAM-MEDIA-EVIDENCE>
+
+    <M-TELEGRAM-MEDIA-DECISION NAME="TelegramMediaDecision" TYPE="ENTRY_POINT" LAYER="32" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded next-step decision for the tested Telegram Desktop setup after the Telegram-specific media-behavior phase.</purpose>
+        <inputs>
+          <input-1>The bounded Telegram media evidence packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded decision stating whether the tested Desktop setup remains no-go, needs a Telegram-specific workaround phase, or justifies an alternate app topology.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-MEDIA-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[TelegramMediaDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MEDIA_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MEDIA-DECISION</verification-ref>
+    </M-TELEGRAM-MEDIA-DECISION>
   </Modules>
 
   <DataFlow>
@@ -5349,6 +5535,36 @@
       <step-2>The final decision says whether the tested Telegram Desktop setup is now green, partially green, or still blocked by app-facing behavior.</step-2>
       <evidence>A bounded calls decision that stays inside the tested Desktop setup and the new controlled transport baseline.</evidence>
     </DF-TELEGRAM-CALLS-POST-ROUNDTRIP-DECISION>
+
+    <DF-TELEGRAM-DESKTOP-HANDOFF NAME="Telegram Desktop handoff" TRIGGER="A new post-Phase-28 Telegram media-behavior wave begins on the tested Desktop setup.">
+      <step-1>The operator replays the exact Desktop proxy handoff shape and preserves same-window `phase27-probe` evidence.</step-1>
+      <step-2>The handoff packet records local forward state, Desktop proxy state, and the exact bounded call action used for the next media packet.</step-2>
+      <evidence>A bounded Desktop handoff packet that keeps later media packets reproducible.</evidence>
+    </DF-TELEGRAM-DESKTOP-HANDOFF>
+
+    <DF-TELEGRAM-VOICE-MEDIA NAME="Telegram voice media behavior" TRIGGER="A bounded voice-call attempt begins after the exact Desktop handoff packet is green.">
+      <step-1>The voice attempt preserves separate signaling, answer, and key-exchange observations.</step-1>
+      <step-2>The classifier decides whether the packet shows signaling-only stall, governed-media progress, or another app-facing media behavior.</step-2>
+      <evidence>A bounded voice-media classifier packet.</evidence>
+    </DF-TELEGRAM-VOICE-MEDIA>
+
+    <DF-TELEGRAM-VIDEO-MEDIA NAME="Telegram video media behavior" TRIGGER="A bounded video-call attempt follows the voice packet on the same Desktop handoff shape.">
+      <step-1>The video attempt stays separate from voice and preserves its own app-facing symptom packet.</step-1>
+      <step-2>The classifier decides whether video matches the voice layer or diverges earlier.</step-2>
+      <evidence>A bounded video-media classifier packet.</evidence>
+    </DF-TELEGRAM-VIDEO-MEDIA>
+
+    <DF-TELEGRAM-PROXY-BEHAVIOR NAME="Telegram proxy behavior comparison" TRIGGER="The post-Phase-28 voice and video classifier packets are available on top of the green transport baseline.">
+      <step-1>The classifier packets are compared against the completed Phase-28 packet and the same-window transport-green baseline.</step-1>
+      <step-2>The comparison packet states whether the tested Telegram Desktop setup stalls after signaling, diverges by media profile, or points to another app-facing behavior.</step-2>
+      <evidence>A bounded Telegram proxy-behavior comparison packet.</evidence>
+    </DF-TELEGRAM-PROXY-BEHAVIOR>
+
+    <DF-TELEGRAM-MEDIA-DECISION NAME="Telegram media decision" TRIGGER="The handoff, capture, classifier, and comparison packets are available after the post-Phase-28 media-behavior wave.">
+      <step-1>The evidence packet is assembled without reopening generic transport diagnosis.</step-1>
+      <step-2>The final decision says whether the tested Desktop setup remains no-go, needs a Telegram-specific workaround phase, or justifies an alternate app topology.</step-2>
+      <evidence>A bounded Telegram media decision for the tested Desktop setup.</evidence>
+    </DF-TELEGRAM-MEDIA-DECISION>
   </DataFlow>
 
   <ImplementationOrder>
@@ -5643,6 +5859,20 @@
       <note-7>The completed Phase-28 evidence packet now keeps readiness, voice, video, reconnect, and classifier sections separate and compares them explicitly against the older pre-Phase-27 no-go calls waves.</note-7>
       <note-8>The bounded Phase-28 decision on 2026-03-29 remains no-go for the tested Telegram Desktop setup: the same deployment window preserved a green controlled datagram round-trip, but voice, video, and reconnect never reached a green media packet and therefore keep the first unresolved layer app-facing rather than transport-facing.</note-8>
     </Phase-28>
+    <Phase-29 name="Telegram Media Behavior Above Green Transport" status="pending">
+      <goal>Classify Telegram-specific media behavior on the tested Desktop setup after Phase-28 confirmed that the controlled datagram baseline stays green while calls remain app-facing no-go.</goal>
+      <step-1 module="M-TELEGRAM-MEDIA-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-MEDIA-HYPOTHESIS">Freeze the new post-Phase-28 Telegram media-behavior boundary</step-1>
+      <step-2 module="M-TELEGRAM-DESKTOP-HANDOFF-PROFILE" status="pending" verification="V-M-TELEGRAM-DESKTOP-HANDOFF-PROFILE">Fix the exact Desktop handoff profile for the next bounded media-behavior wave</step-2>
+      <step-3 module="M-TELEGRAM-MEDIA-CAPTURE" status="pending" verification="V-M-TELEGRAM-MEDIA-CAPTURE">Define the bounded capture surface around the Telegram Desktop media wave</step-3>
+      <step-4 module="M-TELEGRAM-VOICE-MEDIA-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-VOICE-MEDIA-CLASSIFIER">Classify the post-answer voice media packet above the green transport baseline</step-4>
+      <step-5 module="M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER">Classify the bounded video media packet separately from voice</step-5>
+      <step-6 module="M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON" status="pending" verification="V-M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON">Compare the new media packets against the green baseline and older calls packets</step-6>
+      <step-7 module="M-TELEGRAM-MEDIA-EVIDENCE" status="pending" verification="V-M-TELEGRAM-MEDIA-EVIDENCE">Assemble the bounded handoff, capture, classifier, and comparison packets</step-7>
+      <step-8 module="M-TELEGRAM-MEDIA-DECISION" status="pending" verification="V-M-TELEGRAM-MEDIA-DECISION">Issue the bounded next-step decision for the tested Desktop setup</step-8>
+      <note-1>Phase-29 starts only after the completed Phase-28 no-go packet, which already preserved the same-window green controlled datagram baseline and therefore forbids reopening generic transport repair.</note-1>
+      <note-2>The new phase is intentionally Telegram-specific: it must explain the media-path behavior above a green SOCKS-governed transport envelope rather than rerunning blind calls or broad proxy diagnostics.</note-2>
+      <note-3>The Phase-29 hypothesis boundary keeps the same-window green `phase27-probe` packet and the completed Phase-28 app-facing no-go packets alive at once, so future media work cannot silently reopen transport diagnosis.</note-3>
+    </Phase-29>
   </ImplementationOrder>
 
   <ExecutionPolicy>
