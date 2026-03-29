@@ -557,6 +557,36 @@ If the call stalls:
 - if outbound relay appears without inbound relay, classify the first divergent layer at remote relay or remote media path
 - if a raw managed-host UDP ASSOCIATE probe is green but the SSH-forwarded local Desktop wave still produces no UDP marker, classify the first divergent layer at the current operator topology before changing the transport core again
 
+### Phase-22 Controlled UDP Probe Tooling
+
+Use the controlled probe before any new provider-blocking explanation:
+
+```bash
+chmod +x scripts/udp_probe.sh
+scripts/udp_probe.sh \
+  --socks5 127.0.0.1:1080 \
+  --target "$N0WSS_UDP_ECHO_TARGET" \
+  --payload "phase22-probe"
+```
+
+Expected stable output shape:
+
+- `probe_status=association-ok`
+  means the TCP control channel and `SOCKS5 UDP ASSOCIATE` negotiation succeeded
+- `outbound_result=sent`
+  means one bounded UDP payload was emitted toward the governed relay bind
+- `probe_status=reply-received`
+  means an inbound datagram returned through the same governed path
+- `inbound_result=timeout`
+  means association and outbound send were green, but no bounded reply came back before timeout
+
+Interpretation boundary:
+
+1. `association-ok` alone is only ingress proof, not end-to-end media proof
+2. `outbound_result=sent` proves a deeper stage than ingress, but still does not prove inbound media return
+3. only `probe_status=reply-received` proves a full controlled round trip through the governed datagram path
+4. if the controlled probe is green while Telegram still shows `Connecting`, the next suspicion moves toward Telegram app behavior or external filtering, not back to the old topology question
+
 Repository publication note:
 
 - tag `v0.3.2` already captures this approved baseline
