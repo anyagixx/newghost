@@ -1835,7 +1835,7 @@
       </annotations>
     </M-TELEGRAM-MEDIA-CAPTURE>
 
-    <M-TELEGRAM-VOICE-MEDIA-CLASSIFIER NAME="TelegramVoiceMediaClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-VOICE-MEDIA-CLASSIFIER NAME="TelegramVoiceMediaClassifier" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Classify the post-answer voice-call outcome above the green datagram baseline as signaling-only stall, governed-media progress, or other app-facing behavior.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-MEDIA-CAPTURE</depends>
@@ -1845,7 +1845,7 @@
       </annotations>
     </M-TELEGRAM-VOICE-MEDIA-CLASSIFIER>
 
-    <M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER NAME="TelegramVideoMediaClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER NAME="TelegramVideoMediaClassifier" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Classify the bounded video-call outcome separately from voice and detect whether video diverges earlier or at the same app-facing layer.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-VIDEO-RERUN, M-TELEGRAM-MEDIA-CAPTURE</depends>
@@ -1855,7 +1855,7 @@
       </annotations>
     </M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER>
 
-    <M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON NAME="TelegramProxyBehaviorComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON NAME="TelegramProxyBehaviorComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare the new voice and video media classifiers against the green baseline and older calls packets to isolate Telegram-specific proxy behavior.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-VOICE-MEDIA-CLASSIFIER, M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER, M-TELEGRAM-CALLS-RERUN-EVIDENCE</depends>
@@ -1865,7 +1865,7 @@
       </annotations>
     </M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON>
 
-    <M-TELEGRAM-MEDIA-EVIDENCE NAME="TelegramMediaEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-MEDIA-EVIDENCE NAME="TelegramMediaEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Assemble the bounded handoff, capture, classifier, and comparison packets for the Telegram-specific media-behavior wave.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON</depends>
@@ -1875,7 +1875,7 @@
       </annotations>
     </M-TELEGRAM-MEDIA-EVIDENCE>
 
-    <M-TELEGRAM-MEDIA-DECISION NAME="TelegramMediaDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-MEDIA-DECISION NAME="TelegramMediaDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded next-step decision for the tested Telegram Desktop setup after the Telegram-specific media-behavior wave.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-MEDIA-EVIDENCE</depends>
