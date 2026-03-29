@@ -1,8 +1,8 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
-//   PURPOSE: Create WSS-backed transport streams by composing TCP, TLS, websocket upgrade, auth validation, target relay, and governed datagram framing under the shared adapter contract without owning transport selection logic.
-//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
+//   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, and governed datagram framing under the shared adapter contract without owning transport selection logic.
+//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
 //   DEPENDS: std, async-trait, futures-util, http, thiserror, tokio, tokio-tungstenite, tokio-util, tracing, src/tls/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/transport/*, src/wss_gateway/datagram.rs
 //   LINKS: M-WSS-GATEWAY, M-WSS-DATAGRAM-GATEWAY, M-TLS, M-AUTH, M-OBS, V-M-WSS-GATEWAY, V-M-WSS-DATAGRAM-GATEWAY, DF-WSS-HANDSHAKE, DF-UDP-OUTBOUND, DF-UDP-INBOUND
 // END_MODULE_CONTRACT
@@ -15,11 +15,12 @@
 //   open_stream - establish an outbound WSS-backed resolved stream
 //   task_tracker - expose adapter-scoped task tracking
 //   stop_accept - stop the accept loop during shutdown
+//   open_datagram_path - establish one production datagram-ready websocket session
 //   datagram - governed WSS datagram frame helpers kept separate from the stream path
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Exported a bounded WSS datagram framing helper surface without changing the existing stream tunnel path.
+//   LAST_CHANGE: v0.1.4 - Added a production WSS datagram carrier handshake so runtime glue no longer depends on mock-only WssDatagramPath implementations.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -40,8 +41,10 @@ use tracing::{info, warn};
 
 use crate::auth::{AuthDecision, AuthPolicy, HandshakeMetadata};
 use crate::obs::ProxyMetricsHandle;
+use crate::session::WssDatagramPath;
 use crate::tls::TlsContextHandle;
 use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
+use crate::transport::datagram_contract::{DatagramAssociationId, DatagramEnvelope};
 use crate::transport::stream::{
     BoxedRead, BoxedWrite, ResolvedStream, ShutdownError, TransportKind, TransportStream,
 };
@@ -82,6 +85,8 @@ pub enum WssError {
     TargetConnectFailed(String),
     #[error("invalid target request: {0}")]
     InvalidTargetRequest(String),
+    #[error("datagram path failed: {0}")]
+    DatagramPathFailed(String),
 }
 
 #[derive(Clone)]
@@ -310,6 +315,72 @@ impl WssGateway {
         Ok(websocket)
     }
 
+    async fn authenticate_websocket<S>(
+        &self,
+        websocket: &mut WebSocketStream<S>,
+        cancel: CancellationToken,
+    ) -> Result<(), WssError>
+    where
+        S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
+    {
+        tokio::select! {
+            _ = cancel.cancelled() => Err(WssError::Cancelled),
+            result = websocket.send(Message::Binary(self.config.auth_token.as_bytes().to_vec().into())) => {
+                result.map_err(|err| WssError::HandshakeFailed(err.to_string()))
+            }
+        }?;
+
+        let auth_ack = tokio::select! {
+            _ = cancel.cancelled() => Err(WssError::Cancelled),
+            next = websocket.next() => {
+                next.ok_or_else(|| WssError::HandshakeFailed("missing auth ack".to_string()))
+                    .and_then(|frame| frame.map_err(|err| WssError::HandshakeFailed(err.to_string())))
+            }
+        }?;
+
+        match auth_ack {
+            Message::Text(text) if text == "ok" => Ok(()),
+            Message::Binary(bytes) if bytes.as_ref() == b"ok" => Ok(()),
+            other => Err(WssError::AuthRejected(format!("unexpected auth ack: {other:?}"))),
+        }
+    }
+
+    async fn open_datagram_path(
+        &self,
+        association_id: DatagramAssociationId,
+        cancel: CancellationToken,
+    ) -> Result<WebSocketStream<tokio_rustls::client::TlsStream<TcpStream>>, WssError> {
+        let mut websocket = tokio::select! {
+            _ = cancel.cancelled() => Err(WssError::Cancelled),
+            websocket = self.connect_websocket() => websocket,
+        }?;
+
+        self.authenticate_websocket(&mut websocket, cancel.clone()).await?;
+
+        tokio::select! {
+            _ = cancel.cancelled() => Err(WssError::Cancelled),
+            result = websocket.send(Message::Text(format!("DATAGRAM OPEN {association_id}").into())) => {
+                result.map_err(|err| WssError::DatagramPathFailed(err.to_string()))
+            }
+        }?;
+
+        let path_ack = tokio::select! {
+            _ = cancel.cancelled() => Err(WssError::Cancelled),
+            next = websocket.next() => {
+                next.ok_or_else(|| WssError::DatagramPathFailed("missing datagram ack".to_string()))
+                    .and_then(|frame| frame.map_err(|err| WssError::DatagramPathFailed(err.to_string())))
+            }
+        }?;
+
+        match path_ack {
+            Message::Text(text) if text == "datagram-ready" => Ok(websocket),
+            Message::Binary(bytes) if bytes.as_ref() == b"datagram-ready" => Ok(websocket),
+            other => Err(WssError::DatagramPathFailed(format!(
+                "unexpected datagram ack: {other:?}"
+            ))),
+        }
+    }
+
     fn spawn_bridge_tasks<S>(
         &self,
         websocket: WebSocketStream<S>,
@@ -420,35 +491,7 @@ impl TransportAdapter for WssGateway {
             websocket = self.connect_websocket() => websocket,
         }?;
 
-        websocket
-            .send(Message::Binary(
-                self.config.auth_token.as_bytes().to_vec().into(),
-            ))
-            .await
-            .map_err(|err| WssError::HandshakeFailed(err.to_string()))?;
-
-        let auth_ack = tokio::select! {
-            _ = cancel.cancelled() => Err(WssError::Cancelled),
-            next = websocket.next() => {
-                next.ok_or_else(|| WssError::HandshakeFailed("missing auth ack".to_string()))
-                    .and_then(|frame| frame.map_err(|err| WssError::HandshakeFailed(err.to_string())))
-            }
-        }?;
-
-        match auth_ack {
-            Message::Text(text) if text == "ok" => {}
-            Message::Binary(bytes) if bytes.as_ref() == b"ok" => {}
-            other @ Message::Text(_)
-            | other @ Message::Binary(_)
-            | other @ Message::Ping(_)
-            | other @ Message::Pong(_)
-            | other @ Message::Close(_)
-            | other @ Message::Frame(_) => {
-                return Err(WssError::AuthRejected(format!(
-                    "unexpected auth ack: {other:?}"
-                )))
-            }
-        }
+        self.authenticate_websocket(&mut websocket, cancel.clone()).await?;
 
         websocket
             .send(Message::Text(
@@ -514,6 +557,44 @@ impl TransportAdapter for WssGateway {
 
     fn task_tracker(&self) -> &AdapterTaskTracker {
         self.task_tracker()
+    }
+}
+
+#[async_trait]
+impl WssDatagramPath for WssGateway {
+    type Error = WssError;
+
+    async fn open_path(
+        &self,
+        association_id: DatagramAssociationId,
+        cancel: CancellationToken,
+    ) -> Result<(), Self::Error> {
+        let mut websocket = self.open_datagram_path(association_id, cancel).await?;
+        websocket
+            .close(None)
+            .await
+            .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+        Ok(())
+    }
+
+    async fn emit_datagram(
+        &self,
+        envelope: &DatagramEnvelope,
+        cancel: CancellationToken,
+    ) -> Result<(), Self::Error> {
+        let mut websocket = self
+            .open_datagram_path(envelope.association_id, cancel.clone())
+            .await?;
+        datagram::send_datagram(&mut websocket, envelope)
+            .await
+            .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+        tokio::select! {
+            _ = cancel.cancelled() => Err(WssError::Cancelled),
+            result = websocket.close(None) => {
+                result.map_err(|err| WssError::DatagramPathFailed(err.to_string()))
+            }
+        }?;
+        Ok(())
     }
 }
 

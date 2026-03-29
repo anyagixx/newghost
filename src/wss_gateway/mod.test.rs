@@ -1,38 +1,47 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify TLS-backed WSS stream establishment, cancellation handling, and adapter cleanup guarantees.
-//   SCOPE: Successful WSS handshake and byte relay, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
+//   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, cancellation handling, and adapter cleanup guarantees.
+//   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
 //   DEPENDS: src/wss_gateway/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/tls/mod.rs, src/transport/adapter_contract.rs, src/transport/stream.rs
 //   LINKS: V-M-WSS-GATEWAY, VF-003, VF-008
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   valid_tls_plus_wss_handshake_returns_resolved_stream - proves TLS plus WSS handshake yields a usable resolved stream
+//   datagram_open_path_uses_runtime_handshake - proves the production datagram carrier performs auth plus datagram-ready handshake over the real websocket runtime
+//   datagram_emit_sends_binary_frame_after_runtime_handshake - proves the production datagram carrier emits a governed binary datagram frame after the runtime handshake
 //   cancel_before_open_returns_err_and_spawns_no_tasks - proves pre-open cancellation leaves no tracked tasks behind
 //   cancel_during_open_returns_err_and_socket_closes - proves mid-open cancellation closes the socket and surfaces cancellation
 //   failed_open_does_not_leak_tracked_tasks - proves failed opens do not leak adapter tasks
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added GRACE markup so WSS gateway contract tests remain usable for later autonomous repair and review waves.
+//   LAST_CHANGE: v0.1.1 - Added production datagram-carrier tests so Phase-25 no longer depends on mock-only WssDatagramPath coverage.
 // END_CHANGE_SUMMARY
 
 use std::fs;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
+use futures_util::{SinkExt, StreamExt};
 use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
 use tempfile::tempdir;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 use tokio::time::sleep;
+use tokio_tungstenite::accept_async;
+use tokio_tungstenite::tungstenite::Message;
 use tokio_util::sync::CancellationToken;
 
 use crate::auth::{AuthPolicy, AuthPolicyConfig};
 use crate::obs::{init_observability, ObservabilityConfig};
+use crate::session::WssDatagramPath;
 use crate::tls::{TlsConfig, TlsContextHandle};
 use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
+use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
 use crate::transport::stream::TransportKind;
+use crate::wss_gateway::datagram::decode_message;
 
 use super::{GatewayConfig, WssError, WssGateway};
 
@@ -93,6 +102,46 @@ fn build_gateway(
         .expect("policy should build"),
         metrics: observability.metrics,
     })
+}
+
+async fn accept_datagram_runtime_handshake(
+    listener: TcpListener,
+    tls: TlsContextHandle,
+) -> (u64, Option<DatagramEnvelope>) {
+    let (stream, _) = listener.accept().await.expect("accept should work");
+    let tls_stream = tls.accept(stream).await.expect("tls accept");
+    let mut websocket = accept_async(tls_stream).await.expect("accept websocket");
+
+    let auth_message = websocket.next().await.expect("auth frame").expect("auth ok");
+    assert!(matches!(auth_message, Message::Binary(_)));
+    websocket
+        .send(Message::Text("ok".into()))
+        .await
+        .expect("send auth ack");
+
+    let open_message = websocket.next().await.expect("open frame").expect("open ok");
+    let open_text = match open_message {
+        Message::Text(text) => text.to_string(),
+        other => panic!("unexpected datagram open message: {other:?}"),
+    };
+    let association_id = open_text
+        .strip_prefix("DATAGRAM OPEN ")
+        .expect("datagram open prefix")
+        .parse::<u64>()
+        .expect("association id");
+    websocket
+        .send(Message::Text("datagram-ready".into()))
+        .await
+        .expect("send datagram ready");
+
+    let maybe_datagram = match websocket.next().await {
+        Some(Ok(Message::Binary(bytes))) => Some(decode_message(Message::Binary(bytes)).expect("decode datagram")),
+        Some(Ok(Message::Close(_))) | None => None,
+        Some(Ok(other)) => panic!("unexpected frame after datagram ready: {other:?}"),
+        Some(Err(err)) => panic!("unexpected websocket error: {err}"),
+    };
+
+    (association_id, maybe_datagram)
 }
 
 #[tokio::test]
@@ -159,6 +208,59 @@ async fn valid_tls_plus_wss_handshake_returns_resolved_stream() {
     server_gateway.stop_accept();
     upstream_task.await.expect("upstream task should join");
     assert!(server_task.await.expect("server task should join").is_ok());
+}
+
+#[tokio::test]
+async fn datagram_open_path_uses_runtime_handshake() {
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    let server_tls = tls.clone();
+    let handshake_task = tokio::spawn(async move {
+        accept_datagram_runtime_handshake(listener, server_tls).await
+    });
+
+    let gateway = build_gateway(server_addr, tls, "token-12345");
+    gateway
+        .open_path(41, CancellationToken::new())
+        .await
+        .expect("open_path should succeed");
+
+    let (association_id, maybe_datagram) = handshake_task.await.expect("join handshake task");
+    assert_eq!(association_id, 41);
+    assert!(maybe_datagram.is_none(), "open_path should stop after runtime handshake");
+}
+
+#[tokio::test]
+async fn datagram_emit_sends_binary_frame_after_runtime_handshake() {
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    let server_tls = tls.clone();
+    let handshake_task = tokio::spawn(async move {
+        accept_datagram_runtime_handshake(listener, server_tls).await
+    });
+
+    let gateway = build_gateway(server_addr, tls, "token-12345");
+    let envelope = DatagramEnvelope {
+        association_id: 52,
+        relay_client_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 19000),
+        target: DatagramTarget::Ip(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8)), 53)),
+        payload: b"phase25-dgram".to_vec(),
+    };
+
+    gateway
+        .emit_datagram(&envelope, CancellationToken::new())
+        .await
+        .expect("emit_datagram should succeed");
+
+    let (association_id, maybe_datagram) = handshake_task.await.expect("join handshake task");
+    assert_eq!(association_id, 52);
+    assert_eq!(maybe_datagram.expect("datagram frame"), envelope);
 }
 
 #[tokio::test]
