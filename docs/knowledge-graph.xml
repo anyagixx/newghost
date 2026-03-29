@@ -1605,9 +1605,9 @@
       </annotations>
     </M-WSS-DATAGRAM-INBOUND-EMIT>
 
-    <M-CLIENT-DATAGRAM-INBOUND-BRIDGE NAME="ClientDatagramInboundBridge" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CLIENT-DATAGRAM-INBOUND-BRIDGE NAME="ClientDatagramInboundBridge" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Bridge one returned WSS datagram back into the local UDP relay socket that owns the original association.</purpose>
-      <path>src/session/datagram_manager.rs</path>
+      <path>src/cli/mod.rs</path>
       <depends>M-DATAGRAM-RUNTIME-BRIDGE, M-SOCKS5-UDP-RUNTIME-LOOP, M-DATAGRAM-SESSION-MANAGER</depends>
       <verification-ref>V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE</verification-ref>
       <annotations>

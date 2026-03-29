@@ -4360,7 +4360,7 @@
       <verification-ref>V-M-WSS-DATAGRAM-INBOUND-EMIT</verification-ref>
     </M-WSS-DATAGRAM-INBOUND-EMIT>
 
-    <M-CLIENT-DATAGRAM-INBOUND-BRIDGE NAME="ClientDatagramInboundBridge" TYPE="CORE_LOGIC" LAYER="29" ORDER="6" STATUS="planned">
+    <M-CLIENT-DATAGRAM-INBOUND-BRIDGE NAME="ClientDatagramInboundBridge" TYPE="CORE_LOGIC" LAYER="29" ORDER="6" STATUS="done">
       <contract>
         <purpose>Deliver inbound datagrams from the client WSS runtime back into the local UDP relay socket that owns the original governed association.</purpose>
         <inputs>
@@ -4376,11 +4376,13 @@
         <file-2>src/session/datagram_manager.rs</file-2>
         <file-3>src/cli/mod.rs</file-3>
         <file-4>src/cli/mod.test.rs</file-4>
+        <file-5>src/socks5/mod.rs</file-5>
+        <file-6>src/socks5/udp_associate.test.rs</file-6>
       </target-files>
       <depends>M-DATAGRAM-RUNTIME-BRIDGE, M-SOCKS5-UDP-RUNTIME-LOOP, M-DATAGRAM-SESSION-MANAGER</depends>
       <observability>
-        <log-prefix>[ClientDatagramInboundBridge]</log-prefix>
-        <critical-block>BLOCK_CLIENT_DATAGRAM_INBOUND_BRIDGE</critical-block>
+        <log-prefix>[CliApp][deliverInboundDatagram]</log-prefix>
+        <critical-block>BLOCK_DELIVER_INBOUND_DATAGRAM</critical-block>
       </observability>
       <verification-ref>V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE</verification-ref>
     </M-CLIENT-DATAGRAM-INBOUND-BRIDGE>
@@ -5161,7 +5163,7 @@
       <step-3 module="M-DATAGRAM-RELAY-STATE" status="done" verification="V-M-DATAGRAM-RELAY-STATE">Introduce the bounded relay-state surface required for inbound reply mapping</step-3>
       <step-4 module="M-SERVER-DATAGRAM-INBOUND-RECEIVE" status="done" verification="V-M-SERVER-DATAGRAM-INBOUND-RECEIVE">Add the server-side inbound UDP receive loop after relay outbound</step-4>
       <step-5 module="M-WSS-DATAGRAM-INBOUND-EMIT" status="done" verification="V-M-WSS-DATAGRAM-INBOUND-EMIT">Return one server-side inbound datagram back over the governed WSS path</step-5>
-      <step-6 module="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" status="pending" verification="V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE">Deliver inbound datagrams from the client runtime back into the owning local relay socket</step-6>
+      <step-6 module="M-CLIENT-DATAGRAM-INBOUND-BRIDGE" status="done" verification="V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE">Deliver inbound datagrams from the client runtime back into the owning local relay socket</step-6>
       <step-7 module="M-DATAGRAM-INBOUND-RERUN" status="pending" verification="V-M-DATAGRAM-INBOUND-RERUN">Replay one bounded controlled probe and classify whether `reply-received` is finally proven</step-7>
       <step-8 module="M-DATAGRAM-INBOUND-EVIDENCE" status="pending" verification="V-M-DATAGRAM-INBOUND-EVIDENCE">Assemble the post-inbound-repair comparison packet against Phase-23, Phase-24, and Phase-25</step-8>
       <step-9 module="M-DATAGRAM-INBOUND-DECISION" status="pending" verification="V-M-DATAGRAM-INBOUND-DECISION">Issue the bounded decision on whether a new Telegram-specific wave is now justified</step-9>
