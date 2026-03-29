@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.33">
+<VerificationPlan VERSION="0.2.35">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -51,6 +51,11 @@
     <outbound-vs-inbound-split-rule>Verification must treat UDP association success, outbound datagram emission, remote target ingress, and inbound reply return as separate layers rather than a single binary UDP result.</outbound-vs-inbound-split-rule>
     <capture-correlation-window-rule>Local probe output, local runtime markers, remote capture, and remote echo-target state must be captured inside one bounded correlation window so round-trip claims are time-aligned.</capture-correlation-window-rule>
     <echo-target-lifecycle-rule>The remote UDP echo target used for controlled probes must have a bounded startup, bounded capture window, and explicit cleanup so stale listeners do not contaminate round-trip evidence.</echo-target-lifecycle-rule>
+    <repair-after-roundtrip-rule>No new Telegram-specific rerun may be approved while the first unresolved layer still sits before proven remote echo-target ingress in the controlled datagram packet.</repair-after-roundtrip-rule>
+    <dispatch-marker-promotion-rule>The repair wave must add or strengthen dispatch-side markers between local UDP ingress and WSS datagram emission so packet loss cannot hide between coarse anchors.</dispatch-marker-promotion-rule>
+    <post-fix-comparison-rule>The post-repair wave must compare the new controlled probe against the Phase-23 packet and say exactly which datagram layer moved, if any.</post-fix-comparison-rule>
+    <no-ambiguous-sent-rule>The string `outbound_result=sent` must never be treated as end-to-end evidence by itself; every repair packet must pair it with a deeper local marker, remote ingress proof, or an explicit first missing layer.</no-ambiguous-sent-rule>
+    <phase23-baseline-lock-rule>Every Phase-24 comparison packet must preserve the exact Phase-23 baseline tuple: `association-ok`, local `BLOCK_HANDLE_UDP_ASSOCIATE`, zero proven remote echo-target ingress, and `inbound_result=timeout`.</phase23-baseline-lock-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -2811,6 +2816,173 @@
         <assertion-2>The decision must preserve the bounded reason for that next step using the datagram blocking-boundary packet.</assertion-2>
       </required-trace-assertions>
     </V-M-DATAGRAM-NEXT-STEP-DECISION>
+
+    <V-M-DATAGRAM-REPAIR-HYPOTHESIS MODULE="M-DATAGRAM-REPAIR-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'repair scope|remote echo-target ingress|transport-side|Telegram rerun' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The repair hypothesis keeps the unresolved layer bounded between local UDP ingress and proven remote ingress.</scenario-1>
+        <scenario-2 kind="failure">The plan reopens Telegram UI or provider-blame questions before the transport-side repair boundary is addressed.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The repair hypothesis must explicitly preserve the proven Phase-23 facts: local UDP ASSOCIATE is green and remote echo-target ingress remains unproven.</assertion-1>
+        <assertion-2>The phase must remain transport-side until the controlled datagram packet advances.</assertion-2>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-REPAIR-HYPOTHESIS>
+
+    <V-M-DATAGRAM-DISPATCH-INSTRUMENTATION MODULE="M-DATAGRAM-DISPATCH-INSTRUMENTATION" PRIORITY="high">
+      <test-files>
+        <file>src/session/datagram_manager.rs</file>
+        <file>src/session/datagram_transport_selector.rs</file>
+        <file>src/socks5/udp_associate.rs</file>
+        <file>src/session/datagram_manager.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test datagram_manager</check-1>
+        <check-2>cargo test datagram_transport_selector</check-2>
+        <check-3>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_OPEN_DATAGRAM_ASSOCIATION|BLOCK_SELECT_DATAGRAM_TRANSPORT|dispatch|forwardOutboundDatagram|BLOCK_FORWARD_OUTBOUND' src/session/datagram_manager.rs src/session/datagram_transport_selector.rs src/socks5/udp_associate.rs docs/verification-plan.xml</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">A bounded marker now exists between local relay acceptance and transport-side datagram emission.</scenario-1>
+        <scenario-2 kind="failure">The packet can still disappear between coarse ingress and emission anchors with no new evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The repair wave must be able to distinguish accepted relay traffic from manager-side dispatch attempts.</assertion-1>
+        <assertion-2>The new marker set must stay bounded and deterministic enough for controlled probe comparison.</assertion-2>
+        <assertion-3>The implementation must leave the existing `BLOCK_HANDLE_UDP_ASSOCIATE`, `BLOCK_OPEN_DATAGRAM_ASSOCIATION`, and `BLOCK_SELECT_DATAGRAM_TRANSPORT` anchors intact while adding the missing dispatch-side promotion surface.</assertion-3>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-DISPATCH-INSTRUMENTATION>
+
+    <V-M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR MODULE="M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR" PRIORITY="high">
+      <test-files>
+        <file>src/session/datagram_manager.rs</file>
+        <file>src/session/udp_registry.rs</file>
+        <file>src/session/datagram_manager.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test datagram_manager</check-1>
+        <check-2>rg -n 'association|dispatch|outbound|DispatchFailed|AssociationNotFound' src/session/datagram_manager.rs src/session/udp_registry.rs src/session/datagram_manager.test.rs docs/verification-plan.xml</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">Outbound datagrams progress beyond local ingress into the manager-owned dispatch path.</scenario-1>
+        <scenario-2 kind="failure">Association ownership or local dispatch still stalls before the transport carrier is engaged.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The repair must show that local relay acceptance and manager dispatch are no longer collapsed into the same ambiguous event.</assertion-1>
+        <assertion-2>If dispatch still fails, the first failing manager-side layer must be explicit.</assertion-2>
+        <assertion-3>Module-local tests should cover both successful outbound progression and deterministic dispatch failure without requiring live hosts.</assertion-3>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR>
+
+    <V-M-WSS-DATAGRAM-EMIT-REPAIR MODULE="M-WSS-DATAGRAM-EMIT-REPAIR" PRIORITY="high">
+      <test-files>
+        <file>src/wss_gateway/datagram.rs</file>
+        <file>src/session/datagram_transport_selector.rs</file>
+        <file>src/wss_gateway/datagram.test.rs</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test datagram</check-1>
+        <check-2>cargo test datagram_transport_selector</check-2>
+        <check-3>rg -n 'BLOCK_SEND_WSS_DATAGRAM|BLOCK_SELECT_DATAGRAM_TRANSPORT' src/wss_gateway/datagram.rs src/session/datagram_transport_selector.rs docs/verification-plan.xml</check-3>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The repaired path proves that outbound datagrams are emitted through the WSS carrier instead of stopping at local dispatch.</scenario-1>
+        <scenario-2 kind="failure">Transport selection succeeds conceptually, but no bounded WSS emission evidence appears.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Client-side emission must be evidenced separately from local dispatch success.</assertion-1>
+        <assertion-2>If emission is still absent, the packet must stop before server-side relay blame begins.</assertion-2>
+        <assertion-3>The repair packet must distinguish selector success from actual WSS datagram send success, because those are separate bounded layers.</assertion-3>
+      </required-trace-assertions>
+    </V-M-WSS-DATAGRAM-EMIT-REPAIR>
+
+    <V-M-UDP-RELAY-OUTBOUND-REPAIR MODULE="M-UDP-RELAY-OUTBOUND-REPAIR" PRIORITY="high">
+      <test-files>
+        <file>src/proxy_bridge/udp_relay.rs</file>
+        <file>src/proxy_bridge/udp_relay.test.rs</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>cargo test udp_relay</check-1>
+        <check-2>rg -n 'BLOCK_RELAY_UDP_OUTBOUND|echo target|remote ingress' src/proxy_bridge/udp_relay.rs src/proxy_bridge/udp_relay.test.rs docs/OPERATORS.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The server-side relay produces proven remote echo-target ingress in the bounded probe window.</scenario-1>
+        <scenario-2 kind="failure">Relay intent exists, but remote ingress remains unproven and the boundary still ends before the echo target.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>Server-side outbound relay evidence must be separate from remote ingress evidence.</assertion-1>
+        <assertion-2>The repair packet must state whether the relay emitted a send even if the target capture remains empty.</assertion-2>
+        <assertion-3>If remote ingress is still absent, the packet must say whether the missing layer is before relay outbound, at relay outbound, or after relay outbound toward the echo target.</assertion-3>
+      </required-trace-assertions>
+    </V-M-UDP-RELAY-OUTBOUND-REPAIR>
+
+    <V-M-DATAGRAM-ROUNDTRIP-RERUN MODULE="M-DATAGRAM-ROUNDTRIP-RERUN" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+        <file>scripts/udp_probe.sh</file>
+      </test-files>
+      <module-checks>
+        <check-1>scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target $N0WSS_UDP_ECHO_TARGET --payload phase24-probe --timeout 5</check-1>
+        <check-2>rg -n 'phase24-probe|remote ingress|reply-received|inbound_result=timeout' docs/OPERATORS.md docs/verification-plan.xml scripts/udp_probe.sh</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The post-repair rerun proves that the deepest proven datagram layer moved beyond the Phase-23 boundary.</scenario-1>
+        <scenario-2 kind="failure">The rerun reproduces the same boundary with no new deeper marker or remote ingress evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The rerun must say explicitly whether remote ingress or inbound reply is now proven.</assertion-1>
+        <assertion-2>If the boundary does not move, the packet must preserve that no Telegram-specific rerun is justified yet.</assertion-2>
+        <assertion-3>The rerun packet must preserve the exact probe payload label and bounded capture window so it can be compared one-to-one with the Phase-23 packet.</assertion-3>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-ROUNDTRIP-RERUN>
+
+    <V-M-DATAGRAM-REPAIR-EVIDENCE MODULE="M-DATAGRAM-REPAIR-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'pre-fix|post-fix|Phase-23|comparison packet|repair evidence' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The repair wave leaves a bounded pre-fix versus post-fix comparison packet naming the layer that moved.</scenario-1>
+        <scenario-2 kind="failure">The post-repair summary cannot be compared against Phase-23 and leaves progress ambiguous.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The evidence packet must preserve the exact Phase-23 boundary as the baseline for comparison.</assertion-1>
+        <assertion-2>The packet must say whether progress reached remote ingress, inbound reply, or neither.</assertion-2>
+        <assertion-3>The comparison packet must explicitly state whether `outbound_result=sent` gained any deeper supporting evidence beyond the Phase-23 baseline.</assertion-3>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-REPAIR-EVIDENCE>
+
+    <V-M-DATAGRAM-REPAIR-DECISION MODULE="M-DATAGRAM-REPAIR-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram-specific wave|transport-side|datagram repair|post-repair decision' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The decision says clearly whether the datagram path is repaired enough for a new Telegram-specific wave.</scenario-1>
+        <scenario-2 kind="failure">The decision reverts to a vague “try Telegram again” without proving the transport-side boundary moved.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The decision must distinguish transport-side repair progress from app-specific justification.</assertion-1>
+        <assertion-2>The decision must preserve the bounded reason why a Telegram rerun is or is not justified.</assertion-2>
+        <assertion-3>A Telegram-specific rerun is only allowed if the controlled datagram packet advances beyond the Phase-23 boundary with explicit deeper evidence.</assertion-3>
+      </required-trace-assertions>
+    </V-M-DATAGRAM-REPAIR-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -3094,6 +3266,24 @@
       </required-evidence>
       <failure-packet-template>scenario=DatagramRoundTripIsolationWave; expected-evidence=echo-target readiness, controlled probe output, local and remote bounded capture, and a round-trip correlation packet; observed-evidence=probe status, runtime markers, remote capture state, and timeout or reply result; first-divergent-block=first missing outbound, echo-target ingress, or inbound-reply layer; next-action=repair the first unresolved datagram layer before any new Telegram UI phase</failure-packet-template>
     </LV-014>
+    <LV-015 NAME="DatagramPathRepairWave" PRIORITY="high">
+      <goal>Repair and replay the controlled datagram path until the deepest proven layer advances beyond the Phase-23 boundary.</goal>
+      <commands>
+        <command-1>add bounded dispatch-side instrumentation between local UDP ingress, manager dispatch, transport selection, and WSS datagram emission</command-1>
+        <command-2>run `cargo test datagram_manager`, `cargo test datagram_transport_selector`, `cargo test datagram`, and `cargo test udp_relay` after the repair edits</command-2>
+        <command-3>prepare the bounded remote UDP echo target and replay `scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target $N0WSS_UDP_ECHO_TARGET --payload phase24-probe --timeout 5`</command-3>
+        <command-4>capture one bounded local and one bounded remote evidence window for the post-repair probe</command-4>
+        <command-5>assemble a post-fix comparison packet against the Phase-23 packet and issue the bounded repair decision</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The repair wave adds enough instrumentation to name whether the packet now reaches manager dispatch, WSS emission, server-side relay outbound, or remote echo-target ingress.</evidence-1>
+        <evidence-2>The post-repair probe packet states explicitly whether remote ingress or inbound reply has become proven.</evidence-2>
+        <evidence-3>The comparison packet says exactly which datagram layer moved compared with Phase-23.</evidence-3>
+        <evidence-4>The final decision explicitly forbids a new Telegram-specific wave if the controlled datagram boundary did not move.</evidence-4>
+        <evidence-5>The post-fix packet keeps the Phase-23 baseline tuple visible so another agent can tell whether `sent` gained deeper evidence or remained ambiguous.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=DatagramPathRepairWave; expected-evidence=deeper dispatch markers, bounded WSS emission evidence, remote echo-target ingress or explicit absence, and a pre-fix versus post-fix comparison packet; observed-evidence=module-local tests, post-repair probe output, local and remote capture, and repair decision; first-divergent-block=first missing dispatch, WSS emission, relay outbound, or remote-ingress layer; next-action=repair only the first unresolved datagram layer before any new Telegram rerun</failure-packet-template>
+    </LV-015>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -3479,6 +3669,26 @@
         <evidence-5>The final decision is bounded to naming the next datagram-path or app-specific phase based on the first unresolved round-trip layer.</evidence-5>
       </required-evidence>
     </Gate-Phase-23>
+    <Gate-Phase-24 PHASE="Phase-24">
+      <goal>The project has an execution-ready datagram repair wave that can advance the controlled packet beyond the Phase-23 local-ingress boundary before any new Telegram-specific rerun.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-24|M-DATAGRAM-REPAIR-HYPOTHESIS|M-DATAGRAM-REPAIR-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-015|phase24-probe|dispatch instrumentation|remote ingress|post-fix|pre-fix' docs/verification-plan.xml docs/development-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_OPEN_DATAGRAM_ASSOCIATION|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_SEND_WSS_DATAGRAM|BLOCK_RELAY_UDP_OUTBOUND|BLOCK_RELAY_UDP_INBOUND' docs/verification-plan.xml src/session src/wss_gateway src/proxy_bridge</command-3>
+        <command-4>cargo test datagram_manager</command-4>
+        <command-5>cargo test datagram_transport_selector</command-5>
+        <command-6>cargo test datagram</command-6>
+        <command-7>cargo test udp_relay</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The phase adds bounded dispatch-side instrumentation so the packet cannot vanish silently between local UDP ingress and WSS emission.</evidence-1>
+        <evidence-2>The phase separates local dispatch success, WSS emission success, server-side relay outbound success, and remote echo-target ingress as distinct repair layers.</evidence-2>
+        <evidence-3>The post-repair rerun uses one bounded controlled probe and one bounded comparison packet against Phase-23.</evidence-3>
+        <evidence-4>The phase forbids a new Telegram-specific rerun if the deepest proven datagram layer does not advance beyond the Phase-23 boundary.</evidence-4>
+        <evidence-5>The final decision is bounded to saying whether the project is ready for a Telegram-specific wave or still blocked in transport-side datagram repair.</evidence-5>
+        <evidence-6>The phase keeps `outbound_result=sent` bounded as a local outcome unless deeper markers or remote ingress evidence promote it.</evidence-6>
+      </required-evidence>
+    </Gate-Phase-24>
   </PhaseGates>
 
   <FailurePackets>
