@@ -809,6 +809,20 @@ Observed Phase-25 runtime-glue outcome on 2026-03-29:
 - remaining bounded blocker:
   the same controlled probe still ended with `inbound_result=timeout`, so inbound reply return is not proven yet and another Telegram Desktop calls rerun would still be blind
 
+### Phase-26 Datagram Inbound Reply Return Boundary
+
+The next approved scope is now inbound-only:
+
+1. keep the completed Phase-25 tuple as the exact baseline:
+   `SERVER_DATAGRAM_RECEIVED`, `BLOCK_RELAY_UDP_OUTBOUND`, and `inbound_result=timeout`
+2. do not reopen Telegram Desktop or provider-level diagnosis while the controlled packet still lacks bounded inbound-return proof
+3. classify inbound progress in this exact order:
+   server-side inbound receive, WSS return emission, client-side local delivery, and only then probe-visible `reply-received`
+4. keep reply-source validation separate from reply delivery:
+   a packet from the wrong peer or wrong association is a bounded reject, not inbound success
+5. the old Phase-24 tail is superseded:
+   its pending rerun/evidence/decision steps are no longer source-of-truth for execution
+
 Remote server-host bounded capture:
 
 ```bash

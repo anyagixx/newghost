@@ -172,6 +172,12 @@ Current calls-profile status:
   live client logs now prove `BLOCK_PARSE_UDP_DATAGRAM`, `BLOCK_FORWARD_OUTBOUND_DATAGRAM`, and `BLOCK_SEND_WSS_DATAGRAM`, while live server logs prove `SERVER_DATAGRAM_RECEIVED` and `BLOCK_RELAY_UDP_OUTBOUND`
 - the same bounded rerun still ended with `inbound_result=timeout`, so the post-glue decision remains narrow:
   outbound runtime glue is now proven through server-side relay outbound, but inbound reply return is still unresolved and a new Telegram-specific calls wave would still be premature
+- Phase-26 is therefore not another Telegram or UI-facing verification wave:
+  it is an inbound-return wave that must separately prove server-side reply receive, WSS return emission, client-side local delivery, and only then `reply-received`
+- the Phase-26 baseline is locked to the completed Phase-25 tuple:
+  `SERVER_DATAGRAM_RECEIVED`, `BLOCK_RELAY_UDP_OUTBOUND`, and `inbound_result=timeout`
+- the old Phase-24 tail is now explicitly superseded:
+  helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.
