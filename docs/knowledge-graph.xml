@@ -1175,7 +1175,7 @@
       </annotations>
     </M-CALLS-TOPOLOGY-PROFILE>
 
-    <M-LOCAL-CLIENT-RUNBOOK NAME="LocalClientRunbook" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-LOCAL-CLIENT-RUNBOOK NAME="LocalClientRunbook" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Define the operator runbook for a truly local n0wss-client calls path without SSH port forwarding.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-CLI, M-CONFIG, M-OPERATOR-RUNBOOK</depends>

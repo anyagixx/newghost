@@ -3273,7 +3273,7 @@
       <verification-ref>V-M-CALLS-TOPOLOGY-PROFILE</verification-ref>
     </M-CALLS-TOPOLOGY-PROFILE>
 
-    <M-LOCAL-CLIENT-RUNBOOK NAME="LocalClientRunbook" TYPE="ENTRY_POINT" LAYER="24" ORDER="2" STATUS="planned">
+    <M-LOCAL-CLIENT-RUNBOOK NAME="LocalClientRunbook" TYPE="ENTRY_POINT" LAYER="24" ORDER="2" STATUS="done">
       <contract>
         <purpose>Define the governed operator runbook for running n0wss-client locally on the Telegram Desktop workstation instead of relying on SSH port forwarding.</purpose>
         <inputs>
@@ -4038,7 +4038,7 @@
     <Phase-21 name="Telegram Calls Local Client Topology" status="pending">
       <goal>Replace the SSH-forwarded Desktop calls path with a truly local n0wss-client topology and compare the resulting Telegram calls evidence against the older no-go packet.</goal>
       <step-1 module="M-CALLS-TOPOLOGY-PROFILE" status="done" verification="V-M-CALLS-TOPOLOGY-PROFILE">Define the bounded local-client Telegram calls topology and separate it from the older SSH-forwarded Desktop path</step-1>
-      <step-2 module="M-LOCAL-CLIENT-RUNBOOK" status="pending" verification="V-M-LOCAL-CLIENT-RUNBOOK">Document the governed local-client runbook for Telegram Desktop calls without ssh -L</step-2>
+      <step-2 module="M-LOCAL-CLIENT-RUNBOOK" status="done" verification="V-M-LOCAL-CLIENT-RUNBOOK">Document the governed local-client runbook for Telegram Desktop calls without ssh -L</step-2>
       <step-3 module="M-LOCAL-CLIENT-BOOTSTRAP" status="pending" verification="V-M-LOCAL-CLIENT-BOOTSTRAP">Prepare the bounded bootstrap for running n0wss-client locally on the Telegram Desktop workstation</step-3>
       <step-4 module="M-LOCAL-CALLS-READINESS" status="pending" verification="V-M-LOCAL-CALLS-READINESS">Prove local listener, smoke, and UDP ASSOCIATE readiness on the Telegram Desktop workstation</step-4>
       <step-5 module="M-LOCAL-CALLS-VOICE-WAVE" status="pending" verification="V-M-LOCAL-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call wave through the local-client topology</step-5>
