@@ -762,6 +762,23 @@ Phase-23 bounded correlation packet for the same controlled probe window:
 - correlation result:
   the local probe, local runtime, and remote capture all belong to one bounded controlled datagram attempt and together show that the first unresolved layer remains before any proven remote echo-target ingress or inbound reply
 
+### Phase-24 Datagram Repair Boundary
+
+After Phase-23 the next allowed repair scope is narrower than a generic UDP investigation:
+
+1. local `UDP ASSOCIATE` ingress remains proven and must not be reclassified as the leading blocker
+2. the repair wave is only allowed to target the segment between local relay acceptance and the first proven remote echo-target ingress
+3. `outbound_result=sent` must stay treated as a local outcome until one deeper layer is proven in the same bounded packet:
+   local dispatch, WSS datagram emission, server-side relay outbound, remote echo-target ingress, or inbound reply return
+4. a new Telegram Desktop rerun is still forbidden until the controlled datagram packet advances beyond the exact Phase-23 baseline
+
+Operator boundary for Phase-24:
+
+- keep using one bounded controlled probe before any Telegram UI step
+- preserve the Phase-23 baseline tuple when comparing repairs:
+  `association-ok`, local `BLOCK_HANDLE_UDP_ASSOCIATE`, zero proven remote ingress, `inbound_result=timeout`
+- if the repaired packet still does not reach remote ingress, classify the first missing repair layer inside transport-side datagram work and do not reopen provider-blame or Telegram-behavior hypotheses yet
+
 Remote server-host bounded capture:
 
 ```bash

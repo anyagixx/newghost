@@ -157,6 +157,11 @@ Current calls-profile status:
 - current bounded next-step decision after the same packet:
   the next phase should be a datagram-path repair or deeper relay-probe wave, because the controlled packet still stops before proven remote echo-target ingress; another Telegram Desktop rerun on the same setup would still be blind
 - external filtering is still not the first unresolved layer; the next phase should isolate datagram round-trip behavior and app-specific media handoff before any network-workaround phase is approved
+- Phase-24 now narrows that next step further into a repair-only wave:
+  the allowed scope is the transport segment between proven local UDP ingress and the first proven remote echo-target ingress
+- Phase-24 must not reopen Telegram UI diagnosis while that repair scope is unresolved:
+  the expected progression is local dispatch evidence, WSS datagram emission evidence, server-side relay outbound evidence, and only then remote echo-target ingress or inbound reply evidence
+- `outbound_result=sent` remains a bounded local outcome until one of those deeper layers is proven for the same controlled probe packet
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.
