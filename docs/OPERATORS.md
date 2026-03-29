@@ -495,6 +495,16 @@ Observed local readiness packet on 2026-03-29:
 - local raw `SOCKS5 UDP ASSOCIATE` probe returned a success reply and allocated a governed relay bind
 - bounded classification: the next local calls wave may now treat listener ingress as green and must promote the next missing datagram marker if calls still fail
 
+Observed first local-client topology outcome on 2026-03-29:
+
+- the old `ssh -L` path stayed disabled during the test
+- local `n0wss-client` owned `127.0.0.1:1080` on the Telegram Desktop workstation
+- local process logs showed fresh SOCKS5 requests toward Telegram IPs under `149.154.*`
+- remote WSS server accepted fresh handshakes from the workstation IP `188.255.118.217`
+- user-visible symptom: Telegram Desktop still showed `Connecting`, and voice or video calls did not go green
+- no governed UDP markers were observed during that local-client wave
+- bounded comparison result: removing the SSH-forwarded operator topology did not widen the calls evidence envelope by itself
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.

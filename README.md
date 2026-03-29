@@ -136,6 +136,8 @@ Current calls-profile status:
 - the older SSH-forwarded Desktop packet remains valid historical evidence and comparison baseline; it is not the next execution target
 - operator runbook consequence: the next calls wave must start with a truly local SOCKS5 listener on the Telegram Desktop workstation and must not keep the old `ssh -L` path enabled in parallel
 - the next bootstrap shape is intentionally bounded: one local `n0wss-client` process, one local trust anchor, one local SOCKS5 listener, and explicit cleanup before reruns
+- the first local-client topology wave on 2026-03-29 proved that Telegram Desktop did reach the truly local `n0wss-client` path: local `127.0.0.1:1080` was owned by `n0wss`, local Telegram generated SOCKS5 requests toward Telegram IPs, and the remote WSS server accepted handshakes from the workstation IP
+- changing the operator topology still did not produce governed UDP markers or a green Telegram session, so the earlier no-go is no longer attributable only to the old SSH-forwarded path
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.

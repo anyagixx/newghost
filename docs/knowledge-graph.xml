@@ -1205,7 +1205,7 @@
       </annotations>
     </M-LOCAL-CALLS-READINESS>
 
-    <M-LOCAL-CALLS-VOICE-WAVE NAME="LocalCallsVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-LOCAL-CALLS-VOICE-WAVE NAME="LocalCallsVoiceWave" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Run a bounded Telegram Desktop voice-call wave through the local-client topology.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-LOCAL-CALLS-READINESS, M-TELEGRAM-CALLS-WAVE</depends>
@@ -1215,7 +1215,7 @@
       </annotations>
     </M-LOCAL-CALLS-VOICE-WAVE>
 
-    <M-LOCAL-CALLS-VIDEO-WAVE NAME="LocalCallsVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-LOCAL-CALLS-VIDEO-WAVE NAME="LocalCallsVideoWave" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Run a separate Telegram Desktop video-call wave through the local-client topology without inheriting the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-LOCAL-CALLS-VOICE-WAVE, M-TELEGRAM-CALLS-WAVE</depends>
@@ -1225,7 +1225,7 @@
       </annotations>
     </M-LOCAL-CALLS-VIDEO-WAVE>
 
-    <M-LOCAL-CALLS-EVIDENCE NAME="LocalCallsEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-LOCAL-CALLS-EVIDENCE NAME="LocalCallsEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Assemble the local-topology readiness, voice, video, failure, and comparison packets for Telegram calls verification.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-LOCAL-CALLS-VOICE-WAVE, M-LOCAL-CALLS-VIDEO-WAVE, M-CALLS-RERUN-EVIDENCE</depends>
@@ -1235,7 +1235,7 @@
       </annotations>
     </M-LOCAL-CALLS-EVIDENCE>
 
-    <M-LOCAL-CALLS-COMPARISON NAME="LocalCallsComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-LOCAL-CALLS-COMPARISON NAME="LocalCallsComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare the older SSH-forwarded Desktop path and the new local-client path to isolate topology-dependent calls failure.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CALLS-RERUN-DECISION, M-LOCAL-CALLS-EVIDENCE</depends>
@@ -1245,7 +1245,7 @@
       </annotations>
     </M-LOCAL-CALLS-COMPARISON>
 
-    <M-LOCAL-CALLS-GO-NO-GO NAME="LocalCallsGoNoGo" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-LOCAL-CALLS-GO-NO-GO NAME="LocalCallsGoNoGo" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded Telegram calls decision for the local-client topology on the tested setup.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-LOCAL-CALLS-COMPARISON, M-CALLS-TOPOLOGY-PROFILE</depends>

@@ -3360,7 +3360,7 @@
       <verification-ref>V-M-LOCAL-CALLS-READINESS</verification-ref>
     </M-LOCAL-CALLS-READINESS>
 
-    <M-LOCAL-CALLS-VOICE-WAVE NAME="LocalCallsVoiceWave" TYPE="CORE_LOGIC" LAYER="24" ORDER="5" STATUS="planned">
+    <M-LOCAL-CALLS-VOICE-WAVE NAME="LocalCallsVoiceWave" TYPE="CORE_LOGIC" LAYER="24" ORDER="5" STATUS="done">
       <contract>
         <purpose>Run one bounded Telegram Desktop voice-call wave through the local n0wss-client topology and capture separate signaling and media evidence.</purpose>
         <inputs>
@@ -3386,10 +3386,11 @@
         <log-prefix>[LocalCallsVoiceWave]</log-prefix>
         <critical-block>BLOCK_LOCAL_CALLS_VOICE_WAVE</critical-block>
       </observability>
+      <note-1>On 2026-03-29 the first local-client topology wave still did not produce a green Telegram voice-call result. The local workstation no longer used ssh -L, the local n0wss-client owned 127.0.0.1:1080, and Telegram emitted fresh SOCKS5 requests toward Telegram IPs, but the operator still observed Connecting or stalled call setup and no governed UDP markers appeared.</note-1>
       <verification-ref>V-M-LOCAL-CALLS-VOICE-WAVE</verification-ref>
     </M-LOCAL-CALLS-VOICE-WAVE>
 
-    <M-LOCAL-CALLS-VIDEO-WAVE NAME="LocalCallsVideoWave" TYPE="CORE_LOGIC" LAYER="24" ORDER="6" STATUS="planned">
+    <M-LOCAL-CALLS-VIDEO-WAVE NAME="LocalCallsVideoWave" TYPE="CORE_LOGIC" LAYER="24" ORDER="6" STATUS="done">
       <contract>
         <purpose>Run a separate Telegram Desktop video-call wave through the local n0wss-client topology without inheriting the voice result.</purpose>
         <inputs>
@@ -3415,10 +3416,11 @@
         <log-prefix>[LocalCallsVideoWave]</log-prefix>
         <critical-block>BLOCK_LOCAL_CALLS_VIDEO_WAVE</critical-block>
       </observability>
+      <note-1>The 2026-03-29 local-client topology wave did not yield a separate green video result. The user reported the same Connecting or non-starting behavior, and the bounded packet remained within the same no-go media envelope as voice.</note-1>
       <verification-ref>V-M-LOCAL-CALLS-VIDEO-WAVE</verification-ref>
     </M-LOCAL-CALLS-VIDEO-WAVE>
 
-    <M-LOCAL-CALLS-EVIDENCE NAME="LocalCallsEvidence" TYPE="UTILITY" LAYER="24" ORDER="7" STATUS="planned">
+    <M-LOCAL-CALLS-EVIDENCE NAME="LocalCallsEvidence" TYPE="UTILITY" LAYER="24" ORDER="7" STATUS="done">
       <contract>
         <purpose>Assemble the local-topology readiness, voice, video, failure, and comparison packets for Telegram calls verification.</purpose>
         <inputs>
@@ -3444,10 +3446,11 @@
         <log-prefix>[LocalCallsEvidence]</log-prefix>
         <critical-block>BLOCK_LOCAL_CALLS_EVIDENCE</critical-block>
       </observability>
+      <note-1>The local-topology packet now preserves local readiness, local voice or video no-go, and a comparison boundary against the older SSH-forwarded packet. The decisive evidence is that topology changed successfully but no governed UDP markers appeared during the local Telegram Desktop attempts.</note-1>
       <verification-ref>V-M-LOCAL-CALLS-EVIDENCE</verification-ref>
     </M-LOCAL-CALLS-EVIDENCE>
 
-    <M-LOCAL-CALLS-COMPARISON NAME="LocalCallsComparison" TYPE="CORE_LOGIC" LAYER="24" ORDER="8" STATUS="planned">
+    <M-LOCAL-CALLS-COMPARISON NAME="LocalCallsComparison" TYPE="CORE_LOGIC" LAYER="24" ORDER="8" STATUS="done">
       <contract>
         <purpose>Compare the old SSH-forwarded Desktop path and the new local-client path to isolate whether calls failure is topology-dependent.</purpose>
         <inputs>
@@ -3473,10 +3476,11 @@
         <log-prefix>[LocalCallsComparison]</log-prefix>
         <critical-block>BLOCK_LOCAL_CALLS_COMPARISON</critical-block>
       </observability>
+      <note-1>The 2026-03-29 comparison packet shows that changing from the SSH-forwarded Desktop path to a truly local n0wss-client did not widen the calls evidence envelope. The blocker is therefore no longer attributable only to the old operator topology.</note-1>
       <verification-ref>V-M-LOCAL-CALLS-COMPARISON</verification-ref>
     </M-LOCAL-CALLS-COMPARISON>
 
-    <M-LOCAL-CALLS-GO-NO-GO NAME="LocalCallsGoNoGo" TYPE="ENTRY_POINT" LAYER="24" ORDER="9" STATUS="planned">
+    <M-LOCAL-CALLS-GO-NO-GO NAME="LocalCallsGoNoGo" TYPE="ENTRY_POINT" LAYER="24" ORDER="9" STATUS="done">
       <contract>
         <purpose>Issue the bounded Telegram calls go-or-no-go decision for the local-client topology on the tested setup.</purpose>
         <inputs>
@@ -3503,6 +3507,7 @@
         <log-prefix>[LocalCallsGoNoGo]</log-prefix>
         <critical-block>BLOCK_LOCAL_CALLS_GO_NO_GO</critical-block>
       </observability>
+      <note-1>Bounded decision on 2026-03-29: no-go for Telegram Desktop calls even on the local-client topology. The proven envelope now includes local listener ownership, local TCP smoke, local UDP ASSOCIATE probe, Telegram SOCKS5 traffic into the local client, and fresh remote WSS handshakes, but still no governed UDP media markers or green call state.</note-1>
       <verification-ref>V-M-LOCAL-CALLS-GO-NO-GO</verification-ref>
     </M-LOCAL-CALLS-GO-NO-GO>
   </Modules>
@@ -4035,17 +4040,17 @@
       <step-6 module="M-CALLS-RERUN-DECISION" status="done" verification="V-M-CALLS-RERUN-DECISION">Issue the updated bounded Telegram calls decision after the repaired rerun wave</step-6>
     </Phase-20>
 
-    <Phase-21 name="Telegram Calls Local Client Topology" status="pending">
+    <Phase-21 name="Telegram Calls Local Client Topology" status="done">
       <goal>Replace the SSH-forwarded Desktop calls path with a truly local n0wss-client topology and compare the resulting Telegram calls evidence against the older no-go packet.</goal>
       <step-1 module="M-CALLS-TOPOLOGY-PROFILE" status="done" verification="V-M-CALLS-TOPOLOGY-PROFILE">Define the bounded local-client Telegram calls topology and separate it from the older SSH-forwarded Desktop path</step-1>
       <step-2 module="M-LOCAL-CLIENT-RUNBOOK" status="done" verification="V-M-LOCAL-CLIENT-RUNBOOK">Document the governed local-client runbook for Telegram Desktop calls without ssh -L</step-2>
       <step-3 module="M-LOCAL-CLIENT-BOOTSTRAP" status="done" verification="V-M-LOCAL-CLIENT-BOOTSTRAP">Prepare the bounded bootstrap for running n0wss-client locally on the Telegram Desktop workstation</step-3>
       <step-4 module="M-LOCAL-CALLS-READINESS" status="done" verification="V-M-LOCAL-CALLS-READINESS">Prove local listener, smoke, and UDP ASSOCIATE readiness on the Telegram Desktop workstation</step-4>
-      <step-5 module="M-LOCAL-CALLS-VOICE-WAVE" status="pending" verification="V-M-LOCAL-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call wave through the local-client topology</step-5>
-      <step-6 module="M-LOCAL-CALLS-VIDEO-WAVE" status="pending" verification="V-M-LOCAL-CALLS-VIDEO-WAVE">Run one separate Telegram video-call wave through the local-client topology</step-6>
-      <step-7 module="M-LOCAL-CALLS-EVIDENCE" status="pending" verification="V-M-LOCAL-CALLS-EVIDENCE">Assemble the local-topology readiness, voice, video, and failure packets</step-7>
-      <step-8 module="M-LOCAL-CALLS-COMPARISON" status="pending" verification="V-M-LOCAL-CALLS-COMPARISON">Compare the local-client packet against the older SSH-forwarded calls packet</step-8>
-      <step-9 module="M-LOCAL-CALLS-GO-NO-GO" status="pending" verification="V-M-LOCAL-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram calls on the local-client topology</step-9>
+      <step-5 module="M-LOCAL-CALLS-VOICE-WAVE" status="done" verification="V-M-LOCAL-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call wave through the local-client topology</step-5>
+      <step-6 module="M-LOCAL-CALLS-VIDEO-WAVE" status="done" verification="V-M-LOCAL-CALLS-VIDEO-WAVE">Run one separate Telegram video-call wave through the local-client topology</step-6>
+      <step-7 module="M-LOCAL-CALLS-EVIDENCE" status="done" verification="V-M-LOCAL-CALLS-EVIDENCE">Assemble the local-topology readiness, voice, video, and failure packets</step-7>
+      <step-8 module="M-LOCAL-CALLS-COMPARISON" status="done" verification="V-M-LOCAL-CALLS-COMPARISON">Compare the local-client packet against the older SSH-forwarded calls packet</step-8>
+      <step-9 module="M-LOCAL-CALLS-GO-NO-GO" status="done" verification="V-M-LOCAL-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram calls on the local-client topology</step-9>
     </Phase-21>
   </ImplementationOrder>
 
