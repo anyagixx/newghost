@@ -1,8 +1,8 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.5
+// VERSION: 0.1.6
 // START_MODULE_CONTRACT
-//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery.
-//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, and local shutdown-state coordination.
+//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery and WSS return-handler wiring.
+//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, WSS inbound-handler registration, and local shutdown-state coordination.
 //   DEPENDS: std, async-trait, http, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/proxy_bridge/mod.rs, src/session/mod.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs
 //   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, V-M-CLI, DF-CLIENT-BOOT, DF-SHUTDOWN
 // END_MODULE_CONTRACT
@@ -21,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.5 - Replaced the client-side inbound datagram noop target with delivery back into the owning governed UDP relay socket.
+//   LAST_CHANGE: v0.1.6 - Wired the live client gateway to the inbound datagram target so governed WSS return frames can reach the owning local relay socket at runtime.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -54,7 +54,7 @@ use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
 use crate::transport::datagram_contract::DatagramAssociationId;
 use crate::transport::stream::ResolvedStream;
 use crate::transport::task_tracker::AdapterTaskTracker;
-use crate::wss_gateway::{GatewayConfig, WssGateway};
+use crate::wss_gateway::{DatagramInboundHandler, GatewayConfig, WssGateway};
 
 #[cfg(test)]
 #[path = "mod.test.rs"]
@@ -297,6 +297,16 @@ impl DatagramDispatchTarget for ClientDatagramInboundTarget {
     }
 }
 
+#[async_trait]
+impl DatagramInboundHandler for ClientDatagramInboundTarget {
+    async fn handle_inbound(
+        &self,
+        envelope: crate::transport::datagram_contract::DatagramEnvelope,
+    ) -> Result<(), String> {
+        self.dispatch(&envelope).await.map_err(|err| err.to_string())
+    }
+}
+
 // START_CONTRACT: run_from
 //   PURPOSE: Bootstrap the process and prepare startup artifacts for the selected runtime mode.
 //   INPUTS: { args: Iterator<Item = OsString> - command-line arguments including binary name }
@@ -481,6 +491,9 @@ async fn run_client_mode(
     let wss_gateway = build_client_gateway(startup).await?;
     let datagram_registry = Arc::new(UdpAssociationRegistry::new(app_config.limits.max_sessions));
     let relay_sockets = UdpRelaySocketRegistry::default();
+    let client_inbound_target =
+        ClientDatagramInboundTarget::new(datagram_registry.clone(), relay_sockets.clone());
+    wss_gateway.set_datagram_inbound_handler(Arc::new(client_inbound_target.clone()));
     let datagram_selector = DatagramTransportSelector::new(
         wss_gateway.clone(),
         DatagramTransportSelectorConfig {
@@ -490,7 +503,7 @@ async fn run_client_mode(
     let datagram_runtime_target = Arc::new(DatagramRuntimeBridge::new(
         datagram_registry.clone(),
         datagram_selector,
-        ClientDatagramInboundTarget::new(datagram_registry.clone(), relay_sockets.clone()),
+        client_inbound_target,
     ));
     let proxy = Socks5Proxy::new(socks5_config, intent_tx.clone())
         .with_udp_runtime_target(datagram_runtime_target)

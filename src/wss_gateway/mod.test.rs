@@ -1,8 +1,8 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.4
+// VERSION: 0.1.5
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, cancellation handling, and adapter cleanup guarantees.
-//   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
+//   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, server-side inbound return emission, client-side inbound callback delivery, cancellation handling, and adapter cleanup guarantees.
+//   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, bounded server-side inbound return, client-side inbound callback delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
 //   DEPENDS: src/wss_gateway/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/tls/mod.rs, src/transport/adapter_contract.rs, src/transport/stream.rs, src/proxy_bridge/udp_relay.rs
 //   LINKS: V-M-WSS-GATEWAY, VF-003, VF-008
 // END_MODULE_CONTRACT
@@ -14,19 +14,22 @@
 //   server_runtime_relays_datagram_to_udp_target - proves the real server runtime demuxes DATAGRAM OPEN and relays the emitted datagram to a real UDP target
 //   server_runtime_receives_inbound_udp_reply - proves the bounded server-side inbound helper normalizes one reply after relay outbound
 //   server_runtime_emits_inbound_datagram_reply - proves the bounded server-side inbound emit helper returns one datagram over the real websocket runtime
+//   runtime_datagram_reply_reaches_client_inbound_handler - proves the full runtime returns one bounded datagram reply back into the configured client-side inbound handler
 //   cancel_before_open_returns_err_and_spawns_no_tasks - proves pre-open cancellation leaves no tracked tasks behind
 //   cancel_during_open_returns_err_and_socket_closes - proves mid-open cancellation closes the socket and surfaces cancellation
 //   failed_open_does_not_leak_tracked_tasks - proves failed opens do not leak adapter tasks
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.4 - Added bounded server-side inbound emit coverage so Phase-26 can prove WSS return separately from later client-side local delivery.
+//   LAST_CHANGE: v0.1.5 - Added a runtime end-to-end datagram reply test so Phase-27 can prove server-side inbound return reaches the configured client-side inbound handler.
 // END_CHANGE_SUMMARY
 
+use std::sync::{Arc, Mutex};
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::time::Duration;
 
+use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
 use tempfile::tempdir;
@@ -47,7 +50,32 @@ use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
 use crate::transport::stream::TransportKind;
 use crate::wss_gateway::datagram::decode_message;
 
-use super::{GatewayConfig, WssError, WssGateway};
+use super::{DatagramInboundHandler, GatewayConfig, WssError, WssGateway};
+
+#[derive(Clone, Default)]
+struct RecordingInboundHandler {
+    envelopes: Arc<Mutex<Vec<DatagramEnvelope>>>,
+}
+
+impl RecordingInboundHandler {
+    fn take(&self) -> Vec<DatagramEnvelope> {
+        self.envelopes
+            .lock()
+            .expect("recording inbound handler mutex poisoned")
+            .clone()
+    }
+}
+
+#[async_trait]
+impl DatagramInboundHandler for RecordingInboundHandler {
+    async fn handle_inbound(&self, envelope: DatagramEnvelope) -> Result<(), String> {
+        self.envelopes
+            .lock()
+            .expect("recording inbound handler mutex poisoned")
+            .push(envelope);
+        Ok(())
+    }
+}
 
 fn write_tls_fixture() -> (tempfile::TempDir, TlsContextHandle) {
     let dir = tempdir().expect("tempdir should build");
@@ -419,6 +447,63 @@ async fn server_runtime_emits_inbound_datagram_reply() {
     assert_eq!(decoded, outbound);
     websocket.close(None).await.expect("close websocket");
     server_task.await.expect("server task should join");
+}
+
+#[tokio::test]
+async fn runtime_datagram_reply_reaches_client_inbound_handler() {
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    let server_gateway = build_gateway(server_addr, tls.clone(), "token-12345");
+    let server_task = tokio::spawn({
+        let gateway = server_gateway.clone();
+        async move { gateway.run_server(listener).await }
+    });
+
+    let remote = UdpSocket::bind("127.0.0.1:0")
+        .await
+        .expect("remote udp target should bind");
+    let remote_addr = remote.local_addr().expect("remote addr should resolve");
+    let remote_task = tokio::spawn(async move {
+        let mut buffer = [0_u8; 128];
+        let (_bytes_read, relay_source) = remote
+            .recv_from(&mut buffer)
+            .await
+            .expect("remote should observe outbound datagram");
+        remote
+            .send_to(b"phase27-runtime-reply", relay_source)
+            .await
+            .expect("remote should send bounded reply");
+    });
+
+    let client_gateway = build_gateway(server_addr, tls, "token-12345");
+    let inbound_handler = RecordingInboundHandler::default();
+    client_gateway.set_datagram_inbound_handler(Arc::new(inbound_handler.clone()));
+    let envelope = DatagramEnvelope {
+        association_id: 107,
+        relay_client_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 19400),
+        target: DatagramTarget::Ip(remote_addr),
+        payload: b"phase27-runtime-outbound".to_vec(),
+    };
+
+    client_gateway
+        .emit_datagram(&envelope, CancellationToken::new())
+        .await
+        .expect("emit_datagram should complete with inbound handler delivery");
+
+    remote_task.await.expect("remote task should join");
+    let recorded = inbound_handler.take();
+    assert_eq!(recorded.len(), 1);
+    assert_eq!(recorded[0].association_id, envelope.association_id);
+    assert_eq!(recorded[0].relay_client_addr, envelope.relay_client_addr);
+    assert_eq!(recorded[0].target, envelope.target);
+    assert_eq!(recorded[0].payload, b"phase27-runtime-reply".to_vec());
+
+    client_gateway.stop_accept();
+    server_gateway.stop_accept();
+    assert!(server_task.await.expect("server task should join").is_ok());
 }
 
 #[tokio::test]

@@ -1,20 +1,22 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.7
+// VERSION: 0.1.8
 // START_MODULE_CONTRACT
-//   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, and governed datagram framing under the shared adapter contract without owning transport selection logic.
-//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
+//   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, governed datagram framing, and client-side inbound datagram callback wiring under the shared adapter contract without owning transport selection logic.
+//   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, server-side inbound return emission, client-side inbound datagram callback wiring, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
 //   DEPENDS: std, async-trait, futures-util, http, thiserror, tokio, tokio-tungstenite, tokio-util, tracing, src/tls/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/transport/*, src/wss_gateway/datagram.rs
 //   LINKS: M-WSS-GATEWAY, M-WSS-DATAGRAM-GATEWAY, M-TLS, M-AUTH, M-OBS, V-M-WSS-GATEWAY, V-M-WSS-DATAGRAM-GATEWAY, DF-WSS-HANDSHAKE, DF-UDP-OUTBOUND, DF-UDP-INBOUND
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   GatewayConfig - typed WSS gateway configuration for client and server roles
+//   DatagramInboundHandler - client-runtime callback for one governed inbound datagram reply
 //   WssGateway - WSS transport adapter and server boundary
 //   WssError - deterministic open-stream and server-loop errors
 //   run_server - start the remote WSS listener and validate auth handshakes
 //   open_stream - establish an outbound WSS-backed resolved stream
 //   task_tracker - expose adapter-scoped task tracking
 //   stop_accept - stop the accept loop during shutdown
+//   set_datagram_inbound_handler - install the client-runtime handler for governed inbound datagram replies
 //   open_datagram_path - establish one production datagram-ready websocket session
 //   receive_server_datagram_reply - read one inbound UDP reply on the server runtime and normalize it into a governed datagram envelope
 //   emit_server_datagram_reply - return one inbound datagram envelope back over the governed server-side WSS runtime
@@ -22,11 +24,11 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.7 - Added a bounded server-side inbound emit helper so Phase-26 can prove WSS return separately from later client-side local delivery.
+//   LAST_CHANGE: v0.1.8 - Wired server-side inbound receive and return emit into the real datagram runtime and added a client-side inbound callback so controlled replies can reach the owning local relay socket.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
@@ -60,6 +62,13 @@ use crate::transport::task_tracker::AdapterTaskTracker;
 mod tests;
 
 pub mod datagram;
+
+const DATAGRAM_RETURN_TIMEOUT: Duration = Duration::from_secs(2);
+
+#[async_trait]
+pub trait DatagramInboundHandler: Send + Sync + 'static {
+    async fn handle_inbound(&self, envelope: DatagramEnvelope) -> Result<(), String>;
+}
 
 #[derive(Clone)]
 pub struct GatewayConfig {
@@ -99,6 +108,7 @@ pub struct WssGateway {
     config: GatewayConfig,
     task_tracker: Arc<AdapterTaskTracker>,
     accept_token: CancellationToken,
+    datagram_inbound_handler: Arc<Mutex<Option<Arc<dyn DatagramInboundHandler>>>>,
 }
 
 struct BridgeLifecycle {
@@ -119,6 +129,7 @@ impl WssGateway {
             config,
             task_tracker: Arc::new(AdapterTaskTracker::new("wss")),
             accept_token: CancellationToken::new(),
+            datagram_inbound_handler: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -128,6 +139,13 @@ impl WssGateway {
 
     pub fn stop_accept(&self) {
         self.accept_token.cancel();
+    }
+
+    pub fn set_datagram_inbound_handler(&self, handler: Arc<dyn DatagramInboundHandler>) {
+        *self
+            .datagram_inbound_handler
+            .lock()
+            .expect("wss datagram inbound handler mutex poisoned") = Some(handler);
     }
 
     // START_CONTRACT: run_server
@@ -334,9 +352,27 @@ impl WssGateway {
                         payload_len = envelope.payload.len(),
                         "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_RECEIVED] received governed WSS datagram frame"
                     );
-                    relay_outbound_datagram(&envelope)
+                    let relay = relay_outbound_datagram(&envelope)
                         .await
                         .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+                    match tokio::time::timeout(
+                        DATAGRAM_RETURN_TIMEOUT,
+                        self.receive_server_datagram_reply(&relay),
+                    )
+                    .await
+                    {
+                        Ok(Ok(inbound)) => {
+                            self.emit_server_datagram_reply(&mut websocket, &inbound).await?;
+                        }
+                        Ok(Err(err)) => return Err(err),
+                        Err(_) => {
+                            warn!(
+                                association_id,
+                                timeout_ms = DATAGRAM_RETURN_TIMEOUT.as_millis(),
+                                "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_INBOUND_RECEIVED] timed out waiting for governed inbound UDP reply"
+                            );
+                        }
+                    }
                 }
                 Message::Close(_) => break,
                 Message::Ping(_) | Message::Pong(_) => {}
@@ -696,6 +732,34 @@ impl WssDatagramPath for WssGateway {
         datagram::send_datagram(&mut websocket, envelope)
             .await
             .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+        let inbound_handler = self
+            .datagram_inbound_handler
+            .lock()
+            .expect("wss datagram inbound handler mutex poisoned")
+            .clone();
+        if let Some(handler) = inbound_handler {
+            match tokio::time::timeout(DATAGRAM_RETURN_TIMEOUT, websocket.next()).await {
+                Ok(Some(Ok(frame))) => {
+                    let inbound = datagram::decode_message(frame)
+                        .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+                    handler
+                        .handle_inbound(inbound)
+                        .await
+                        .map_err(WssError::DatagramPathFailed)?;
+                }
+                Ok(Some(Err(err))) => {
+                    return Err(WssError::DatagramPathFailed(err.to_string()));
+                }
+                Ok(None) => {}
+                Err(_) => {
+                    warn!(
+                        association_id = envelope.association_id,
+                        timeout_ms = DATAGRAM_RETURN_TIMEOUT.as_millis(),
+                        "[WssGateway][emitDatagram][BLOCK_SEND_WSS_DATAGRAM] timed out waiting for governed inbound datagram reply"
+                    );
+                }
+            }
+        }
         tokio::select! {
             _ = cancel.cancelled() => Err(WssError::Cancelled),
             result = websocket.close(None) => {
