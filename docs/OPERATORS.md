@@ -926,6 +926,23 @@ Phase-29 handoff boundary:
 - the same wave still needs the same-window remote `phase27-probe` packet as the transport-green precondition
 - if Telegram proxy setup itself stays at `Соединение...`, classify that as Desktop handoff failure before any media classifier runs
 
+Phase-29 bounded capture surface:
+
+- workstation loopback capture:
+  `sudo timeout 20 tcpdump -i lo -nn '(tcp port 1080) or (udp port 1080)' -c 200 -w /tmp/n0wss-phase29-loopback.pcap`
+- workstation uplink capture:
+  `sudo timeout 20 tcpdump -i any -nn 'host 91.99.128.146 and tcp port 7443' -c 200 -w /tmp/n0wss-phase29-uplink.pcap`
+- remote server capture:
+  `ssh root@$N0WSS_SERVER_HOST \"timeout 20 tcpdump -i any -nn '(tcp port 7443) or udp' -c 200 -w /tmp/n0wss-phase29-server.pcap\"`
+- capture split:
+  keep the Desktop handoff packet separate from voice-media and video-media packets even if they happen in the same operator session
+- capture interpretation:
+  loopback proves whether Telegram Desktop touched the local SOCKS5 endpoint
+  uplink proves whether the workstation still maintained the WSS path during the media attempt
+  remote capture remains separate so a later classifier can compare app-facing behavior with preserved transport-green evidence
+- evidence gap rule:
+  if one capture is missing, keep it as a separate packet gap instead of inferring the missing layer from another capture
+
 Remote server-host bounded capture:
 
 ```bash

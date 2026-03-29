@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.43">
+<VerificationPlan VERSION="0.2.45">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -74,6 +74,10 @@
     <post-roundtrip-app-boundary-rule>After Phase-27, Telegram calls verification must treat the generic datagram transport as already green baseline evidence; if the calls wave still fails, the first divergent layer must be described as Telegram-specific, media-profile-specific, or app-behavior-specific rather than reopening generic transport diagnosis.</post-roundtrip-app-boundary-rule>
     <calls-rerun-packet-split-rule>The post-roundtrip calls rerun must keep readiness, voice, video, reconnect, app-classifier, and final decision packets separate so later agents can identify the first divergent app-facing layer without rereading a blended transcript.</calls-rerun-packet-split-rule>
     <phase27-calls-baseline-lock-rule>Every Phase-28 comparison packet must preserve the completed Phase-27 baseline: the same live window already proves a bounded controlled datagram `reply-received` packet with SERVER_DATAGRAM_INBOUND_RECEIVED, SERVER_DATAGRAM_RETURN_EMITTED, and BLOCK_DELIVER_INBOUND_DATAGRAM.</phase27-calls-baseline-lock-rule>
+    <phase28-media-baseline-lock-rule>Every Phase-29 comparison packet must preserve the completed Phase-28 baseline: the same live window already proves the green controlled datagram baseline while voice, video, and reconnect remain app-facing no-go packets on the tested Desktop setup.</phase28-media-baseline-lock-rule>
+    <desktop-handoff-before-media-rule>No Telegram-specific media-behavior packet may be interpreted until the same wave preserves one exact Desktop proxy handoff packet and one same-window green `phase27-probe` packet.</desktop-handoff-before-media-rule>
+    <media-classifier-split-rule>Phase-29 must keep Desktop handoff, bounded capture, voice-media classification, video-media classification, comparison, and final decision as separate evidence classes; one app symptom must not stand in for the whole media story.</media-classifier-split-rule>
+    <telegram-media-no-transport-reopen-rule>After Phase-28, Telegram-specific media verification must not reopen generic datagram transport diagnosis unless the same wave explicitly disproves the preserved green `phase27-probe` baseline first.</telegram-media-no-transport-reopen-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -3725,6 +3729,170 @@
         <assertion-2>The final decision must say whether voice, video, and reconnect converged on the same no-go class or diverged after the green round-trip baseline.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-CALLS-RERUN-DECISION>
+
+    <V-M-TELEGRAM-MEDIA-HYPOTHESIS MODULE="M-TELEGRAM-MEDIA-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'post-Phase-28|app-facing|green transport|tested Desktop setup' README.md docs/OPERATORS.md docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The hypothesis packet freezes generic transport as green and moves the next wave fully into Telegram-specific media behavior.</scenario-1>
+        <scenario-2>The hypothesis packet explicitly says that Phase-28 already ended as app-facing no-go for voice, video, and reconnect on the tested Desktop setup.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new phase silently reopens generic datagram repair or widens claims beyond the tested Desktop setup.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The hypothesis packet must preserve both sides of the boundary at once: green controlled datagram baseline and app-facing calls no-go.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MEDIA-HYPOTHESIS>
+
+    <V-M-TELEGRAM-DESKTOP-HANDOFF-PROFILE MODULE="M-TELEGRAM-DESKTOP-HANDOFF-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Desktop handoff|proxy handoff|same-window|phase27-probe|bounded call action' docs/OPERATORS.md docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The handoff profile preserves one exact Desktop proxy path and keeps same-window readiness attached to later media packets.</scenario-1>
+        <scenario-2>The handoff packet makes it possible to distinguish proxy-setup failure from later Telegram-specific media behavior without rereading older calls waves.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The operator path stays ambiguous enough that a later media packet could collapse into another setup issue.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The handoff packet must preserve the exact Desktop proxy shape, local forward state when applicable, and the same-window green `phase27-probe` precondition.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-DESKTOP-HANDOFF-PROFILE>
+
+    <V-M-TELEGRAM-MEDIA-CAPTURE MODULE="M-TELEGRAM-MEDIA-CAPTURE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'capture|bounded|voice|video|Desktop|WSS|SOCKS' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The capture packet keeps workstation, WSS, and app-facing evidence bounded enough to compare later media behavior deterministically.</scenario-1>
+        <scenario-2>The capture packet can distinguish answer or key-exchange progress from absent green media without depending on vague UI prose alone.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The capture guidance is too weak to separate signaling progress from missing green media.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The capture packet must keep workstation-facing evidence separate from preserved WSS or transport-green baseline evidence.</assertion-1>
+        <assertion-2>The capture packet must name the loopback, uplink, and remote server capture surfaces explicitly so later agents can compare them instead of blending them.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MEDIA-CAPTURE>
+
+    <V-M-TELEGRAM-VOICE-MEDIA-CLASSIFIER MODULE="M-TELEGRAM-VOICE-MEDIA-CLASSIFIER" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'voice media|signaling-only stall|governed-media progress|app-facing' docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The voice classifier distinguishes post-answer signaling progress from actual green media behavior on the tested Desktop setup.</scenario-1>
+        <scenario-2>If answer or key-exchange emoji appear but no green media packet follows, the voice classifier may stay in `signaling-only stall` as long as it says why that does not prove governed media success.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The voice packet is treated as generic failure text without a bounded media classification.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The voice classifier must explicitly choose among signaling-only stall, governed-media progress, or another bounded app-facing media behavior.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-VOICE-MEDIA-CLASSIFIER>
+
+    <V-M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER MODULE="M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'video media|separate from voice|diverges earlier|app-facing' docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The video classifier stays separate from voice and states whether video matches or diverges from the voice media layer.</scenario-1>
+        <scenario-2>If video stalls earlier than voice, that earlier boundary is preserved explicitly instead of being merged into the voice classifier.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The video packet silently inherits the voice classifier.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The video classifier must explicitly compare itself against the voice classifier instead of assuming parity.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER>
+
+    <V-M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON MODULE="M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'proxy behavior|green baseline|older calls packets|Telegram-specific' README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet explains the new Telegram-specific media boundary without reopening generic transport diagnosis.</scenario-1>
+        <scenario-2>The comparison packet states whether voice and video converge on the same app-facing class or diverge by media profile.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison packet collapses back into generic proxy or transport uncertainty.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The comparison packet must preserve the completed Phase-28 no-go packet and the same-window green transport baseline at the same time.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON>
+
+    <V-M-TELEGRAM-MEDIA-EVIDENCE MODULE="M-TELEGRAM-MEDIA-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'handoff|capture|voice|video|comparison|Telegram media evidence' README.md docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The evidence packet keeps handoff, capture, voice, video, and comparison sections separate before the final decision.</scenario-1>
+        <scenario-2>The evidence packet remains distinguishable from the completed Phase-28 calls packet even if the underlying app-facing no-go class stays unchanged.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new media packet cannot be distinguished from the completed Phase-28 calls packet.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The evidence packet must preserve separate handoff, capture, voice, video, and comparison sections before the final decision is formed.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MEDIA-EVIDENCE>
+
+    <V-M-TELEGRAM-MEDIA-DECISION MODULE="M-TELEGRAM-MEDIA-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Telegram media decision|tested Desktop setup|workaround phase|alternate app topology|no-go' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision stays bounded to the tested Desktop setup and says whether a workaround phase, alternate topology, or continued no-go is justified.</scenario-1>
+        <scenario-2>The final decision may keep the setup fully no-go as long as it explicitly says that the transport baseline stayed green and the remaining blocker stayed Telegram-specific.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision widens claims or reopens generic transport diagnosis instead of staying Telegram-specific.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must remain bounded to the tested Desktop setup and explicitly say whether the next justified phase is a workaround phase, alternate topology, or continued no-go.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MEDIA-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -4111,6 +4279,25 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsAfterRoundTripWave; expected-evidence=same-window green controlled datagram probe plus separate readiness, voice, video, reconnect, and app-classifier packets; observed-evidence=module-local checks, bounded Telegram call attempts, runtime logs, and comparison against older calls no-go waves; first-divergent-block=first missing app-facing or media-path layer after the green datagram baseline; next-action=repair only the first unresolved Telegram-specific layer without reopening generic transport work</failure-packet-template>
     </LV-019>
+    <LV-020 NAME="TelegramMediaBehaviorWave" PRIORITY="high">
+      <goal>Classify Telegram-specific media behavior on the tested Desktop setup only after the same live window still preserves the green controlled datagram baseline from Phase-27.</goal>
+      <commands>
+        <command-1>cargo test udp_relay</command-1>
+        <command-2>cargo test wss_gateway</command-2>
+        <command-3>cargo test cli</command-3>
+        <command-4>replay one bounded `phase27-probe` in the same live window before any new Telegram media packet is interpreted</command-4>
+        <command-5>capture one bounded Desktop handoff packet, one bounded voice-media packet, one bounded video-media packet, and one bounded comparison packet for the Telegram-specific media wave</command-5>
+        <command-6>compare the new Telegram media packet against the completed Phase-28 no-go packet before issuing a new decision</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave starts only on the same transport-green deployment window already preserved by the completed Phase-27 baseline.</evidence-1>
+        <evidence-2>The wave keeps Desktop handoff, capture, voice, video, and comparison packets separate rather than blending them into one transcript.</evidence-2>
+        <evidence-3>The wave classifies Telegram-specific media behavior without reopening generic datagram repair.</evidence-3>
+        <evidence-4>The final decision remains bounded to the tested Telegram Desktop setup.</evidence-4>
+        <evidence-5>The wave preserves the completed Phase-28 no-go packet as the historical app-facing baseline for comparison.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramMediaBehaviorWave; expected-evidence=same-window green controlled probe plus separate handoff, capture, voice, video, and comparison packets; observed-evidence=module-local checks, bounded Desktop media attempts, packet captures, and bounded comparison evidence; first-divergent-block=first missing Telegram-specific media-behavior layer after the green transport baseline; next-action=repair only the first unresolved Telegram-specific layer without reopening generic transport work</failure-packet-template>
+    </LV-020>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -4595,6 +4782,23 @@
         <evidence-5>The final decision remains bounded to the tested Telegram Desktop setup and may still be split between voice, video, and reconnect outcomes.</evidence-5>
       </required-evidence>
     </Gate-Phase-28>
+    <Gate-Phase-29 PHASE="Phase-29">
+      <goal>The project has an execution-ready Telegram-specific media-behavior wave that starts only on the same transport-green baseline and stays bounded to the tested Desktop setup.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-29|M-TELEGRAM-MEDIA-HYPOTHESIS|M-TELEGRAM-MEDIA-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-020|phase27-probe|handoff|voice|video|comparison|tested Desktop setup' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>cargo test udp_relay</command-3>
+        <command-4>cargo test wss_gateway</command-4>
+        <command-5>cargo test cli</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The phase preserves the completed Phase-28 truth that calls remain app-facing no-go above a green transport baseline.</evidence-1>
+        <evidence-2>The phase defines separate Desktop handoff, capture, voice-media, video-media, comparison, and final decision packets.</evidence-2>
+        <evidence-3>The gate requires the same-window green `phase27-probe` packet before any Telegram-specific media interpretation.</evidence-3>
+        <evidence-4>The final decision remains bounded to the tested Telegram Desktop setup and does not reopen generic datagram transport diagnosis.</evidence-4>
+        <evidence-5>The gate preserves the completed Phase-28 no-go packet as the historical app-facing baseline for any new Telegram-specific media interpretation.</evidence-5>
+      </required-evidence>
+    </Gate-Phase-29>
   </PhaseGates>
 
   <FailurePackets>
