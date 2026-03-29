@@ -840,6 +840,12 @@ Observed Phase-26 inbound-return outcome on 2026-03-29:
   `/tmp/phase27-echo.log` on `ghost-srv` recorded `received=b'phase27-probe'` and `replied_to=...`, `/var/log/n0wss-server.log` recorded `SERVER_DATAGRAM_INBOUND_RECEIVED` plus `SERVER_DATAGRAM_RETURN_EMITTED`, and `/var/log/n0wss-client.log` recorded `BLOCK_DELIVER_INBOUND_DATAGRAM`
 - updated operator consequence:
   the controlled datagram round-trip is now green against the deterministic server-local echo target, so the next approved wave is a new Telegram-specific verification wave rather than another inbound-return repair
+- bounded post-Phase-27 calls rule:
+  treat the generic datagram path as green baseline evidence during the next Telegram calls wave; if calls still fail, classify the first divergent layer as app-facing, media-profile-specific, or Telegram-behavior-specific rather than reopening generic transport repair
+- same-window precondition for the next calls wave:
+  before the first manual voice or video attempt, replay one bounded `phase27-probe` on the same deployment window and keep its `reply-received` packet together with the calls evidence
+- packet split rule for the next calls wave:
+  keep readiness, voice, video, reconnect, app-classifier, and final decision as separate packets; do not blend them into one calls transcript and do not let the video or reconnect result silently inherit the voice result
 
 Remote server-host bounded capture:
 

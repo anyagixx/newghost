@@ -188,6 +188,11 @@ Current calls-profile status:
   server-local echo evidence recorded `received=b'phase27-probe'` and `replied_to=...`, live server logs recorded `SERVER_DATAGRAM_INBOUND_RECEIVED` plus `SERVER_DATAGRAM_RETURN_EMITTED`, and live client logs recorded `BLOCK_DELIVER_INBOUND_DATAGRAM`
 - the bounded Phase-27 decision is therefore narrower and greener than the old transport diagnosis:
   the controlled datagram round-trip is now proven through reply return, so the next justified wave is a new Telegram-specific verification phase rather than another datagram repair
+- the new post-Phase-27 Telegram calls boundary is therefore app-facing, not transport-facing:
+  any fresh voice, video, or reconnect failure on the same deployment window must be classified against a transport-green baseline rather than reopening generic datagram diagnosis
+- the next Telegram calls rerun is allowed only when the same live window still proves one bounded `phase27-probe` packet with `reply-received` before the first manual call attempt
+- the next calls decision must stay explicitly split if needed:
+  voice, video, and reconnect may diverge on the tested Telegram Desktop setup even after the controlled datagram round-trip is green
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
