@@ -877,6 +877,19 @@ Observed Phase-28 app-classifier outcome on 2026-03-29:
 - classifier non-claim:
   the current packet does not prove direct-media bypass; it only proves that signaling and key exchange advance farther than before while a governed green media packet still does not appear
 
+Observed Phase-28 evidence packet on 2026-03-29:
+
+- readiness packet:
+  the same deployment window still preserved one bounded `phase27-probe` packet with `reply-received`
+- voice packet:
+  ringing and answer were immediate, key-exchange emoji appeared on both devices, and the call then fell back to `Соединение...` before ending
+- video packet:
+  the call stalled at `Обмен ключами шифрования...` and then dropped without a green media packet
+- reconnect packet:
+  one fresh second audio attempt remained separate from the first call and repeated `Обмен ключами шифрования`
+- comparison packet:
+  unlike the older pre-Phase-27 no-go waves, the new packet set no longer needs to reopen generic datagram diagnosis because the same window already preserved the controlled round-trip baseline
+
 Remote server-host bounded capture:
 
 ```bash

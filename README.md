@@ -193,6 +193,10 @@ Current calls-profile status:
 - the next Telegram calls rerun is allowed only when the same live window still proves one bounded `phase27-probe` packet with `reply-received` before the first manual call attempt
 - the next calls decision must stay explicitly split if needed:
   voice, video, and reconnect may diverge on the tested Telegram Desktop setup even after the controlled datagram round-trip is green
+- the completed Phase-28 evidence packet on 2026-03-29 now stays explicitly separated from the older pre-Phase-27 no-go waves:
+  readiness kept the same-window `phase27-probe` green, voice reached answer plus key-exchange emoji before falling back to `Соединение...`, video stalled at `Обмен ключами шифрования...` and dropped, and the reconnect audio attempt repeated the same key-exchange symptom
+- the comparison against the older calls no-go waves is now narrower:
+  before Phase-27 the first unresolved layer still overlapped generic transport uncertainty, but the new Phase-28 packet keeps the failure boundary app-facing because the same deployment window already preserved the green controlled datagram round-trip
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

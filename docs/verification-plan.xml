@@ -3693,12 +3693,14 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The evidence packet explicitly compares the new post-roundtrip calls packets against the older no-go calls waves from before Phase-27.</scenario-1>
+        <scenario-2>The comparison packet preserves the same-window green readiness probe so the new calls packet cannot be mistaken for the older transport-uncertain waves.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The new packet cannot be distinguished from older calls no-go packets or from the transport-only Phase-27 packet.</scenario-1>
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The evidence packet must preserve separate readiness, voice, video, reconnect, and classifier sections before the final decision is formed.</assertion-1>
+        <assertion-2>The comparison packet must explicitly say that the older no-go waves predated the green Phase-27 round-trip baseline while the new packet does not.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-CALLS-RERUN-EVIDENCE>
 
