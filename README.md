@@ -152,6 +152,8 @@ Current calls-profile status:
   `UDP ASSOCIATE` success, outbound datagram emission, remote echo-target ingress, and inbound reply return
 - this keeps the next blocker classification transport-scoped:
   if the remote echo target still sees no packet, the unresolved layer remains inside the controlled datagram path; if remote ingress appears but the probe still times out, the unresolved layer moves to inbound return rather than back to Telegram UI
+- current bounded blocking boundary after the first Phase-23 packet:
+  local `UDP ASSOCIATE` negotiation and governed relay-bind allocation are green, but the first still-unresolved datagram layer remains before any proven remote echo-target ingress and therefore before any inbound reply return
 - external filtering is still not the first unresolved layer; the next phase should isolate datagram round-trip behavior and app-specific media handoff before any network-workaround phase is approved
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
