@@ -1595,7 +1595,7 @@
       </annotations>
     </M-SERVER-DATAGRAM-INBOUND-RECEIVE>
 
-    <M-WSS-DATAGRAM-INBOUND-EMIT NAME="WssDatagramInboundEmit" TYPE="INTEGRATION" STATUS="planned">
+    <M-WSS-DATAGRAM-INBOUND-EMIT NAME="WssDatagramInboundEmit" TYPE="INTEGRATION" STATUS="done">
       <purpose>Emit one inbound datagram back over the governed WSS datagram path from server runtime to client runtime.</purpose>
       <path>src/wss_gateway/mod.rs</path>
       <depends>M-WSS-DATAGRAM-RUNTIME-CARRIER, M-SERVER-DATAGRAM-INBOUND-RECEIVE</depends>
