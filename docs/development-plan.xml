@@ -4136,6 +4136,8 @@
         <file-1>src/session/datagram_manager.rs</file-1>
         <file-2>src/session/mod.rs</file-2>
         <file-3>src/session/datagram_manager.test.rs</file-3>
+        <file-4>src/cli/mod.rs</file-4>
+        <file-5>src/cli/mod.test.rs</file-5>
       </target-files>
       <depends>M-SOCKS5-UDP-RUNTIME-LOOP, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR, M-WSS-DATAGRAM-RUNTIME-CARRIER</depends>
       <observability>
@@ -4169,7 +4171,7 @@
       <verification-ref>V-M-SERVER-DATAGRAM-INGRESS</verification-ref>
     </M-SERVER-DATAGRAM-INGRESS>
 
-    <M-DATAGRAM-RUNTIME-RERUN NAME="DatagramRuntimeRerun" TYPE="ENTRY_POINT" LAYER="28" ORDER="6" STATUS="planned">
+    <M-DATAGRAM-RUNTIME-RERUN NAME="DatagramRuntimeRerun" TYPE="ENTRY_POINT" LAYER="28" ORDER="6" STATUS="done">
       <contract>
         <purpose>Replay one controlled datagram probe through the full live runtime glue path after wiring is complete and classify the new deepest proven layer.</purpose>
         <inputs>
@@ -4193,7 +4195,7 @@
       <verification-ref>V-M-DATAGRAM-RUNTIME-RERUN</verification-ref>
     </M-DATAGRAM-RUNTIME-RERUN>
 
-    <M-DATAGRAM-RUNTIME-EVIDENCE NAME="DatagramRuntimeEvidence" TYPE="UTILITY" LAYER="28" ORDER="7" STATUS="planned">
+    <M-DATAGRAM-RUNTIME-EVIDENCE NAME="DatagramRuntimeEvidence" TYPE="UTILITY" LAYER="28" ORDER="7" STATUS="done">
       <contract>
         <purpose>Assemble the post-runtime-glue packet and compare it against both the Phase-23 boundary and the stopped Phase-24 repair packet.</purpose>
         <inputs>
@@ -4217,7 +4219,7 @@
       <verification-ref>V-M-DATAGRAM-RUNTIME-EVIDENCE</verification-ref>
     </M-DATAGRAM-RUNTIME-EVIDENCE>
 
-    <M-DATAGRAM-RUNTIME-DECISION NAME="DatagramRuntimeDecision" TYPE="ENTRY_POINT" LAYER="28" ORDER="8" STATUS="planned">
+    <M-DATAGRAM-RUNTIME-DECISION NAME="DatagramRuntimeDecision" TYPE="ENTRY_POINT" LAYER="28" ORDER="8" STATUS="done">
       <contract>
         <purpose>Issue the bounded post-runtime-glue decision on whether the project can safely return to a Telegram-specific calls wave.</purpose>
         <inputs>
@@ -4896,16 +4898,16 @@
       <step-7 module="M-DATAGRAM-REPAIR-EVIDENCE" status="pending" verification="V-M-DATAGRAM-REPAIR-EVIDENCE">Assemble the pre-fix versus post-fix datagram comparison packet</step-7>
       <step-8 module="M-DATAGRAM-REPAIR-DECISION" status="pending" verification="V-M-DATAGRAM-REPAIR-DECISION">Issue the bounded post-repair decision on whether a new Telegram-specific wave is justified</step-8>
     </Phase-24>
-    <Phase-25 name="Datagram Runtime Glue" status="pending">
+    <Phase-25 name="Datagram Runtime Glue" status="done">
       <goal>Wire the repaired datagram helpers into the real runtime so controlled probes can traverse the live client and server path before any Telegram-specific rerun is approved.</goal>
       <step-1 module="M-DATAGRAM-RUNTIME-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-RUNTIME-HYPOTHESIS">Freeze the bounded runtime-glue blocker after the stopped Phase-24 wave</step-1>
       <step-2 module="M-SOCKS5-UDP-RUNTIME-LOOP" status="done" verification="V-M-SOCKS5-UDP-RUNTIME-LOOP">Add the live local UDP receive loop after SOCKS5 UDP ASSOCIATE</step-2>
       <step-3 module="M-WSS-DATAGRAM-RUNTIME-CARRIER" status="done" verification="V-M-WSS-DATAGRAM-RUNTIME-CARRIER">Implement the production WSS datagram carrier instead of mock-only emit surfaces</step-3>
       <step-4 module="M-DATAGRAM-RUNTIME-BRIDGE" status="done" verification="V-M-DATAGRAM-RUNTIME-BRIDGE">Bind the live local UDP loop, manager handoff, and production carrier emit path</step-4>
       <step-5 module="M-SERVER-DATAGRAM-INGRESS" status="done" verification="V-M-SERVER-DATAGRAM-INGRESS">Add the server-side runtime receive path and relay invocation for datagram frames</step-5>
-      <step-6 module="M-DATAGRAM-RUNTIME-RERUN" status="pending" verification="V-M-DATAGRAM-RUNTIME-RERUN">Replay one controlled probe through the full live runtime glue path</step-6>
-      <step-7 module="M-DATAGRAM-RUNTIME-EVIDENCE" status="pending" verification="V-M-DATAGRAM-RUNTIME-EVIDENCE">Assemble the bounded post-runtime-glue comparison packet</step-7>
-      <step-8 module="M-DATAGRAM-RUNTIME-DECISION" status="pending" verification="V-M-DATAGRAM-RUNTIME-DECISION">Issue the bounded decision on whether a Telegram-specific calls wave is now justified</step-8>
+      <step-6 module="M-DATAGRAM-RUNTIME-RERUN" status="done" verification="V-M-DATAGRAM-RUNTIME-RERUN">Replay one controlled probe through the full live runtime glue path</step-6>
+      <step-7 module="M-DATAGRAM-RUNTIME-EVIDENCE" status="done" verification="V-M-DATAGRAM-RUNTIME-EVIDENCE">Assemble the bounded post-runtime-glue comparison packet</step-7>
+      <step-8 module="M-DATAGRAM-RUNTIME-DECISION" status="done" verification="V-M-DATAGRAM-RUNTIME-DECISION">Issue the bounded decision on whether a Telegram-specific calls wave is now justified</step-8>
     </Phase-25>
   </ImplementationOrder>
 
