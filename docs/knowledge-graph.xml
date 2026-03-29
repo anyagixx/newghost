@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.18">
+  <Project NAME="n0wss" VERSION="0.2.19">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1255,6 +1255,76 @@
       </annotations>
     </M-LOCAL-CALLS-GO-NO-GO>
 
+    <M-CALLS-FAILURE-HYPOTHESIS NAME="CallsFailureHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the bounded post-Phase-21 hypothesis set for Telegram calls failure before deeper diagnosis starts.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-LOCAL-CALLS-GO-NO-GO, M-TELEGRAM-CALLS-PROFILE</depends>
+      <verification-ref>V-M-CALLS-FAILURE-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeCallsHypotheses PURPOSE="Freeze the allowed Telegram calls failure hypotheses before deeper probes." />
+      </annotations>
+    </M-CALLS-FAILURE-HYPOTHESIS>
+
+    <M-CALLS-UDP-PROBE-TOOLING NAME="CallsUdpProbeTooling" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Prepare a controlled UDP ASSOCIATE and datagram probe path outside Telegram UI.</purpose>
+      <path>scripts/udp_probe.sh</path>
+      <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-CONTRACT, M-UDP-EGRESS-RELAY</depends>
+      <verification-ref>V-M-CALLS-UDP-PROBE-TOOLING</verification-ref>
+      <annotations>
+        <fn-runUdpProbe PURPOSE="Exercise the governed datagram path without Telegram Desktop UI." />
+      </annotations>
+    </M-CALLS-UDP-PROBE-TOOLING>
+
+    <M-CALLS-LIVE-PACKET-CAPTURE NAME="CallsLivePacketCapture" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Add bounded workstation and remote packet-capture evidence for Telegram calls attempts.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-CALLS-UDP-PROBE-TOOLING, M-OBS, M-LIVE-OBS-EVIDENCE</depends>
+      <verification-ref>V-M-CALLS-LIVE-PACKET-CAPTURE</verification-ref>
+      <annotations>
+        <fn-captureCallsPackets PURPOSE="Capture bounded workstation and remote packet evidence during calls attempts." />
+      </annotations>
+    </M-CALLS-LIVE-PACKET-CAPTURE>
+
+    <M-CALLS-APP-BEHAVIOR-CLASSIFIER NAME="CallsAppBehaviorClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Classify whether Telegram Desktop uses the governed media path, bypasses it, or stalls before media begins.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-LIVE-PACKET-CAPTURE, M-LOCAL-CALLS-GO-NO-GO</depends>
+      <verification-ref>V-M-CALLS-APP-BEHAVIOR-CLASSIFIER</verification-ref>
+      <annotations>
+        <fn-classifyTelegramCallsBehavior PURPOSE="Classify Telegram Desktop media-path behavior on the tested setup." />
+      </annotations>
+    </M-CALLS-APP-BEHAVIOR-CLASSIFIER>
+
+    <M-CALLS-REMOTE-MEDIA-PROBE NAME="CallsRemoteMediaProbe" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Probe the remote UDP relay boundary with controlled datagrams independently of Telegram UI state.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-UDP-EGRESS-RELAY, M-CALLS-UDP-PROBE-TOOLING, M-CALLS-LIVE-PACKET-CAPTURE</depends>
+      <verification-ref>V-M-CALLS-REMOTE-MEDIA-PROBE</verification-ref>
+      <annotations>
+        <fn-probeRemoteMediaBoundary PURPOSE="Probe remote UDP media reachability through the governed relay path." />
+      </annotations>
+    </M-CALLS-REMOTE-MEDIA-PROBE>
+
+    <M-CALLS-BLOCKING-BOUNDARY NAME="CallsBlockingBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Classify the remaining calls blocker as app behavior mismatch, datagram-path defect, or plausible external filtering only after controlled evidence is complete.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALLS-APP-BEHAVIOR-CLASSIFIER, M-CALLS-REMOTE-MEDIA-PROBE, M-CALLS-FAILURE-HYPOTHESIS</depends>
+      <verification-ref>V-M-CALLS-BLOCKING-BOUNDARY</verification-ref>
+      <annotations>
+        <fn-classifyBlockingBoundary PURPOSE="Classify the remaining Telegram calls blocker without premature provider blame." />
+      </annotations>
+    </M-CALLS-BLOCKING-BOUNDARY>
+
+    <M-CALLS-DECISION-NEXT-ARCH NAME="CallsDecisionNextArch" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded architectural next-step decision after the Telegram calls root-cause isolation wave.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALLS-BLOCKING-BOUNDARY</depends>
+      <verification-ref>V-M-CALLS-DECISION-NEXT-ARCH</verification-ref>
+      <annotations>
+        <fn-issueCallsNextArchDecision PURPOSE="Issue the next architectural decision for Telegram calls based on bounded isolation evidence." />
+      </annotations>
+    </M-CALLS-DECISION-NEXT-ARCH>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1454,6 +1524,23 @@
     <CrossLink from="M-CALLS-RERUN-DECISION" to="M-LOCAL-CALLS-COMPARISON" relation="provides the older SSH-forwarded calls decision used as comparison baseline" />
     <CrossLink from="M-LOCAL-CALLS-COMPARISON" to="M-LOCAL-CALLS-GO-NO-GO" relation="supplies the topology-dependent comparison result required for the final bounded decision" />
     <CrossLink from="M-CALLS-TOPOLOGY-PROFILE" to="M-LOCAL-CALLS-GO-NO-GO" relation="keeps the final local-topology decision bounded to the tested workstation setup" />
+    <CrossLink from="M-LOCAL-CALLS-GO-NO-GO" to="M-CALLS-FAILURE-HYPOTHESIS" relation="supplies the bounded local-topology no-go packet that the new hypothesis set must preserve" />
+    <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-CALLS-FAILURE-HYPOTHESIS" relation="keeps the hypothesis set bounded to the tested Telegram Desktop calls envelope" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-CALLS-UDP-PROBE-TOOLING" relation="supplies the UDP ASSOCIATE ingress surface exercised by the controlled probe" />
+    <CrossLink from="M-DATAGRAM-CONTRACT" to="M-CALLS-UDP-PROBE-TOOLING" relation="defines the probe packet shape for controlled datagram exchange" />
+    <CrossLink from="M-UDP-EGRESS-RELAY" to="M-CALLS-UDP-PROBE-TOOLING" relation="provides the remote UDP relay path exercised by the controlled probe" />
+    <CrossLink from="M-CALLS-UDP-PROBE-TOOLING" to="M-CALLS-LIVE-PACKET-CAPTURE" relation="anchors packet-capture timing and probe correlation around one bounded datagram trajectory" />
+    <CrossLink from="M-OBS" to="M-CALLS-LIVE-PACKET-CAPTURE" relation="supplies bounded observability policy for workstation and remote packet evidence" />
+    <CrossLink from="M-LIVE-OBS-EVIDENCE" to="M-CALLS-LIVE-PACKET-CAPTURE" relation="reuses bounded evidence-shape discipline for live host artifacts" />
+    <CrossLink from="M-CALLS-LIVE-PACKET-CAPTURE" to="M-CALLS-APP-BEHAVIOR-CLASSIFIER" relation="supplies workstation and runtime evidence used to classify Telegram Desktop media behavior" />
+    <CrossLink from="M-LOCAL-CALLS-GO-NO-GO" to="M-CALLS-APP-BEHAVIOR-CLASSIFIER" relation="provides the no-go baseline that the app-behavior classifier refines" />
+    <CrossLink from="M-UDP-EGRESS-RELAY" to="M-CALLS-REMOTE-MEDIA-PROBE" relation="provides the remote relay boundary exercised by the controlled media probe" />
+    <CrossLink from="M-CALLS-UDP-PROBE-TOOLING" to="M-CALLS-REMOTE-MEDIA-PROBE" relation="supplies the controlled datagram tooling reused for remote media reachability checks" />
+    <CrossLink from="M-CALLS-LIVE-PACKET-CAPTURE" to="M-CALLS-REMOTE-MEDIA-PROBE" relation="adds bounded capture evidence around remote media reachability probes" />
+    <CrossLink from="M-CALLS-APP-BEHAVIOR-CLASSIFIER" to="M-CALLS-BLOCKING-BOUNDARY" relation="supplies the Telegram app behavior classification used for the final blocking boundary" />
+    <CrossLink from="M-CALLS-REMOTE-MEDIA-PROBE" to="M-CALLS-BLOCKING-BOUNDARY" relation="supplies the remote relay reachability classification used for the final blocking boundary" />
+    <CrossLink from="M-CALLS-FAILURE-HYPOTHESIS" to="M-CALLS-BLOCKING-BOUNDARY" relation="bounds the final blocking classification to the approved hypothesis set" />
+    <CrossLink from="M-CALLS-BLOCKING-BOUNDARY" to="M-CALLS-DECISION-NEXT-ARCH" relation="supplies the bounded root-cause classification required for the next architecture decision" />
 
   </Project>
 </KnowledgeGraph>
