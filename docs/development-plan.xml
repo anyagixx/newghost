@@ -3585,7 +3585,7 @@
       <verification-ref>V-M-CALLS-LIVE-PACKET-CAPTURE</verification-ref>
     </M-CALLS-LIVE-PACKET-CAPTURE>
 
-    <M-CALLS-APP-BEHAVIOR-CLASSIFIER NAME="CallsAppBehaviorClassifier" TYPE="CORE_LOGIC" LAYER="25" ORDER="4" STATUS="planned">
+    <M-CALLS-APP-BEHAVIOR-CLASSIFIER NAME="CallsAppBehaviorClassifier" TYPE="CORE_LOGIC" LAYER="25" ORDER="4" STATUS="done">
       <contract>
         <purpose>Classify whether Telegram Desktop actually attempts proxy-governed UDP media, bypasses the proxy, or stalls before the media path begins.</purpose>
         <inputs>
@@ -3605,10 +3605,11 @@
         <log-prefix>[CallsAppBehaviorClassifier]</log-prefix>
         <critical-block>BLOCK_CALLS_APP_BEHAVIOR_CLASSIFIER</critical-block>
       </observability>
+      <note-1>On 2026-03-29 the bounded Telegram call capture showed TCP activity on local port 1080 and live WSS uplink activity toward 91.99.128.146:7443, but no UDP packets on local port 1080 and no governed UDP markers in runtime logs during the call attempt. The app-behavior packet is therefore bounded to "signaling envelope active, proxy-governed media still not observed".</note-1>
       <verification-ref>V-M-CALLS-APP-BEHAVIOR-CLASSIFIER</verification-ref>
     </M-CALLS-APP-BEHAVIOR-CLASSIFIER>
 
-    <M-CALLS-REMOTE-MEDIA-PROBE NAME="CallsRemoteMediaProbe" TYPE="INTEGRATION" LAYER="25" ORDER="5" STATUS="planned">
+    <M-CALLS-REMOTE-MEDIA-PROBE NAME="CallsRemoteMediaProbe" TYPE="INTEGRATION" LAYER="25" ORDER="5" STATUS="done">
       <contract>
         <purpose>Probe the remote UDP relay boundary with controlled datagrams so Telegram UI behavior can be separated from relay reachability.</purpose>
         <inputs>
@@ -3628,10 +3629,11 @@
         <log-prefix>[CallsRemoteMediaProbe]</log-prefix>
         <critical-block>BLOCK_CALLS_REMOTE_MEDIA_PROBE</critical-block>
       </observability>
+      <note-1>The controlled probe on 2026-03-29 reached `probe_status=association-ok` and `outbound_result=sent`, but still ended with `inbound_result=timeout`. A bounded remote capture on UDP port 55123 on 91.99.128.146 observed zero packets, so end-to-end controlled inbound media reachability remains unresolved.</note-1>
       <verification-ref>V-M-CALLS-REMOTE-MEDIA-PROBE</verification-ref>
     </M-CALLS-REMOTE-MEDIA-PROBE>
 
-    <M-CALLS-BLOCKING-BOUNDARY NAME="CallsBlockingBoundary" TYPE="CORE_LOGIC" LAYER="25" ORDER="6" STATUS="planned">
+    <M-CALLS-BLOCKING-BOUNDARY NAME="CallsBlockingBoundary" TYPE="CORE_LOGIC" LAYER="25" ORDER="6" STATUS="done">
       <contract>
         <purpose>Classify the remaining Telegram calls blocker as app-behavior mismatch, deeper datagram-path defect, or plausible external filtering only after governed-path evidence is complete.</purpose>
         <inputs>
@@ -3652,10 +3654,11 @@
         <log-prefix>[CallsBlockingBoundary]</log-prefix>
         <critical-block>BLOCK_CALLS_BLOCKING_BOUNDARY</critical-block>
       </observability>
+      <note-1>Phase-22 resolves the earlier topology and ingress questions: Telegram Desktop reaches the local SOCKS5 TCP path and live WSS uplink, and raw UDP ASSOCIATE is no longer blocked. The first unresolved layers are now the absent proxy-governed UDP media attempt in the Telegram call packet and the missing controlled inbound datagram reply.</note-1>
       <verification-ref>V-M-CALLS-BLOCKING-BOUNDARY</verification-ref>
     </M-CALLS-BLOCKING-BOUNDARY>
 
-    <M-CALLS-DECISION-NEXT-ARCH NAME="CallsDecisionNextArch" TYPE="ENTRY_POINT" LAYER="25" ORDER="7" STATUS="planned">
+    <M-CALLS-DECISION-NEXT-ARCH NAME="CallsDecisionNextArch" TYPE="ENTRY_POINT" LAYER="25" ORDER="7" STATUS="done">
       <contract>
         <purpose>Issue the bounded architectural next-step decision for Telegram calls after the deeper root-cause isolation wave completes.</purpose>
         <inputs>
@@ -3675,6 +3678,7 @@
         <log-prefix>[CallsDecisionNextArch]</log-prefix>
         <critical-block>BLOCK_CALLS_DECISION_NEXT_ARCH</critical-block>
       </observability>
+      <note-1>The next approved direction after Phase-22 is not a provider-block workaround or another blind Telegram rerun. It is a deeper datagram round-trip and app-specific media-handoff isolation wave that proves why controlled outbound UDP does not become an observed inbound reply and whether Telegram Desktop media on this build leaves the SOCKS5 envelope at all.</note-1>
       <verification-ref>V-M-CALLS-DECISION-NEXT-ARCH</verification-ref>
     </M-CALLS-DECISION-NEXT-ARCH>
   </Modules>
@@ -4248,15 +4252,15 @@
       <step-9 module="M-LOCAL-CALLS-GO-NO-GO" status="done" verification="V-M-LOCAL-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram calls on the local-client topology</step-9>
     </Phase-21>
 
-    <Phase-22 name="Telegram Calls Root Cause Isolation" status="pending">
+    <Phase-22 name="Telegram Calls Root Cause Isolation" status="done">
       <goal>Isolate whether Telegram calls failure is caused by Telegram Desktop media behavior, a deeper governed datagram-path defect, or plausible external filtering after controlled probes.</goal>
       <step-1 module="M-CALLS-FAILURE-HYPOTHESIS" status="done" verification="V-M-CALLS-FAILURE-HYPOTHESIS">Freeze the bounded post-Phase-21 hypothesis set for Telegram calls failure</step-1>
       <step-2 module="M-CALLS-UDP-PROBE-TOOLING" status="done" verification="V-M-CALLS-UDP-PROBE-TOOLING">Prepare controlled SOCKS5 UDP ASSOCIATE and datagram probe tooling outside Telegram UI</step-2>
       <step-3 module="M-CALLS-LIVE-PACKET-CAPTURE" status="done" verification="V-M-CALLS-LIVE-PACKET-CAPTURE">Add bounded workstation and remote packet-capture evidence for live calls attempts</step-3>
-      <step-4 module="M-CALLS-APP-BEHAVIOR-CLASSIFIER" status="pending" verification="V-M-CALLS-APP-BEHAVIOR-CLASSIFIER">Classify Telegram Desktop media-path behavior on the tested setup</step-4>
-      <step-5 module="M-CALLS-REMOTE-MEDIA-PROBE" status="pending" verification="V-M-CALLS-REMOTE-MEDIA-PROBE">Probe remote UDP media reachability independently of Telegram UI</step-5>
-      <step-6 module="M-CALLS-BLOCKING-BOUNDARY" status="pending" verification="V-M-CALLS-BLOCKING-BOUNDARY">Classify the remaining calls blocker without prematurely blaming provider or network filtering</step-6>
-      <step-7 module="M-CALLS-DECISION-NEXT-ARCH" status="pending" verification="V-M-CALLS-DECISION-NEXT-ARCH">Issue the bounded architectural next-step decision for Telegram calls</step-7>
+      <step-4 module="M-CALLS-APP-BEHAVIOR-CLASSIFIER" status="done" verification="V-M-CALLS-APP-BEHAVIOR-CLASSIFIER">Classify Telegram Desktop media-path behavior on the tested setup</step-4>
+      <step-5 module="M-CALLS-REMOTE-MEDIA-PROBE" status="done" verification="V-M-CALLS-REMOTE-MEDIA-PROBE">Probe remote UDP media reachability independently of Telegram UI</step-5>
+      <step-6 module="M-CALLS-BLOCKING-BOUNDARY" status="done" verification="V-M-CALLS-BLOCKING-BOUNDARY">Classify the remaining calls blocker without prematurely blaming provider or network filtering</step-6>
+      <step-7 module="M-CALLS-DECISION-NEXT-ARCH" status="done" verification="V-M-CALLS-DECISION-NEXT-ARCH">Issue the bounded architectural next-step decision for Telegram calls</step-7>
     </Phase-22>
   </ImplementationOrder>
 
