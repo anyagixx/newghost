@@ -1,8 +1,8 @@
 // FILE: src/session/datagram_manager.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify datagram association open, outbound dispatch, inbound dispatch, and cleanup trajectories over the governed UDP registry.
-//   SCOPE: Open success, explicit close, outbound dispatch, inbound dispatch, and missing-association failure behavior.
+//   SCOPE: Open success, explicit close, outbound dispatch, inbound dispatch, explicit dispatch failure, and missing-association failure behavior.
 //   DEPENDS: src/session/datagram_manager.rs, src/session/udp_registry.rs, src/transport/datagram_contract.rs
 //   LINKS: V-M-DATAGRAM-SESSION-MANAGER
 // END_MODULE_CONTRACT
@@ -12,11 +12,12 @@
 //   outbound_dispatch_refreshes_activity_and_hits_outbound_target - proves outbound datagrams stay associated with the correct session identity
 //   inbound_dispatch_refreshes_activity_and_hits_inbound_target - proves inbound datagrams stay associated with the correct session identity
 //   close_association_releases_owned_state - proves explicit close frees registry-owned state
+//   outbound_dispatch_failure_is_explicit - proves manager-side dispatch failures stay deterministic after activity refresh
 //   missing_association_is_explicit_for_dispatch - proves dispatch on unknown association ids fails deterministically
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added deterministic datagram manager tests so UDP lifecycle and dispatch trajectories stay separately reviewable.
+//   LAST_CHANGE: v0.1.1 - Added deterministic dispatch-failure coverage so repair waves can trust manager-side dispatch evidence and failure boundaries.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -48,6 +49,22 @@ impl DatagramDispatchTarget for Arc<RecordingTarget> {
             .expect("recording target lock poisoned")
             .push(envelope.clone());
         Ok(())
+    }
+}
+
+#[derive(Default)]
+struct FailingTarget;
+
+#[derive(Debug, thiserror::Error)]
+#[error("failing target")]
+struct FailingTargetError;
+
+#[async_trait]
+impl DatagramDispatchTarget for Arc<FailingTarget> {
+    type Error = FailingTargetError;
+
+    async fn dispatch(&self, _envelope: &DatagramEnvelope) -> Result<(), Self::Error> {
+        Err(FailingTargetError)
     }
 }
 
@@ -154,6 +171,35 @@ fn close_association_releases_owned_state() {
 
     assert_eq!(closed.expected_client_addr, target_addr(50000));
     assert!(registry.get(association_id).is_none());
+}
+
+#[tokio::test]
+async fn outbound_dispatch_failure_is_explicit() {
+    let registry = Arc::new(UdpAssociationRegistry::new(1));
+    let manager = DatagramSessionManager::new(
+        registry.clone(),
+        Arc::new(FailingTarget),
+        Arc::new(RecordingTarget::default()),
+    );
+    let now = Instant::now();
+    let (association_id, _) = manager
+        .open_association(target_addr(40000), target_addr(50000), now)
+        .expect("open association");
+
+    let later = now + Duration::from_secs(1);
+    let error = manager
+        .forward_outbound_datagram(sample_envelope(association_id), later)
+        .await
+        .expect_err("dispatch failure should surface");
+
+    assert_eq!(
+        error,
+        DatagramSessionError::DispatchFailed("failing target".to_string())
+    );
+    assert_eq!(
+        registry.get(association_id).expect("registry record").last_activity,
+        later
+    );
 }
 
 #[tokio::test]

@@ -1,5 +1,5 @@
 // FILE: src/socks5/udp_associate.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Negotiate governed SOCKS5 UDP ASSOCIATE relay binds and normalize SOCKS5 UDP relay packets into the shared datagram contract.
 //   SCOPE: Local UDP relay bind allocation, SOCKS5 UDP ASSOCIATE success replies, UDP relay packet parsing, source validation, fragmentation rejection, and datagram-envelope validation.
@@ -11,11 +11,11 @@
 //   UdpAssociateRecord - governed UDP relay bind plus owning relay socket
 //   UdpAssociateError - deterministic UDP ASSOCIATE and relay-packet failure surface
 //   handle_udp_associate - negotiate one SOCKS5 UDP ASSOCIATE request and return the governed relay bind
-//   parse_udp_datagram - normalize one SOCKS5 UDP relay packet into the shared datagram contract
+//   parse_udp_datagram - normalize one SOCKS5 UDP relay packet into the shared datagram contract and emit a bounded normalization anchor
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added governed UDP ASSOCIATE relay-bind negotiation and deterministic UDP relay packet parsing for the first UDP-capable architecture step.
+//   LAST_CHANGE: v0.1.1 - Added bounded UDP relay-packet normalization evidence so repair waves can distinguish accepted local ingress from later dispatch loss.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -182,6 +182,12 @@ pub fn parse_udp_datagram(
         payload: packet[payload_offset..].to_vec(),
     };
     envelope.validate()?;
+    info!(
+        association_id,
+        target = ?envelope.target,
+        payload_len = envelope.payload.len(),
+        "[Socks5Proxy][parseUdpDatagram][BLOCK_PARSE_UDP_DATAGRAM] normalized governed UDP relay packet"
+    );
     Ok(envelope)
 }
 

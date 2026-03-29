@@ -1,5 +1,5 @@
 // FILE: src/session/datagram_transport_selector.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Select the governed datagram transport path, initially with WSS-backed datagrams and an explicit extension point for later parity work.
 //   SCOPE: Datagram selector configuration, WSS-backed path invocation, explicit cancellation, bounded timeout, and phase-scoped failure diagnostics.
@@ -18,7 +18,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added a bounded datagram selector that makes the initial WSS-only scope explicit instead of implying unimplemented carrier parity.
+//   LAST_CHANGE: v0.1.1 - Added bounded failure and cancellation selector anchors so repair waves can distinguish missing WSS emission from earlier dispatch loss.
 // END_CHANGE_SUMMARY
 
 use std::time::Duration;
@@ -26,7 +26,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use thiserror::Error;
 use tokio_util::sync::CancellationToken;
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::transport::datagram_contract::DatagramAssociationId;
 
@@ -100,6 +100,10 @@ where
     ) -> Result<DatagramTransportResolution, DatagramTransportSelectError> {
         // START_BLOCK_SELECT_DATAGRAM_TRANSPORT
         if cancel.is_cancelled() {
+            warn!(
+                association_id,
+                "[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT] datagram transport selection cancelled before carrier open"
+            );
             return Err(DatagramTransportSelectError::Cancelled);
         }
 
@@ -107,6 +111,10 @@ where
         tokio::select! {
             _ = cancel.cancelled() => {
                 attempt_cancel.cancel();
+                warn!(
+                    association_id,
+                    "[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT] datagram transport selection cancelled during carrier open"
+                );
                 Err(DatagramTransportSelectError::Cancelled)
             }
             result = tokio::time::timeout(
@@ -125,9 +133,21 @@ where
                             transport_kind: DatagramTransportKind::WssDatagram,
                         })
                     }
-                    Ok(Err(err)) => Err(DatagramTransportSelectError::WssFailed(err.to_string())),
+                    Ok(Err(err)) => {
+                        warn!(
+                            association_id,
+                            error = %err,
+                            "[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT] WSS-backed datagram path failed"
+                        );
+                        Err(DatagramTransportSelectError::WssFailed(err.to_string()))
+                    }
                     Err(_) => {
                         attempt_cancel.cancel();
+                        warn!(
+                            association_id,
+                            timeout_ms = self.config.wss_timeout.as_millis(),
+                            "[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT] WSS-backed datagram path timed out"
+                        );
                         Err(DatagramTransportSelectError::WssTimeout(
                             self.config.wss_timeout.as_millis(),
                         ))
