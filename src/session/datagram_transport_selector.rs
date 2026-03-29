@@ -1,5 +1,5 @@
 // FILE: src/session/datagram_transport_selector.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Select the governed datagram transport path, initially with WSS-backed datagrams and an explicit extension point for later parity work.
 //   SCOPE: Datagram selector configuration, WSS-backed path invocation, explicit cancellation, bounded timeout, and phase-scoped failure diagnostics.
@@ -15,10 +15,11 @@
 //   WssDatagramPath - trait for the approved WSS-backed datagram carrier
 //   DatagramTransportSelector - bounded selector that currently delegates only to the WSS-backed datagram path
 //   select_transport - resolve the approved datagram carrier for one association
+//   emit_outbound_datagram - emit one outbound datagram through the approved bounded carrier
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added bounded failure and cancellation selector anchors so repair waves can distinguish missing WSS emission from earlier dispatch loss.
+//   LAST_CHANGE: v0.1.2 - Added a bounded outbound emission helper so repair waves can prove carrier-side datagram handoff separately from local dispatch.
 // END_CHANGE_SUMMARY
 
 use std::time::Duration;
@@ -28,7 +29,7 @@ use thiserror::Error;
 use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
 
-use crate::transport::datagram_contract::DatagramAssociationId;
+use crate::transport::datagram_contract::{DatagramAssociationId, DatagramEnvelope};
 
 #[cfg(test)]
 #[path = "datagram_transport_selector.test.rs"]
@@ -67,6 +68,12 @@ pub trait WssDatagramPath: Send + Sync + 'static {
     async fn open_path(
         &self,
         association_id: DatagramAssociationId,
+        cancel: CancellationToken,
+    ) -> Result<(), Self::Error>;
+
+    async fn emit_datagram(
+        &self,
+        envelope: &DatagramEnvelope,
         cancel: CancellationToken,
     ) -> Result<(), Self::Error>;
 }
@@ -156,5 +163,79 @@ where
             }
         }
         // END_BLOCK_SELECT_DATAGRAM_TRANSPORT
+    }
+
+    // START_CONTRACT: emit_outbound_datagram
+    //   PURPOSE: Emit one governed outbound datagram through the approved WSS-backed datagram carrier after bounded transport selection.
+    //   INPUTS: { envelope: &DatagramEnvelope - normalized outbound datagram contract, cancel: CancellationToken - caller cancellation boundary }
+    //   OUTPUTS: { Result<DatagramTransportResolution, DatagramTransportSelectError> - resolved carrier metadata when the datagram is emitted successfully }
+    //   SIDE_EFFECTS: [invokes the approved WSS-backed datagram carrier under a bounded timeout and emits the stable datagram transport log anchor]
+    //   LINKS: [M-DATAGRAM-TRANSPORT-SELECTOR, V-M-DATAGRAM-TRANSPORT-SELECTOR]
+    // END_CONTRACT: emit_outbound_datagram
+    pub async fn emit_outbound_datagram(
+        &self,
+        envelope: &DatagramEnvelope,
+        cancel: CancellationToken,
+    ) -> Result<DatagramTransportResolution, DatagramTransportSelectError> {
+        // START_BLOCK_EMIT_OUTBOUND_DATAGRAM
+        if cancel.is_cancelled() {
+            warn!(
+                association_id = envelope.association_id,
+                "[DatagramTransportSelector][emitOutboundDatagram][BLOCK_EMIT_OUTBOUND_DATAGRAM] datagram emission cancelled before carrier open"
+            );
+            return Err(DatagramTransportSelectError::Cancelled);
+        }
+
+        let attempt_cancel = cancel.child_token();
+        tokio::select! {
+            _ = cancel.cancelled() => {
+                attempt_cancel.cancel();
+                warn!(
+                    association_id = envelope.association_id,
+                    "[DatagramTransportSelector][emitOutboundDatagram][BLOCK_EMIT_OUTBOUND_DATAGRAM] datagram emission cancelled during carrier open"
+                );
+                Err(DatagramTransportSelectError::Cancelled)
+            }
+            result = tokio::time::timeout(
+                self.config.wss_timeout,
+                self.wss.emit_datagram(envelope, attempt_cancel.clone()),
+            ) => {
+                match result {
+                    Ok(Ok(())) => {
+                        info!(
+                            association_id = envelope.association_id,
+                            target = ?envelope.target,
+                            payload_len = envelope.payload.len(),
+                            transport_kind = ?DatagramTransportKind::WssDatagram,
+                            "[DatagramTransportSelector][emitOutboundDatagram][BLOCK_EMIT_OUTBOUND_DATAGRAM] emitted governed outbound datagram through selected transport"
+                        );
+                        Ok(DatagramTransportResolution {
+                            association_id: envelope.association_id,
+                            transport_kind: DatagramTransportKind::WssDatagram,
+                        })
+                    }
+                    Ok(Err(err)) => {
+                        warn!(
+                            association_id = envelope.association_id,
+                            error = %err,
+                            "[DatagramTransportSelector][emitOutboundDatagram][BLOCK_EMIT_OUTBOUND_DATAGRAM] WSS-backed datagram emission failed"
+                        );
+                        Err(DatagramTransportSelectError::WssFailed(err.to_string()))
+                    }
+                    Err(_) => {
+                        attempt_cancel.cancel();
+                        warn!(
+                            association_id = envelope.association_id,
+                            timeout_ms = self.config.wss_timeout.as_millis(),
+                            "[DatagramTransportSelector][emitOutboundDatagram][BLOCK_EMIT_OUTBOUND_DATAGRAM] WSS-backed datagram emission timed out"
+                        );
+                        Err(DatagramTransportSelectError::WssTimeout(
+                            self.config.wss_timeout.as_millis(),
+                        ))
+                    }
+                }
+            }
+        }
+        // END_BLOCK_EMIT_OUTBOUND_DATAGRAM
     }
 }
