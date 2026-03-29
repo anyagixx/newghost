@@ -1,8 +1,8 @@
 // FILE: src/socks5/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and host the governed UDP ASSOCIATE helper surface.
-//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, UDP ASSOCIATE helper export, and accept-loop shutdown.
+//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and negotiate governed UDP ASSOCIATE control sessions.
+//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, UDP ASSOCIATE control-session handling, helper export, and accept-loop shutdown.
 //   DEPENDS: std, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/session/mod.rs, src/socks5/udp_associate.rs
 //   LINKS: M-SOCKS5, M-SOCKS5-UDP-ASSOCIATE, V-M-SOCKS5, V-M-SOCKS5-UDP-ASSOCIATE, DF-SOCKS5-INTENT, DF-REPLY-MAPPING, DF-SOCKS5-UDP-ASSOCIATE
 // END_MODULE_CONTRACT
@@ -25,7 +25,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Exported the governed UDP ASSOCIATE helper surface without widening the existing CONNECT request path.
+//   LAST_CHANGE: v0.1.3 - Wired UDP ASSOCIATE into the live SOCKS5 listener so runtime ingress no longer rejects command 0x03 before the governed control path can start.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -65,6 +65,18 @@ pub struct ProxyIntent {
     pub client_stream: TcpStream,
     pub protocol_kind: ProxyProtocol,
     pub request_id: u64,
+}
+
+#[derive(Debug)]
+struct UdpAssociateIntent {
+    client_stream: TcpStream,
+    client_hint: TargetAddr,
+}
+
+#[derive(Debug)]
+enum ParsedRequest {
+    Connect(ProxyIntent),
+    UdpAssociate(UdpAssociateIntent),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -204,22 +216,40 @@ impl Socks5Proxy {
     }
 
     async fn handle_connection_inner(&self, stream: TcpStream) -> Result<(), Socks5Error> {
-        let intent = Self::parse_request(stream).await?;
-        match self.intent_tx.try_send(intent) {
-            Ok(()) => Ok(()),
-            Err(mpsc::error::TrySendError::Full(returned_intent)) => {
-                let mut stream = returned_intent.client_stream;
-                Self::send_reply_and_close(&mut stream, Socks5Reply::GeneralFailure).await?;
-                warn!(
-                    request_id = returned_intent.request_id,
-                    "[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE] intent queue full"
+        match Self::parse_client_request(stream).await? {
+            ParsedRequest::Connect(intent) => match self.intent_tx.try_send(intent) {
+                Ok(()) => Ok(()),
+                Err(mpsc::error::TrySendError::Full(returned_intent)) => {
+                    let mut stream = returned_intent.client_stream;
+                    Self::send_reply_and_close(&mut stream, Socks5Reply::GeneralFailure).await?;
+                    warn!(
+                        request_id = returned_intent.request_id,
+                        "[Socks5Proxy][mapReply][BLOCK_MAP_REPLY_CODE] intent queue full"
+                    );
+                    Ok(())
+                }
+                Err(mpsc::error::TrySendError::Closed(returned_intent)) => {
+                    let mut stream = returned_intent.client_stream;
+                    Self::send_reply_and_close(&mut stream, Socks5Reply::GeneralFailure).await?;
+                    Ok(())
+                }
+            },
+            ParsedRequest::UdpAssociate(mut intent) => {
+                info!(
+                    client_hint = ?intent.client_hint,
+                    "[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE] accepted UDP ASSOCIATE control request"
                 );
-                Ok(())
-            }
-            Err(mpsc::error::TrySendError::Closed(returned_intent)) => {
-                let mut stream = returned_intent.client_stream;
-                Self::send_reply_and_close(&mut stream, Socks5Reply::GeneralFailure).await?;
-                Ok(())
+                let _association = udp_associate::handle_udp_associate(&mut intent.client_stream)
+                    .await
+                    .map_err(|err| Socks5Error::Io(err.to_string()))?;
+                let mut scratch = [0_u8; 1];
+                loop {
+                    match intent.client_stream.read(&mut scratch).await {
+                        Ok(0) => return Ok(()),
+                        Ok(_) => continue,
+                        Err(err) => return Err(Socks5Error::Io(err.to_string())),
+                    }
+                }
             }
         }
     }
@@ -231,7 +261,14 @@ impl Socks5Proxy {
     //   SIDE_EFFECTS: [reads from and writes to the client socket]
     //   LINKS: [M-SOCKS5, V-M-SOCKS5]
     // END_CONTRACT: parse_request
-    pub async fn parse_request(mut stream: TcpStream) -> Result<ProxyIntent, Socks5Error> {
+    pub async fn parse_request(stream: TcpStream) -> Result<ProxyIntent, Socks5Error> {
+        match Self::parse_client_request(stream).await? {
+            ParsedRequest::Connect(intent) => Ok(intent),
+            ParsedRequest::UdpAssociate(_) => Err(Socks5Error::UnsupportedCommand(0x03)),
+        }
+    }
+
+    async fn parse_client_request(mut stream: TcpStream) -> Result<ParsedRequest, Socks5Error> {
         // START_BLOCK_PARSE_SOCKS5_REQUEST
         let mut greeting = [0_u8; 2];
         stream
@@ -272,10 +309,6 @@ impl Socks5Proxy {
         if request_header[0] != 0x05 {
             return Err(Socks5Error::UnsupportedVersion(request_header[0]));
         }
-        if request_header[1] != 0x01 {
-            return Err(Socks5Error::UnsupportedCommand(request_header[1]));
-        }
-
         let target = match request_header[3] {
             0x01 => {
                 let mut ipv4 = [0_u8; 4];
@@ -317,19 +350,28 @@ impl Socks5Proxy {
             atyp => return Err(Socks5Error::UnsupportedAddressType(atyp)),
         };
 
-        let request_id = NEXT_REQUEST_ID.fetch_add(1, Ordering::Relaxed);
-        info!(
-            request_id,
-            target = ?target,
-            "[Socks5Proxy][parseRequest][BLOCK_PARSE_SOCKS5_REQUEST] parsed proxy intent"
-        );
+        match request_header[1] {
+            0x01 => {
+                let request_id = NEXT_REQUEST_ID.fetch_add(1, Ordering::Relaxed);
+                info!(
+                    request_id,
+                    target = ?target,
+                    "[Socks5Proxy][parseRequest][BLOCK_PARSE_SOCKS5_REQUEST] parsed proxy intent"
+                );
 
-        Ok(ProxyIntent {
-            target,
-            client_stream: stream,
-            protocol_kind: ProxyProtocol::Socks5,
-            request_id,
-        })
+                Ok(ParsedRequest::Connect(ProxyIntent {
+                    target,
+                    client_stream: stream,
+                    protocol_kind: ProxyProtocol::Socks5,
+                    request_id,
+                }))
+            }
+            0x03 => Ok(ParsedRequest::UdpAssociate(UdpAssociateIntent {
+                client_stream: stream,
+                client_hint: target,
+            })),
+            other => Err(Socks5Error::UnsupportedCommand(other)),
+        }
         // END_BLOCK_PARSE_SOCKS5_REQUEST
     }
 

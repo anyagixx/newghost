@@ -1885,10 +1885,12 @@
 
     <V-M-SOCKS5-UDP-ASSOCIATE MODULE="M-SOCKS5-UDP-ASSOCIATE" PRIORITY="high">
       <test-files>
+        <file>src/socks5/mod.test.rs</file>
         <file>src/socks5/udp_associate.test.rs</file>
       </test-files>
       <module-checks>
         <check-1>cargo test udp_associate</check-1>
+        <check-2>cargo test socks5</check-2>
       </module-checks>
       <scenarios>
         <scenario-1 kind="success">SOCKS5 UDP ASSOCIATE returns a governed relay bind and normalizes relay packets into datagram envelopes.</scenario-1>
@@ -1902,6 +1904,7 @@
         <assertion-2>Relay-bind and packet-source validation must be deterministic and bounded.</assertion-2>
         <assertion-3>Unsupported SOCKS5 UDP fragmentation must be rejected deterministically rather than partially relayed.</assertion-3>
         <assertion-4>The relay socket must not accept datagrams from a foreign client source after the association is established.</assertion-4>
+        <assertion-5>The live SOCKS5 listener must negotiate UDP ASSOCIATE through its per-connection runtime path instead of rejecting command 0x03 before the governed control session starts.</assertion-5>
       </required-trace-assertions>
     </V-M-SOCKS5-UDP-ASSOCIATE>
 

@@ -1,21 +1,22 @@
 // FILE: src/socks5/mod.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify SOCKS5 request parsing, bounded queue failure behavior, and success-reply socket semantics.
-//   SCOPE: Valid CONNECT parsing, queue saturation failure replies, closed-queue behavior, and success replies that keep the client socket open.
+//   PURPOSE: Verify SOCKS5 request parsing, bounded queue failure behavior, UDP ASSOCIATE control handling, and success-reply socket semantics.
+//   SCOPE: Valid CONNECT parsing, UDP ASSOCIATE control-path acceptance, queue saturation failure replies, closed-queue behavior, and success replies that keep the client socket open.
 //   DEPENDS: src/socks5/mod.rs
 //   LINKS: V-M-SOCKS5, VF-002, VF-005
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   parses_valid_connect_request_into_proxy_intent - proves a valid CONNECT request becomes a normalized ProxyIntent
+//   udp_associate_returns_reply_without_queueing_connect_intent - proves the live listener accepts UDP ASSOCIATE without leaking into the CONNECT work queue
 //   queue_saturation_returns_failure_reply_quickly - proves saturated queues fail fast with a client-visible reply
 //   closed_queue_returns_failure_reply_and_closes_stream - proves closed queue handling returns failure and closes the client stream
 //   success_reply_does_not_close_client_socket - proves a success reply leaves the client socket open for payload pumping
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added GRACE markup so SOCKS5 ingress tests stay navigable and reusable for future verification waves.
+//   LAST_CHANGE: v0.1.1 - Added a listener-level UDP ASSOCIATE test so live runtime wiring cannot silently regress back to rejecting command 0x03.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -49,6 +50,18 @@ async fn send_no_auth_connect_domain(stream: &mut TcpStream, domain: &str, port:
     auth_reply
 }
 
+async fn send_no_auth_udp_associate_ipv4(stream: &mut TcpStream, port: u16) -> [u8; 2] {
+    let request = [0x05, 0x01, 0x00, 0x05, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, (port >> 8) as u8, (port & 0xff) as u8];
+    stream.write_all(&request).await.expect("write request");
+
+    let mut auth_reply = [0_u8; 2];
+    stream
+        .read_exact(&mut auth_reply)
+        .await
+        .expect("read auth reply");
+    auth_reply
+}
+
 #[tokio::test]
 async fn parses_valid_connect_request_into_proxy_intent() {
     let (mut client, server) = tcp_pair().await;
@@ -68,6 +81,41 @@ async fn parses_valid_connect_request_into_proxy_intent() {
         TargetAddr::Domain("example.com".to_string(), 443)
     );
     assert!(intent.request_id > 0);
+}
+
+#[tokio::test]
+async fn udp_associate_returns_reply_without_queueing_connect_intent() {
+    let (tx, mut rx) = mpsc::channel::<ProxyIntent>(1);
+    let proxy = Socks5Proxy::new(
+        Socks5ProxyConfig {
+            listen_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0),
+            total_timeout: Duration::from_secs(2),
+        },
+        tx,
+    );
+
+    let (mut client, server) = tcp_pair().await;
+    let handler_task = tokio::spawn({
+        let proxy = proxy.clone();
+        async move { proxy.handle_connection_inner(server).await }
+    });
+
+    let auth_reply = send_no_auth_udp_associate_ipv4(&mut client, 0).await;
+    assert_eq!(auth_reply, [0x05, 0x00]);
+
+    let mut reply = [0_u8; 10];
+    client.read_exact(&mut reply).await.expect("read udp reply");
+    assert_eq!(reply[0], 0x05);
+    assert_eq!(reply[1], 0x00);
+    assert_eq!(reply[3], 0x01);
+    assert_eq!(&reply[4..8], &[127, 0, 0, 1]);
+
+    client.shutdown().await.expect("close control stream");
+    handler_task
+        .await
+        .expect("join udp associate handler")
+        .expect("udp associate should succeed");
+    assert!(rx.try_recv().is_err(), "udp associate must not enqueue CONNECT work");
 }
 
 #[tokio::test]
