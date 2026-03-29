@@ -1425,7 +1425,7 @@
       </annotations>
     </M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR>
 
-    <M-WSS-DATAGRAM-EMIT-REPAIR NAME="WssDatagramEmitRepair" TYPE="INTEGRATION" STATUS="planned">
+    <M-WSS-DATAGRAM-EMIT-REPAIR NAME="WssDatagramEmitRepair" TYPE="INTEGRATION" STATUS="done">
       <purpose>Repair or narrow the WSS datagram emission path so outbound datagrams actually leave the client runtime.</purpose>
       <path>src/wss_gateway/datagram.rs</path>
       <depends>M-WSS-DATAGRAM-GATEWAY, M-DATAGRAM-TRANSPORT-SELECTOR, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR</depends>
