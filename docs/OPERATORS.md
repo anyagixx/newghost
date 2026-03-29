@@ -487,6 +487,14 @@ Bootstrap boundaries:
 3. keep the trust anchor local and explicit instead of silently reusing remote host paths
 4. if local bootstrap changes, treat it as a new readiness packet before opening Telegram
 
+Observed local readiness packet on 2026-03-29:
+
+- old `ssh -L` listener was removed before the local-client wave
+- local `n0wss-client` bound `127.0.0.1:1080` on the Telegram Desktop workstation
+- local TCP smoke through `curl --proxy socks5h://127.0.0.1:1080 https://example.com -I` returned `HTTP/2 200`
+- local raw `SOCKS5 UDP ASSOCIATE` probe returned a success reply and allocated a governed relay bind
+- bounded classification: the next local calls wave may now treat listener ingress as green and must promote the next missing datagram marker if calls still fail
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
