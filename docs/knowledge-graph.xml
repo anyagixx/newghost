@@ -1765,7 +1765,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-VIDEO-RERUN>
 
-    <M-TELEGRAM-CALLS-APP-CLASSIFIER NAME="TelegramCallsAppClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-APP-CLASSIFIER NAME="TelegramCallsAppClassifier" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Classify the new Telegram calls outcome as governed media success, direct-media behavior, or signaling-only stall without reopening transport diagnosis.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-CALLS-APP-BEHAVIOR-CLASSIFIER, M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-CALLS-VIDEO-RERUN</depends>
@@ -1775,7 +1775,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-APP-CLASSIFIER>
 
-    <M-TELEGRAM-CALLS-RECONNECT-RERUN NAME="TelegramCallsReconnectRerun" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-RECONNECT-RERUN NAME="TelegramCallsReconnectRerun" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Replay one fresh second Telegram call attempt after the first rerun and keep reconnect evidence separate.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-CALLS-RECONNECT-WAVE</depends>
@@ -1785,7 +1785,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-RECONNECT-RERUN>
 
-    <M-TELEGRAM-CALLS-RERUN-EVIDENCE NAME="TelegramCallsRerunEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-CALLS-RERUN-EVIDENCE NAME="TelegramCallsRerunEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Assemble the bounded readiness, voice, video, reconnect, and comparison packets for the Telegram-specific rerun wave after Phase-27.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-VIDEO-RERUN, M-TELEGRAM-CALLS-RECONNECT-RERUN</depends>
@@ -1795,7 +1795,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-RERUN-EVIDENCE>
 
-    <M-TELEGRAM-CALLS-RERUN-DECISION NAME="TelegramCallsRerunDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-RERUN-DECISION NAME="TelegramCallsRerunDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded post-Phase-27 Telegram calls decision without widening claims beyond the tested Desktop setup.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-RERUN-EVIDENCE, M-TELEGRAM-CALLS-APP-CLASSIFIER</depends>
