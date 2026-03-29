@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, cancellation handling, and adapter cleanup guarantees.
 //   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
@@ -13,13 +13,14 @@
 //   datagram_emit_sends_binary_frame_after_runtime_handshake - proves the production datagram carrier emits a governed binary datagram frame after the runtime handshake
 //   server_runtime_relays_datagram_to_udp_target - proves the real server runtime demuxes DATAGRAM OPEN and relays the emitted datagram to a real UDP target
 //   server_runtime_receives_inbound_udp_reply - proves the bounded server-side inbound helper normalizes one reply after relay outbound
+//   server_runtime_emits_inbound_datagram_reply - proves the bounded server-side inbound emit helper returns one datagram over the real websocket runtime
 //   cancel_before_open_returns_err_and_spawns_no_tasks - proves pre-open cancellation leaves no tracked tasks behind
 //   cancel_during_open_returns_err_and_socket_closes - proves mid-open cancellation closes the socket and surfaces cancellation
 //   failed_open_does_not_leak_tracked_tasks - proves failed opens do not leak adapter tasks
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added bounded server-side inbound-receive coverage so Phase-26 can prove reply reception separately from later WSS return delivery.
+//   LAST_CHANGE: v0.1.4 - Added bounded server-side inbound emit coverage so Phase-26 can prove WSS return separately from later client-side local delivery.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -352,6 +353,72 @@ async fn server_runtime_receives_inbound_udp_reply() {
     assert_eq!(inbound.relay_client_addr, outbound.relay_client_addr);
     assert_eq!(inbound.target, outbound.target);
     assert_eq!(inbound.payload, b"phase26-runtime-reply".to_vec());
+}
+
+#[tokio::test]
+async fn server_runtime_emits_inbound_datagram_reply() {
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    let server_tls = tls.clone();
+    let outbound = DatagramEnvelope {
+        association_id: 93,
+        relay_client_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 19300),
+        target: DatagramTarget::Ip(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 45555)),
+        payload: b"phase26-return-payload".to_vec(),
+    };
+    let outbound_for_server = outbound.clone();
+    let server_task = tokio::spawn(async move {
+        let gateway = build_gateway(server_addr, server_tls.clone(), "token-12345");
+        let (stream, _) = listener.accept().await.expect("accept should work");
+        let tls_stream = server_tls.accept(stream).await.expect("tls accept");
+        let mut websocket = accept_async(tls_stream).await.expect("accept websocket");
+
+        let auth_message = websocket.next().await.expect("auth frame").expect("auth ok");
+        assert!(matches!(auth_message, Message::Binary(_)));
+        websocket
+            .send(Message::Text("ok".into()))
+            .await
+            .expect("send auth ack");
+
+        let open_message = websocket.next().await.expect("open frame").expect("open ok");
+        let open_text = match open_message {
+            Message::Text(text) => text.to_string(),
+            other => panic!("unexpected datagram open message: {other:?}"),
+        };
+        let association_id = open_text
+            .strip_prefix("DATAGRAM OPEN ")
+            .expect("datagram open prefix")
+            .parse::<u64>()
+            .expect("association id");
+        assert_eq!(association_id, outbound_for_server.association_id);
+        websocket
+            .send(Message::Text("datagram-ready".into()))
+            .await
+            .expect("send datagram ready");
+
+        gateway
+            .emit_server_datagram_reply(&mut websocket, &outbound_for_server)
+            .await
+            .expect("server reply emit should succeed");
+    });
+
+    let client_gateway = build_gateway(server_addr, tls, "token-12345");
+    let mut websocket = client_gateway
+        .open_datagram_path(outbound.association_id, CancellationToken::new())
+        .await
+        .expect("client datagram path should open");
+    let reply_frame = websocket
+        .next()
+        .await
+        .expect("reply frame should arrive")
+        .expect("reply frame should decode");
+    let decoded = decode_message(reply_frame).expect("decode returned datagram");
+    assert_eq!(decoded, outbound);
+    websocket.close(None).await.expect("close websocket");
+    server_task.await.expect("server task should join");
 }
 
 #[tokio::test]

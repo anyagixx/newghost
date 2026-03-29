@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.6
+// VERSION: 0.1.7
 // START_MODULE_CONTRACT
 //   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, and governed datagram framing under the shared adapter contract without owning transport selection logic.
 //   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
@@ -17,11 +17,12 @@
 //   stop_accept - stop the accept loop during shutdown
 //   open_datagram_path - establish one production datagram-ready websocket session
 //   receive_server_datagram_reply - read one inbound UDP reply on the server runtime and normalize it into a governed datagram envelope
+//   emit_server_datagram_reply - return one inbound datagram envelope back over the governed server-side WSS runtime
 //   datagram - governed WSS datagram frame helpers kept separate from the stream path
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.6 - Added a bounded server-side inbound-receive helper so Phase-26 can prove reply reception separately from later WSS return delivery.
+//   LAST_CHANGE: v0.1.7 - Added a bounded server-side inbound emit helper so Phase-26 can prove WSS return separately from later client-side local delivery.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -464,6 +465,28 @@ impl WssGateway {
             "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_INBOUND_RECEIVED] received governed inbound UDP reply"
         );
         Ok(inbound)
+    }
+
+    #[cfg_attr(not(test), allow(dead_code))]
+    async fn emit_server_datagram_reply<S>(
+        &self,
+        websocket: &mut WebSocketStream<S>,
+        envelope: &DatagramEnvelope,
+    ) -> Result<(), WssError>
+    where
+        S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
+    {
+        datagram::send_datagram(websocket, envelope)
+            .await
+            .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+        info!(
+            association_id = envelope.association_id,
+            relay_client_addr = %envelope.relay_client_addr,
+            target = ?envelope.target,
+            payload_len = envelope.payload.len(),
+            "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_RETURN_EMITTED] emitted governed inbound datagram reply"
+        );
+        Ok(())
     }
 
     fn spawn_bridge_tasks<S>(
