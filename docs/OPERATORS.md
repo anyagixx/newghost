@@ -943,6 +943,17 @@ Phase-29 bounded capture surface:
 - evidence gap rule:
   if one capture is missing, keep it as a separate packet gap instead of inferring the missing layer from another capture
 
+Observed Phase-29 voice-media packet on 2026-03-30:
+
+- handoff precondition:
+  the exact Phase-29 Desktop route was reused and both bounded `tcpdump` captures completed
+- observed app symptom:
+  the call again reached `Обмен ключами шифрования`, stayed there for roughly ten seconds, and then dropped before any green media packet appeared
+- bounded voice-media classifier:
+  keep this packet in `signaling-only stall` for the tested Desktop setup
+- capture boundary:
+  preserve the completed loopback and uplink captures as part of the same packet instead of inferring media behavior from UI text alone
+
 Remote server-host bounded capture:
 
 ```bash

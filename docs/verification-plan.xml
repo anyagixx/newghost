@@ -3803,12 +3803,14 @@
       <success-scenarios>
         <scenario-1>The voice classifier distinguishes post-answer signaling progress from actual green media behavior on the tested Desktop setup.</scenario-1>
         <scenario-2>If answer or key-exchange emoji appear but no green media packet follows, the voice classifier may stay in `signaling-only stall` as long as it says why that does not prove governed media success.</scenario-2>
+        <scenario-3>If the operator reports a repeated key-exchange stall and the bounded capture packet completed, the classifier may still stay `signaling-only stall` as long as it keeps the capture packet attached.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The voice packet is treated as generic failure text without a bounded media classification.</scenario-1>
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The voice classifier must explicitly choose among signaling-only stall, governed-media progress, or another bounded app-facing media behavior.</assertion-1>
+        <assertion-2>The voice classifier must preserve the bounded capture packet when the app symptom repeats an earlier key-exchange stall.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-VOICE-MEDIA-CLASSIFIER>
 
