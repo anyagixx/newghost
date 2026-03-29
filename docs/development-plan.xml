@@ -3707,7 +3707,7 @@
       <verification-ref>V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS</verification-ref>
     </M-DATAGRAM-ROUNDTRIP-HYPOTHESIS>
 
-    <M-DATAGRAM-ECHO-TARGET NAME="DatagramEchoTarget" TYPE="INTEGRATION" LAYER="26" ORDER="2" STATUS="planned">
+    <M-DATAGRAM-ECHO-TARGET NAME="DatagramEchoTarget" TYPE="INTEGRATION" LAYER="26" ORDER="2" STATUS="done">
       <contract>
         <purpose>Provide one bounded remote UDP echo target with explicit startup, bounded capture window, and explicit cleanup for controlled datagram probes.</purpose>
         <inputs>
@@ -3728,6 +3728,7 @@
         <log-prefix>[DatagramEchoTarget]</log-prefix>
         <critical-block>BLOCK_DATAGRAM_ECHO_TARGET</critical-block>
       </observability>
+      <note-1>The operator runbook now fixes one bounded echo-target lifecycle on UDP port 55123 with explicit startup, listener proof, bounded capture window, and explicit cleanup so stale listeners do not contaminate probe evidence.</note-1>
       <verification-ref>V-M-DATAGRAM-ECHO-TARGET</verification-ref>
     </M-DATAGRAM-ECHO-TARGET>
 
@@ -4430,7 +4431,7 @@
     <Phase-23 name="Datagram Round-Trip Isolation" status="pending">
       <goal>Isolate the controlled UDP round-trip independently of Telegram UI so outbound reachability, remote target ingress, and inbound reply return can be classified precisely.</goal>
       <step-1 module="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS">Freeze the bounded controlled round-trip hypothesis set after Phase-22</step-1>
-      <step-2 module="M-DATAGRAM-ECHO-TARGET" status="pending" verification="V-M-DATAGRAM-ECHO-TARGET">Prepare a bounded remote UDP echo target with explicit startup, capture window, and cleanup</step-2>
+      <step-2 module="M-DATAGRAM-ECHO-TARGET" status="done" verification="V-M-DATAGRAM-ECHO-TARGET">Prepare a bounded remote UDP echo target with explicit startup, capture window, and cleanup</step-2>
       <step-3 module="M-DATAGRAM-OUTBOUND-TRACE" status="pending" verification="V-M-DATAGRAM-OUTBOUND-TRACE">Trace the controlled outbound datagram path from local UDP ASSOCIATE to remote echo-target ingress</step-3>
       <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="pending" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
       <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="pending" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
