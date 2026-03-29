@@ -3825,12 +3825,14 @@
       <success-scenarios>
         <scenario-1>The video classifier stays separate from voice and states whether video matches or diverges from the voice media layer.</scenario-1>
         <scenario-2>If video stalls earlier than voice, that earlier boundary is preserved explicitly instead of being merged into the voice classifier.</scenario-2>
+        <scenario-3>If the bounded video packet repeats the same key-exchange stall as voice, the classifier may still choose the same no-go class as long as the video packet keeps its own capture evidence.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The video packet silently inherits the voice classifier.</scenario-1>
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The video classifier must explicitly compare itself against the voice classifier instead of assuming parity.</assertion-1>
+        <assertion-2>The video classifier must preserve its own bounded capture packet even when it converges on the same no-go class as voice.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER>
 

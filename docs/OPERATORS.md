@@ -954,6 +954,17 @@ Observed Phase-29 voice-media packet on 2026-03-30:
 - capture boundary:
   preserve the completed loopback and uplink captures as part of the same packet instead of inferring media behavior from UI text alone
 
+Observed Phase-29 video-media packet on 2026-03-30:
+
+- handoff precondition:
+  the same exact Phase-29 Desktop route was reused and both bounded video capture commands completed
+- observed app symptom:
+  the video call again reached `Обмен ключами шифрования`, stayed there for roughly ten seconds, and then dropped without a green video packet
+- bounded video-media classifier:
+  keep the video packet separate from voice while classifying it in the same `signaling-only stall` bucket for the tested Desktop setup
+- comparison boundary:
+  the repeated symptom does not let video inherit voice silently; it only proves that the bounded video packet converged on the same no-go class under its own capture packet
+
 Remote server-host bounded capture:
 
 ```bash
