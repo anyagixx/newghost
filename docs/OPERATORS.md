@@ -864,6 +864,19 @@ Observed Phase-28 readiness outcome on 2026-03-29:
 - bounded readiness decision:
   the Phase-27 green controlled datagram round-trip is still valid in the same deployment window, so the next approved step is the bounded Telegram voice-call rerun rather than another transport readiness repair
 
+Observed Phase-28 app-classifier outcome on 2026-03-29:
+
+- voice packet:
+  ringing and answer state were immediate, key-exchange emoji appeared on both devices, then the call fell back to `Соединение...` and terminated without a green media path
+- video packet:
+  the call remained at `Обмен ключами шифрования...` and then dropped before any bounded media-success packet appeared
+- bounded classifier decision:
+  keep the post-Phase-27 Telegram calls outcome in the `signaling-only stall` bucket for the tested Desktop setup
+- classifier boundary:
+  do not reopen generic datagram transport diagnosis here because the same deployment window already preserved one bounded `phase27-probe` packet with `reply-received`
+- classifier non-claim:
+  the current packet does not prove direct-media bypass; it only proves that signaling and key exchange advance farther than before while a governed green media packet still does not appear
+
 Remote server-host bounded capture:
 
 ```bash

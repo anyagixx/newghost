@@ -3650,12 +3650,14 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The classifier maps the post-roundtrip calls outcome into one bounded app-facing bucket without reopening generic transport repair.</scenario-1>
+        <scenario-2>If voice or video reaches answer or key-exchange state but no green media packet follows, the classifier may choose `signaling-only stall` as long as it says why `direct-media behavior` is still unproven.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The classifier falls back to vague wording such as “calls still broken” without naming the app-facing class.</scenario-1>
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The classifier must choose among governed media success, direct-media behavior, or signaling-only stall and justify the choice from the new packets.</assertion-1>
+        <assertion-2>The classifier must keep key-exchange progress and absent green media in the same bounded packet instead of treating either one as proof of direct-media bypass.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-CALLS-APP-CLASSIFIER>
 
