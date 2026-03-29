@@ -1,5 +1,5 @@
 // FILE: src/proxy_bridge/udp_relay.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify server-side UDP relay outbound delivery, inbound association mapping, and foreign-source rejection.
 //   SCOPE: Outbound datagram relay, inbound datagram receive, and unexpected-source failure behavior.
@@ -9,12 +9,13 @@
 //
 // START_MODULE_MAP
 //   outbound_datagram_reaches_remote_udp_target - proves outbound relay reaches the resolved UDP peer
+//   outbound_relay_record_preserves_bounded_receipt_metadata - proves the relay record preserves local addr and payload-size evidence for repair packets
 //   inbound_datagram_returns_to_owning_association - proves inbound packets are mapped back to the owning association
 //   foreign_inbound_source_is_rejected - proves unexpected inbound UDP sources are rejected deterministically
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added deterministic UDP relay tests so outbound or inbound relay semantics stay association-scoped and reviewable.
+//   LAST_CHANGE: v0.1.1 - Added bounded outbound receipt coverage so repair waves can preserve server-side relay evidence separately from remote ingress proof.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -49,6 +50,25 @@ async fn outbound_datagram_reaches_remote_udp_target() {
     let relay_addr = relay.relay_socket.local_addr().expect("relay addr");
     assert_eq!(source.port(), relay_addr.port());
     assert!(source.ip().is_loopback());
+}
+
+#[tokio::test]
+async fn outbound_relay_record_preserves_bounded_receipt_metadata() {
+    let remote = UdpSocket::bind("127.0.0.1:0").await.expect("remote bind");
+    let target = remote.local_addr().expect("remote addr");
+    let envelope = sample_envelope(target);
+
+    let relay = relay_outbound_datagram(&envelope)
+        .await
+        .expect("relay outbound");
+
+    assert_eq!(relay.association_id, 21);
+    assert_eq!(relay.remote_peer, target);
+    assert_eq!(relay.last_sent_payload_len, envelope.payload.len());
+    assert_eq!(
+        relay.relay_local_addr,
+        relay.relay_socket.local_addr().expect("relay local addr")
+    );
 }
 
 #[tokio::test]

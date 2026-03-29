@@ -1,5 +1,5 @@
 // FILE: src/proxy_bridge/udp_relay.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Open real UDP sockets on the server side, relay outbound datagrams to remote targets, and return inbound packets to the owning association.
 //   SCOPE: Outbound target resolution, UDP socket binding, outbound relay, inbound receive, and foreign-source rejection.
@@ -8,14 +8,14 @@
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   UdpRelayRecord - one active server-side UDP relay socket bound to an owning association and remote peer
+//   UdpRelayRecord - one active server-side UDP relay socket bound to an owning association, remote peer, and outbound receipt metadata
 //   UdpRelayError - deterministic outbound or inbound UDP relay failure surface
 //   relay_outbound_datagram - send one governed outbound datagram to the resolved remote UDP target
 //   relay_inbound_datagram - receive one inbound UDP packet and map it back to the owning association
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added explicit server-side UDP relay helpers so datagram transport work has deterministic outbound and inbound relay evidence.
+//   LAST_CHANGE: v0.1.1 - Added bounded outbound receipt metadata so repair waves can separate server-side relay intent from later remote-ingress proof.
 // END_CHANGE_SUMMARY
 
 use std::net::SocketAddr;
@@ -33,7 +33,9 @@ mod tests;
 pub struct UdpRelayRecord {
     pub association_id: DatagramAssociationId,
     pub relay_socket: UdpSocket,
+    pub relay_local_addr: SocketAddr,
     pub remote_peer: SocketAddr,
+    pub last_sent_payload_len: usize,
 }
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -68,6 +70,9 @@ pub async fn relay_outbound_datagram(
     let relay_socket = UdpSocket::bind("0.0.0.0:0")
         .await
         .map_err(|err| UdpRelayError::BindFailed(err.to_string()))?;
+    let relay_local_addr = relay_socket
+        .local_addr()
+        .map_err(|err| UdpRelayError::BindFailed(err.to_string()))?;
     relay_socket
         .send_to(&envelope.payload, remote_peer)
         .await
@@ -75,6 +80,7 @@ pub async fn relay_outbound_datagram(
 
     info!(
         association_id = envelope.association_id,
+        relay_local_addr = %relay_local_addr,
         remote_peer = %remote_peer,
         payload_len = envelope.payload.len(),
         "[UdpEgressRelay][relayOutbound][BLOCK_RELAY_UDP_OUTBOUND] relayed outbound UDP datagram"
@@ -83,7 +89,9 @@ pub async fn relay_outbound_datagram(
     Ok(UdpRelayRecord {
         association_id: envelope.association_id,
         relay_socket,
+        relay_local_addr,
         remote_peer,
+        last_sent_payload_len: envelope.payload.len(),
     })
     // END_BLOCK_RELAY_UDP_OUTBOUND
 }
@@ -120,6 +128,7 @@ pub async fn relay_inbound_datagram(
 
     info!(
         association_id = relay.association_id,
+        relay_local_addr = %relay.relay_local_addr,
         remote_peer = %source,
         payload_len = bytes_read,
         "[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND] relayed inbound UDP datagram"
@@ -127,10 +136,7 @@ pub async fn relay_inbound_datagram(
 
     Ok(DatagramEnvelope {
         association_id: relay.association_id,
-        relay_client_addr: relay
-            .relay_socket
-            .local_addr()
-            .map_err(|err| UdpRelayError::ReceiveFailed(err.to_string()))?,
+        relay_client_addr: relay.relay_local_addr,
         target: DatagramTarget::Ip(source),
         payload: buffer[..bytes_read].to_vec(),
     })
