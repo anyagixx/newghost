@@ -1,31 +1,36 @@
 // FILE: src/socks5/udp_associate.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Negotiate governed SOCKS5 UDP ASSOCIATE relay binds and normalize SOCKS5 UDP relay packets into the shared datagram contract.
-//   SCOPE: Local UDP relay bind allocation, SOCKS5 UDP ASSOCIATE success replies, UDP relay packet parsing, source validation, fragmentation rejection, and datagram-envelope validation.
-//   DEPENDS: std, thiserror, tokio, tracing, src/socks5/mod.rs, src/transport/datagram_contract.rs
+//   PURPOSE: Negotiate governed SOCKS5 UDP ASSOCIATE relay binds, normalize SOCKS5 UDP relay packets, and drive the live local UDP runtime receive loop into a bounded handoff target.
+//   SCOPE: Local UDP relay bind allocation, SOCKS5 UDP ASSOCIATE success replies, UDP relay packet parsing, source validation, fragmentation rejection, datagram-envelope validation, runtime source learning, and live relay-loop forwarding.
+//   DEPENDS: async-trait, std, thiserror, tokio, tokio-util, tracing, src/socks5/mod.rs, src/transport/datagram_contract.rs
 //   LINKS: M-SOCKS5-UDP-ASSOCIATE, V-M-SOCKS5-UDP-ASSOCIATE, DF-SOCKS5-UDP-ASSOCIATE, DF-UDP-OUTBOUND
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   UdpAssociateRecord - governed UDP relay bind plus owning relay socket
 //   UdpAssociateError - deterministic UDP ASSOCIATE and relay-packet failure surface
+//   UdpRelayRuntimeTarget - bounded live handoff target for normalized UDP relay packets
 //   handle_udp_associate - negotiate one SOCKS5 UDP ASSOCIATE request and return the governed relay bind
 //   parse_udp_datagram - normalize one SOCKS5 UDP relay packet into the shared datagram contract and emit a bounded normalization anchor
+//   run_udp_relay_runtime_loop - read live UDP relay packets and forward normalized datagrams into the configured runtime handoff
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added bounded UDP relay-packet normalization evidence so repair waves can distinguish accepted local ingress from later dispatch loss.
+//   LAST_CHANGE: v0.1.2 - Added the live UDP relay receive loop and bounded runtime handoff target so governed packets can advance beyond UDP ASSOCIATE ingress.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::sync::Arc;
 
+use async_trait::async_trait;
 use thiserror::Error;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpStream, UdpSocket};
+use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
 
-use crate::socks5::Socks5Error;
+use crate::socks5::{Socks5Error, TargetAddr};
 use crate::transport::datagram_contract::{
     DatagramAssociationId, DatagramEnvelope, DatagramError, DatagramTarget,
 };
@@ -59,6 +64,17 @@ pub enum UdpAssociateError {
     },
     #[error("datagram contract violation: {0}")]
     DatagramContract(#[from] DatagramError),
+}
+
+#[async_trait]
+pub trait UdpRelayRuntimeTarget: Send + Sync + 'static {
+    async fn forward_runtime_datagram(
+        &self,
+        relay_addr: SocketAddr,
+        expected_client_addr: SocketAddr,
+        target: DatagramTarget,
+        payload: Vec<u8>,
+    ) -> Result<(), UdpAssociateError>;
 }
 
 // START_CONTRACT: handle_udp_associate
@@ -191,8 +207,74 @@ pub fn parse_udp_datagram(
     Ok(envelope)
 }
 
+// START_CONTRACT: run_udp_relay_runtime_loop
+//   PURPOSE: Read live packets from the governed UDP relay socket, normalize them, and forward them into one bounded runtime handoff target until cancellation.
+//   INPUTS: { record: UdpAssociateRecord - owned governed relay socket, client_hint: TargetAddr - client-provided UDP endpoint hint from the control request, forward_target: Arc<dyn UdpRelayRuntimeTarget> - bounded runtime handoff target, cancel: CancellationToken - shutdown boundary for the relay loop }
+//   OUTPUTS: { Result<(), UdpAssociateError> - ok when the loop stops cleanly or forwarding stays within deterministic protocol bounds }
+//   SIDE_EFFECTS: [reads the local UDP relay socket, emits a stable runtime-loop anchor, and forwards normalized packets]
+//   LINKS: [M-SOCKS5-UDP-ASSOCIATE, V-M-SOCKS5-UDP-ASSOCIATE]
+// END_CONTRACT: run_udp_relay_runtime_loop
+pub async fn run_udp_relay_runtime_loop(
+    record: UdpAssociateRecord,
+    client_hint: TargetAddr,
+    forward_target: Arc<dyn UdpRelayRuntimeTarget>,
+    cancel: CancellationToken,
+) -> Result<(), UdpAssociateError> {
+    // START_BLOCK_SOCKS5_UDP_RUNTIME_LOOP
+    let UdpAssociateRecord {
+        relay_addr,
+        relay_socket,
+    } = record;
+    let mut expected_source = hinted_client_addr(&client_hint);
+    let mut packet = vec![0_u8; 65_535];
+
+    loop {
+        let received = tokio::select! {
+            _ = cancel.cancelled() => return Ok(()),
+            received = relay_socket.recv_from(&mut packet) => {
+                received.map_err(|err| UdpAssociateError::Io(err.to_string()))?
+            }
+        };
+
+        let (packet_len, source) = received;
+        let learned_source = expected_source.unwrap_or(source);
+        let envelope = parse_udp_datagram(
+            source,
+            learned_source,
+            &packet[..packet_len],
+            0,
+        )?;
+        expected_source.get_or_insert(learned_source);
+
+        info!(
+            relay_addr = %relay_addr,
+            expected_client_addr = %learned_source,
+            target = ?envelope.target,
+            payload_len = envelope.payload.len(),
+            "[Socks5UdpRuntimeLoop][runRelayLoop][BLOCK_SOCKS5_UDP_RUNTIME_LOOP] forwarding normalized governed UDP relay packet into runtime handoff"
+        );
+
+        forward_target
+            .forward_runtime_datagram(
+                relay_addr,
+                learned_source,
+                envelope.target,
+                envelope.payload,
+            )
+            .await?;
+    }
+    // END_BLOCK_SOCKS5_UDP_RUNTIME_LOOP
+}
+
 impl From<Socks5Error> for UdpAssociateError {
     fn from(value: Socks5Error) -> Self {
         UdpAssociateError::Io(value.to_string())
+    }
+}
+
+fn hinted_client_addr(client_hint: &TargetAddr) -> Option<SocketAddr> {
+    match client_hint {
+        TargetAddr::Ip(addr) if !addr.ip().is_unspecified() && addr.port() != 0 => Some(*addr),
+        _ => None,
     }
 }

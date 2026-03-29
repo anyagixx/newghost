@@ -1,8 +1,8 @@
 // FILE: src/socks5/mod.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
-//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and negotiate governed UDP ASSOCIATE control sessions.
-//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, UDP ASSOCIATE control-session handling, helper export, and accept-loop shutdown.
+//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and negotiate governed UDP ASSOCIATE control sessions plus the live UDP runtime loop.
+//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, UDP ASSOCIATE control-session handling, optional UDP runtime handoff wiring, helper export, and accept-loop shutdown.
 //   DEPENDS: std, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/session/mod.rs, src/socks5/udp_associate.rs
 //   LINKS: M-SOCKS5, M-SOCKS5-UDP-ASSOCIATE, V-M-SOCKS5, V-M-SOCKS5-UDP-ASSOCIATE, DF-SOCKS5-INTENT, DF-REPLY-MAPPING, DF-SOCKS5-UDP-ASSOCIATE
 // END_MODULE_CONTRACT
@@ -21,14 +21,16 @@
 //   map_reply - map ProxyError to an exact SOCKS5 reply or None after reply emission
 //   send_reply_and_close - send a SOCKS5 reply and close the client socket for pre-pump failures
 //   stop_accept - stop accepting new local connections during shutdown
+//   with_udp_runtime_target - attach the bounded UDP runtime handoff target used by the live relay loop
 //   udp_associate - governed SOCKS5 UDP ASSOCIATE relay-bind and packet normalization helpers
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Wired UDP ASSOCIATE into the live SOCKS5 listener so runtime ingress no longer rejects command 0x03 before the governed control path can start.
+//   LAST_CHANGE: v0.1.4 - Added the optional live UDP runtime loop so UDP ASSOCIATE sessions can forward normalized packets beyond control-session ingress.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;
 
@@ -148,6 +150,7 @@ pub enum Socks5Error {
 pub struct Socks5Proxy {
     config: Socks5ProxyConfig,
     intent_tx: mpsc::Sender<ProxyIntent>,
+    udp_runtime_target: Option<Arc<dyn udp_associate::UdpRelayRuntimeTarget>>,
     accept_token: CancellationToken,
 }
 
@@ -168,8 +171,17 @@ impl Socks5Proxy {
         Self {
             config,
             intent_tx,
+            udp_runtime_target: None,
             accept_token: CancellationToken::new(),
         }
+    }
+
+    pub fn with_udp_runtime_target(
+        mut self,
+        udp_runtime_target: Arc<dyn udp_associate::UdpRelayRuntimeTarget>,
+    ) -> Self {
+        self.udp_runtime_target = Some(udp_runtime_target);
+        self
     }
 
     pub fn stop_accept(&self) {
@@ -239,17 +251,45 @@ impl Socks5Proxy {
                     client_hint = ?intent.client_hint,
                     "[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE] accepted UDP ASSOCIATE control request"
                 );
-                let _association = udp_associate::handle_udp_associate(&mut intent.client_stream)
+                let association = udp_associate::handle_udp_associate(&mut intent.client_stream)
                     .await
                     .map_err(|err| Socks5Error::Io(err.to_string()))?;
+                let udp_runtime_target = self.udp_runtime_target.clone();
+                let client_hint = intent.client_hint.clone();
+
+                let runtime_task = udp_runtime_target.map(|target| {
+                    let runtime_cancel = CancellationToken::new();
+                    let task_cancel = runtime_cancel.clone();
+                    let task = tokio::spawn(async move {
+                        udp_associate::run_udp_relay_runtime_loop(
+                            association,
+                            client_hint,
+                            target,
+                            task_cancel,
+                        )
+                        .await
+                    });
+                    (runtime_cancel, task)
+                });
+
                 let mut scratch = [0_u8; 1];
-                loop {
+                let control_result = loop {
                     match intent.client_stream.read(&mut scratch).await {
-                        Ok(0) => return Ok(()),
+                        Ok(0) => break Ok(()),
                         Ok(_) => continue,
-                        Err(err) => return Err(Socks5Error::Io(err.to_string())),
+                        Err(err) => break Err(Socks5Error::Io(err.to_string())),
                     }
+                };
+
+                if let Some((runtime_cancel, runtime_task)) = runtime_task {
+                    runtime_cancel.cancel();
+                    let runtime_result = runtime_task
+                        .await
+                        .map_err(|err| Socks5Error::Io(err.to_string()))?;
+                    runtime_result.map_err(|err| Socks5Error::Io(err.to_string()))?;
                 }
+
+                control_result
             }
         }
     }
