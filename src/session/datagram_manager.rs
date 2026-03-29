@@ -1,9 +1,9 @@
 // FILE: src/session/datagram_manager.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Coordinate UDP association lifecycle, outbound or inbound datagram dispatch, and session-side cleanup rules.
-//   SCOPE: Association open, outbound dispatch, inbound dispatch, activity refresh, and explicit association close over the governed UDP registry.
-//   DEPENDS: async-trait, std, thiserror, tracing, src/session/udp_registry.rs, src/transport/datagram_contract.rs
+//   PURPOSE: Coordinate UDP association lifecycle, outbound or inbound datagram dispatch, runtime handoff bridging, and session-side cleanup rules.
+//   SCOPE: Association open, outbound dispatch, inbound dispatch, activity refresh, explicit association close, selector-backed outbound dispatch, and SOCKS5 runtime handoff bridging over the governed UDP registry.
+//   DEPENDS: async-trait, std, thiserror, tokio-util, tracing, src/session/udp_registry.rs, src/session/datagram_transport_selector.rs, src/socks5/udp_associate.rs, src/transport/datagram_contract.rs
 //   LINKS: M-DATAGRAM-SESSION-MANAGER, V-M-DATAGRAM-SESSION-MANAGER, DF-UDP-OUTBOUND, DF-UDP-INBOUND, DF-UDP-ASSOCIATION-LIFECYCLE
 // END_MODULE_CONTRACT
 //
@@ -11,6 +11,9 @@
 //   DatagramDispatchTarget - abstract outbound or inbound datagram sink used by the manager
 //   DatagramSessionError - deterministic lifecycle and dispatch failure surface
 //   DatagramSessionManager - orchestrate association open, outbound, inbound, and close trajectories
+//   DatagramSelectorDispatch - selector-backed outbound dispatch target used by the runtime bridge
+//   DatagramSelectorDispatchError - bounded selector-backed dispatch failure surface
+//   DatagramRuntimeBridge - SOCKS5 runtime handoff bridge from normalized UDP packets into manager-owned outbound dispatch
 //   open_association - create one session-owned UDP association
 //   ensure_outbound_association - open or reuse the session-owned UDP association for one governed relay and client endpoint pair
 //   accept_outbound_datagram - bind local relay ownership to one outbound datagram and forward it through the manager dispatch path
@@ -20,7 +23,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added a deterministic open-or-reuse outbound handoff so governed relay ingress can reach manager-owned dispatch through one bounded path.
+//   LAST_CHANGE: v0.1.3 - Added a runtime bridge from SOCKS5 UDP relay ingress into manager-owned selector emission so Phase-25 can prove the live dispatch trajectory.
 // END_CHANGE_SUMMARY
 
 use std::net::SocketAddr;
@@ -29,12 +32,17 @@ use std::time::Instant;
 
 use async_trait::async_trait;
 use thiserror::Error;
+use tokio_util::sync::CancellationToken;
 use tracing::info;
 
+use crate::session::datagram_transport_selector::{
+    DatagramTransportSelectError, DatagramTransportSelector, WssDatagramPath,
+};
 use crate::session::udp_registry::{
     UdpAssociationLimitReached, UdpAssociationNotFound, UdpAssociationRecord,
     UdpAssociationRegistry,
 };
+use crate::socks5::udp_associate::{UdpAssociateError, UdpRelayRuntimeTarget};
 use crate::transport::datagram_contract::{DatagramAssociationId, DatagramEnvelope, DatagramError, DatagramTarget};
 
 #[cfg(test)]
@@ -58,6 +66,46 @@ pub enum DatagramSessionError {
     ContractViolation(#[from] DatagramError),
     #[error("datagram dispatch failed: {0}")]
     DispatchFailed(String),
+}
+
+#[derive(Debug, Error, Clone, PartialEq, Eq)]
+pub enum DatagramSelectorDispatchError {
+    #[error("datagram transport selection failed: {0}")]
+    TransportSelectionFailed(#[from] DatagramTransportSelectError),
+}
+
+pub struct DatagramSelectorDispatch<W> {
+    selector: DatagramTransportSelector<W>,
+}
+
+impl<W> DatagramSelectorDispatch<W> {
+    pub fn new(selector: DatagramTransportSelector<W>) -> Self {
+        Self { selector }
+    }
+}
+
+pub struct DatagramRuntimeBridge<W, I> {
+    manager: DatagramSessionManager<DatagramSelectorDispatch<W>, I>,
+}
+
+impl<W, I> DatagramRuntimeBridge<W, I> {
+    pub fn new(
+        registry: Arc<UdpAssociationRegistry>,
+        selector: DatagramTransportSelector<W>,
+        inbound_target: I,
+    ) -> Self {
+        Self {
+            manager: DatagramSessionManager::new(
+                registry,
+                DatagramSelectorDispatch::new(selector),
+                inbound_target,
+            ),
+        }
+    }
+
+    pub fn manager(&self) -> &DatagramSessionManager<DatagramSelectorDispatch<W>, I> {
+        &self.manager
+    }
 }
 
 pub struct DatagramSessionManager<O, I> {
@@ -268,10 +316,65 @@ where
     }
 }
 
+#[async_trait]
+impl<W> DatagramDispatchTarget for DatagramSelectorDispatch<W>
+where
+    W: WssDatagramPath,
+{
+    type Error = DatagramSelectorDispatchError;
+
+    async fn dispatch(&self, envelope: &DatagramEnvelope) -> Result<(), Self::Error> {
+        self.selector
+            .emit_outbound_datagram(envelope, CancellationToken::new())
+            .await?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl<W, I> UdpRelayRuntimeTarget for DatagramRuntimeBridge<W, I>
+where
+    W: WssDatagramPath,
+    I: DatagramDispatchTarget + 'static,
+{
+    async fn forward_runtime_datagram(
+        &self,
+        relay_addr: SocketAddr,
+        expected_client_addr: SocketAddr,
+        target: DatagramTarget,
+        payload: Vec<u8>,
+    ) -> Result<(), UdpAssociateError> {
+        self.manager
+            .accept_outbound_datagram(
+                relay_addr,
+                expected_client_addr,
+                target,
+                payload,
+                Instant::now(),
+            )
+            .await
+            .map(|_| ())
+            .map_err(map_runtime_bridge_error)
+    }
+}
+
 fn map_not_found(error: UdpAssociationNotFound) -> DatagramSessionError {
     match error {
         UdpAssociationNotFound::Missing(association_id) => {
             DatagramSessionError::AssociationNotFound(association_id)
         }
+    }
+}
+
+fn map_runtime_bridge_error(error: DatagramSessionError) -> UdpAssociateError {
+    match error {
+        DatagramSessionError::ContractViolation(inner) => UdpAssociateError::DatagramContract(inner),
+        DatagramSessionError::AssociationLimitReached => {
+            UdpAssociateError::Io("udp association limit reached".to_string())
+        }
+        DatagramSessionError::AssociationNotFound(association_id) => {
+            UdpAssociateError::Io(format!("udp association not found: {association_id}"))
+        }
+        DatagramSessionError::DispatchFailed(message) => UdpAssociateError::Io(message),
     }
 }

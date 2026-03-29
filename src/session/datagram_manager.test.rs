@@ -1,8 +1,8 @@
 // FILE: src/session/datagram_manager.test.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify datagram association open, outbound dispatch, inbound dispatch, and cleanup trajectories over the governed UDP registry.
-//   SCOPE: Open success, explicit close, outbound dispatch, inbound dispatch, explicit dispatch failure, and missing-association failure behavior.
+//   PURPOSE: Verify datagram association open, outbound dispatch, runtime bridge dispatch, inbound dispatch, and cleanup trajectories over the governed UDP registry.
+//   SCOPE: Open success, explicit close, outbound dispatch, selector-backed runtime-bridge dispatch, inbound dispatch, explicit dispatch failure, and missing-association failure behavior.
 //   DEPENDS: src/session/datagram_manager.rs, src/session/udp_registry.rs, src/transport/datagram_contract.rs
 //   LINKS: V-M-DATAGRAM-SESSION-MANAGER
 // END_MODULE_CONTRACT
@@ -12,6 +12,8 @@
 //   outbound_dispatch_refreshes_activity_and_hits_outbound_target - proves outbound datagrams stay associated with the correct session identity
 //   accept_outbound_datagram_opens_and_dispatches_owned_association - proves the local handoff can open an owned association and forward one outbound datagram through the manager
 //   accept_outbound_datagram_reuses_existing_owned_association - proves repeated local handoffs for the same relay and client pair reuse the same association id
+//   runtime_bridge_forwards_governed_datagram_into_selector_emit - proves the SOCKS5 runtime handoff opens an association and reaches selector-backed WSS emission
+//   runtime_bridge_reuses_owned_association_across_packets - proves repeated runtime handoffs reuse the same governed association id
 //   inbound_dispatch_refreshes_activity_and_hits_inbound_target - proves inbound datagrams stay associated with the correct session identity
 //   close_association_releases_owned_state - proves explicit close frees registry-owned state
 //   outbound_dispatch_failure_is_explicit - proves manager-side dispatch failures stay deterministic after activity refresh
@@ -19,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added deterministic local-handoff coverage so outbound repair work can reuse or open the correct UDP association before manager dispatch.
+//   LAST_CHANGE: v0.1.3 - Added selector-backed runtime-bridge coverage so Phase-25 can prove live UDP ingress reaches bounded WSS emission.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -27,9 +29,17 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use async_trait::async_trait;
+use tokio::sync::Mutex as AsyncMutex;
+use tokio_util::sync::CancellationToken;
 
-use super::{DatagramDispatchTarget, DatagramSessionError, DatagramSessionManager};
+use super::{
+    DatagramDispatchTarget, DatagramRuntimeBridge, DatagramSessionError, DatagramSessionManager,
+};
 use crate::session::UdpAssociationRegistry;
+use crate::session::{
+    DatagramTransportSelector, DatagramTransportSelectorConfig, WssDatagramPath,
+};
+use crate::socks5::udp_associate::UdpRelayRuntimeTarget;
 use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
 
 #[derive(Default)]
@@ -67,6 +77,37 @@ impl DatagramDispatchTarget for Arc<FailingTarget> {
 
     async fn dispatch(&self, _envelope: &DatagramEnvelope) -> Result<(), Self::Error> {
         Err(FailingTargetError)
+    }
+}
+
+#[derive(Clone)]
+struct MockWssPath {
+    emitted: Arc<AsyncMutex<Vec<DatagramEnvelope>>>,
+}
+
+#[derive(Debug, thiserror::Error)]
+#[error("mock wss path failed")]
+struct MockWssError;
+
+#[async_trait]
+impl WssDatagramPath for MockWssPath {
+    type Error = MockWssError;
+
+    async fn open_path(
+        &self,
+        _association_id: u64,
+        _cancel: CancellationToken,
+    ) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    async fn emit_datagram(
+        &self,
+        envelope: &DatagramEnvelope,
+        _cancel: CancellationToken,
+    ) -> Result<(), Self::Error> {
+        self.emitted.lock().await.push(envelope.clone());
+        Ok(())
     }
 }
 
@@ -217,6 +258,81 @@ async fn accept_outbound_datagram_reuses_existing_owned_association() {
     assert_eq!(first.association_id, second.association_id);
     assert_eq!(registry.association_count(), 1);
     assert_eq!(outbound.seen.lock().expect("seen").len(), 2);
+}
+
+#[tokio::test]
+async fn runtime_bridge_forwards_governed_datagram_into_selector_emit() {
+    let registry = Arc::new(UdpAssociationRegistry::new(1));
+    let emitted = Arc::new(AsyncMutex::new(Vec::new()));
+    let bridge = DatagramRuntimeBridge::new(
+        registry.clone(),
+        DatagramTransportSelector::new(
+            MockWssPath {
+                emitted: emitted.clone(),
+            },
+            DatagramTransportSelectorConfig {
+                wss_timeout: Duration::from_millis(50),
+            },
+        ),
+        Arc::new(RecordingTarget::default()),
+    );
+
+    bridge
+        .forward_runtime_datagram(
+            target_addr(40000),
+            target_addr(50000),
+            DatagramTarget::Ip(target_addr(443)),
+            vec![0xaa, 0xbb],
+        )
+        .await
+        .expect("runtime bridge should forward datagram");
+
+    let emitted = emitted.lock().await;
+    assert_eq!(emitted.len(), 1);
+    assert_eq!(emitted[0].association_id, 1);
+    assert_eq!(registry.association_count(), 1);
+}
+
+#[tokio::test]
+async fn runtime_bridge_reuses_owned_association_across_packets() {
+    let registry = Arc::new(UdpAssociationRegistry::new(2));
+    let emitted = Arc::new(AsyncMutex::new(Vec::new()));
+    let bridge = DatagramRuntimeBridge::new(
+        registry.clone(),
+        DatagramTransportSelector::new(
+            MockWssPath {
+                emitted: emitted.clone(),
+            },
+            DatagramTransportSelectorConfig {
+                wss_timeout: Duration::from_millis(50),
+            },
+        ),
+        Arc::new(RecordingTarget::default()),
+    );
+
+    bridge
+        .forward_runtime_datagram(
+            target_addr(40000),
+            target_addr(50000),
+            DatagramTarget::Ip(target_addr(443)),
+            vec![0xaa],
+        )
+        .await
+        .expect("first runtime datagram");
+    bridge
+        .forward_runtime_datagram(
+            target_addr(40000),
+            target_addr(50000),
+            DatagramTarget::Ip(target_addr(444)),
+            vec![0xbb],
+        )
+        .await
+        .expect("second runtime datagram");
+
+    let emitted = emitted.lock().await;
+    assert_eq!(emitted.len(), 2);
+    assert_eq!(emitted[0].association_id, emitted[1].association_id);
+    assert_eq!(registry.association_count(), 1);
 }
 
 #[test]
