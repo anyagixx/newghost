@@ -1265,7 +1265,7 @@
       </annotations>
     </M-CALLS-FAILURE-HYPOTHESIS>
 
-    <M-CALLS-UDP-PROBE-TOOLING NAME="CallsUdpProbeTooling" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-CALLS-UDP-PROBE-TOOLING NAME="CallsUdpProbeTooling" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Prepare a controlled UDP ASSOCIATE and datagram probe path outside Telegram UI.</purpose>
       <path>scripts/udp_probe.sh</path>
       <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-CONTRACT, M-UDP-EGRESS-RELAY</depends>
