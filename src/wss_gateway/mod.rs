@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.4
+// VERSION: 0.1.5
 // START_MODULE_CONTRACT
 //   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, and governed datagram framing under the shared adapter contract without owning transport selection logic.
 //   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
@@ -20,7 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.4 - Added a production WSS datagram carrier handshake so runtime glue no longer depends on mock-only WssDatagramPath implementations.
+//   LAST_CHANGE: v0.1.5 - Added server-side datagram runtime demux so real WSS datagram frames reach the repaired UDP relay path instead of collapsing back into stream-only handling.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -41,6 +41,7 @@ use tracing::{info, warn};
 
 use crate::auth::{AuthDecision, AuthPolicy, HandshakeMetadata};
 use crate::obs::ProxyMetricsHandle;
+use crate::proxy_bridge::udp_relay::relay_outbound_datagram;
 use crate::session::WssDatagramPath;
 use crate::tls::TlsContextHandle;
 use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
@@ -205,7 +206,19 @@ impl WssGateway {
                     peer = %peer_label,
                     "[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT] accepted WSS handshake"
                 );
-                self.server_proxy_loop(websocket).await
+                let target_message = websocket
+                    .next()
+                    .await
+                    .ok_or_else(|| {
+                        WssError::InvalidTargetRequest("missing target request".to_string())
+                    })?
+                    .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
+
+                if let Some(association_id) = parse_datagram_open_request(&target_message) {
+                    self.server_datagram_loop(websocket, association_id).await
+                } else {
+                    self.server_proxy_loop(websocket, target_message).await
+                }
             }
             AuthDecision::Reject(rejection) => {
                 let _ = websocket.close(None).await;
@@ -214,15 +227,14 @@ impl WssGateway {
         }
     }
 
-    async fn server_proxy_loop<S>(&self, mut websocket: WebSocketStream<S>) -> Result<(), WssError>
+    async fn server_proxy_loop<S>(
+        &self,
+        mut websocket: WebSocketStream<S>,
+        target_message: Message,
+    ) -> Result<(), WssError>
     where
         S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
     {
-        let target_message = websocket
-            .next()
-            .await
-            .ok_or_else(|| WssError::InvalidTargetRequest("missing target request".to_string()))?
-            .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
         let (target_host, target_port) = parse_target_request(target_message)?;
         let target_stream = TcpStream::connect((target_host.as_str(), target_port))
             .await
@@ -285,6 +297,58 @@ impl WssGateway {
         };
 
         tokio::try_join!(websocket_to_target, target_to_websocket)?;
+        Ok(())
+    }
+
+    async fn server_datagram_loop<S>(
+        &self,
+        mut websocket: WebSocketStream<S>,
+        association_id: DatagramAssociationId,
+    ) -> Result<(), WssError>
+    where
+        S: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin,
+    {
+        websocket
+            .send(Message::Text("datagram-ready".into()))
+            .await
+            .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+
+        while let Some(frame) = websocket.next().await {
+            match frame.map_err(|err| WssError::DatagramPathFailed(err.to_string()))? {
+                Message::Binary(bytes) => {
+                    let envelope = datagram::decode_message(Message::Binary(bytes))
+                        .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+                    if envelope.association_id != association_id {
+                        return Err(WssError::DatagramPathFailed(format!(
+                            "association mismatch: expected {association_id}, got {}",
+                            envelope.association_id
+                        )));
+                    }
+                    info!(
+                        association_id,
+                        target = ?envelope.target,
+                        payload_len = envelope.payload.len(),
+                        "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_RECEIVED] received governed WSS datagram frame"
+                    );
+                    relay_outbound_datagram(&envelope)
+                        .await
+                        .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+                }
+                Message::Close(_) => break,
+                Message::Ping(_) | Message::Pong(_) => {}
+                Message::Text(text) => {
+                    return Err(WssError::DatagramPathFailed(format!(
+                        "unexpected datagram runtime text frame: {text}"
+                    )));
+                }
+                Message::Frame(_) => {
+                    return Err(WssError::DatagramPathFailed(
+                        "unexpected datagram runtime frame".to_string(),
+                    ));
+                }
+            }
+        }
+
         Ok(())
     }
 
@@ -627,6 +691,19 @@ fn parse_target_request(message: Message) -> Result<(String, u16), WssError> {
         .map_err(|_| WssError::InvalidTargetRequest(text.clone()))?;
 
     Ok((host.to_string(), port))
+}
+
+fn parse_datagram_open_request(message: &Message) -> Option<DatagramAssociationId> {
+    let text = match message {
+        Message::Text(text) => text.to_string(),
+        Message::Binary(bytes) => String::from_utf8(bytes.to_vec()).ok()?,
+        Message::Ping(_) | Message::Pong(_) | Message::Close(_) | Message::Frame(_) => {
+            return None
+        }
+    };
+
+    text.strip_prefix("DATAGRAM OPEN ")
+        .and_then(|id| id.parse::<DatagramAssociationId>().ok())
 }
 
 fn finish_bridge_task(lifecycle: &Arc<BridgeLifecycle>) {

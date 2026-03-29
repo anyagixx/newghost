@@ -1,9 +1,9 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, cancellation handling, and adapter cleanup guarantees.
-//   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
-//   DEPENDS: src/wss_gateway/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/tls/mod.rs, src/transport/adapter_contract.rs, src/transport/stream.rs
+//   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, cancellation handling, and adapter cleanup guarantees.
+//   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
+//   DEPENDS: src/wss_gateway/mod.rs, src/auth/mod.rs, src/obs/mod.rs, src/tls/mod.rs, src/transport/adapter_contract.rs, src/transport/stream.rs, src/proxy_bridge/udp_relay.rs
 //   LINKS: V-M-WSS-GATEWAY, VF-003, VF-008
 // END_MODULE_CONTRACT
 //
@@ -11,13 +11,14 @@
 //   valid_tls_plus_wss_handshake_returns_resolved_stream - proves TLS plus WSS handshake yields a usable resolved stream
 //   datagram_open_path_uses_runtime_handshake - proves the production datagram carrier performs auth plus datagram-ready handshake over the real websocket runtime
 //   datagram_emit_sends_binary_frame_after_runtime_handshake - proves the production datagram carrier emits a governed binary datagram frame after the runtime handshake
+//   server_runtime_relays_datagram_to_udp_target - proves the real server runtime demuxes DATAGRAM OPEN and relays the emitted datagram to a real UDP target
 //   cancel_before_open_returns_err_and_spawns_no_tasks - proves pre-open cancellation leaves no tracked tasks behind
 //   cancel_during_open_returns_err_and_socket_closes - proves mid-open cancellation closes the socket and surfaces cancellation
 //   failed_open_does_not_leak_tracked_tasks - proves failed opens do not leak adapter tasks
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added production datagram-carrier tests so Phase-25 no longer depends on mock-only WssDatagramPath coverage.
+//   LAST_CHANGE: v0.1.2 - Added a real run_server datagram-ingress test so runtime glue now proves server-side relay invocation instead of only mock or handshake-only coverage.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -28,7 +29,7 @@ use futures_util::{SinkExt, StreamExt};
 use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
 use tempfile::tempdir;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, UdpSocket};
 use tokio::time::sleep;
 use tokio_tungstenite::accept_async;
 use tokio_tungstenite::tungstenite::Message;
@@ -261,6 +262,49 @@ async fn datagram_emit_sends_binary_frame_after_runtime_handshake() {
     let (association_id, maybe_datagram) = handshake_task.await.expect("join handshake task");
     assert_eq!(association_id, 52);
     assert_eq!(maybe_datagram.expect("datagram frame"), envelope);
+}
+
+#[tokio::test]
+async fn server_runtime_relays_datagram_to_udp_target() {
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    let server_gateway = build_gateway(server_addr, tls.clone(), "token-12345");
+    let server_task = tokio::spawn({
+        let gateway = server_gateway.clone();
+        async move { gateway.run_server(listener).await }
+    });
+
+    let remote = UdpSocket::bind("127.0.0.1:0")
+        .await
+        .expect("remote udp target should bind");
+    let remote_addr = remote.local_addr().expect("remote addr should resolve");
+
+    let client_gateway = build_gateway(server_addr, tls, "token-12345");
+    let envelope = DatagramEnvelope {
+        association_id: 77,
+        relay_client_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 19100),
+        target: DatagramTarget::Ip(remote_addr),
+        payload: b"phase25-runtime-server".to_vec(),
+    };
+
+    client_gateway
+        .emit_datagram(&envelope, CancellationToken::new())
+        .await
+        .expect("emit_datagram should succeed");
+
+    let mut buffer = [0_u8; 128];
+    let (bytes_read, _source) = tokio::time::timeout(Duration::from_secs(2), remote.recv_from(&mut buffer))
+        .await
+        .expect("server relay should reach target in time")
+        .expect("remote recv should succeed");
+    assert_eq!(&buffer[..bytes_read], envelope.payload.as_slice());
+
+    client_gateway.stop_accept();
+    server_gateway.stop_accept();
+    assert!(server_task.await.expect("server task should join").is_ok());
 }
 
 #[tokio::test]
