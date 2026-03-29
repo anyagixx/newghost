@@ -4266,7 +4266,7 @@
       <verification-ref>V-M-DATAGRAM-INBOUND-HYPOTHESIS</verification-ref>
     </M-DATAGRAM-INBOUND-HYPOTHESIS>
 
-    <M-PHASE24-SUPERSEDE NAME="Phase24Supersede" TYPE="UTILITY" LAYER="29" ORDER="2" STATUS="planned">
+    <M-PHASE24-SUPERSEDE NAME="Phase24Supersede" TYPE="UTILITY" LAYER="29" ORDER="2" STATUS="done">
       <contract>
         <purpose>Explicitly supersede the stale pending tail of Phase-24 so execution truth reflects the newer inbound-return scope instead of the older post-repair rerun tail.</purpose>
         <inputs>
@@ -5157,7 +5157,7 @@
     <Phase-26 name="Datagram Inbound Reply Return" status="pending">
       <goal>Repair and prove the controlled inbound datagram return path from remote reply receive through WSS return and local relay delivery before any Telegram-specific rerun is allowed.</goal>
       <step-1 module="M-DATAGRAM-INBOUND-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-INBOUND-HYPOTHESIS">Freeze the bounded inbound-only blocker after Phase-25</step-1>
-      <step-2 module="M-PHASE24-SUPERSEDE" status="pending" verification="V-M-PHASE24-SUPERSEDE">Explicitly supersede the stale pending Phase-24 tail in the shared artifacts</step-2>
+      <step-2 module="M-PHASE24-SUPERSEDE" status="done" verification="V-M-PHASE24-SUPERSEDE">Explicitly supersede the stale pending Phase-24 tail in the shared artifacts</step-2>
       <step-3 module="M-DATAGRAM-RELAY-STATE" status="pending" verification="V-M-DATAGRAM-RELAY-STATE">Introduce the bounded relay-state surface required for inbound reply mapping</step-3>
       <step-4 module="M-SERVER-DATAGRAM-INBOUND-RECEIVE" status="pending" verification="V-M-SERVER-DATAGRAM-INBOUND-RECEIVE">Add the server-side inbound UDP receive loop after relay outbound</step-4>
       <step-5 module="M-WSS-DATAGRAM-INBOUND-EMIT" status="pending" verification="V-M-WSS-DATAGRAM-INBOUND-EMIT">Return one server-side inbound datagram back over the governed WSS path</step-5>

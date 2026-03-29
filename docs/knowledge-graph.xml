@@ -1565,7 +1565,7 @@
       </annotations>
     </M-DATAGRAM-INBOUND-HYPOTHESIS>
 
-    <M-PHASE24-SUPERSEDE NAME="Phase24Supersede" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE24-SUPERSEDE NAME="Phase24Supersede" TYPE="UTILITY" STATUS="done">
       <purpose>Explicitly supersede the stale pending tail of Phase-24 so execution truth no longer queues the older repair rerun path.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-DATAGRAM-INBOUND-HYPOTHESIS</depends>
