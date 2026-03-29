@@ -4670,7 +4670,7 @@
       <verification-ref>V-M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE</verification-ref>
     </M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE>
 
-    <M-TELEGRAM-CALLS-RERUN-READINESS NAME="TelegramCallsRerunReadiness" TYPE="ENTRY_POINT" LAYER="31" ORDER="2" STATUS="planned">
+    <M-TELEGRAM-CALLS-RERUN-READINESS NAME="TelegramCallsRerunReadiness" TYPE="ENTRY_POINT" LAYER="31" ORDER="2" STATUS="done">
       <contract>
         <purpose>Prove that the same deployment window still has fresh binaries, active services, local SOCKS5 bind, and a green controlled datagram round-trip before any Telegram rerun begins.</purpose>
         <inputs>
@@ -5627,7 +5627,7 @@
     <Phase-28 name="Telegram Calls Verification After Green Datagram Round-Trip" status="pending">
       <goal>Replay the Telegram calls verification wave on top of the now-green controlled datagram round-trip and classify the remaining app-facing outcome without widening public claims.</goal>
       <step-1 module="M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE">Freeze the new post-Phase-27 Telegram calls truth-boundary</step-1>
-      <step-2 module="M-TELEGRAM-CALLS-RERUN-READINESS" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-READINESS">Prove fresh readiness and a green controlled datagram round-trip in the same deployment window</step-2>
+      <step-2 module="M-TELEGRAM-CALLS-RERUN-READINESS" status="done" verification="V-M-TELEGRAM-CALLS-RERUN-READINESS">Prove fresh readiness and a green controlled datagram round-trip in the same deployment window</step-2>
       <step-3 module="M-TELEGRAM-CALLS-VOICE-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-VOICE-RERUN">Replay one bounded Telegram Desktop voice-call wave after the green datagram baseline</step-3>
       <step-4 module="M-TELEGRAM-CALLS-VIDEO-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-VIDEO-RERUN">Replay one bounded Telegram Desktop video-call wave without conflating it with voice</step-4>
       <step-5 module="M-TELEGRAM-CALLS-APP-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-CALLS-APP-CLASSIFIER">Classify the new Telegram calls outcome as governed media, direct-media behavior, or signaling-only stall</step-5>

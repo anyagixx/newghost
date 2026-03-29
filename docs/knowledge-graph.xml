@@ -1735,7 +1735,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE>
 
-    <M-TELEGRAM-CALLS-RERUN-READINESS NAME="TelegramCallsRerunReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-RERUN-READINESS NAME="TelegramCallsRerunReadiness" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Prove fresh readiness and a green controlled datagram round-trip in the same deployment window before the Telegram rerun wave starts.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-CALLS-SERVICE-READINESS, M-DATAGRAM-SERVER-INBOUND-DECISION</depends>
