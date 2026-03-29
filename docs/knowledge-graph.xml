@@ -1025,7 +1025,7 @@
       </annotations>
     </M-CALLS-HOST-REBASELINE>
 
-    <M-CALLS-DEPLOY-BOOTSTRAP NAME="CallsDeployBootstrap" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-CALLS-DEPLOY-BOOTSTRAP NAME="CallsDeployBootstrap" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Deploy the UDP-capable n0wss baseline onto the fresh host pair for the live Telegram calls wave.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-FINAL-DEPLOY-BOOTSTRAP, M-SOCKS5-UDP-ASSOCIATE, M-WSS-DATAGRAM-GATEWAY, M-UDP-EGRESS-RELAY</depends>
