@@ -3756,7 +3756,7 @@
       <verification-ref>V-M-DATAGRAM-OUTBOUND-TRACE</verification-ref>
     </M-DATAGRAM-OUTBOUND-TRACE>
 
-    <M-DATAGRAM-INBOUND-TRACE NAME="DatagramInboundTrace" TYPE="CORE_LOGIC" LAYER="26" ORDER="4" STATUS="planned">
+    <M-DATAGRAM-INBOUND-TRACE NAME="DatagramInboundTrace" TYPE="CORE_LOGIC" LAYER="26" ORDER="4" STATUS="done">
       <contract>
         <purpose>Trace the controlled inbound datagram reply from the remote echo target back to the local probe receive path.</purpose>
         <inputs>
@@ -3776,6 +3776,7 @@
         <log-prefix>[DatagramInboundTrace]</log-prefix>
         <critical-block>BLOCK_DATAGRAM_INBOUND_TRACE</critical-block>
       </observability>
+      <note-1>Repeated controlled probes on 2026-03-29 still ended with `inbound_result=timeout`, and no bounded `reply-received` packet was produced for the remote echo target. The current packet therefore leaves inbound reply return unresolved before the local probe receive surface.</note-1>
       <verification-ref>V-M-DATAGRAM-INBOUND-TRACE</verification-ref>
     </M-DATAGRAM-INBOUND-TRACE>
 
@@ -4434,7 +4435,7 @@
       <step-1 module="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS">Freeze the bounded controlled round-trip hypothesis set after Phase-22</step-1>
       <step-2 module="M-DATAGRAM-ECHO-TARGET" status="done" verification="V-M-DATAGRAM-ECHO-TARGET">Prepare a bounded remote UDP echo target with explicit startup, capture window, and cleanup</step-2>
       <step-3 module="M-DATAGRAM-OUTBOUND-TRACE" status="done" verification="V-M-DATAGRAM-OUTBOUND-TRACE">Trace the controlled outbound datagram path from local UDP ASSOCIATE to remote echo-target ingress</step-3>
-      <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="pending" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
+      <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="done" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
       <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="pending" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
       <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="pending" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>
       <step-7 module="M-DATAGRAM-NEXT-STEP-DECISION" status="pending" verification="V-M-DATAGRAM-NEXT-STEP-DECISION">Issue the bounded next-step decision for the controlled datagram round-trip</step-7>

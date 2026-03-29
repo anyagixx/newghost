@@ -1355,7 +1355,7 @@
       </annotations>
     </M-DATAGRAM-OUTBOUND-TRACE>
 
-    <M-DATAGRAM-INBOUND-TRACE NAME="DatagramInboundTrace" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-INBOUND-TRACE NAME="DatagramInboundTrace" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Trace the inbound controlled datagram reply from the remote echo target back to the local probe surface.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-DATAGRAM-OUTBOUND-TRACE, M-DATAGRAM-SESSION-MANAGER, M-SOCKS5-UDP-ASSOCIATE</depends>
