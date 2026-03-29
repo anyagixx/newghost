@@ -4716,7 +4716,7 @@
       <verification-ref>V-M-TELEGRAM-CALLS-VOICE-RERUN</verification-ref>
     </M-TELEGRAM-CALLS-VOICE-RERUN>
 
-    <M-TELEGRAM-CALLS-VIDEO-RERUN NAME="TelegramCallsVideoRerun" TYPE="CORE_LOGIC" LAYER="31" ORDER="4" STATUS="planned">
+    <M-TELEGRAM-CALLS-VIDEO-RERUN NAME="TelegramCallsVideoRerun" TYPE="CORE_LOGIC" LAYER="31" ORDER="4" STATUS="done">
       <contract>
         <purpose>Replay one bounded Telegram Desktop video-call wave after the green datagram round-trip baseline without conflating it with the voice result.</purpose>
         <inputs>
@@ -5629,7 +5629,7 @@
       <step-1 module="M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE">Freeze the new post-Phase-27 Telegram calls truth-boundary</step-1>
       <step-2 module="M-TELEGRAM-CALLS-RERUN-READINESS" status="done" verification="V-M-TELEGRAM-CALLS-RERUN-READINESS">Prove fresh readiness and a green controlled datagram round-trip in the same deployment window</step-2>
       <step-3 module="M-TELEGRAM-CALLS-VOICE-RERUN" status="done" verification="V-M-TELEGRAM-CALLS-VOICE-RERUN">Replay one bounded Telegram Desktop voice-call wave after the green datagram baseline</step-3>
-      <step-4 module="M-TELEGRAM-CALLS-VIDEO-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-VIDEO-RERUN">Replay one bounded Telegram Desktop video-call wave without conflating it with voice</step-4>
+      <step-4 module="M-TELEGRAM-CALLS-VIDEO-RERUN" status="done" verification="V-M-TELEGRAM-CALLS-VIDEO-RERUN">Replay one bounded Telegram Desktop video-call wave without conflating it with voice</step-4>
       <step-5 module="M-TELEGRAM-CALLS-APP-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-CALLS-APP-CLASSIFIER">Classify the new Telegram calls outcome as governed media, direct-media behavior, or signaling-only stall</step-5>
       <step-6 module="M-TELEGRAM-CALLS-RECONNECT-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-RECONNECT-RERUN">Replay one fresh second call attempt after the first rerun</step-6>
       <step-7 module="M-TELEGRAM-CALLS-RERUN-EVIDENCE" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-EVIDENCE">Assemble the bounded readiness, voice, video, reconnect, and comparison packets</step-7>
@@ -5637,6 +5637,7 @@
       <note-1>The bounded voice rerun on 2026-03-29 advanced beyond the older no-go symptom: ringing and answer were immediate, Telegram showed key-exchange emoji on both devices, and then the call moved into `Connecting...` before ending.</note-1>
       <note-2>The same client-side call window still showed only SOCKS5 CONNECT parsing and WSS transport-selection markers to Telegram network IPs, with no fresh governed UDP or datagram media markers for the voice attempt.</note-2>
       <note-3>The bounded voice packet is therefore signaling-green but media-not-green, and the next step remains a separate video rerun rather than a transport repair rollback.</note-3>
+      <note-4>The bounded video rerun on 2026-03-29 remained separate from voice and failed earlier in the app-facing flow: the operator reported that the call stalled at `Обмен ключами шифрования...` and then dropped before reaching a green media path.</note-4>
     </Phase-28>
   </ImplementationOrder>
 
