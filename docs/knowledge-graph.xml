@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.26">
+  <Project NAME="n0wss" VERSION="0.2.27">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1755,7 +1755,7 @@
       </annotations>
     </M-TELEGRAM-CALLS-VOICE-RERUN>
 
-    <M-TELEGRAM-CALLS-VIDEO-RERUN NAME="TelegramCallsVideoRerun" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-VIDEO-RERUN NAME="TelegramCallsVideoRerun" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Replay one bounded Telegram Desktop video-call wave after the green datagram round-trip baseline without conflating it with the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-CALLS-WAVE</depends>
@@ -1804,6 +1804,86 @@
         <fn-issueTelegramCallsRerunDecision PURPOSE="Issue the bounded decision for the Telegram calls rerun after transport green evidence." />
       </annotations>
     </M-TELEGRAM-CALLS-RERUN-DECISION>
+
+    <M-TELEGRAM-MEDIA-HYPOTHESIS NAME="TelegramMediaHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the post-Phase-28 truth-boundary where controlled transport is green but Telegram calls still fail at an app-facing media layer on the tested Desktop setup.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-RERUN-DECISION, M-TELEGRAM-CALLS-APP-CLASSIFIER</depends>
+      <verification-ref>V-M-TELEGRAM-MEDIA-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramMediaHypothesis PURPOSE="Freeze the post-Phase-28 Telegram-specific media boundary above the green transport baseline." />
+      </annotations>
+    </M-TELEGRAM-MEDIA-HYPOTHESIS>
+
+    <M-TELEGRAM-DESKTOP-HANDOFF-PROFILE NAME="TelegramDesktopHandoffProfile" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Fix the exact Telegram Desktop proxy handoff profile for the next bounded media-behavior wave.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-CALLS-RERUN-READINESS, M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-DESKTOP-HANDOFF-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTelegramDesktopHandoff PURPOSE="Freeze the exact Desktop proxy handoff shape for post-Phase-28 media diagnostics." />
+      </annotations>
+    </M-TELEGRAM-DESKTOP-HANDOFF-PROFILE>
+
+    <M-TELEGRAM-MEDIA-CAPTURE NAME="TelegramMediaCapture" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Define the bounded capture surface around Telegram Desktop calls so later media packets are comparable and deterministic.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-CALLS-LIVE-PACKET-CAPTURE, M-TELEGRAM-DESKTOP-HANDOFF-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-MEDIA-CAPTURE</verification-ref>
+      <annotations>
+        <fn-prepareTelegramMediaCapture PURPOSE="Prepare bounded capture guidance around Desktop handoff, WSS transport, and app-facing media behavior." />
+      </annotations>
+    </M-TELEGRAM-MEDIA-CAPTURE>
+
+    <M-TELEGRAM-VOICE-MEDIA-CLASSIFIER NAME="TelegramVoiceMediaClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Classify the post-answer voice-call outcome above the green datagram baseline as signaling-only stall, governed-media progress, or other app-facing behavior.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-MEDIA-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-VOICE-MEDIA-CLASSIFIER</verification-ref>
+      <annotations>
+        <fn-classifyTelegramVoiceMedia PURPOSE="Classify the bounded voice-call media behavior after answer and key exchange." />
+      </annotations>
+    </M-TELEGRAM-VOICE-MEDIA-CLASSIFIER>
+
+    <M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER NAME="TelegramVideoMediaClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Classify the bounded video-call outcome separately from voice and detect whether video diverges earlier or at the same app-facing layer.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-VIDEO-RERUN, M-TELEGRAM-MEDIA-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER</verification-ref>
+      <annotations>
+        <fn-classifyTelegramVideoMedia PURPOSE="Classify the bounded video-call media behavior without inheriting the voice result." />
+      </annotations>
+    </M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER>
+
+    <M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON NAME="TelegramProxyBehaviorComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the new voice and video media classifiers against the green baseline and older calls packets to isolate Telegram-specific proxy behavior.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-VOICE-MEDIA-CLASSIFIER, M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER, M-TELEGRAM-CALLS-RERUN-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramProxyBehavior PURPOSE="Compare the new bounded media packets against the green transport baseline and older no-go waves." />
+      </annotations>
+    </M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON>
+
+    <M-TELEGRAM-MEDIA-EVIDENCE NAME="TelegramMediaEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the bounded handoff, capture, classifier, and comparison packets for the Telegram-specific media-behavior wave.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-MEDIA-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleTelegramMediaEvidence PURPOSE="Assemble the Telegram-specific media evidence packet above the green transport baseline." />
+      </annotations>
+    </M-TELEGRAM-MEDIA-EVIDENCE>
+
+    <M-TELEGRAM-MEDIA-DECISION NAME="TelegramMediaDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded next-step decision for the tested Telegram Desktop setup after the Telegram-specific media-behavior wave.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MEDIA-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-MEDIA-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramMediaDecision PURPOSE="Issue the bounded next-step decision after Telegram-specific media comparison." />
+      </annotations>
+    </M-TELEGRAM-MEDIA-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -2100,6 +2180,15 @@
     <CrossLink from="M-TELEGRAM-CALLS-RECONNECT-RERUN" to="M-TELEGRAM-CALLS-RERUN-EVIDENCE" relation="supplies the fresh reconnect packet for comparison against older calls no-go waves" />
     <CrossLink from="M-TELEGRAM-CALLS-RERUN-EVIDENCE" to="M-TELEGRAM-CALLS-RERUN-DECISION" relation="supplies the bounded post-roundtrip Telegram calls evidence packet for the final decision" />
     <CrossLink from="M-TELEGRAM-CALLS-APP-CLASSIFIER" to="M-TELEGRAM-CALLS-RERUN-DECISION" relation="supplies the app-facing calls classification used by the final post-roundtrip decision" />
+    <CrossLink from="M-TELEGRAM-CALLS-RERUN-DECISION" to="M-TELEGRAM-MEDIA-HYPOTHESIS" relation="supplies the completed Phase-28 no-go packet that freezes the next phase above the green transport baseline" />
+    <CrossLink from="M-TELEGRAM-MEDIA-HYPOTHESIS" to="M-TELEGRAM-DESKTOP-HANDOFF-PROFILE" relation="supplies the new Telegram-specific media boundary used to freeze the next Desktop handoff packet" />
+    <CrossLink from="M-TELEGRAM-DESKTOP-HANDOFF-PROFILE" to="M-TELEGRAM-MEDIA-CAPTURE" relation="supplies the exact Desktop handoff shape that the capture packet must preserve" />
+    <CrossLink from="M-TELEGRAM-MEDIA-CAPTURE" to="M-TELEGRAM-VOICE-MEDIA-CLASSIFIER" relation="supplies the bounded capture surface used to classify the post-answer voice media packet" />
+    <CrossLink from="M-TELEGRAM-MEDIA-CAPTURE" to="M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER" relation="supplies the bounded capture surface used to classify the separate video media packet" />
+    <CrossLink from="M-TELEGRAM-VOICE-MEDIA-CLASSIFIER" to="M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON" relation="supplies the bounded voice-media classifier packet for Telegram-specific comparison" />
+    <CrossLink from="M-TELEGRAM-VIDEO-MEDIA-CLASSIFIER" to="M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON" relation="supplies the bounded video-media classifier packet for Telegram-specific comparison" />
+    <CrossLink from="M-TELEGRAM-PROXY-BEHAVIOR-COMPARISON" to="M-TELEGRAM-MEDIA-EVIDENCE" relation="supplies the bounded Telegram-specific comparison packet for the media evidence assembly" />
+    <CrossLink from="M-TELEGRAM-MEDIA-EVIDENCE" to="M-TELEGRAM-MEDIA-DECISION" relation="supplies the bounded Telegram media evidence packet for the next-step decision" />
 
   </Project>
 </KnowledgeGraph>
