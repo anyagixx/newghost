@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.20">
+  <Project NAME="n0wss" VERSION="0.2.21">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1395,6 +1395,86 @@
       </annotations>
     </M-DATAGRAM-NEXT-STEP-DECISION>
 
+    <M-DATAGRAM-REPAIR-HYPOTHESIS NAME="DatagramRepairHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the bounded datagram repair scope after Phase-23 so the next wave stays between local ingress and proven remote ingress.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-DATAGRAM-BLOCKING-BOUNDARY, M-DATAGRAM-NEXT-STEP-DECISION</depends>
+      <verification-ref>V-M-DATAGRAM-REPAIR-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeDatagramRepairHypothesis PURPOSE="Freeze the bounded datagram-path repair hypothesis after the round-trip isolation packet." />
+      </annotations>
+    </M-DATAGRAM-REPAIR-HYPOTHESIS>
+
+    <M-DATAGRAM-DISPATCH-INSTRUMENTATION NAME="DatagramDispatchInstrumentation" TYPE="UTILITY" STATUS="planned">
+      <purpose>Strengthen bounded dispatch-side anchors between local UDP ingress, datagram manager dispatch, and transport selection.</purpose>
+      <path>src/session/datagram_manager.rs</path>
+      <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-SESSION-MANAGER, M-DATAGRAM-TRANSPORT-SELECTOR, M-OBS</depends>
+      <verification-ref>V-M-DATAGRAM-DISPATCH-INSTRUMENTATION</verification-ref>
+      <annotations>
+        <fn-instrumentDatagramDispatch PURPOSE="Emit deeper bounded markers across local datagram dispatch transitions." />
+      </annotations>
+    </M-DATAGRAM-DISPATCH-INSTRUMENTATION>
+
+    <M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR NAME="DatagramOutboundDispatchRepair" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Repair the local handoff from governed UDP relay ingress to outbound datagram dispatch.</purpose>
+      <path>src/session/datagram_manager.rs</path>
+      <depends>M-DATAGRAM-DISPATCH-INSTRUMENTATION, M-DATAGRAM-SESSION-MANAGER, M-UDP-ASSOCIATION-REGISTRY</depends>
+      <verification-ref>V-M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR</verification-ref>
+      <annotations>
+        <fn-repairOutboundDispatch PURPOSE="Repair the manager-owned outbound dispatch path after local UDP ingress." />
+      </annotations>
+    </M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR>
+
+    <M-WSS-DATAGRAM-EMIT-REPAIR NAME="WssDatagramEmitRepair" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Repair or narrow the WSS datagram emission path so outbound datagrams actually leave the client runtime.</purpose>
+      <path>src/wss_gateway/datagram.rs</path>
+      <depends>M-WSS-DATAGRAM-GATEWAY, M-DATAGRAM-TRANSPORT-SELECTOR, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR</depends>
+      <verification-ref>V-M-WSS-DATAGRAM-EMIT-REPAIR</verification-ref>
+      <annotations>
+        <fn-repairWssDatagramEmit PURPOSE="Repair the client-side datagram emission path across the WSS carrier." />
+      </annotations>
+    </M-WSS-DATAGRAM-EMIT-REPAIR>
+
+    <M-UDP-RELAY-OUTBOUND-REPAIR NAME="UdpRelayOutboundRepair" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Repair the server-side UDP relay until outbound datagrams become proven remote echo-target ingress.</purpose>
+      <path>src/proxy_bridge/udp_relay.rs</path>
+      <depends>M-UDP-EGRESS-RELAY, M-WSS-DATAGRAM-EMIT-REPAIR, M-OBS</depends>
+      <verification-ref>V-M-UDP-RELAY-OUTBOUND-REPAIR</verification-ref>
+      <annotations>
+        <fn-repairUdpRelayOutbound PURPOSE="Repair the server-side outbound relay path to the remote echo target." />
+      </annotations>
+    </M-UDP-RELAY-OUTBOUND-REPAIR>
+
+    <M-DATAGRAM-ROUNDTRIP-RERUN NAME="DatagramRoundTripRerun" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Replay the controlled datagram probe after repairs and classify the new deepest proven layer.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DATAGRAM-ECHO-TARGET, M-UDP-RELAY-OUTBOUND-REPAIR, M-DATAGRAM-INBOUND-TRACE</depends>
+      <verification-ref>V-M-DATAGRAM-ROUNDTRIP-RERUN</verification-ref>
+      <annotations>
+        <fn-rerunDatagramRoundTrip PURPOSE="Replay one bounded controlled probe after datagram-path repairs." />
+      </annotations>
+    </M-DATAGRAM-ROUNDTRIP-RERUN>
+
+    <M-DATAGRAM-REPAIR-EVIDENCE NAME="DatagramRepairEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the pre-fix versus post-fix comparison packet for the repaired datagram path.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DATAGRAM-ROUNDTRIP-RERUN, M-DATAGRAM-CAPTURE-CORRELATION</depends>
+      <verification-ref>V-M-DATAGRAM-REPAIR-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleDatagramRepairEvidence PURPOSE="Assemble the bounded datagram repair comparison packet." />
+      </annotations>
+    </M-DATAGRAM-REPAIR-EVIDENCE>
+
+    <M-DATAGRAM-REPAIR-DECISION NAME="DatagramRepairDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded post-repair decision on whether the project can return to Telegram-specific verification.</purpose>
+      <path>README.md</path>
+      <depends>M-DATAGRAM-REPAIR-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-REPAIR-DECISION</verification-ref>
+      <annotations>
+        <fn-issueDatagramRepairDecision PURPOSE="Issue the bounded decision after the datagram repair comparison packet." />
+      </annotations>
+    </M-DATAGRAM-REPAIR-DECISION>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1627,6 +1707,21 @@
     <CrossLink from="M-DATAGRAM-CAPTURE-CORRELATION" to="M-DATAGRAM-BLOCKING-BOUNDARY" relation="supplies the unified controlled datagram packet used to name the first unresolved layer" />
     <CrossLink from="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" to="M-DATAGRAM-BLOCKING-BOUNDARY" relation="bounds the round-trip blocker classification to the approved datagram-only hypothesis set" />
     <CrossLink from="M-DATAGRAM-BLOCKING-BOUNDARY" to="M-DATAGRAM-NEXT-STEP-DECISION" relation="supplies the bounded datagram round-trip classification required for the next-step decision" />
+    <CrossLink from="M-DATAGRAM-BLOCKING-BOUNDARY" to="M-DATAGRAM-REPAIR-HYPOTHESIS" relation="supplies the Phase-23 boundary that the repair hypothesis must keep fixed" />
+    <CrossLink from="M-DATAGRAM-NEXT-STEP-DECISION" to="M-DATAGRAM-REPAIR-HYPOTHESIS" relation="supplies the bounded transport-side direction that now becomes an explicit repair phase" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-DATAGRAM-DISPATCH-INSTRUMENTATION" relation="supplies the local ingress marker that the new dispatch anchors must refine" />
+    <CrossLink from="M-DATAGRAM-SESSION-MANAGER" to="M-DATAGRAM-DISPATCH-INSTRUMENTATION" relation="provides the manager-owned dispatch surface that now needs deeper evidence" />
+    <CrossLink from="M-DATAGRAM-TRANSPORT-SELECTOR" to="M-DATAGRAM-DISPATCH-INSTRUMENTATION" relation="provides the transport-choice surface that must be correlated with local dispatch" />
+    <CrossLink from="M-DATAGRAM-DISPATCH-INSTRUMENTATION" to="M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR" relation="supplies the deeper markers needed to repair the local dispatch handoff" />
+    <CrossLink from="M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR" to="M-WSS-DATAGRAM-EMIT-REPAIR" relation="supplies the repaired local dispatch path that must now emit through WSS" />
+    <CrossLink from="M-DATAGRAM-TRANSPORT-SELECTOR" to="M-WSS-DATAGRAM-EMIT-REPAIR" relation="provides the bounded datagram carrier selection surface used by the repair wave" />
+    <CrossLink from="M-WSS-DATAGRAM-EMIT-REPAIR" to="M-UDP-RELAY-OUTBOUND-REPAIR" relation="supplies the repaired client-side emission path to the server-side relay repair" />
+    <CrossLink from="M-UDP-EGRESS-RELAY" to="M-UDP-RELAY-OUTBOUND-REPAIR" relation="provides the existing relay boundary that must now yield proven remote ingress" />
+    <CrossLink from="M-DATAGRAM-ECHO-TARGET" to="M-DATAGRAM-ROUNDTRIP-RERUN" relation="provides the bounded remote target used for the post-repair controlled probe" />
+    <CrossLink from="M-UDP-RELAY-OUTBOUND-REPAIR" to="M-DATAGRAM-ROUNDTRIP-RERUN" relation="supplies the repaired outbound path that the rerun must validate" />
+    <CrossLink from="M-DATAGRAM-ROUNDTRIP-RERUN" to="M-DATAGRAM-REPAIR-EVIDENCE" relation="supplies the post-repair probe packet for comparison against Phase-23" />
+    <CrossLink from="M-DATAGRAM-CAPTURE-CORRELATION" to="M-DATAGRAM-REPAIR-EVIDENCE" relation="supplies the pre-fix Phase-23 baseline used for bounded comparison" />
+    <CrossLink from="M-DATAGRAM-REPAIR-EVIDENCE" to="M-DATAGRAM-REPAIR-DECISION" relation="supplies the bounded pre-fix versus post-fix comparison packet for the final repair decision" />
 
   </Project>
 </KnowledgeGraph>

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.20">
+<DevelopmentPlan VERSION="0.2.21">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -3852,6 +3852,198 @@
       <note-1>The current bounded next-step decision after the first Phase-23 packet is transport-side: pursue datagram-path repair or deeper relay-probe work before any new Telegram UI rerun or network-workaround phase.</note-1>
       <verification-ref>V-M-DATAGRAM-NEXT-STEP-DECISION</verification-ref>
     </M-DATAGRAM-NEXT-STEP-DECISION>
+
+    <M-DATAGRAM-REPAIR-HYPOTHESIS NAME="DatagramRepairHypothesis" TYPE="UTILITY" LAYER="27" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the bounded repair scope after Phase-23 so the next wave fixes the datagram path between local ingress and proven remote ingress instead of reopening Telegram UI ambiguity.</purpose>
+        <inputs>
+          <input-1>The bounded datagram blocking-boundary packet from Phase-23.</input-1>
+          <input-2>The bounded next-step decision that already points to transport-side repair before any new Telegram rerun.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded repair hypothesis set that isolates the unresolved segment between local UDP ingress and remote echo-target ingress.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-BLOCKING-BOUNDARY, M-DATAGRAM-NEXT-STEP-DECISION</depends>
+      <observability>
+        <log-prefix>[DatagramRepairHypothesis]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_REPAIR_HYPOTHESIS</critical-block>
+      </observability>
+      <note-1>Phase-24 now locks the repair boundary explicitly: the next wave stays between already-proven local UDP ingress and the first still-unproven remote echo-target ingress, and `outbound_result=sent` remains a bounded local-only outcome until deeper evidence appears in the same packet.</note-1>
+      <verification-ref>V-M-DATAGRAM-REPAIR-HYPOTHESIS</verification-ref>
+    </M-DATAGRAM-REPAIR-HYPOTHESIS>
+
+    <M-DATAGRAM-DISPATCH-INSTRUMENTATION NAME="DatagramDispatchInstrumentation" TYPE="UTILITY" LAYER="27" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Strengthen the dispatch-side anchors and bounded counters between local UDP relay acceptance, datagram session ownership, and transport selection.</purpose>
+        <inputs>
+          <input-1>The current local UDP ASSOCIATE ingress marker.</input-1>
+          <input-2>The missing deeper dispatch evidence between ingress and WSS emission.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded instrumentation surface that exposes whether datagrams leave the local relay and enter the governed transport path.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/session/datagram_manager.rs</file-1>
+        <file-2>src/session/datagram_transport_selector.rs</file-2>
+        <file-3>src/socks5/udp_associate.rs</file-3>
+        <file-4>src/session/datagram_manager.test.rs</file-4>
+      </target-files>
+      <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-SESSION-MANAGER, M-DATAGRAM-TRANSPORT-SELECTOR, M-OBS</depends>
+      <observability>
+        <log-prefix>[DatagramDispatchInstrumentation]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_DISPATCH_INSTRUMENTATION</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-DISPATCH-INSTRUMENTATION</verification-ref>
+    </M-DATAGRAM-DISPATCH-INSTRUMENTATION>
+
+    <M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR NAME="DatagramOutboundDispatchRepair" TYPE="CORE_LOGIC" LAYER="27" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Repair the local handoff from the governed UDP relay socket to the outbound datagram dispatch path.</purpose>
+        <inputs>
+          <input-1>The stronger dispatch instrumentation surface.</input-1>
+          <input-2>The existing datagram manager and association registry behavior.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded outbound dispatch path that progresses beyond accepted UDP association and local relay allocation.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/session/datagram_manager.rs</file-1>
+        <file-2>src/session/udp_registry.rs</file-2>
+        <file-3>src/session/datagram_manager.test.rs</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-DISPATCH-INSTRUMENTATION, M-DATAGRAM-SESSION-MANAGER, M-UDP-ASSOCIATION-REGISTRY</depends>
+      <observability>
+        <log-prefix>[DatagramOutboundDispatchRepair]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_OUTBOUND_DISPATCH_REPAIR</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR</verification-ref>
+    </M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR>
+
+    <M-WSS-DATAGRAM-EMIT-REPAIR NAME="WssDatagramEmitRepair" TYPE="INTEGRATION" LAYER="27" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Repair or narrow the client-side WSS datagram emission path so outbound datagrams actually leave the local runtime and reach the server-side transport boundary.</purpose>
+        <inputs>
+          <input-1>The repaired outbound dispatch path.</input-1>
+          <input-2>The bounded WSS datagram gateway and transport-selection surface.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded WSS datagram emission path with explicit evidence that outbound packets leave the client runtime.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/wss_gateway/datagram.rs</file-1>
+        <file-2>src/session/datagram_transport_selector.rs</file-2>
+        <file-3>src/wss_gateway/datagram.test.rs</file-3>
+      </target-files>
+      <depends>M-WSS-DATAGRAM-GATEWAY, M-DATAGRAM-TRANSPORT-SELECTOR, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR</depends>
+      <observability>
+        <log-prefix>[WssDatagramEmitRepair]</log-prefix>
+        <critical-block>BLOCK_WSS_DATAGRAM_EMIT_REPAIR</critical-block>
+      </observability>
+      <verification-ref>V-M-WSS-DATAGRAM-EMIT-REPAIR</verification-ref>
+    </M-WSS-DATAGRAM-EMIT-REPAIR>
+
+    <M-UDP-RELAY-OUTBOUND-REPAIR NAME="UdpRelayOutboundRepair" TYPE="INTEGRATION" LAYER="27" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Repair the server-side UDP relay so outbound datagrams become proven remote echo-target ingress instead of only local send intent.</purpose>
+        <inputs>
+          <input-1>The repaired WSS datagram emission path.</input-1>
+          <input-2>The existing server-side UDP relay and observability surfaces.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded outbound relay path with explicit remote echo-target ingress evidence.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/proxy_bridge/udp_relay.rs</file-1>
+        <file-2>src/proxy_bridge/udp_relay.test.rs</file-2>
+      </target-files>
+      <depends>M-UDP-EGRESS-RELAY, M-WSS-DATAGRAM-EMIT-REPAIR, M-OBS</depends>
+      <observability>
+        <log-prefix>[UdpRelayOutboundRepair]</log-prefix>
+        <critical-block>BLOCK_UDP_RELAY_OUTBOUND_REPAIR</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-RELAY-OUTBOUND-REPAIR</verification-ref>
+    </M-UDP-RELAY-OUTBOUND-REPAIR>
+
+    <M-DATAGRAM-ROUNDTRIP-RERUN NAME="DatagramRoundTripRerun" TYPE="ENTRY_POINT" LAYER="27" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Replay the controlled datagram round-trip after repairs and prove whether the first unresolved layer moved deeper than Phase-23.</purpose>
+        <inputs>
+          <input-1>The bounded echo-target lifecycle.</input-1>
+          <input-2>The repaired client-side and server-side outbound datagram path.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-repair probe packet showing remote ingress, inbound reply, or the next missing layer.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>scripts/udp_probe.sh</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-ECHO-TARGET, M-UDP-RELAY-OUTBOUND-REPAIR, M-DATAGRAM-INBOUND-TRACE</depends>
+      <observability>
+        <log-prefix>[DatagramRoundTripRerun]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_ROUNDTRIP_RERUN</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-ROUNDTRIP-RERUN</verification-ref>
+    </M-DATAGRAM-ROUNDTRIP-RERUN>
+
+    <M-DATAGRAM-REPAIR-EVIDENCE NAME="DatagramRepairEvidence" TYPE="UTILITY" LAYER="27" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble the pre-fix versus post-fix datagram packet and state exactly which round-trip layer moved after repair.</purpose>
+        <inputs>
+          <input-1>The controlled rerun packet after repairs.</input-1>
+          <input-2>The bounded Phase-23 correlation packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded comparison packet that shows whether remote ingress or inbound reply advanced.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-ROUNDTRIP-RERUN, M-DATAGRAM-CAPTURE-CORRELATION</depends>
+      <observability>
+        <log-prefix>[DatagramRepairEvidence]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_REPAIR_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-REPAIR-EVIDENCE</verification-ref>
+    </M-DATAGRAM-REPAIR-EVIDENCE>
+
+    <M-DATAGRAM-REPAIR-DECISION NAME="DatagramRepairDecision" TYPE="ENTRY_POINT" LAYER="27" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded post-repair decision about whether the datagram path is ready for a new Telegram-specific wave or still blocked transport-side.</purpose>
+        <inputs>
+          <input-1>The bounded datagram repair evidence packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded next-step decision stating whether Telegram-specific verification is now justified or deeper transport repair is still required.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-REPAIR-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[DatagramRepairDecision]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_REPAIR_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-REPAIR-DECISION</verification-ref>
+    </M-DATAGRAM-REPAIR-DECISION>
   </Modules>
 
   <DataFlow>
@@ -4225,6 +4417,34 @@
       <step-2>The evidence packet separates app misconfiguration from tunnel-side divergence.</step-2>
       <evidence>Bounded Telegram-specific success or failure packets with first divergent block when applicable.</evidence>
     </DF-TELEGRAM-EVIDENCE>
+
+    <DF-DATAGRAM-LOCAL-DISPATCH NAME="Datagram local dispatch repair" TRIGGER="A controlled probe sends a UDP payload through the governed local relay after UDP ASSOCIATE succeeds.">
+      <step-1>Socks5UdpAssociate accepts the datagram on the governed relay socket.</step-1>
+      <step-2>DatagramDispatchInstrumentation emits a bounded marker showing whether the payload leaves the relay surface and enters the datagram session manager.</step-2>
+      <step-3>DatagramOutboundDispatchRepair ensures association ownership and outbound dispatch proceed beyond local ingress.</step-3>
+      <evidence>Accepted UDP association, deeper local dispatch marker, and deterministic manager-side dispatch evidence.</evidence>
+    </DF-DATAGRAM-LOCAL-DISPATCH>
+
+    <DF-DATAGRAM-WSS-EMIT NAME="Datagram WSS emission repair" TRIGGER="The governed datagram manager hands an outbound datagram to the transport-selection layer.">
+      <step-1>DatagramTransportSelector chooses the bounded WSS-backed datagram carrier.</step-1>
+      <step-2>WssDatagramEmitRepair emits the outbound datagram through the authenticated WSS path.</step-2>
+      <step-3>The server-side transport boundary exposes whether the datagram actually arrived for relay handling.</step-3>
+      <evidence>Transport-selection marker, explicit WSS datagram emission marker, and server-side receive or absence packet.</evidence>
+    </DF-DATAGRAM-WSS-EMIT>
+
+    <DF-DATAGRAM-REMOTE-EGRESS NAME="Datagram remote egress repair" TRIGGER="A server-side datagram arrives for UDP relay outbound handling.">
+      <step-1>UdpRelayOutboundRepair emits the packet to the remote echo target.</step-1>
+      <step-2>Remote capture determines whether the echo target ingress is proven in the same bounded window.</step-2>
+      <step-3>If ingress is proven, the next unresolved layer becomes inbound reply return instead of outbound reachability.</step-3>
+      <evidence>Server-side relay outbound marker, bounded remote echo-target ingress capture, and explicit promotion of the first unresolved layer.</evidence>
+    </DF-DATAGRAM-REMOTE-EGRESS>
+
+    <DF-DATAGRAM-REPAIR-RERUN NAME="Datagram repair rerun" TRIGGER="The datagram-path repair wave is complete and one controlled probe is replayed.">
+      <step-1>DatagramRoundTripRerun replays one bounded controlled probe against the prepared echo target.</step-1>
+      <step-2>DatagramRepairEvidence compares the new packet against the Phase-23 packet.</step-2>
+      <step-3>DatagramRepairDecision decides whether the datagram path is ready for a Telegram-specific rerun or remains transport-side blocked.</step-3>
+      <evidence>Post-repair probe packet, bounded pre/post comparison packet, and bounded repair decision.</evidence>
+    </DF-DATAGRAM-REPAIR-RERUN>
   </DataFlow>
 
   <ImplementationOrder>
@@ -4443,6 +4663,17 @@
       <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="done" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>
       <step-7 module="M-DATAGRAM-NEXT-STEP-DECISION" status="done" verification="V-M-DATAGRAM-NEXT-STEP-DECISION">Issue the bounded next-step decision for the controlled datagram round-trip</step-7>
     </Phase-23>
+    <Phase-24 name="Datagram Path Repair" status="pending">
+      <goal>Repair the datagram path between local UDP ingress and proven remote echo-target ingress before any new Telegram-specific rerun is allowed.</goal>
+      <step-1 module="M-DATAGRAM-REPAIR-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-REPAIR-HYPOTHESIS">Freeze the bounded transport-side repair scope after Phase-23</step-1>
+      <step-2 module="M-DATAGRAM-DISPATCH-INSTRUMENTATION" status="pending" verification="V-M-DATAGRAM-DISPATCH-INSTRUMENTATION">Strengthen dispatch-side instrumentation between local UDP ingress and transport selection</step-2>
+      <step-3 module="M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR" status="pending" verification="V-M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR">Repair the local handoff from governed relay ingress to outbound datagram dispatch</step-3>
+      <step-4 module="M-WSS-DATAGRAM-EMIT-REPAIR" status="pending" verification="V-M-WSS-DATAGRAM-EMIT-REPAIR">Repair or narrow the WSS datagram emission path so outbound packets actually leave the client runtime</step-4>
+      <step-5 module="M-UDP-RELAY-OUTBOUND-REPAIR" status="pending" verification="V-M-UDP-RELAY-OUTBOUND-REPAIR">Repair the server-side outbound UDP relay until remote echo-target ingress is proven</step-5>
+      <step-6 module="M-DATAGRAM-ROUNDTRIP-RERUN" status="pending" verification="V-M-DATAGRAM-ROUNDTRIP-RERUN">Replay one bounded controlled probe after repairs and classify the new deepest proven layer</step-6>
+      <step-7 module="M-DATAGRAM-REPAIR-EVIDENCE" status="pending" verification="V-M-DATAGRAM-REPAIR-EVIDENCE">Assemble the pre-fix versus post-fix datagram comparison packet</step-7>
+      <step-8 module="M-DATAGRAM-REPAIR-DECISION" status="pending" verification="V-M-DATAGRAM-REPAIR-DECISION">Issue the bounded post-repair decision on whether a new Telegram-specific wave is justified</step-8>
+    </Phase-24>
   </ImplementationOrder>
 
   <ExecutionPolicy>
