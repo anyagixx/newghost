@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.19">
+  <Project NAME="n0wss" VERSION="0.2.20">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1325,6 +1325,76 @@
       </annotations>
     </M-CALLS-DECISION-NEXT-ARCH>
 
+    <M-DATAGRAM-ROUNDTRIP-HYPOTHESIS NAME="DatagramRoundTripHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the bounded controlled datagram round-trip hypothesis set after the Telegram calls root-cause wave.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALLS-BLOCKING-BOUNDARY, M-CALLS-DECISION-NEXT-ARCH</depends>
+      <verification-ref>V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeRoundTripHypothesis PURPOSE="Freeze the bounded outbound and inbound datagram hypothesis set." />
+      </annotations>
+    </M-DATAGRAM-ROUNDTRIP-HYPOTHESIS>
+
+    <M-DATAGRAM-ECHO-TARGET NAME="DatagramEchoTarget" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Provide a bounded remote UDP echo target with explicit startup, capture, and cleanup surfaces.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-UDP-EGRESS-RELAY, M-CALLS-UDP-PROBE-TOOLING</depends>
+      <verification-ref>V-M-DATAGRAM-ECHO-TARGET</verification-ref>
+      <annotations>
+        <fn-prepareEchoTarget PURPOSE="Prepare and bound the remote UDP echo target used for controlled probes." />
+      </annotations>
+    </M-DATAGRAM-ECHO-TARGET>
+
+    <M-DATAGRAM-OUTBOUND-TRACE NAME="DatagramOutboundTrace" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Trace the controlled outbound datagram path from local UDP ASSOCIATE through remote echo-target ingress.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-DATAGRAM-ECHO-TARGET, M-CALLS-LIVE-PACKET-CAPTURE, M-WSS-DATAGRAM-GATEWAY</depends>
+      <verification-ref>V-M-DATAGRAM-OUTBOUND-TRACE</verification-ref>
+      <annotations>
+        <fn-traceDatagramOutbound PURPOSE="Trace and classify the outbound controlled datagram trajectory." />
+      </annotations>
+    </M-DATAGRAM-OUTBOUND-TRACE>
+
+    <M-DATAGRAM-INBOUND-TRACE NAME="DatagramInboundTrace" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Trace the inbound controlled datagram reply from the remote echo target back to the local probe surface.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-DATAGRAM-OUTBOUND-TRACE, M-DATAGRAM-SESSION-MANAGER, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <verification-ref>V-M-DATAGRAM-INBOUND-TRACE</verification-ref>
+      <annotations>
+        <fn-traceDatagramInbound PURPOSE="Trace and classify the inbound controlled datagram reply path." />
+      </annotations>
+    </M-DATAGRAM-INBOUND-TRACE>
+
+    <M-DATAGRAM-CAPTURE-CORRELATION NAME="DatagramCaptureCorrelation" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Correlate local probe output, runtime markers, and remote capture into one bounded datagram packet.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DATAGRAM-OUTBOUND-TRACE, M-DATAGRAM-INBOUND-TRACE, M-CALLS-LIVE-PACKET-CAPTURE</depends>
+      <verification-ref>V-M-DATAGRAM-CAPTURE-CORRELATION</verification-ref>
+      <annotations>
+        <fn-correlateDatagramEvidence PURPOSE="Correlate local and remote evidence for one controlled datagram attempt." />
+      </annotations>
+    </M-DATAGRAM-CAPTURE-CORRELATION>
+
+    <M-DATAGRAM-BLOCKING-BOUNDARY NAME="DatagramBlockingBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-DATAGRAM-CAPTURE-CORRELATION, M-DATAGRAM-ROUNDTRIP-HYPOTHESIS</depends>
+      <verification-ref>V-M-DATAGRAM-BLOCKING-BOUNDARY</verification-ref>
+      <annotations>
+        <fn-classifyDatagramBoundary PURPOSE="Classify the first unresolved controlled datagram layer." />
+      </annotations>
+    </M-DATAGRAM-BLOCKING-BOUNDARY>
+
+    <M-DATAGRAM-NEXT-STEP-DECISION NAME="DatagramNextStepDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded next-step decision after the controlled datagram round-trip isolation wave.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-DATAGRAM-BLOCKING-BOUNDARY</depends>
+      <verification-ref>V-M-DATAGRAM-NEXT-STEP-DECISION</verification-ref>
+      <annotations>
+        <fn-issueDatagramNextStepDecision PURPOSE="Issue the next-step decision from the datagram round-trip boundary packet." />
+      </annotations>
+    </M-DATAGRAM-NEXT-STEP-DECISION>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1541,6 +1611,22 @@
     <CrossLink from="M-CALLS-REMOTE-MEDIA-PROBE" to="M-CALLS-BLOCKING-BOUNDARY" relation="supplies the remote relay reachability classification used for the final blocking boundary" />
     <CrossLink from="M-CALLS-FAILURE-HYPOTHESIS" to="M-CALLS-BLOCKING-BOUNDARY" relation="bounds the final blocking classification to the approved hypothesis set" />
     <CrossLink from="M-CALLS-BLOCKING-BOUNDARY" to="M-CALLS-DECISION-NEXT-ARCH" relation="supplies the bounded root-cause classification required for the next architecture decision" />
+    <CrossLink from="M-CALLS-BLOCKING-BOUNDARY" to="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" relation="supplies the bounded blocker packet that the controlled datagram round-trip hypothesis must refine" />
+    <CrossLink from="M-CALLS-DECISION-NEXT-ARCH" to="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" relation="supplies the approved next-architecture direction that now narrows to controlled datagram evidence" />
+    <CrossLink from="M-UDP-EGRESS-RELAY" to="M-DATAGRAM-ECHO-TARGET" relation="provides the relay boundary exercised by the bounded remote echo target" />
+    <CrossLink from="M-CALLS-UDP-PROBE-TOOLING" to="M-DATAGRAM-ECHO-TARGET" relation="supplies the controlled probe tooling reused against the echo target" />
+    <CrossLink from="M-DATAGRAM-ECHO-TARGET" to="M-DATAGRAM-OUTBOUND-TRACE" relation="provides the remote ingress target used to prove the outbound datagram path" />
+    <CrossLink from="M-CALLS-LIVE-PACKET-CAPTURE" to="M-DATAGRAM-OUTBOUND-TRACE" relation="supplies the bounded capture discipline reused for controlled outbound tracing" />
+    <CrossLink from="M-WSS-DATAGRAM-GATEWAY" to="M-DATAGRAM-OUTBOUND-TRACE" relation="provides the governed datagram carrier whose outbound markers must appear" />
+    <CrossLink from="M-DATAGRAM-OUTBOUND-TRACE" to="M-DATAGRAM-INBOUND-TRACE" relation="provides the same bounded association and target context reused for inbound tracing" />
+    <CrossLink from="M-DATAGRAM-SESSION-MANAGER" to="M-DATAGRAM-INBOUND-TRACE" relation="supplies the inbound association ownership and local relay return path" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-DATAGRAM-INBOUND-TRACE" relation="supplies the governed local UDP relay surface that must emit the reply to the probe" />
+    <CrossLink from="M-DATAGRAM-OUTBOUND-TRACE" to="M-DATAGRAM-CAPTURE-CORRELATION" relation="provides the outbound packet that must correlate with local and remote capture evidence" />
+    <CrossLink from="M-DATAGRAM-INBOUND-TRACE" to="M-DATAGRAM-CAPTURE-CORRELATION" relation="provides the inbound packet that must correlate with local and remote capture evidence" />
+    <CrossLink from="M-CALLS-LIVE-PACKET-CAPTURE" to="M-DATAGRAM-CAPTURE-CORRELATION" relation="supplies bounded local and remote capture surfaces for the correlation packet" />
+    <CrossLink from="M-DATAGRAM-CAPTURE-CORRELATION" to="M-DATAGRAM-BLOCKING-BOUNDARY" relation="supplies the unified controlled datagram packet used to name the first unresolved layer" />
+    <CrossLink from="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" to="M-DATAGRAM-BLOCKING-BOUNDARY" relation="bounds the round-trip blocker classification to the approved datagram-only hypothesis set" />
+    <CrossLink from="M-DATAGRAM-BLOCKING-BOUNDARY" to="M-DATAGRAM-NEXT-STEP-DECISION" relation="supplies the bounded datagram round-trip classification required for the next-step decision" />
 
   </Project>
 </KnowledgeGraph>

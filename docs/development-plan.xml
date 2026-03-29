@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.19">
+<DevelopmentPlan VERSION="0.2.20">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -3681,6 +3681,171 @@
       <note-1>The next approved direction after Phase-22 is not a provider-block workaround or another blind Telegram rerun. It is a deeper datagram round-trip and app-specific media-handoff isolation wave that proves why controlled outbound UDP does not become an observed inbound reply and whether Telegram Desktop media on this build leaves the SOCKS5 envelope at all.</note-1>
       <verification-ref>V-M-CALLS-DECISION-NEXT-ARCH</verification-ref>
     </M-CALLS-DECISION-NEXT-ARCH>
+
+    <M-DATAGRAM-ROUNDTRIP-HYPOTHESIS NAME="DatagramRoundTripHypothesis" TYPE="UTILITY" LAYER="26" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the bounded controlled datagram round-trip hypothesis set after Phase-22 so the next wave stays inside transport evidence rather than Telegram UI symptoms.</purpose>
+        <inputs>
+          <input-1>The bounded blocking-boundary packet from Phase-22.</input-1>
+          <input-2>The bounded next-step decision that already excludes another blind Telegram rerun.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded hypothesis set that separates outbound path, remote echo-target ingress, and inbound reply return.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-CALLS-BLOCKING-BOUNDARY, M-CALLS-DECISION-NEXT-ARCH</depends>
+      <observability>
+        <log-prefix>[DatagramRoundTripHypothesis]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_ROUNDTRIP_HYPOTHESIS</critical-block>
+      </observability>
+      <note-1>Phase-23 now freezes the next datagram-only hypothesis set explicitly: UDP ASSOCIATE ingress remains proven, outbound send must be separated from remote echo-target ingress, and inbound reply return remains a separate unresolved layer.</note-1>
+      <verification-ref>V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS</verification-ref>
+    </M-DATAGRAM-ROUNDTRIP-HYPOTHESIS>
+
+    <M-DATAGRAM-ECHO-TARGET NAME="DatagramEchoTarget" TYPE="INTEGRATION" LAYER="26" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Provide one bounded remote UDP echo target with explicit startup, bounded capture window, and explicit cleanup for controlled datagram probes.</purpose>
+        <inputs>
+          <input-1>The remote UDP relay path already exercised by controlled probes.</input-1>
+          <input-2>The existing operator probe tooling and secure host-access channel.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded echo-target readiness packet that proves the remote UDP port is actually listening during the probe window.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>scripts/udp_probe.sh</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-UDP-EGRESS-RELAY, M-CALLS-UDP-PROBE-TOOLING</depends>
+      <observability>
+        <log-prefix>[DatagramEchoTarget]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_ECHO_TARGET</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-ECHO-TARGET</verification-ref>
+    </M-DATAGRAM-ECHO-TARGET>
+
+    <M-DATAGRAM-OUTBOUND-TRACE NAME="DatagramOutboundTrace" TYPE="CORE_LOGIC" LAYER="26" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Trace the controlled outbound datagram trajectory from local UDP ASSOCIATE through WSS datagram carriage to remote echo-target ingress.</purpose>
+        <inputs>
+          <input-1>The bounded remote echo target.</input-1>
+          <input-2>The existing packet-capture surface and WSS datagram carrier.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded outbound packet that proves or falsifies remote target ingress independently of Telegram Desktop.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+      </target-files>
+      <depends>M-DATAGRAM-ECHO-TARGET, M-CALLS-LIVE-PACKET-CAPTURE, M-WSS-DATAGRAM-GATEWAY</depends>
+      <observability>
+        <log-prefix>[DatagramOutboundTrace]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_OUTBOUND_TRACE</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-OUTBOUND-TRACE</verification-ref>
+    </M-DATAGRAM-OUTBOUND-TRACE>
+
+    <M-DATAGRAM-INBOUND-TRACE NAME="DatagramInboundTrace" TYPE="CORE_LOGIC" LAYER="26" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Trace the controlled inbound datagram reply from the remote echo target back to the local probe receive path.</purpose>
+        <inputs>
+          <input-1>The bounded outbound trace packet and association context.</input-1>
+          <input-2>The datagram session manager and local SOCKS5 UDP relay path.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded inbound packet that proves reply return or names the first missing inbound layer.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+      </target-files>
+      <depends>M-DATAGRAM-OUTBOUND-TRACE, M-DATAGRAM-SESSION-MANAGER, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <observability>
+        <log-prefix>[DatagramInboundTrace]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_INBOUND_TRACE</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-INBOUND-TRACE</verification-ref>
+    </M-DATAGRAM-INBOUND-TRACE>
+
+    <M-DATAGRAM-CAPTURE-CORRELATION NAME="DatagramCaptureCorrelation" TYPE="INTEGRATION" LAYER="26" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Correlate probe stdout, local runtime markers, and remote capture into one bounded controlled datagram packet.</purpose>
+        <inputs>
+          <input-1>The bounded outbound and inbound trace packets.</input-1>
+          <input-2>The existing bounded capture surface for local and remote evidence.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A single correlation packet naming which evidence belongs to one probe attempt and what layer remains unresolved.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-DATAGRAM-OUTBOUND-TRACE, M-DATAGRAM-INBOUND-TRACE, M-CALLS-LIVE-PACKET-CAPTURE</depends>
+      <observability>
+        <log-prefix>[DatagramCaptureCorrelation]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_CAPTURE_CORRELATION</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-CAPTURE-CORRELATION</verification-ref>
+    </M-DATAGRAM-CAPTURE-CORRELATION>
+
+    <M-DATAGRAM-BLOCKING-BOUNDARY NAME="DatagramBlockingBoundary" TYPE="CORE_LOGIC" LAYER="26" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity or escalating early to provider blame.</purpose>
+        <inputs>
+          <input-1>The bounded correlation packet from the controlled datagram round-trip wave.</input-1>
+          <input-2>The bounded datagram-only hypothesis set.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded blocking-boundary classification in controlled datagram terms.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-CAPTURE-CORRELATION, M-DATAGRAM-ROUNDTRIP-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[DatagramBlockingBoundary]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_BLOCKING_BOUNDARY</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-BLOCKING-BOUNDARY</verification-ref>
+    </M-DATAGRAM-BLOCKING-BOUNDARY>
+
+    <M-DATAGRAM-NEXT-STEP-DECISION NAME="DatagramNextStepDecision" TYPE="ENTRY_POINT" LAYER="26" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded next-step decision after the controlled datagram round-trip isolation wave completes.</purpose>
+        <inputs>
+          <input-1>The bounded controlled datagram blocking-boundary packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded decision naming whether the next phase is datagram-path repair, relay repair, probe correction, or only then a new app-specific phase.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-BLOCKING-BOUNDARY</depends>
+      <observability>
+        <log-prefix>[DatagramNextStepDecision]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_NEXT_STEP_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-NEXT-STEP-DECISION</verification-ref>
+    </M-DATAGRAM-NEXT-STEP-DECISION>
   </Modules>
 
   <DataFlow>
@@ -4262,6 +4427,16 @@
       <step-6 module="M-CALLS-BLOCKING-BOUNDARY" status="done" verification="V-M-CALLS-BLOCKING-BOUNDARY">Classify the remaining calls blocker without prematurely blaming provider or network filtering</step-6>
       <step-7 module="M-CALLS-DECISION-NEXT-ARCH" status="done" verification="V-M-CALLS-DECISION-NEXT-ARCH">Issue the bounded architectural next-step decision for Telegram calls</step-7>
     </Phase-22>
+    <Phase-23 name="Datagram Round-Trip Isolation" status="pending">
+      <goal>Isolate the controlled UDP round-trip independently of Telegram UI so outbound reachability, remote target ingress, and inbound reply return can be classified precisely.</goal>
+      <step-1 module="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS">Freeze the bounded controlled round-trip hypothesis set after Phase-22</step-1>
+      <step-2 module="M-DATAGRAM-ECHO-TARGET" status="pending" verification="V-M-DATAGRAM-ECHO-TARGET">Prepare a bounded remote UDP echo target with explicit startup, capture window, and cleanup</step-2>
+      <step-3 module="M-DATAGRAM-OUTBOUND-TRACE" status="pending" verification="V-M-DATAGRAM-OUTBOUND-TRACE">Trace the controlled outbound datagram path from local UDP ASSOCIATE to remote echo-target ingress</step-3>
+      <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="pending" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
+      <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="pending" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
+      <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="pending" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>
+      <step-7 module="M-DATAGRAM-NEXT-STEP-DECISION" status="pending" verification="V-M-DATAGRAM-NEXT-STEP-DECISION">Issue the bounded next-step decision for the controlled datagram round-trip</step-7>
+    </Phase-23>
   </ImplementationOrder>
 
   <ExecutionPolicy>
