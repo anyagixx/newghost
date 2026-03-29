@@ -134,6 +134,7 @@ Current calls-profile status:
 - inference from that bounded evidence: the old ingress defect is fixed, but the current local-workstation `ssh -L 127.0.0.1:1080:127.0.0.1:1080` handoff is still not a proven end-to-end Telegram calls path
 - Phase-21 changes the target verification topology: the next calls wave must use a truly local `n0wss-client` on the Telegram Desktop workstation instead of the historical SSH-forwarded path
 - the older SSH-forwarded Desktop packet remains valid historical evidence and comparison baseline; it is not the next execution target
+- operator runbook consequence: the next calls wave must start with a truly local SOCKS5 listener on the Telegram Desktop workstation and must not keep the old `ssh -L` path enabled in parallel
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 
 The Telegram-specific verification wave is about client compatibility evidence, not about inventing a new app protocol.

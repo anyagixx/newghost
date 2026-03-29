@@ -432,6 +432,22 @@ Current topology target after Phase-20:
 - bounded reason for the topology change: the managed client runtime now proves `SOCKS5 UDP ASSOCIATE` in isolation, so the next wave must remove the SSH-forwarded operator path from the calls trajectory before blaming deeper datagram code or the external network
 - until the local-client topology wave is executed, do not treat the old SSH-forwarded Desktop path as the default calls runbook anymore
 
+### Phase-21 Local Client Runbook Target
+
+The next Telegram calls wave must use this operator shape:
+
+- Telegram Desktop and `n0wss-client` run on the same local workstation
+- Telegram Desktop points to a truly local SOCKS5 listener on `127.0.0.1:1080`
+- the older `ssh -L 127.0.0.1:1080:127.0.0.1:1080 ...` path is not part of the new calls trajectory
+- the old SSH-forwarded packet remains historical comparison evidence only
+
+Operator boundaries for the next wave:
+
+1. do not keep the old `ssh -L` forward alive while testing the local-client topology
+2. prove that `127.0.0.1:1080` is owned by the local `n0wss-client` process before opening Telegram
+3. keep Telegram Desktop on SOCKS5 `127.0.0.1:1080` with no username and no password
+4. run voice and video attempts only after the controller confirms local raw `UDP ASSOCIATE` readiness on the same workstation
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
