@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.17">
+  <Project NAME="n0wss" VERSION="0.2.18">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1165,6 +1165,96 @@
       </annotations>
     </M-CALLS-RERUN-DECISION>
 
+    <M-CALLS-TOPOLOGY-PROFILE NAME="CallsTopologyProfile" TYPE="UTILITY" STATUS="done">
+      <purpose>Define the next Telegram calls topology profile and separate the local-client path from the older SSH-forwarded Desktop path.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-PROFILE, M-CALLS-RERUN-DECISION</depends>
+      <verification-ref>V-M-CALLS-TOPOLOGY-PROFILE</verification-ref>
+      <annotations>
+        <fn-documentCallsTopologyProfile PURPOSE="Document the bounded local-client calls topology profile and its explicit non-goals." />
+      </annotations>
+    </M-CALLS-TOPOLOGY-PROFILE>
+
+    <M-LOCAL-CLIENT-RUNBOOK NAME="LocalClientRunbook" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the operator runbook for a truly local n0wss-client calls path without SSH port forwarding.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-CLI, M-CONFIG, M-OPERATOR-RUNBOOK</depends>
+      <verification-ref>V-M-LOCAL-CLIENT-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-prepareLocalClientRunbook PURPOSE="Document the exact local-client operator path for Telegram Desktop calls." />
+      </annotations>
+    </M-LOCAL-CLIENT-RUNBOOK>
+
+    <M-LOCAL-CLIENT-BOOTSTRAP NAME="LocalClientBootstrap" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Define the bounded bootstrap shape for running n0wss-client locally on the Telegram Desktop workstation.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-LIVE-BUILD-PACK, M-SYSTEMD-UNITS, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <verification-ref>V-M-LOCAL-CLIENT-BOOTSTRAP</verification-ref>
+      <annotations>
+        <fn-bootstrapLocalClient PURPOSE="Prepare the local n0wss-client bootstrap path for the next calls wave." />
+      </annotations>
+    </M-LOCAL-CLIENT-BOOTSTRAP>
+
+    <M-LOCAL-CALLS-READINESS NAME="LocalCallsReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Prove local listener, local smoke, and local UDP ASSOCIATE readiness before Telegram calls start on the workstation topology.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-LOCAL-CLIENT-BOOTSTRAP, M-CALLS-RERUN-READINESS, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <verification-ref>V-M-LOCAL-CALLS-READINESS</verification-ref>
+      <annotations>
+        <fn-captureLocalCallsReadiness PURPOSE="Capture local listener and UDP readiness evidence for the local-client topology." />
+      </annotations>
+    </M-LOCAL-CALLS-READINESS>
+
+    <M-LOCAL-CALLS-VOICE-WAVE NAME="LocalCallsVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run a bounded Telegram Desktop voice-call wave through the local-client topology.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-LOCAL-CALLS-READINESS, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-LOCAL-CALLS-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runLocalCallsVoiceWave PURPOSE="Run the local-client voice-call wave and capture the first divergent layer." />
+      </annotations>
+    </M-LOCAL-CALLS-VOICE-WAVE>
+
+    <M-LOCAL-CALLS-VIDEO-WAVE NAME="LocalCallsVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run a separate Telegram Desktop video-call wave through the local-client topology without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-LOCAL-CALLS-VOICE-WAVE, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-LOCAL-CALLS-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runLocalCallsVideoWave PURPOSE="Run the local-client video-call wave with a separate packet." />
+      </annotations>
+    </M-LOCAL-CALLS-VIDEO-WAVE>
+
+    <M-LOCAL-CALLS-EVIDENCE NAME="LocalCallsEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the local-topology readiness, voice, video, failure, and comparison packets for Telegram calls verification.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-LOCAL-CALLS-VOICE-WAVE, M-LOCAL-CALLS-VIDEO-WAVE, M-CALLS-RERUN-EVIDENCE</depends>
+      <verification-ref>V-M-LOCAL-CALLS-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-captureLocalCallsEvidence PURPOSE="Capture the bounded packet set for the local-client calls topology." />
+      </annotations>
+    </M-LOCAL-CALLS-EVIDENCE>
+
+    <M-LOCAL-CALLS-COMPARISON NAME="LocalCallsComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the older SSH-forwarded Desktop path and the new local-client path to isolate topology-dependent calls failure.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALLS-RERUN-DECISION, M-LOCAL-CALLS-EVIDENCE</depends>
+      <verification-ref>V-M-LOCAL-CALLS-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareCallsTopologies PURPOSE="Compare local-client calls evidence against the earlier SSH-forwarded packet." />
+      </annotations>
+    </M-LOCAL-CALLS-COMPARISON>
+
+    <M-LOCAL-CALLS-GO-NO-GO NAME="LocalCallsGoNoGo" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded Telegram calls decision for the local-client topology on the tested setup.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-LOCAL-CALLS-COMPARISON, M-CALLS-TOPOLOGY-PROFILE</depends>
+      <verification-ref>V-M-LOCAL-CALLS-GO-NO-GO</verification-ref>
+      <annotations>
+        <fn-issueLocalCallsDecision PURPOSE="Issue the bounded calls decision for the local-client topology." />
+      </annotations>
+    </M-LOCAL-CALLS-GO-NO-GO>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1341,6 +1431,29 @@
     <CrossLink from="M-CALLS-RERUN-EVIDENCE" to="M-CALLS-RERUN-DECISION" relation="supplies the post-fix rerun packet set required for the updated bounded decision" />
     <CrossLink from="M-CALLS-GO-NO-GO" to="M-CALLS-RERUN-DECISION" relation="provides the pre-fix no-go baseline that the rerun decision must compare against" />
     <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-CALLS-RERUN-DECISION" relation="keeps the post-fix calls claim bounded to the tested Telegram Desktop setup" />
+    <CrossLink from="M-TELEGRAM-CALLS-PROFILE" to="M-CALLS-TOPOLOGY-PROFILE" relation="supplies the older bounded calls claim that the new topology profile must refine without widening" />
+    <CrossLink from="M-CALLS-RERUN-DECISION" to="M-CALLS-TOPOLOGY-PROFILE" relation="supplies the SSH-forwarded no-go packet that motivates the new topology boundary" />
+    <CrossLink from="M-CALLS-TOPOLOGY-PROFILE" to="M-LOCAL-CLIENT-RUNBOOK" relation="defines the new local-client operator shape that the runbook must make explicit" />
+    <CrossLink from="M-CLI" to="M-LOCAL-CLIENT-RUNBOOK" relation="supplies the local client runtime surface reused by the new operator runbook" />
+    <CrossLink from="M-CONFIG" to="M-LOCAL-CLIENT-RUNBOOK" relation="supplies the local client configuration surface that the runbook must name explicitly" />
+    <CrossLink from="M-LOCAL-CLIENT-RUNBOOK" to="M-LOCAL-CLIENT-BOOTSTRAP" relation="defines the operator-visible launch path that the local bootstrap must prepare" />
+    <CrossLink from="M-LIVE-BUILD-PACK" to="M-LOCAL-CLIENT-BOOTSTRAP" relation="supplies the bounded local binary packaging surface for the workstation client" />
+    <CrossLink from="M-SYSTEMD-UNITS" to="M-LOCAL-CLIENT-BOOTSTRAP" relation="supplies the governed lifecycle shape reused when deciding how the local client is launched or cleaned up" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-LOCAL-CLIENT-BOOTSTRAP" relation="defines the local UDP ASSOCIATE surface that must exist on the workstation client" />
+    <CrossLink from="M-LOCAL-CLIENT-BOOTSTRAP" to="M-LOCAL-CALLS-READINESS" relation="provides the local bootstrap state that readiness must prove before calls begin" />
+    <CrossLink from="M-CALLS-RERUN-READINESS" to="M-LOCAL-CALLS-READINESS" relation="supplies the older post-fix ingress proof shape that the local topology now repeats on the workstation" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-LOCAL-CALLS-READINESS" relation="defines the local UDP ASSOCIATE proof required before the local calls wave can start" />
+    <CrossLink from="M-LOCAL-CALLS-READINESS" to="M-LOCAL-CALLS-VOICE-WAVE" relation="blocks the local-client voice wave until local readiness is green" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-LOCAL-CALLS-VOICE-WAVE" relation="supplies the bounded calls-wave packet shape for the local topology" />
+    <CrossLink from="M-LOCAL-CALLS-VOICE-WAVE" to="M-LOCAL-CALLS-VIDEO-WAVE" relation="keeps local video evidence separate from local voice evidence" />
+    <CrossLink from="M-TELEGRAM-CALLS-WAVE" to="M-LOCAL-CALLS-VIDEO-WAVE" relation="supplies the bounded calls-wave packet shape for the local video run" />
+    <CrossLink from="M-LOCAL-CALLS-VOICE-WAVE" to="M-LOCAL-CALLS-EVIDENCE" relation="produces the local voice packet included in the local topology evidence set" />
+    <CrossLink from="M-LOCAL-CALLS-VIDEO-WAVE" to="M-LOCAL-CALLS-EVIDENCE" relation="produces the local video packet included in the local topology evidence set" />
+    <CrossLink from="M-CALLS-RERUN-EVIDENCE" to="M-LOCAL-CALLS-EVIDENCE" relation="supplies the older SSH-forwarded rerun packet that the local topology evidence must compare against" />
+    <CrossLink from="M-LOCAL-CALLS-EVIDENCE" to="M-LOCAL-CALLS-COMPARISON" relation="supplies the local topology packet set for comparison against the older no-go baseline" />
+    <CrossLink from="M-CALLS-RERUN-DECISION" to="M-LOCAL-CALLS-COMPARISON" relation="provides the older SSH-forwarded calls decision used as comparison baseline" />
+    <CrossLink from="M-LOCAL-CALLS-COMPARISON" to="M-LOCAL-CALLS-GO-NO-GO" relation="supplies the topology-dependent comparison result required for the final bounded decision" />
+    <CrossLink from="M-CALLS-TOPOLOGY-PROFILE" to="M-LOCAL-CALLS-GO-NO-GO" relation="keeps the final local-topology decision bounded to the tested workstation setup" />
 
   </Project>
 </KnowledgeGraph>

@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.27">
+<VerificationPlan VERSION="0.2.29">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -39,6 +39,9 @@
     <post-fix-rerun-boundary-rule>A post-fix live rerun must preserve the pre-fix evidence packet as historical baseline and must not overwrite or silently reinterpret the old divergent block without new bounded evidence.</post-fix-rerun-boundary-rule>
     <repair-provenance-rule>When a live rerun depends on a targeted repair, verification must prove which repaired baseline was deployed and must keep deploy provenance separate from runtime symptoms.</repair-provenance-rule>
     <udp-marker-promotion-rule>If BLOCK_HANDLE_UDP_ASSOCIATE appears after a repair, the rerun must classify the next missing governed datagram marker as the new first divergent block instead of reporting the old ingress defect again.</udp-marker-promotion-rule>
+    <local-client-topology-rule>A local-client Telegram calls wave must prove that Telegram Desktop and n0wss-client share the same workstation topology and that the path no longer depends on SSH port forwarding.</local-client-topology-rule>
+    <topology-comparison-rule>When a new operator topology is introduced after a prior no-go wave, verification must preserve both packet histories and compare them explicitly instead of silently replacing the old conclusion.</topology-comparison-rule>
+    <network-block-boundary-rule>External filtering or provider blocking may be considered only after the local topology, local UDP ingress, governed datagram path, and remote relay evidence are all classified; it must not be used as the first explanation while earlier layers remain unproven.</network-block-boundary-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -2364,6 +2367,179 @@
         <assertion-2>The updated decision must state separately whether the ingress defect is fixed even if end-to-end call success is still not proven.</assertion-2>
       </required-trace-assertions>
     </V-M-CALLS-RERUN-DECISION>
+
+    <V-M-CALLS-TOPOLOGY-PROFILE MODULE="M-CALLS-TOPOLOGY-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'local-client|ssh -L|topology|tested setup' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The new phase explicitly separates the local-client topology from the older SSH-forwarded Desktop path.</scenario-1>
+        <scenario-2 kind="failure">The topology profile is rejected if it silently reuses the older operator path without comparison semantics.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The profile must explicitly state that the old SSH-forwarded Desktop path remains historical evidence rather than the new execution target.</assertion-1>
+        <assertion-2>The profile must keep the future claim bounded to the tested workstation build, tested server pair, and tested network setup only.</assertion-2>
+      </required-trace-assertions>
+    </V-M-CALLS-TOPOLOGY-PROFILE>
+
+    <V-M-LOCAL-CLIENT-RUNBOOK MODULE="M-LOCAL-CLIENT-RUNBOOK" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'local n0wss-client|127.0.0.1:1080|without ssh -L|local workstation' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The runbook shape makes Telegram Desktop point at a truly local listener instead of an SSH-forwarded remote one.</scenario-1>
+        <scenario-2 kind="failure">The runbook is rejected if it leaves the operator topology ambiguous.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The runbook must explicitly forbid keeping the old ssh -L path enabled during the local-client wave.</assertion-1>
+        <assertion-2>The runbook must specify how the operator proves the listener is local before Telegram is started.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CLIENT-RUNBOOK>
+
+    <V-M-LOCAL-CLIENT-BOOTSTRAP MODULE="M-LOCAL-CLIENT-BOOTSTRAP" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'local bootstrap|trust anchor|local n0wss-client|cleanup' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The local bootstrap shape defines binary, env, trust material, launch, and cleanup surfaces explicitly.</scenario-1>
+        <scenario-2 kind="failure">The local bootstrap is rejected if it relies on ad hoc workstation mutation with no bounded launch shape.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The bootstrap must define provenance for the local binary and trust material so the future wave can distinguish workstation drift from runtime behavior.</assertion-1>
+        <assertion-2>The bootstrap must define a cleanup shape so local reruns do not reuse stale processes or stale listeners.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CLIENT-BOOTSTRAP>
+
+    <V-M-LOCAL-CALLS-READINESS MODULE="M-LOCAL-CALLS-READINESS" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'local readiness|UDP ASSOCIATE|local listener|local smoke' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+        <check-2>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_OPEN_DATAGRAM_ASSOCIATION|BLOCK_SELECT_DATAGRAM_TRANSPORT' docs/verification-plan.xml</check-2>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The local-client topology requires proof of local listener, local smoke, and local UDP ASSOCIATE readiness before any call attempt.</scenario-1>
+        <scenario-2 kind="failure">The wave stops if the local workstation path is not proven ready before operator calls start.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]</marker-1>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The readiness packet must show a raw local UDP ASSOCIATE proof on the same workstation topology that Telegram will use.</assertion-1>
+        <assertion-2>If local readiness is green, later call failure may not be attributed back to generic listener ingress without new contrary evidence.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CALLS-READINESS>
+
+    <V-M-LOCAL-CALLS-VOICE-WAVE MODULE="M-LOCAL-CALLS-VOICE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-012|local-client|voice|UDP ASSOCIATE' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The local-client voice wave captures signaling and media evidence separately.</scenario-1>
+        <scenario-2 kind="failure">The local-client voice wave must not inherit evidence from the older SSH-forwarded Desktop packet.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE]</marker-1>
+        <marker-2>[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]</marker-2>
+        <marker-3>[DatagramTransportSelector][selectTransport][BLOCK_SELECT_DATAGRAM_TRANSPORT]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The voice packet must classify signaling green and media green separately for the local topology.</assertion-1>
+        <assertion-2>If local UDP ingress is proven but later datagram markers are missing, the packet must promote the next missing marker to the new first divergent block.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CALLS-VOICE-WAVE>
+
+    <V-M-LOCAL-CALLS-VIDEO-WAVE MODULE="M-LOCAL-CALLS-VIDEO-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'LV-012|local-client|video|topology' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The local-client video wave remains packetized separately from the local voice wave.</scenario-1>
+        <scenario-2 kind="failure">Video cannot silently inherit the local voice result.</scenario-2>
+      </scenarios>
+      <required-log-markers>
+        <marker-1>[WssDatagramGateway][sendDatagram][BLOCK_SEND_WSS_DATAGRAM]</marker-1>
+        <marker-2>[UdpEgressRelay][relayOutbound][BLOCK_RELAY_UDP_OUTBOUND]</marker-2>
+        <marker-3>[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The video packet must state whether its first divergent layer matches or differs from the local voice packet.</assertion-1>
+        <assertion-2>UI ringing or answer state alone is not valid media success evidence for the local topology.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CALLS-VIDEO-WAVE>
+
+    <V-M-LOCAL-CALLS-EVIDENCE MODULE="M-LOCAL-CALLS-EVIDENCE" PRIORITY="medium">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'local-topology|comparison|voice|video|failure packet' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The local-client packet set preserves readiness, voice, video, and failure sections separately.</scenario-1>
+        <scenario-2 kind="failure">A blended local summary with no topology comparison is rejected as insufficient evidence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The evidence set must preserve both the older SSH-forwarded packet and the new local-client packet without collapsing them into one historical thread.</assertion-1>
+        <assertion-2>The evidence set must keep room for a later external-network hypothesis only after local and governed path markers are classified.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CALLS-EVIDENCE>
+
+    <V-M-LOCAL-CALLS-COMPARISON MODULE="M-LOCAL-CALLS-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'comparison|SSH-forwarded|local-client|topology-dependent' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The comparison packet explicitly contrasts the old SSH-forwarded path with the new local-client path.</scenario-1>
+        <scenario-2 kind="failure">The comparison is rejected if it erases the older no-go packet or fails to isolate topology dependence.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The comparison packet must explicitly state whether the new result changes because the topology changed or because the deeper datagram path changed.</assertion-1>
+        <assertion-2>Provider or network blocking may be raised only after the comparison packet shows no earlier topology or governed-path divergence.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CALLS-COMPARISON>
+
+    <V-M-LOCAL-CALLS-GO-NO-GO MODULE="M-LOCAL-CALLS-GO-NO-GO" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'local-client|go-no-go|tested setup|bounded' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+      </module-checks>
+      <scenarios>
+        <scenario-1 kind="success">The final decision stays bounded to the tested local-client topology and explicitly compares against the older SSH-forwarded path.</scenario-1>
+        <scenario-2 kind="failure">The final decision must not overclaim universal Telegram calls success or solve all network blocking regimes.</scenario-2>
+      </scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must state separately whether the local topology changed the evidence envelope at all.</assertion-1>
+        <assertion-2>If all governed markers are green and calls still fail, only then may the decision classify the remaining risk as likely external network filtering or provider-side blocking.</assertion-2>
+      </required-trace-assertions>
+    </V-M-LOCAL-CALLS-GO-NO-GO>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -2589,6 +2765,27 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsLiveRerunAfterIngressFix; expected-evidence=post-fix readiness plus a new voice and video rerun packet; observed-evidence=deploy provenance, service state, operator symptom, and bounded log tails; first-divergent-block=first missing post-fix UDP ingress, datagram transport, or relay marker; next-action=repair the first post-fix divergent layer before another live rerun</failure-packet-template>
     </LV-011>
+
+    <LV-012 NAME="TelegramCallsLocalClientTopologyWave" PRIORITY="high">
+      <goal>Run a dedicated Telegram calls wave through a truly local n0wss-client topology and compare its evidence against the older SSH-forwarded Desktop path.</goal>
+      <commands>
+        <command-1>launch n0wss-client locally on the Telegram Desktop workstation with the bounded local bootstrap profile</command-1>
+        <command-2>prove the local SOCKS5 listener exists on 127.0.0.1:$N0WSS_SOCKS5_PORT</command-2>
+        <command-3>run one local raw SOCKS5 UDP ASSOCIATE probe before Telegram calls begin</command-3>
+        <command-4>operator runs one Telegram Desktop voice call through the local-client topology</command-4>
+        <command-5>operator runs one Telegram Desktop video call through the local-client topology</command-5>
+        <command-6>collect bounded local client logs plus bounded remote server logs for both call attempts</command-6>
+        <command-7>compare the new local-client packet against the older SSH-forwarded no-go packet before issuing any network-block explanation</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The local-client topology packet is kept separate from the older SSH-forwarded packet.</evidence-1>
+        <evidence-2>The local wave proves local listener readiness and local UDP ASSOCIATE readiness before Telegram is used.</evidence-2>
+        <evidence-3>Voice and video local-client packets remain separate.</evidence-3>
+        <evidence-4>The final packet compares whether calls behavior changed only because the topology changed.</evidence-4>
+        <evidence-5>The wave states explicitly whether any remaining failure is still inside the governed path or only plausibly external to it.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsLocalClientTopologyWave; expected-evidence=local listener proof, local UDP ASSOCIATE proof, separate voice and video packets, and a topology comparison packet; observed-evidence=local bootstrap state, local operator symptom, bounded local client logs, bounded remote server logs, and any governed UDP markers; first-divergent-block=first missing local readiness, local UDP ingress, datagram transport, relay, or app-side marker; next-action=repair only the first divergent local-topology layer before another rerun</failure-packet-template>
+    </LV-012>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -2927,6 +3124,22 @@
         <evidence-5>The gate must distinguish “ingress defect fixed” from “calls fully green” if the rerun only moves the divergent block deeper.</evidence-5>
       </required-evidence>
     </Gate-Phase-20>
+
+    <Gate-Phase-21 PHASE="Phase-21">
+      <goal>The local-client Telegram calls topology is defined, a local-topology calls wave is planned, and the future decision remains bounded to the tested setup.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-21|M-CALLS-TOPOLOGY-PROFILE|M-LOCAL-CLIENT-RUNBOOK|M-LOCAL-CALLS-GO-NO-GO' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-012|local-client|SSH-forwarded|topology comparison' docs/verification-plan.xml docs/development-plan.xml docs/knowledge-graph.xml</command-2>
+        <command-3>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_OPEN_DATAGRAM_ASSOCIATION|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_SEND_WSS_DATAGRAM|BLOCK_RELAY_UDP_OUTBOUND|BLOCK_RELAY_UDP_INBOUND' docs/verification-plan.xml</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>The phase explicitly separates the future local-client topology from the older SSH-forwarded Desktop path.</evidence-1>
+        <evidence-2>The local-client readiness and local raw UDP ASSOCIATE proof are defined before any new calls wave is executed.</evidence-2>
+        <evidence-3>The future local voice and video packets stay separate and feed a topology-comparison packet.</evidence-3>
+        <evidence-4>The future calls decision remains bounded to the tested local-client topology only.</evidence-4>
+        <evidence-5>The phase forbids jumping straight to provider-blocking explanations before the local topology and governed datagram path are classified.</evidence-5>
+      </required-evidence>
+    </Gate-Phase-21>
   </PhaseGates>
 
   <FailurePackets>

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.17">
+<DevelopmentPlan VERSION="0.2.18">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -3242,6 +3242,269 @@
       </observability>
       <verification-ref>V-M-CALLS-RERUN-DECISION</verification-ref>
     </M-CALLS-RERUN-DECISION>
+
+    <M-CALLS-TOPOLOGY-PROFILE NAME="CallsTopologyProfile" TYPE="UTILITY" LAYER="24" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Define the next Telegram calls topology profile and separate the new local-client path from the older SSH-forwarded local Desktop path.</purpose>
+        <inputs>
+          <param name="callsTopologyProfileInputs" type="CallsTopologyProfileInputs" />
+        </inputs>
+        <outputs>
+          <param name="callsTopologyProfileRecord" type="CallsTopologyProfileRecord" />
+        </outputs>
+        <errors>
+          <error code="CALLS_TOPOLOGY_PROFILE_INVALID" />
+        </errors>
+      </contract>
+      <interface>
+        <export-documentCallsTopologyProfile PURPOSE="Document the bounded calls topology profile and its explicit non-goals." />
+      </interface>
+      <depends>M-TELEGRAM-CALLS-PROFILE, M-CALLS-RERUN-DECISION</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/OPERATORS.md</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[CallsTopologyProfile]</log-prefix>
+        <critical-block>BLOCK_CALLS_TOPOLOGY_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-CALLS-TOPOLOGY-PROFILE</verification-ref>
+    </M-CALLS-TOPOLOGY-PROFILE>
+
+    <M-LOCAL-CLIENT-RUNBOOK NAME="LocalClientRunbook" TYPE="ENTRY_POINT" LAYER="24" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define the governed operator runbook for running n0wss-client locally on the Telegram Desktop workstation instead of relying on SSH port forwarding.</purpose>
+        <inputs>
+          <param name="localClientRunbookInputs" type="LocalClientRunbookInputs" />
+        </inputs>
+        <outputs>
+          <param name="localClientRunbookRecord" type="LocalClientRunbookRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CLIENT_RUNBOOK_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-prepareLocalClientRunbook PURPOSE="Document the exact operator steps for a truly local n0wss-client calls path." />
+      </interface>
+      <depends>M-CLI, M-CONFIG, M-OPERATOR-RUNBOOK</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <source>README.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalClientRunbook]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CLIENT_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CLIENT-RUNBOOK</verification-ref>
+    </M-LOCAL-CLIENT-RUNBOOK>
+
+    <M-LOCAL-CLIENT-BOOTSTRAP NAME="LocalClientBootstrap" TYPE="ENTRY_POINT" LAYER="24" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded bootstrap shape for a local n0wss-client process, its env material, trust anchor, launch surface, and cleanup surface.</purpose>
+        <inputs>
+          <param name="localClientBootstrapInputs" type="LocalClientBootstrapInputs" />
+        </inputs>
+        <outputs>
+          <param name="localClientBootstrapRecord" type="LocalClientBootstrapRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CLIENT_BOOTSTRAP_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-bootstrapLocalClient PURPOSE="Prepare the bounded local n0wss-client bootstrap path for calls verification." />
+      </interface>
+      <depends>M-LIVE-BUILD-PACK, M-SYSTEMD-UNITS, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <target>
+        <source>docs/OPERATORS.md</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalClientBootstrap]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CLIENT_BOOTSTRAP</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CLIENT-BOOTSTRAP</verification-ref>
+    </M-LOCAL-CLIENT-BOOTSTRAP>
+
+    <M-LOCAL-CALLS-READINESS NAME="LocalCallsReadiness" TYPE="ENTRY_POINT" LAYER="24" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Prove that the local-workstation n0wss-client path is ready for Telegram calls with a truly local SOCKS5 and UDP ASSOCIATE surface.</purpose>
+        <inputs>
+          <param name="localCallsReadinessInputs" type="LocalCallsReadinessInputs" />
+        </inputs>
+        <outputs>
+          <param name="localCallsReadinessRecord" type="LocalCallsReadinessRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CALLS_READINESS_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureLocalCallsReadiness PURPOSE="Capture local listener, smoke, and UDP ASSOCIATE readiness before the calls wave starts." />
+      </interface>
+      <depends>M-LOCAL-CLIENT-BOOTSTRAP, M-CALLS-RERUN-READINESS, M-SOCKS5-UDP-ASSOCIATE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalCallsReadiness]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CALLS_READINESS</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CALLS-READINESS</verification-ref>
+    </M-LOCAL-CALLS-READINESS>
+
+    <M-LOCAL-CALLS-VOICE-WAVE NAME="LocalCallsVoiceWave" TYPE="CORE_LOGIC" LAYER="24" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Telegram Desktop voice-call wave through the local n0wss-client topology and capture separate signaling and media evidence.</purpose>
+        <inputs>
+          <param name="localCallsVoiceInputs" type="LocalCallsVoiceInputs" />
+        </inputs>
+        <outputs>
+          <param name="localCallsVoiceRecord" type="LocalCallsVoiceRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CALLS_VOICE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runLocalCallsVoiceWave PURPOSE="Run the local-client voice-call wave and capture the first divergent layer." />
+      </interface>
+      <depends>M-LOCAL-CALLS-READINESS, M-TELEGRAM-CALLS-WAVE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalCallsVoiceWave]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CALLS_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CALLS-VOICE-WAVE</verification-ref>
+    </M-LOCAL-CALLS-VOICE-WAVE>
+
+    <M-LOCAL-CALLS-VIDEO-WAVE NAME="LocalCallsVideoWave" TYPE="CORE_LOGIC" LAYER="24" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run a separate Telegram Desktop video-call wave through the local n0wss-client topology without inheriting the voice result.</purpose>
+        <inputs>
+          <param name="localCallsVideoInputs" type="LocalCallsVideoInputs" />
+        </inputs>
+        <outputs>
+          <param name="localCallsVideoRecord" type="LocalCallsVideoRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CALLS_VIDEO_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-runLocalCallsVideoWave PURPOSE="Run the local-client video-call wave and keep its packet separate from voice." />
+      </interface>
+      <depends>M-LOCAL-CALLS-VOICE-WAVE, M-TELEGRAM-CALLS-WAVE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/development-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalCallsVideoWave]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CALLS_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CALLS-VIDEO-WAVE</verification-ref>
+    </M-LOCAL-CALLS-VIDEO-WAVE>
+
+    <M-LOCAL-CALLS-EVIDENCE NAME="LocalCallsEvidence" TYPE="UTILITY" LAYER="24" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble the local-topology readiness, voice, video, failure, and comparison packets for Telegram calls verification.</purpose>
+        <inputs>
+          <param name="localCallsEvidenceInputs" type="LocalCallsEvidenceInputs" />
+        </inputs>
+        <outputs>
+          <param name="localCallsEvidenceRecord" type="LocalCallsEvidenceRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CALLS_EVIDENCE_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-captureLocalCallsEvidence PURPOSE="Capture the bounded packet set for the local-client calls topology." />
+      </interface>
+      <depends>M-LOCAL-CALLS-VOICE-WAVE, M-LOCAL-CALLS-VIDEO-WAVE, M-CALLS-RERUN-EVIDENCE</depends>
+      <target>
+        <source>docs/verification-plan.xml</source>
+        <source>docs/OPERATORS.md</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalCallsEvidence]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CALLS_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CALLS-EVIDENCE</verification-ref>
+    </M-LOCAL-CALLS-EVIDENCE>
+
+    <M-LOCAL-CALLS-COMPARISON NAME="LocalCallsComparison" TYPE="CORE_LOGIC" LAYER="24" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Compare the old SSH-forwarded Desktop path and the new local-client path to isolate whether calls failure is topology-dependent.</purpose>
+        <inputs>
+          <param name="localCallsComparisonInputs" type="LocalCallsComparisonInputs" />
+        </inputs>
+        <outputs>
+          <param name="localCallsComparisonRecord" type="LocalCallsComparisonRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CALLS_COMPARISON_FAILED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-compareCallsTopologies PURPOSE="Compare the local-client calls packet with the earlier SSH-forwarded packet." />
+      </interface>
+      <depends>M-CALLS-RERUN-DECISION, M-LOCAL-CALLS-EVIDENCE</depends>
+      <target>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalCallsComparison]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CALLS_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CALLS-COMPARISON</verification-ref>
+    </M-LOCAL-CALLS-COMPARISON>
+
+    <M-LOCAL-CALLS-GO-NO-GO NAME="LocalCallsGoNoGo" TYPE="ENTRY_POINT" LAYER="24" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded Telegram calls go-or-no-go decision for the local-client topology on the tested setup.</purpose>
+        <inputs>
+          <param name="localCallsDecisionInputs" type="LocalCallsDecisionInputs" />
+        </inputs>
+        <outputs>
+          <param name="localCallsDecisionRecord" type="LocalCallsDecisionRecord" />
+        </outputs>
+        <errors>
+          <error code="LOCAL_CALLS_DECISION_BLOCKED" />
+        </errors>
+      </contract>
+      <interface>
+        <export-issueLocalCallsDecision PURPOSE="Issue the bounded calls decision for the local-client topology." />
+      </interface>
+      <depends>M-LOCAL-CALLS-COMPARISON, M-CALLS-TOPOLOGY-PROFILE</depends>
+      <target>
+        <source>README.md</source>
+        <source>docs/development-plan.xml</source>
+        <source>docs/verification-plan.xml</source>
+        <tests>docs/verification-plan.xml</tests>
+      </target>
+      <observability>
+        <log-prefix>[LocalCallsGoNoGo]</log-prefix>
+        <critical-block>BLOCK_LOCAL_CALLS_GO_NO_GO</critical-block>
+      </observability>
+      <verification-ref>V-M-LOCAL-CALLS-GO-NO-GO</verification-ref>
+    </M-LOCAL-CALLS-GO-NO-GO>
   </Modules>
 
   <DataFlow>
@@ -3380,6 +3643,27 @@
       <step-3>The public claim remains bounded to the tested Telegram Desktop setup only.</step-3>
       <evidence>An updated bounded decision packet that states exactly what changed after the ingress fix.</evidence>
     </DF-CALLS-RERUN-DECISION>
+
+    <DF-LOCAL-CALLS-TOPOLOGY NAME="Local client Telegram calls topology" TRIGGER="Telegram Desktop uses a truly local n0wss-client instead of an SSH-forwarded remote listener.">
+      <step-1>The operator launches n0wss-client locally on the same workstation where Telegram Desktop runs.</step-1>
+      <step-2>Telegram Desktop points directly at the local SOCKS5 listener on `127.0.0.1:1080` without `ssh -L`.</step-2>
+      <step-3>Calls verification compares this topology with the earlier SSH-forwarded Desktop path.</step-3>
+      <evidence>Local listener proof, local UDP ASSOCIATE proof, and a topology-comparison packet.</evidence>
+    </DF-LOCAL-CALLS-TOPOLOGY>
+
+    <DF-LOCAL-UDP-CALLS NAME="Local client UDP calls path" TRIGGER="Telegram Desktop starts a call while the local n0wss-client topology is active.">
+      <step-1>Telegram signaling continues through SOCKS5 CONNECT on the local n0wss-client path.</step-1>
+      <step-2>Call media opens through SOCKS5 UDP ASSOCIATE on the same local workstation.</step-2>
+      <step-3>Datagram traffic flows through the governed WSS datagram carrier and remote UDP relay.</step-3>
+      <evidence>Separated signaling markers, UDP ASSOCIATE markers, datagram markers, and relay markers for the local topology.</evidence>
+    </DF-LOCAL-UDP-CALLS>
+
+    <DF-CALLS-TOPOLOGY-COMPARISON NAME="Telegram calls topology comparison" TRIGGER="The local-client calls wave finishes and must be compared with the older SSH-forwarded local Desktop path.">
+      <step-1>The controller keeps the older SSH-forwarded no-go packet as historical baseline.</step-1>
+      <step-2>The local-client packet is captured separately for voice, video, and readiness outcomes.</step-2>
+      <step-3>The final decision classifies whether calls failure is topology-dependent, deeper in the datagram path, or still external to the tunnel core.</step-3>
+      <evidence>A bounded comparison packet that preserves both topology histories separately.</evidence>
+    </DF-CALLS-TOPOLOGY-COMPARISON>
 
     <DF-REPLY-MAPPING NAME="SOCKS5 reply mapping" TRIGGER="A proxy request fails before or after pump startup.">
       <step-1>Socks5Proxy or ProxyBridge classifies ProxyError as infrastructure, policy, target, or post-pump failure.</step-1>
@@ -3750,6 +4034,19 @@
       <step-5 module="M-CALLS-RERUN-EVIDENCE" status="done" verification="V-M-CALLS-RERUN-EVIDENCE">Assemble the post-fix deploy, readiness, voice, video, and failure packets</step-5>
       <step-6 module="M-CALLS-RERUN-DECISION" status="done" verification="V-M-CALLS-RERUN-DECISION">Issue the updated bounded Telegram calls decision after the repaired rerun wave</step-6>
     </Phase-20>
+
+    <Phase-21 name="Telegram Calls Local Client Topology" status="pending">
+      <goal>Replace the SSH-forwarded Desktop calls path with a truly local n0wss-client topology and compare the resulting Telegram calls evidence against the older no-go packet.</goal>
+      <step-1 module="M-CALLS-TOPOLOGY-PROFILE" status="done" verification="V-M-CALLS-TOPOLOGY-PROFILE">Define the bounded local-client Telegram calls topology and separate it from the older SSH-forwarded Desktop path</step-1>
+      <step-2 module="M-LOCAL-CLIENT-RUNBOOK" status="pending" verification="V-M-LOCAL-CLIENT-RUNBOOK">Document the governed local-client runbook for Telegram Desktop calls without ssh -L</step-2>
+      <step-3 module="M-LOCAL-CLIENT-BOOTSTRAP" status="pending" verification="V-M-LOCAL-CLIENT-BOOTSTRAP">Prepare the bounded bootstrap for running n0wss-client locally on the Telegram Desktop workstation</step-3>
+      <step-4 module="M-LOCAL-CALLS-READINESS" status="pending" verification="V-M-LOCAL-CALLS-READINESS">Prove local listener, smoke, and UDP ASSOCIATE readiness on the Telegram Desktop workstation</step-4>
+      <step-5 module="M-LOCAL-CALLS-VOICE-WAVE" status="pending" verification="V-M-LOCAL-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call wave through the local-client topology</step-5>
+      <step-6 module="M-LOCAL-CALLS-VIDEO-WAVE" status="pending" verification="V-M-LOCAL-CALLS-VIDEO-WAVE">Run one separate Telegram video-call wave through the local-client topology</step-6>
+      <step-7 module="M-LOCAL-CALLS-EVIDENCE" status="pending" verification="V-M-LOCAL-CALLS-EVIDENCE">Assemble the local-topology readiness, voice, video, and failure packets</step-7>
+      <step-8 module="M-LOCAL-CALLS-COMPARISON" status="pending" verification="V-M-LOCAL-CALLS-COMPARISON">Compare the local-client packet against the older SSH-forwarded calls packet</step-8>
+      <step-9 module="M-LOCAL-CALLS-GO-NO-GO" status="pending" verification="V-M-LOCAL-CALLS-GO-NO-GO">Issue the bounded go-or-no-go decision for Telegram calls on the local-client topology</step-9>
+    </Phase-21>
   </ImplementationOrder>
 
   <ExecutionPolicy>
