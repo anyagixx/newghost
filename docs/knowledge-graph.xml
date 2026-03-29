@@ -1405,7 +1405,7 @@
       </annotations>
     </M-DATAGRAM-REPAIR-HYPOTHESIS>
 
-    <M-DATAGRAM-DISPATCH-INSTRUMENTATION NAME="DatagramDispatchInstrumentation" TYPE="UTILITY" STATUS="planned">
+    <M-DATAGRAM-DISPATCH-INSTRUMENTATION NAME="DatagramDispatchInstrumentation" TYPE="UTILITY" STATUS="done">
       <purpose>Strengthen bounded dispatch-side anchors between local UDP ingress, datagram manager dispatch, and transport selection.</purpose>
       <path>src/session/datagram_manager.rs</path>
       <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-SESSION-MANAGER, M-DATAGRAM-TRANSPORT-SELECTOR, M-OBS</depends>

@@ -3878,7 +3878,7 @@
       <verification-ref>V-M-DATAGRAM-REPAIR-HYPOTHESIS</verification-ref>
     </M-DATAGRAM-REPAIR-HYPOTHESIS>
 
-    <M-DATAGRAM-DISPATCH-INSTRUMENTATION NAME="DatagramDispatchInstrumentation" TYPE="UTILITY" LAYER="27" ORDER="2" STATUS="planned">
+    <M-DATAGRAM-DISPATCH-INSTRUMENTATION NAME="DatagramDispatchInstrumentation" TYPE="UTILITY" LAYER="27" ORDER="2" STATUS="done">
       <contract>
         <purpose>Strengthen the dispatch-side anchors and bounded counters between local UDP relay acceptance, datagram session ownership, and transport selection.</purpose>
         <inputs>
@@ -3900,6 +3900,7 @@
         <log-prefix>[DatagramDispatchInstrumentation]</log-prefix>
         <critical-block>BLOCK_DATAGRAM_DISPATCH_INSTRUMENTATION</critical-block>
       </observability>
+      <note-1>The repair wave now has bounded manager-side and selector-side anchors beyond raw ingress: outbound and inbound manager dispatch emit explicit progression markers, selector cancellation and failure paths emit stable markers, and UDP relay-packet normalization now leaves a separate accepted-local-packet anchor.</note-1>
       <verification-ref>V-M-DATAGRAM-DISPATCH-INSTRUMENTATION</verification-ref>
     </M-DATAGRAM-DISPATCH-INSTRUMENTATION>
 
@@ -4666,7 +4667,7 @@
     <Phase-24 name="Datagram Path Repair" status="pending">
       <goal>Repair the datagram path between local UDP ingress and proven remote echo-target ingress before any new Telegram-specific rerun is allowed.</goal>
       <step-1 module="M-DATAGRAM-REPAIR-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-REPAIR-HYPOTHESIS">Freeze the bounded transport-side repair scope after Phase-23</step-1>
-      <step-2 module="M-DATAGRAM-DISPATCH-INSTRUMENTATION" status="pending" verification="V-M-DATAGRAM-DISPATCH-INSTRUMENTATION">Strengthen dispatch-side instrumentation between local UDP ingress and transport selection</step-2>
+      <step-2 module="M-DATAGRAM-DISPATCH-INSTRUMENTATION" status="done" verification="V-M-DATAGRAM-DISPATCH-INSTRUMENTATION">Strengthen dispatch-side instrumentation between local UDP ingress and transport selection</step-2>
       <step-3 module="M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR" status="pending" verification="V-M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR">Repair the local handoff from governed relay ingress to outbound datagram dispatch</step-3>
       <step-4 module="M-WSS-DATAGRAM-EMIT-REPAIR" status="pending" verification="V-M-WSS-DATAGRAM-EMIT-REPAIR">Repair or narrow the WSS datagram emission path so outbound packets actually leave the client runtime</step-4>
       <step-5 module="M-UDP-RELAY-OUTBOUND-REPAIR" status="pending" verification="V-M-UDP-RELAY-OUTBOUND-REPAIR">Repair the server-side outbound UDP relay until remote echo-target ingress is proven</step-5>
