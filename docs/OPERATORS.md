@@ -668,6 +668,59 @@ ssh root@$N0WSS_CLIENT_HOST \
   "timeout 20 tcpdump -i any -nn '(tcp port 7443) or udp' -c 200 -w /tmp/n0wss-client-calls.pcap"
 ```
 
+### Phase-23 Bounded Echo Target Lifecycle
+
+Use one explicit remote echo target lifecycle for controlled datagram probes. Do not reuse a stale UDP listener from an older run.
+
+Bounded startup on the remote server host:
+
+```bash
+ssh root@$N0WSS_SERVER_HOST "
+  pkill -f 'n0wss-phase23-udp-echo' 2>/dev/null || true
+  nohup bash -lc '
+    exec -a n0wss-phase23-udp-echo python3 - <<\"PY\"
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.bind((\"0.0.0.0\", 55123))
+while True:
+    data, addr = s.recvfrom(65535)
+    s.sendto(data, addr)
+PY
+  ' >/tmp/n0wss-phase23-udp-echo.log 2>&1 &
+  sleep 1
+  ss -lunp | grep ':55123' || true
+"
+```
+
+Bounded remote capture window for the same echo target:
+
+```bash
+ssh root@$N0WSS_SERVER_HOST \
+  "timeout 15 tcpdump -i any -nn udp port 55123 -c 50 -w /tmp/n0wss-phase23-echo-55123.pcap"
+```
+
+Expected readiness evidence:
+
+- one listening UDP socket on `0.0.0.0:55123`
+- one bounded capture file or one explicit zero-packet bounded result for the same probe window
+- no reuse of older echo-target processes
+
+Bounded cleanup after the probe window:
+
+```bash
+ssh root@$N0WSS_SERVER_HOST "
+  pkill -f 'n0wss-phase23-udp-echo' 2>/dev/null || true
+  rm -f /tmp/n0wss-phase23-echo-55123.pcap
+  ss -lunp | grep ':55123' || true
+"
+```
+
+Interpretation boundary:
+
+1. listener proof must exist before the controlled probe starts
+2. zero captured packets is usable evidence only if the capture window itself is confirmed
+3. if the capture window is missing, classify that as an evidence gap rather than as zero remote ingress
+
 Remote server-host bounded capture:
 
 ```bash
