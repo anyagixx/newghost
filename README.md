@@ -147,6 +147,11 @@ Current calls-profile status:
   `scripts/udp_probe.sh` returned `probe_status=association-ok`, `outbound_result=sent`, and `inbound_result=timeout`, while a bounded remote capture on UDP port `55123` saw zero packets
 - bounded root-cause classification after Phase-22:
   Telegram Desktop calls on the tested setup remain outside the proven proxy-governed UDP envelope, and the governed datagram path still lacks a proven inbound round trip
+- Phase-23 now narrows the next diagnostic boundary further:
+  the next wave is not a Telegram UI wave, but a controlled datagram round-trip wave that must separate four layers explicitly:
+  `UDP ASSOCIATE` success, outbound datagram emission, remote echo-target ingress, and inbound reply return
+- this keeps the next blocker classification transport-scoped:
+  if the remote echo target still sees no packet, the unresolved layer remains inside the controlled datagram path; if remote ingress appears but the probe still times out, the unresolved layer moves to inbound return rather than back to Telegram UI
 - external filtering is still not the first unresolved layer; the next phase should isolate datagram round-trip behavior and app-specific media handoff before any network-workaround phase is approved
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
 

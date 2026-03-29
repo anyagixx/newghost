@@ -558,6 +558,22 @@ Next architecture direction after Phase-22:
 - provider or regulator workaround work is not yet justified as the next phase, because the controlled datagram round-trip boundary is still unresolved
 - keep app-behavior evidence, controlled datagram evidence, and remote-media evidence as separate packets
 
+### Phase-23 Datagram Round-Trip Hypothesis Set
+
+After Phase-22 the next allowed hypothesis set is bounded as follows:
+
+1. `UDP ASSOCIATE` ingress is no longer the leading blocker and must stay treated as already proven.
+2. Controlled datagram diagnosis must now separate outbound send from remote echo-target ingress; `outbound_result=sent` alone is not end-to-end proof.
+3. If remote echo-target ingress is eventually proven, the next unresolved layer becomes inbound reply return through the governed datagram path.
+4. Telegram Desktop UI symptoms and external filtering remain downstream interpretations only after the controlled round-trip packet names its first unresolved datagram layer.
+
+Operator boundary for Phase-23:
+
+- do not run a new Telegram call attempt as the first step of this phase
+- first prove the bounded echo-target lifecycle and one controlled datagram probe window
+- keep local probe output, local runtime markers, and remote capture in one bounded correlation packet
+- do not treat a missing remote pcap as equivalent to zero ingress unless the capture window itself is already proven
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.
