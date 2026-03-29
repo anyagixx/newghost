@@ -1575,7 +1575,7 @@
       </annotations>
     </M-PHASE24-SUPERSEDE>
 
-    <M-DATAGRAM-RELAY-STATE NAME="DatagramRelayState" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-RELAY-STATE NAME="DatagramRelayState" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Retain server-side association context so inbound UDP replies can be mapped back to the correct governed datagram association.</purpose>
       <path>src/proxy_bridge/udp_relay.rs</path>
       <depends>M-UDP-RELAY-OUTBOUND-REPAIR, M-UDP-ASSOCIATION-REGISTRY, M-DATAGRAM-SESSION-MANAGER</depends>
