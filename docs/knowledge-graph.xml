@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.21">
+  <Project NAME="n0wss" VERSION="0.2.22">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1475,6 +1475,86 @@
       </annotations>
     </M-DATAGRAM-REPAIR-DECISION>
 
+    <M-DATAGRAM-RUNTIME-HYPOTHESIS NAME="DatagramRuntimeHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the bounded runtime-glue blocker so the next wave targets missing live callers instead of reopening already-repaired helper-level work.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-DATAGRAM-REPAIR-DECISION, M-DATAGRAM-BLOCKING-BOUNDARY</depends>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeDatagramRuntimeHypothesis PURPOSE="Freeze the bounded runtime-glue hypothesis after the stopped Phase-24 wave." />
+      </annotations>
+    </M-DATAGRAM-RUNTIME-HYPOTHESIS>
+
+    <M-SOCKS5-UDP-RUNTIME-LOOP NAME="Socks5UdpRuntimeLoop" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Add the live local UDP receive loop after UDP ASSOCIATE so governed relay packets enter the repaired manager handoff path.</purpose>
+      <path>src/socks5/mod.rs</path>
+      <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR, M-SOCKS5</depends>
+      <verification-ref>V-M-SOCKS5-UDP-RUNTIME-LOOP</verification-ref>
+      <annotations>
+        <fn-runSocks5UdpRuntimeLoop PURPOSE="Run the live UDP relay receive loop after SOCKS5 UDP ASSOCIATE succeeds." />
+      </annotations>
+    </M-SOCKS5-UDP-RUNTIME-LOOP>
+
+    <M-WSS-DATAGRAM-RUNTIME-CARRIER NAME="WssDatagramRuntimeCarrier" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Implement the production WSS datagram carrier over the live websocket runtime.</purpose>
+      <path>src/wss_gateway/mod.rs</path>
+      <depends>M-WSS-DATAGRAM-GATEWAY, M-WSS-DATAGRAM-EMIT-REPAIR, M-DATAGRAM-TRANSPORT-SELECTOR</depends>
+      <verification-ref>V-M-WSS-DATAGRAM-RUNTIME-CARRIER</verification-ref>
+      <annotations>
+        <fn-runWssDatagramRuntimeCarrier PURPOSE="Emit and receive governed datagram frames through the real WSS runtime." />
+      </annotations>
+    </M-WSS-DATAGRAM-RUNTIME-CARRIER>
+
+    <M-DATAGRAM-RUNTIME-BRIDGE NAME="DatagramRuntimeBridge" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Bind the live local UDP runtime loop, manager handoff, and production carrier emit path into one bounded runtime bridge.</purpose>
+      <path>src/session/datagram_manager.rs</path>
+      <depends>M-SOCKS5-UDP-RUNTIME-LOOP, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR, M-WSS-DATAGRAM-RUNTIME-CARRIER</depends>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-BRIDGE</verification-ref>
+      <annotations>
+        <fn-bridgeRuntimeDatagramPath PURPOSE="Bridge live local UDP ingress into the production datagram carrier path." />
+      </annotations>
+    </M-DATAGRAM-RUNTIME-BRIDGE>
+
+    <M-SERVER-DATAGRAM-INGRESS NAME="ServerDatagramIngress" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Add the server-side runtime receive path for WSS datagram frames and invoke relay outbound handling.</purpose>
+      <path>src/wss_gateway/mod.rs</path>
+      <depends>M-WSS-DATAGRAM-RUNTIME-CARRIER, M-UDP-RELAY-OUTBOUND-REPAIR, M-WSS-GATEWAY</depends>
+      <verification-ref>V-M-SERVER-DATAGRAM-INGRESS</verification-ref>
+      <annotations>
+        <fn-runServerDatagramIngress PURPOSE="Receive governed datagram frames on the server runtime and invoke relay outbound handling." />
+      </annotations>
+    </M-SERVER-DATAGRAM-INGRESS>
+
+    <M-DATAGRAM-RUNTIME-RERUN NAME="DatagramRuntimeRerun" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Replay the controlled datagram probe through the full live runtime glue path after wiring is complete.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DATAGRAM-RUNTIME-BRIDGE, M-SERVER-DATAGRAM-INGRESS, M-DATAGRAM-ECHO-TARGET</depends>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-RERUN</verification-ref>
+      <annotations>
+        <fn-rerunDatagramRuntimeProbe PURPOSE="Replay one bounded datagram probe through the real runtime glue path." />
+      </annotations>
+    </M-DATAGRAM-RUNTIME-RERUN>
+
+    <M-DATAGRAM-RUNTIME-EVIDENCE NAME="DatagramRuntimeEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the bounded post-runtime-glue packet and compare it against the earlier datagram boundaries.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-DATAGRAM-RUNTIME-RERUN, M-DATAGRAM-REPAIR-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleDatagramRuntimeEvidence PURPOSE="Assemble the bounded runtime-glue comparison packet." />
+      </annotations>
+    </M-DATAGRAM-RUNTIME-EVIDENCE>
+
+    <M-DATAGRAM-RUNTIME-DECISION NAME="DatagramRuntimeDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded post-runtime-glue decision about whether Telegram-specific verification is finally justified.</purpose>
+      <path>README.md</path>
+      <depends>M-DATAGRAM-RUNTIME-EVIDENCE</depends>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-DECISION</verification-ref>
+      <annotations>
+        <fn-issueDatagramRuntimeDecision PURPOSE="Issue the bounded decision after the runtime-glue comparison packet." />
+      </annotations>
+    </M-DATAGRAM-RUNTIME-DECISION>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -1722,6 +1802,21 @@
     <CrossLink from="M-DATAGRAM-ROUNDTRIP-RERUN" to="M-DATAGRAM-REPAIR-EVIDENCE" relation="supplies the post-repair probe packet for comparison against Phase-23" />
     <CrossLink from="M-DATAGRAM-CAPTURE-CORRELATION" to="M-DATAGRAM-REPAIR-EVIDENCE" relation="supplies the pre-fix Phase-23 baseline used for bounded comparison" />
     <CrossLink from="M-DATAGRAM-REPAIR-EVIDENCE" to="M-DATAGRAM-REPAIR-DECISION" relation="supplies the bounded pre-fix versus post-fix comparison packet for the final repair decision" />
+    <CrossLink from="M-DATAGRAM-REPAIR-DECISION" to="M-DATAGRAM-RUNTIME-HYPOTHESIS" relation="supplies the stopped Phase-24 decision that freezes missing runtime callers as the next blocker" />
+    <CrossLink from="M-DATAGRAM-BLOCKING-BOUNDARY" to="M-DATAGRAM-RUNTIME-HYPOTHESIS" relation="preserves the earlier datagram boundary while the runtime-glue phase narrows to live callers" />
+    <CrossLink from="M-SOCKS5-UDP-ASSOCIATE" to="M-SOCKS5-UDP-RUNTIME-LOOP" relation="supplies the governed relay socket and normalization rules reused by the live UDP receive loop" />
+    <CrossLink from="M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR" to="M-SOCKS5-UDP-RUNTIME-LOOP" relation="supplies the repaired manager handoff that the live UDP loop must call" />
+    <CrossLink from="M-WSS-DATAGRAM-EMIT-REPAIR" to="M-WSS-DATAGRAM-RUNTIME-CARRIER" relation="supplies the repaired emit surface that now needs a production runtime implementation" />
+    <CrossLink from="M-DATAGRAM-TRANSPORT-SELECTOR" to="M-WSS-DATAGRAM-RUNTIME-CARRIER" relation="provides the bounded carrier contract that the production runtime must satisfy" />
+    <CrossLink from="M-SOCKS5-UDP-RUNTIME-LOOP" to="M-DATAGRAM-RUNTIME-BRIDGE" relation="supplies the live local ingress loop that now enters the repaired runtime bridge" />
+    <CrossLink from="M-WSS-DATAGRAM-RUNTIME-CARRIER" to="M-DATAGRAM-RUNTIME-BRIDGE" relation="supplies the production carrier used by the live datagram runtime bridge" />
+    <CrossLink from="M-WSS-DATAGRAM-RUNTIME-CARRIER" to="M-SERVER-DATAGRAM-INGRESS" relation="supplies the server-side datagram receive surface over the real websocket runtime" />
+    <CrossLink from="M-UDP-RELAY-OUTBOUND-REPAIR" to="M-SERVER-DATAGRAM-INGRESS" relation="provides the repaired relay outbound helper used after server-side datagram decode" />
+    <CrossLink from="M-DATAGRAM-RUNTIME-BRIDGE" to="M-DATAGRAM-RUNTIME-RERUN" relation="supplies the live client-side runtime path exercised by the post-glue controlled probe" />
+    <CrossLink from="M-SERVER-DATAGRAM-INGRESS" to="M-DATAGRAM-RUNTIME-RERUN" relation="supplies the live server-side path exercised by the post-glue controlled probe" />
+    <CrossLink from="M-DATAGRAM-RUNTIME-RERUN" to="M-DATAGRAM-RUNTIME-EVIDENCE" relation="supplies the bounded post-glue probe packet used for runtime comparison" />
+    <CrossLink from="M-DATAGRAM-REPAIR-EVIDENCE" to="M-DATAGRAM-RUNTIME-EVIDENCE" relation="supplies the stopped Phase-24 packet used as the immediate baseline for runtime comparison" />
+    <CrossLink from="M-DATAGRAM-RUNTIME-EVIDENCE" to="M-DATAGRAM-RUNTIME-DECISION" relation="supplies the bounded runtime-glue comparison packet for the final decision" />
 
   </Project>
 </KnowledgeGraph>

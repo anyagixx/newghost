@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.21">
+<DevelopmentPlan VERSION="0.2.22">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -4048,6 +4048,197 @@
       </observability>
       <verification-ref>V-M-DATAGRAM-REPAIR-DECISION</verification-ref>
     </M-DATAGRAM-REPAIR-DECISION>
+
+    <M-DATAGRAM-RUNTIME-HYPOTHESIS NAME="DatagramRuntimeHypothesis" TYPE="UTILITY" LAYER="28" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the bounded runtime-glue blocker after the stopped Phase-24 wave so the next phase targets missing live wiring instead of reopening transport diagnosis already completed by helper-level repairs.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-24 stop packet that names missing runtime callers as the first unresolved layer.</input-1>
+          <input-2>The existing datagram repair decision and earlier Phase-23 boundary packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded runtime-glue hypothesis set that keeps the next phase focused on live callers and production datagram carrier wiring.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-REPAIR-DECISION, M-DATAGRAM-BLOCKING-BOUNDARY</depends>
+      <observability>
+        <log-prefix>[DatagramRuntimeHypothesis]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_RUNTIME_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-HYPOTHESIS</verification-ref>
+    </M-DATAGRAM-RUNTIME-HYPOTHESIS>
+
+    <M-SOCKS5-UDP-RUNTIME-LOOP NAME="Socks5UdpRuntimeLoop" TYPE="ENTRY_POINT" LAYER="28" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Add the live local UDP receive loop after `UDP ASSOCIATE` so governed relay sockets can feed normalized packets into the repaired manager-side handoff path.</purpose>
+        <inputs>
+          <input-1>The governed relay socket returned by live `UDP ASSOCIATE` negotiation.</input-1>
+          <input-2>The repaired outbound manager handoff surface.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded live ingress loop that reads relay packets, normalizes them, and forwards them to the manager-owned datagram path.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/socks5/mod.rs</file-1>
+        <file-2>src/socks5/udp_associate.rs</file-2>
+        <file-3>src/socks5/mod.test.rs</file-3>
+      </target-files>
+      <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR, M-SOCKS5</depends>
+      <observability>
+        <log-prefix>[Socks5UdpRuntimeLoop]</log-prefix>
+        <critical-block>BLOCK_SOCKS5_UDP_RUNTIME_LOOP</critical-block>
+      </observability>
+      <verification-ref>V-M-SOCKS5-UDP-RUNTIME-LOOP</verification-ref>
+    </M-SOCKS5-UDP-RUNTIME-LOOP>
+
+    <M-WSS-DATAGRAM-RUNTIME-CARRIER NAME="WssDatagramRuntimeCarrier" TYPE="INTEGRATION" LAYER="28" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Implement the production WSS datagram carrier so repaired datagram helpers can emit through the real websocket runtime instead of only mocks or isolated helper surfaces.</purpose>
+        <inputs>
+          <input-1>The existing WSS gateway runtime and bounded datagram framing helpers.</input-1>
+          <input-2>The repaired selector-side emit surface.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A production `WssDatagramPath` implementation over the live WSS runtime.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/wss_gateway/mod.rs</file-1>
+        <file-2>src/wss_gateway/datagram.rs</file-2>
+        <file-3>src/wss_gateway/mod.test.rs</file-3>
+      </target-files>
+      <depends>M-WSS-DATAGRAM-GATEWAY, M-WSS-DATAGRAM-EMIT-REPAIR, M-DATAGRAM-TRANSPORT-SELECTOR</depends>
+      <observability>
+        <log-prefix>[WssDatagramRuntimeCarrier]</log-prefix>
+        <critical-block>BLOCK_WSS_DATAGRAM_RUNTIME_CARRIER</critical-block>
+      </observability>
+      <verification-ref>V-M-WSS-DATAGRAM-RUNTIME-CARRIER</verification-ref>
+    </M-WSS-DATAGRAM-RUNTIME-CARRIER>
+
+    <M-DATAGRAM-RUNTIME-BRIDGE NAME="DatagramRuntimeBridge" TYPE="CORE_LOGIC" LAYER="28" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Bind the local UDP runtime loop, manager-owned outbound handoff, and production carrier emit path into one bounded live dispatch trajectory.</purpose>
+        <inputs>
+          <input-1>The live local UDP runtime loop.</input-1>
+          <input-2>The repaired manager handoff and production WSS carrier surfaces.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded live datagram runtime bridge that advances packets from local ingress to carrier emission.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/session/datagram_manager.rs</file-1>
+        <file-2>src/session/mod.rs</file-2>
+        <file-3>src/session/datagram_manager.test.rs</file-3>
+      </target-files>
+      <depends>M-SOCKS5-UDP-RUNTIME-LOOP, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR, M-WSS-DATAGRAM-RUNTIME-CARRIER</depends>
+      <observability>
+        <log-prefix>[DatagramRuntimeBridge]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_RUNTIME_BRIDGE</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-BRIDGE</verification-ref>
+    </M-DATAGRAM-RUNTIME-BRIDGE>
+
+    <M-SERVER-DATAGRAM-INGRESS NAME="ServerDatagramIngress" TYPE="INTEGRATION" LAYER="28" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Add the server-side receive path for WSS datagram frames and invoke the repaired outbound UDP relay helper on the remote runtime.</purpose>
+        <inputs>
+          <input-1>The production WSS datagram carrier.</input-1>
+          <input-2>The repaired server-side outbound relay surface.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded server-side datagram ingress path that decodes runtime frames and reaches relay outbound handling.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/wss_gateway/mod.rs</file-1>
+        <file-2>src/proxy_bridge/udp_relay.rs</file-2>
+        <file-3>src/wss_gateway/mod.test.rs</file-3>
+      </target-files>
+      <depends>M-WSS-DATAGRAM-RUNTIME-CARRIER, M-UDP-RELAY-OUTBOUND-REPAIR, M-WSS-GATEWAY</depends>
+      <observability>
+        <log-prefix>[ServerDatagramIngress]</log-prefix>
+        <critical-block>BLOCK_SERVER_DATAGRAM_INGRESS</critical-block>
+      </observability>
+      <verification-ref>V-M-SERVER-DATAGRAM-INGRESS</verification-ref>
+    </M-SERVER-DATAGRAM-INGRESS>
+
+    <M-DATAGRAM-RUNTIME-RERUN NAME="DatagramRuntimeRerun" TYPE="ENTRY_POINT" LAYER="28" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Replay one controlled datagram probe through the full live runtime glue path after wiring is complete and classify the new deepest proven layer.</purpose>
+        <inputs>
+          <input-1>The live client-side runtime bridge.</input-1>
+          <input-2>The server-side datagram ingress path and bounded echo-target lifecycle.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded runtime-glue probe packet showing whether remote ingress or inbound reply is finally proven.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>scripts/udp_probe.sh</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-RUNTIME-BRIDGE, M-SERVER-DATAGRAM-INGRESS, M-DATAGRAM-ECHO-TARGET</depends>
+      <observability>
+        <log-prefix>[DatagramRuntimeRerun]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_RUNTIME_RERUN</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-RERUN</verification-ref>
+    </M-DATAGRAM-RUNTIME-RERUN>
+
+    <M-DATAGRAM-RUNTIME-EVIDENCE NAME="DatagramRuntimeEvidence" TYPE="UTILITY" LAYER="28" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble the post-runtime-glue packet and compare it against both the Phase-23 boundary and the stopped Phase-24 repair packet.</purpose>
+        <inputs>
+          <input-1>The bounded runtime rerun packet.</input-1>
+          <input-2>The earlier Phase-23 and Phase-24 bounded packets.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded comparison packet that states exactly which runtime layer moved after live wiring.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-RUNTIME-RERUN, M-DATAGRAM-REPAIR-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[DatagramRuntimeEvidence]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_RUNTIME_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-EVIDENCE</verification-ref>
+    </M-DATAGRAM-RUNTIME-EVIDENCE>
+
+    <M-DATAGRAM-RUNTIME-DECISION NAME="DatagramRuntimeDecision" TYPE="ENTRY_POINT" LAYER="28" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded post-runtime-glue decision on whether the project can safely return to a Telegram-specific calls wave.</purpose>
+        <inputs>
+          <input-1>The bounded datagram runtime evidence packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded decision stating whether Telegram-specific verification is justified or the blocker remains inside datagram runtime glue.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-RUNTIME-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[DatagramRuntimeDecision]</log-prefix>
+        <critical-block>BLOCK_DATAGRAM_RUNTIME_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-DATAGRAM-RUNTIME-DECISION</verification-ref>
+    </M-DATAGRAM-RUNTIME-DECISION>
   </Modules>
 
   <DataFlow>
@@ -4449,6 +4640,33 @@
       <step-3>DatagramRepairDecision decides whether the datagram path is ready for a Telegram-specific rerun or remains transport-side blocked.</step-3>
       <evidence>Post-repair probe packet, bounded pre/post comparison packet, and bounded repair decision.</evidence>
     </DF-DATAGRAM-REPAIR-RERUN>
+
+    <DF-SOCKS5-UDP-RUNTIME-INGRESS NAME="SOCKS5 UDP runtime ingress" TRIGGER="A governed UDP relay socket receives a live datagram after SOCKS5 UDP ASSOCIATE succeeds.">
+      <step-1>The live SOCKS5 UDP runtime loop reads the governed relay socket and preserves the owning relay context.</step-1>
+      <step-2>The packet is normalized into the shared datagram contract under the existing source-validation rules.</step-2>
+      <step-3>The normalized packet is forwarded into the repaired manager-owned outbound handoff.</step-3>
+      <evidence>Live UDP runtime receive anchor, bounded packet normalization evidence, and manager-side handoff evidence for the same packet.</evidence>
+    </DF-SOCKS5-UDP-RUNTIME-INGRESS>
+
+    <DF-DATAGRAM-RUNTIME-EMIT NAME="Datagram runtime emission" TRIGGER="The live datagram manager hands one outbound packet to the production datagram carrier.">
+      <step-1>The live runtime bridge resolves the manager-owned datagram packet.</step-1>
+      <step-2>The production WSS datagram carrier emits one bounded binary datagram frame through the authenticated websocket runtime.</step-2>
+      <step-3>The packet reaches the server-side websocket datagram receive surface.</step-3>
+      <evidence>Manager-side live handoff evidence, production carrier emission evidence, and server-side datagram receive evidence.</evidence>
+    </DF-DATAGRAM-RUNTIME-EMIT>
+
+    <DF-SERVER-DATAGRAM-RUNTIME NAME="Server datagram runtime ingress" TRIGGER="A WSS datagram frame arrives on the server-side runtime path.">
+      <step-1>The server runtime decodes the governed datagram frame and preserves its association metadata.</step-1>
+      <step-2>The decoded packet is passed to the repaired UDP relay outbound surface.</step-2>
+      <step-3>Remote echo-target ingress or its absence is captured in the same bounded probe window.</step-3>
+      <evidence>Server-side datagram receive anchor, relay outbound evidence, and bounded remote ingress capture.</evidence>
+    </DF-SERVER-DATAGRAM-RUNTIME>
+
+    <DF-DATAGRAM-RUNTIME-DECISION NAME="Datagram runtime-glue decision" TRIGGER="A post-glue controlled probe packet is available for bounded comparison.">
+      <step-1>DatagramRuntimeEvidence compares the new live packet against the earlier Phase-23 and Phase-24 packets.</step-1>
+      <step-2>DatagramRuntimeDecision states whether runtime glue moved the deepest proven datagram layer far enough for a Telegram-specific rerun.</step-2>
+      <evidence>Bounded runtime comparison packet and bounded next-step decision anchored to the live runtime packet.</evidence>
+    </DF-DATAGRAM-RUNTIME-DECISION>
   </DataFlow>
 
   <ImplementationOrder>
@@ -4678,6 +4896,17 @@
       <step-7 module="M-DATAGRAM-REPAIR-EVIDENCE" status="pending" verification="V-M-DATAGRAM-REPAIR-EVIDENCE">Assemble the pre-fix versus post-fix datagram comparison packet</step-7>
       <step-8 module="M-DATAGRAM-REPAIR-DECISION" status="pending" verification="V-M-DATAGRAM-REPAIR-DECISION">Issue the bounded post-repair decision on whether a new Telegram-specific wave is justified</step-8>
     </Phase-24>
+    <Phase-25 name="Datagram Runtime Glue" status="pending">
+      <goal>Wire the repaired datagram helpers into the real runtime so controlled probes can traverse the live client and server path before any Telegram-specific rerun is approved.</goal>
+      <step-1 module="M-DATAGRAM-RUNTIME-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-RUNTIME-HYPOTHESIS">Freeze the bounded runtime-glue blocker after the stopped Phase-24 wave</step-1>
+      <step-2 module="M-SOCKS5-UDP-RUNTIME-LOOP" status="pending" verification="V-M-SOCKS5-UDP-RUNTIME-LOOP">Add the live local UDP receive loop after SOCKS5 UDP ASSOCIATE</step-2>
+      <step-3 module="M-WSS-DATAGRAM-RUNTIME-CARRIER" status="pending" verification="V-M-WSS-DATAGRAM-RUNTIME-CARRIER">Implement the production WSS datagram carrier instead of mock-only emit surfaces</step-3>
+      <step-4 module="M-DATAGRAM-RUNTIME-BRIDGE" status="pending" verification="V-M-DATAGRAM-RUNTIME-BRIDGE">Bind the live local UDP loop, manager handoff, and production carrier emit path</step-4>
+      <step-5 module="M-SERVER-DATAGRAM-INGRESS" status="pending" verification="V-M-SERVER-DATAGRAM-INGRESS">Add the server-side runtime receive path and relay invocation for datagram frames</step-5>
+      <step-6 module="M-DATAGRAM-RUNTIME-RERUN" status="pending" verification="V-M-DATAGRAM-RUNTIME-RERUN">Replay one controlled probe through the full live runtime glue path</step-6>
+      <step-7 module="M-DATAGRAM-RUNTIME-EVIDENCE" status="pending" verification="V-M-DATAGRAM-RUNTIME-EVIDENCE">Assemble the bounded post-runtime-glue comparison packet</step-7>
+      <step-8 module="M-DATAGRAM-RUNTIME-DECISION" status="pending" verification="V-M-DATAGRAM-RUNTIME-DECISION">Issue the bounded decision on whether a Telegram-specific calls wave is now justified</step-8>
+    </Phase-25>
   </ImplementationOrder>
 
   <ExecutionPolicy>
