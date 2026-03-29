@@ -1485,7 +1485,7 @@
       </annotations>
     </M-DATAGRAM-RUNTIME-HYPOTHESIS>
 
-    <M-SOCKS5-UDP-RUNTIME-LOOP NAME="Socks5UdpRuntimeLoop" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-SOCKS5-UDP-RUNTIME-LOOP NAME="Socks5UdpRuntimeLoop" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Add the live local UDP receive loop after UDP ASSOCIATE so governed relay packets enter the repaired manager handoff path.</purpose>
       <path>src/socks5/mod.rs</path>
       <depends>M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR, M-SOCKS5</depends>
