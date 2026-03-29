@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.5
+// VERSION: 0.1.6
 // START_MODULE_CONTRACT
 //   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, and governed datagram framing under the shared adapter contract without owning transport selection logic.
 //   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
@@ -16,11 +16,12 @@
 //   task_tracker - expose adapter-scoped task tracking
 //   stop_accept - stop the accept loop during shutdown
 //   open_datagram_path - establish one production datagram-ready websocket session
+//   receive_server_datagram_reply - read one inbound UDP reply on the server runtime and normalize it into a governed datagram envelope
 //   datagram - governed WSS datagram frame helpers kept separate from the stream path
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.5 - Added server-side datagram runtime demux so real WSS datagram frames reach the repaired UDP relay path instead of collapsing back into stream-only handling.
+//   LAST_CHANGE: v0.1.6 - Added a bounded server-side inbound-receive helper so Phase-26 can prove reply reception separately from later WSS return delivery.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -41,7 +42,9 @@ use tracing::{info, warn};
 
 use crate::auth::{AuthDecision, AuthPolicy, HandshakeMetadata};
 use crate::obs::ProxyMetricsHandle;
-use crate::proxy_bridge::udp_relay::relay_outbound_datagram;
+use crate::proxy_bridge::udp_relay::{
+    relay_inbound_datagram, relay_outbound_datagram, UdpRelayRecord,
+};
 use crate::session::WssDatagramPath;
 use crate::tls::TlsContextHandle;
 use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
@@ -443,6 +446,24 @@ impl WssGateway {
                 "unexpected datagram ack: {other:?}"
             ))),
         }
+    }
+
+    #[cfg_attr(not(test), allow(dead_code))]
+    async fn receive_server_datagram_reply(
+        &self,
+        relay: &UdpRelayRecord,
+    ) -> Result<DatagramEnvelope, WssError> {
+        let inbound = relay_inbound_datagram(relay)
+            .await
+            .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+        info!(
+            association_id = inbound.association_id,
+            relay_client_addr = %inbound.relay_client_addr,
+            target = ?inbound.target,
+            payload_len = inbound.payload.len(),
+            "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_INBOUND_RECEIVED] received governed inbound UDP reply"
+        );
+        Ok(inbound)
     }
 
     fn spawn_bridge_tasks<S>(

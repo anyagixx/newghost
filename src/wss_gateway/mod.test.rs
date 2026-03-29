@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, cancellation handling, and adapter cleanup guarantees.
 //   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
@@ -12,13 +12,14 @@
 //   datagram_open_path_uses_runtime_handshake - proves the production datagram carrier performs auth plus datagram-ready handshake over the real websocket runtime
 //   datagram_emit_sends_binary_frame_after_runtime_handshake - proves the production datagram carrier emits a governed binary datagram frame after the runtime handshake
 //   server_runtime_relays_datagram_to_udp_target - proves the real server runtime demuxes DATAGRAM OPEN and relays the emitted datagram to a real UDP target
+//   server_runtime_receives_inbound_udp_reply - proves the bounded server-side inbound helper normalizes one reply after relay outbound
 //   cancel_before_open_returns_err_and_spawns_no_tasks - proves pre-open cancellation leaves no tracked tasks behind
 //   cancel_during_open_returns_err_and_socket_closes - proves mid-open cancellation closes the socket and surfaces cancellation
 //   failed_open_does_not_leak_tracked_tasks - proves failed opens do not leak adapter tasks
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added a real run_server datagram-ingress test so runtime glue now proves server-side relay invocation instead of only mock or handshake-only coverage.
+//   LAST_CHANGE: v0.1.3 - Added bounded server-side inbound-receive coverage so Phase-26 can prove reply reception separately from later WSS return delivery.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -37,6 +38,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::auth::{AuthPolicy, AuthPolicyConfig};
 use crate::obs::{init_observability, ObservabilityConfig};
+use crate::proxy_bridge::udp_relay::relay_outbound_datagram;
 use crate::session::WssDatagramPath;
 use crate::tls::{TlsConfig, TlsContextHandle};
 use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
@@ -305,6 +307,51 @@ async fn server_runtime_relays_datagram_to_udp_target() {
     client_gateway.stop_accept();
     server_gateway.stop_accept();
     assert!(server_task.await.expect("server task should join").is_ok());
+}
+
+#[tokio::test]
+async fn server_runtime_receives_inbound_udp_reply() {
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    drop(listener);
+    let gateway = build_gateway(server_addr, tls, "token-12345");
+
+    let remote = UdpSocket::bind("127.0.0.1:0")
+        .await
+        .expect("remote udp target should bind");
+    let remote_addr = remote.local_addr().expect("remote addr should resolve");
+    let outbound = DatagramEnvelope {
+        association_id: 88,
+        relay_client_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 19200),
+        target: DatagramTarget::Ip(remote_addr),
+        payload: b"phase26-runtime-server".to_vec(),
+    };
+
+    let relay = relay_outbound_datagram(&outbound)
+        .await
+        .expect("relay outbound should succeed");
+    let mut buffer = [0_u8; 128];
+    let (_bytes_read, relay_source) = remote
+        .recv_from(&mut buffer)
+        .await
+        .expect("remote should observe outbound datagram");
+    remote
+        .send_to(b"phase26-runtime-reply", relay_source)
+        .await
+        .expect("remote should send inbound reply");
+
+    let inbound = gateway
+        .receive_server_datagram_reply(&relay)
+        .await
+        .expect("server inbound helper should normalize reply");
+
+    assert_eq!(inbound.association_id, outbound.association_id);
+    assert_eq!(inbound.relay_client_addr, outbound.relay_client_addr);
+    assert_eq!(inbound.target, outbound.target);
+    assert_eq!(inbound.payload, b"phase26-runtime-reply".to_vec());
 }
 
 #[tokio::test]
