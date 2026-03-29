@@ -3780,7 +3780,7 @@
       <verification-ref>V-M-DATAGRAM-INBOUND-TRACE</verification-ref>
     </M-DATAGRAM-INBOUND-TRACE>
 
-    <M-DATAGRAM-CAPTURE-CORRELATION NAME="DatagramCaptureCorrelation" TYPE="INTEGRATION" LAYER="26" ORDER="5" STATUS="planned">
+    <M-DATAGRAM-CAPTURE-CORRELATION NAME="DatagramCaptureCorrelation" TYPE="INTEGRATION" LAYER="26" ORDER="5" STATUS="done">
       <contract>
         <purpose>Correlate probe stdout, local runtime markers, and remote capture into one bounded controlled datagram packet.</purpose>
         <inputs>
@@ -3800,6 +3800,7 @@
         <log-prefix>[DatagramCaptureCorrelation]</log-prefix>
         <critical-block>BLOCK_DATAGRAM_CAPTURE_CORRELATION</critical-block>
       </observability>
+      <note-1>The current bounded correlation packet now joins one controlled probe result, local UDP ASSOCIATE runtime evidence, and one remote zero-packet echo-target capture window under the same attempt, keeping the first unresolved layer before proven remote ingress or inbound reply.</note-1>
       <verification-ref>V-M-DATAGRAM-CAPTURE-CORRELATION</verification-ref>
     </M-DATAGRAM-CAPTURE-CORRELATION>
 
@@ -4436,7 +4437,7 @@
       <step-2 module="M-DATAGRAM-ECHO-TARGET" status="done" verification="V-M-DATAGRAM-ECHO-TARGET">Prepare a bounded remote UDP echo target with explicit startup, capture window, and cleanup</step-2>
       <step-3 module="M-DATAGRAM-OUTBOUND-TRACE" status="done" verification="V-M-DATAGRAM-OUTBOUND-TRACE">Trace the controlled outbound datagram path from local UDP ASSOCIATE to remote echo-target ingress</step-3>
       <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="done" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
-      <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="pending" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
+      <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="done" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
       <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="pending" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>
       <step-7 module="M-DATAGRAM-NEXT-STEP-DECISION" status="pending" verification="V-M-DATAGRAM-NEXT-STEP-DECISION">Issue the bounded next-step decision for the controlled datagram round-trip</step-7>
     </Phase-23>

@@ -1365,7 +1365,7 @@
       </annotations>
     </M-DATAGRAM-INBOUND-TRACE>
 
-    <M-DATAGRAM-CAPTURE-CORRELATION NAME="DatagramCaptureCorrelation" TYPE="INTEGRATION" STATUS="planned">
+    <M-DATAGRAM-CAPTURE-CORRELATION NAME="DatagramCaptureCorrelation" TYPE="INTEGRATION" STATUS="done">
       <purpose>Correlate local probe output, runtime markers, and remote capture into one bounded datagram packet.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-DATAGRAM-OUTBOUND-TRACE, M-DATAGRAM-INBOUND-TRACE, M-CALLS-LIVE-PACKET-CAPTURE</depends>
