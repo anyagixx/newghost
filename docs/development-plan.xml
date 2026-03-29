@@ -3732,7 +3732,7 @@
       <verification-ref>V-M-DATAGRAM-ECHO-TARGET</verification-ref>
     </M-DATAGRAM-ECHO-TARGET>
 
-    <M-DATAGRAM-OUTBOUND-TRACE NAME="DatagramOutboundTrace" TYPE="CORE_LOGIC" LAYER="26" ORDER="3" STATUS="planned">
+    <M-DATAGRAM-OUTBOUND-TRACE NAME="DatagramOutboundTrace" TYPE="CORE_LOGIC" LAYER="26" ORDER="3" STATUS="done">
       <contract>
         <purpose>Trace the controlled outbound datagram trajectory from local UDP ASSOCIATE through WSS datagram carriage to remote echo-target ingress.</purpose>
         <inputs>
@@ -3752,6 +3752,7 @@
         <log-prefix>[DatagramOutboundTrace]</log-prefix>
         <critical-block>BLOCK_DATAGRAM_OUTBOUND_TRACE</critical-block>
       </observability>
+      <note-1>On 2026-03-29 the controlled probe again reached `probe_status=association-ok` and `outbound_result=sent`, while the local runtime emitted `BLOCK_HANDLE_UDP_ASSOCIATE` and allocated a governed relay bind. The bounded remote capture for UDP port 55123 still observed zero packets, so remote echo-target ingress remains unproven.</note-1>
       <verification-ref>V-M-DATAGRAM-OUTBOUND-TRACE</verification-ref>
     </M-DATAGRAM-OUTBOUND-TRACE>
 
@@ -4432,7 +4433,7 @@
       <goal>Isolate the controlled UDP round-trip independently of Telegram UI so outbound reachability, remote target ingress, and inbound reply return can be classified precisely.</goal>
       <step-1 module="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS">Freeze the bounded controlled round-trip hypothesis set after Phase-22</step-1>
       <step-2 module="M-DATAGRAM-ECHO-TARGET" status="done" verification="V-M-DATAGRAM-ECHO-TARGET">Prepare a bounded remote UDP echo target with explicit startup, capture window, and cleanup</step-2>
-      <step-3 module="M-DATAGRAM-OUTBOUND-TRACE" status="pending" verification="V-M-DATAGRAM-OUTBOUND-TRACE">Trace the controlled outbound datagram path from local UDP ASSOCIATE to remote echo-target ingress</step-3>
+      <step-3 module="M-DATAGRAM-OUTBOUND-TRACE" status="done" verification="V-M-DATAGRAM-OUTBOUND-TRACE">Trace the controlled outbound datagram path from local UDP ASSOCIATE to remote echo-target ingress</step-3>
       <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="pending" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
       <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="pending" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
       <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="pending" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>

@@ -1345,7 +1345,7 @@
       </annotations>
     </M-DATAGRAM-ECHO-TARGET>
 
-    <M-DATAGRAM-OUTBOUND-TRACE NAME="DatagramOutboundTrace" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-OUTBOUND-TRACE NAME="DatagramOutboundTrace" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Trace the controlled outbound datagram path from local UDP ASSOCIATE through remote echo-target ingress.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-DATAGRAM-ECHO-TARGET, M-CALLS-LIVE-PACKET-CAPTURE, M-WSS-DATAGRAM-GATEWAY</depends>
