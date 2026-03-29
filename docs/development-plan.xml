@@ -3561,7 +3561,7 @@
       <verification-ref>V-M-CALLS-UDP-PROBE-TOOLING</verification-ref>
     </M-CALLS-UDP-PROBE-TOOLING>
 
-    <M-CALLS-LIVE-PACKET-CAPTURE NAME="CallsLivePacketCapture" TYPE="INTEGRATION" LAYER="25" ORDER="3" STATUS="planned">
+    <M-CALLS-LIVE-PACKET-CAPTURE NAME="CallsLivePacketCapture" TYPE="INTEGRATION" LAYER="25" ORDER="3" STATUS="done">
       <contract>
         <purpose>Add a bounded socket and packet capture surface for workstation and remote-host evidence during Telegram calls attempts.</purpose>
         <inputs>
@@ -3581,6 +3581,7 @@
         <log-prefix>[CallsLivePacketCapture]</log-prefix>
         <critical-block>BLOCK_CALLS_LIVE_PACKET_CAPTURE</critical-block>
       </observability>
+      <note-1>The bounded packet-capture runbook now names loopback, workstation uplink, remote client-host, and remote server-host capture commands plus an ss-based fallback. This keeps workstation and relay evidence separate for the next live classification wave.</note-1>
       <verification-ref>V-M-CALLS-LIVE-PACKET-CAPTURE</verification-ref>
     </M-CALLS-LIVE-PACKET-CAPTURE>
 
@@ -4251,7 +4252,7 @@
       <goal>Isolate whether Telegram calls failure is caused by Telegram Desktop media behavior, a deeper governed datagram-path defect, or plausible external filtering after controlled probes.</goal>
       <step-1 module="M-CALLS-FAILURE-HYPOTHESIS" status="done" verification="V-M-CALLS-FAILURE-HYPOTHESIS">Freeze the bounded post-Phase-21 hypothesis set for Telegram calls failure</step-1>
       <step-2 module="M-CALLS-UDP-PROBE-TOOLING" status="done" verification="V-M-CALLS-UDP-PROBE-TOOLING">Prepare controlled SOCKS5 UDP ASSOCIATE and datagram probe tooling outside Telegram UI</step-2>
-      <step-3 module="M-CALLS-LIVE-PACKET-CAPTURE" status="pending" verification="V-M-CALLS-LIVE-PACKET-CAPTURE">Add bounded workstation and remote packet-capture evidence for live calls attempts</step-3>
+      <step-3 module="M-CALLS-LIVE-PACKET-CAPTURE" status="done" verification="V-M-CALLS-LIVE-PACKET-CAPTURE">Add bounded workstation and remote packet-capture evidence for live calls attempts</step-3>
       <step-4 module="M-CALLS-APP-BEHAVIOR-CLASSIFIER" status="pending" verification="V-M-CALLS-APP-BEHAVIOR-CLASSIFIER">Classify Telegram Desktop media-path behavior on the tested setup</step-4>
       <step-5 module="M-CALLS-REMOTE-MEDIA-PROBE" status="pending" verification="V-M-CALLS-REMOTE-MEDIA-PROBE">Probe remote UDP media reachability independently of Telegram UI</step-5>
       <step-6 module="M-CALLS-BLOCKING-BOUNDARY" status="pending" verification="V-M-CALLS-BLOCKING-BOUNDARY">Classify the remaining calls blocker without prematurely blaming provider or network filtering</step-6>

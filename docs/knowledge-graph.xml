@@ -1275,7 +1275,7 @@
       </annotations>
     </M-CALLS-UDP-PROBE-TOOLING>
 
-    <M-CALLS-LIVE-PACKET-CAPTURE NAME="CallsLivePacketCapture" TYPE="INTEGRATION" STATUS="planned">
+    <M-CALLS-LIVE-PACKET-CAPTURE NAME="CallsLivePacketCapture" TYPE="INTEGRATION" STATUS="done">
       <purpose>Add bounded workstation and remote packet-capture evidence for Telegram calls attempts.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-CALLS-UDP-PROBE-TOOLING, M-OBS, M-LIVE-OBS-EVIDENCE</depends>
