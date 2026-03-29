@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.25">
+<DevelopmentPlan VERSION="0.2.26">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -4645,6 +4645,193 @@
       </observability>
       <verification-ref>V-M-DATAGRAM-SERVER-INBOUND-DECISION</verification-ref>
     </M-DATAGRAM-SERVER-INBOUND-DECISION>
+
+    <M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE NAME="TelegramCallsRoundTripProfile" TYPE="UTILITY" LAYER="31" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the new truth-boundary after Phase-27 so Telegram calls reruns no longer reopen generic datagram transport diagnosis.</purpose>
+        <inputs>
+          <input-1>The completed Phase-27 decision packet.</input-1>
+          <input-2>The existing bounded Telegram calls profile.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-roundtrip Telegram calls profile that keeps transport green and pushes the next wave into app-facing evidence only.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-DATAGRAM-SERVER-INBOUND-DECISION, M-TELEGRAM-CALLS-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsRoundTripProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ROUNDTRIP_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE</verification-ref>
+    </M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE>
+
+    <M-TELEGRAM-CALLS-RERUN-READINESS NAME="TelegramCallsRerunReadiness" TYPE="ENTRY_POINT" LAYER="31" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Prove that the same deployment window still has fresh binaries, active services, local SOCKS5 bind, and a green controlled datagram round-trip before any Telegram rerun begins.</purpose>
+        <inputs>
+          <input-1>The completed Phase-27 deployment and bounded live `reply-received` packet.</input-1>
+          <input-2>The existing calls readiness and operator handoff surfaces.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded readiness packet for the Telegram-specific rerun wave.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-CALLS-SERVICE-READINESS, M-DATAGRAM-SERVER-INBOUND-DECISION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsRerunReadiness]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_RERUN_READINESS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-RERUN-READINESS</verification-ref>
+    </M-TELEGRAM-CALLS-RERUN-READINESS>
+
+    <M-TELEGRAM-CALLS-VOICE-RERUN NAME="TelegramCallsVoiceRerun" TYPE="CORE_LOGIC" LAYER="31" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded Telegram Desktop voice-call wave after the green datagram round-trip baseline and classify whether media now follows the governed path.</purpose>
+        <inputs>
+          <input-1>The bounded post-Phase-27 readiness packet.</input-1>
+          <input-2>The existing Telegram calls verification wave shape.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded voice-call packet separated into signaling and media evidence.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-RERUN-READINESS, M-TELEGRAM-CALLS-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsVoiceRerun]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_VOICE_RERUN</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-VOICE-RERUN</verification-ref>
+    </M-TELEGRAM-CALLS-VOICE-RERUN>
+
+    <M-TELEGRAM-CALLS-VIDEO-RERUN NAME="TelegramCallsVideoRerun" TYPE="CORE_LOGIC" LAYER="31" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded Telegram Desktop video-call wave after the green datagram round-trip baseline without conflating it with the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded voice-call rerun packet.</input-1>
+          <input-2>The existing Telegram calls verification wave shape.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded video-call packet kept separate from the voice result.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-CALLS-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsVideoRerun]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_VIDEO_RERUN</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-VIDEO-RERUN</verification-ref>
+    </M-TELEGRAM-CALLS-VIDEO-RERUN>
+
+    <M-TELEGRAM-CALLS-APP-CLASSIFIER NAME="TelegramCallsAppClassifier" TYPE="CORE_LOGIC" LAYER="31" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Classify the post-Phase-27 Telegram calls outcome as governed media success, direct-media behavior, or signaling-only stall without reopening transport-layer diagnosis.</purpose>
+        <inputs>
+          <input-1>The bounded voice and video rerun packets.</input-1>
+          <input-2>The existing app-behavior classifier from earlier calls waves.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded app-facing classifier packet for the new Telegram calls rerun.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+      </target-files>
+      <depends>M-CALLS-APP-BEHAVIOR-CLASSIFIER, M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-CALLS-VIDEO-RERUN</depends>
+      <observability>
+        <log-prefix>[TelegramCallsAppClassifier]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_APP_CLASSIFIER</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-APP-CLASSIFIER</verification-ref>
+    </M-TELEGRAM-CALLS-APP-CLASSIFIER>
+
+    <M-TELEGRAM-CALLS-RECONNECT-RERUN NAME="TelegramCallsReconnectRerun" TYPE="CORE_LOGIC" LAYER="31" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Replay one fresh second call attempt after the first rerun and classify reconnect behavior on top of the now-green controlled datagram baseline.</purpose>
+        <inputs>
+          <input-1>The bounded voice-call rerun packet.</input-1>
+          <input-2>The existing reconnect-wave lifecycle contract.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded reconnect packet kept separate from the first-call result.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-CALLS-RECONNECT-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsReconnectRerun]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_RECONNECT_RERUN</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-RECONNECT-RERUN</verification-ref>
+    </M-TELEGRAM-CALLS-RECONNECT-RERUN>
+
+    <M-TELEGRAM-CALLS-RERUN-EVIDENCE NAME="TelegramCallsRerunEvidence" TYPE="UTILITY" LAYER="31" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble the bounded readiness, voice, video, reconnect, and comparison packets for the new Telegram-specific rerun wave after Phase-27.</purpose>
+        <inputs>
+          <input-1>The bounded voice, video, and reconnect rerun packets.</input-1>
+          <input-2>The earlier Telegram calls no-go packets from pre-Phase-27 waves.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-roundtrip Telegram calls evidence packet with explicit comparison to earlier no-go waves.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-VIDEO-RERUN, M-TELEGRAM-CALLS-RECONNECT-RERUN</depends>
+      <observability>
+        <log-prefix>[TelegramCallsRerunEvidence]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_RERUN_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-RERUN-EVIDENCE</verification-ref>
+    </M-TELEGRAM-CALLS-RERUN-EVIDENCE>
+
+    <M-TELEGRAM-CALLS-RERUN-DECISION NAME="TelegramCallsRerunDecision" TYPE="ENTRY_POINT" LAYER="31" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded post-Phase-27 Telegram calls decision without widening claims beyond the tested Desktop setup.</purpose>
+        <inputs>
+          <input-1>The bounded Telegram calls rerun evidence packet.</input-1>
+          <input-2>The bounded app-facing classifier packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded decision stating whether Telegram calls are now green, partially green, or still blocked by app-facing behavior beyond the transport layer.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-RERUN-EVIDENCE, M-TELEGRAM-CALLS-APP-CLASSIFIER</depends>
+      <observability>
+        <log-prefix>[TelegramCallsRerunDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_RERUN_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-RERUN-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-RERUN-DECISION>
   </Modules>
 
   <DataFlow>
@@ -5132,6 +5319,36 @@
       <step-3>The decision states whether the new deepest proven layer is server receive, WSS return emit, client delivery, or full reply receipt.</step-3>
       <evidence>A bounded comparison packet and one explicit next-step decision.</evidence>
     </DF-SERVER-INBOUND-COMPARISON>
+
+    <DF-TELEGRAM-CALLS-POST-ROUNDTRIP-READINESS NAME="Telegram calls post-roundtrip readiness" TRIGGER="Phase-27 completed with a bounded `reply-received` packet on the same deployment window.">
+      <step-1>The managed server and client services stay active on the fresh post-Phase-27 binary.</step-1>
+      <step-2>The local SOCKS5 bind and one bounded `phase27-probe` are rechecked before the app-facing rerun.</step-2>
+      <evidence>A bounded readiness packet proving the Telegram rerun starts on the same green controlled datagram baseline.</evidence>
+    </DF-TELEGRAM-CALLS-POST-ROUNDTRIP-READINESS>
+
+    <DF-TELEGRAM-VOICE-POST-ROUNDTRIP NAME="Telegram voice post-roundtrip" TRIGGER="A bounded Telegram Desktop voice-call attempt begins on the same deployment window that already proved `reply-received`.">
+      <step-1>Telegram Desktop performs signaling over the existing SOCKS5 path.</step-1>
+      <step-2>The call packet classifies whether media follows the governed path, stalls at signaling, or diverges into app-specific behavior.</step-2>
+      <evidence>A bounded voice-call packet with separate signaling and media classification.</evidence>
+    </DF-TELEGRAM-VOICE-POST-ROUNDTRIP>
+
+    <DF-TELEGRAM-VIDEO-POST-ROUNDTRIP NAME="Telegram video post-roundtrip" TRIGGER="A bounded Telegram Desktop video-call attempt follows the voice rerun on the same green controlled datagram baseline.">
+      <step-1>The video attempt is captured as a packet separate from the voice result.</step-1>
+      <step-2>The packet classifies whether video matches the voice outcome or diverges at a later app-facing layer.</step-2>
+      <evidence>A bounded video-call packet kept separate from the voice packet.</evidence>
+    </DF-TELEGRAM-VIDEO-POST-ROUNDTRIP>
+
+    <DF-TELEGRAM-RECONNECT-POST-ROUNDTRIP NAME="Telegram reconnect post-roundtrip" TRIGGER="One fresh second call attempt is made after the first bounded rerun packet finishes.">
+      <step-1>The first call ends cleanly enough for a fresh second attempt.</step-1>
+      <step-2>The reconnect packet classifies whether the second attempt reuses or rebuilds the media path deterministically.</step-2>
+      <evidence>A bounded reconnect packet kept separate from the first voice and video packets.</evidence>
+    </DF-TELEGRAM-RECONNECT-POST-ROUNDTRIP>
+
+    <DF-TELEGRAM-CALLS-POST-ROUNDTRIP-DECISION NAME="Telegram calls post-roundtrip decision" TRIGGER="The new voice, video, and reconnect packets are available after Phase-27 transport green evidence.">
+      <step-1>The new packets are compared against the older no-go Telegram calls waves from before Phase-27.</step-1>
+      <step-2>The final decision says whether the tested Telegram Desktop setup is now green, partially green, or still blocked by app-facing behavior.</step-2>
+      <evidence>A bounded calls decision that stays inside the tested Desktop setup and the new controlled transport baseline.</evidence>
+    </DF-TELEGRAM-CALLS-POST-ROUNDTRIP-DECISION>
   </DataFlow>
 
   <ImplementationOrder>
@@ -5406,6 +5623,18 @@
       <note-4>The same live packet is anchored by `/tmp/phase27-echo.log` on ghost-srv, `SERVER_DATAGRAM_INBOUND_RECEIVED` plus `SERVER_DATAGRAM_RETURN_EMITTED` in `/var/log/n0wss-server.log`, and `BLOCK_DELIVER_INBOUND_DATAGRAM` in `/var/log/n0wss-client.log`.</note-4>
       <note-5>The bounded Phase-27 decision is that the controlled datagram round-trip is now green enough to justify a fresh Telegram-specific verification wave, while any public claim remains limited to the tested Desktop setup and this deterministic datagram evidence.</note-5>
     </Phase-27>
+
+    <Phase-28 name="Telegram Calls Verification After Green Datagram Round-Trip" status="pending">
+      <goal>Replay the Telegram calls verification wave on top of the now-green controlled datagram round-trip and classify the remaining app-facing outcome without widening public claims.</goal>
+      <step-1 module="M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE">Freeze the new post-Phase-27 Telegram calls truth-boundary</step-1>
+      <step-2 module="M-TELEGRAM-CALLS-RERUN-READINESS" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-READINESS">Prove fresh readiness and a green controlled datagram round-trip in the same deployment window</step-2>
+      <step-3 module="M-TELEGRAM-CALLS-VOICE-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-VOICE-RERUN">Replay one bounded Telegram Desktop voice-call wave after the green datagram baseline</step-3>
+      <step-4 module="M-TELEGRAM-CALLS-VIDEO-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-VIDEO-RERUN">Replay one bounded Telegram Desktop video-call wave without conflating it with voice</step-4>
+      <step-5 module="M-TELEGRAM-CALLS-APP-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-CALLS-APP-CLASSIFIER">Classify the new Telegram calls outcome as governed media, direct-media behavior, or signaling-only stall</step-5>
+      <step-6 module="M-TELEGRAM-CALLS-RECONNECT-RERUN" status="pending" verification="V-M-TELEGRAM-CALLS-RECONNECT-RERUN">Replay one fresh second call attempt after the first rerun</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-RERUN-EVIDENCE" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-EVIDENCE">Assemble the bounded readiness, voice, video, reconnect, and comparison packets</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-RERUN-DECISION" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-DECISION">Issue the bounded Telegram calls decision after the post-Phase-27 rerun wave</step-8>
+    </Phase-28>
   </ImplementationOrder>
 
   <ExecutionPolicy>

@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.25">
+  <Project NAME="n0wss" VERSION="0.2.26">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1725,6 +1725,86 @@
       </annotations>
     </M-DATAGRAM-SERVER-INBOUND-DECISION>
 
+    <M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE NAME="TelegramCallsRoundTripProfile" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the post-Phase-27 truth-boundary so Telegram calls reruns no longer reopen generic datagram transport diagnosis.</purpose>
+      <path>README.md</path>
+      <depends>M-DATAGRAM-SERVER-INBOUND-DECISION, M-TELEGRAM-CALLS-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTelegramCallsRoundTripProfile PURPOSE="Freeze the post-roundtrip Telegram calls evidence boundary before the next app-facing wave." />
+      </annotations>
+    </M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE>
+
+    <M-TELEGRAM-CALLS-RERUN-READINESS NAME="TelegramCallsRerunReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Prove fresh readiness and a green controlled datagram round-trip in the same deployment window before the Telegram rerun wave starts.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-CALLS-SERVICE-READINESS, M-DATAGRAM-SERVER-INBOUND-DECISION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-RERUN-READINESS</verification-ref>
+      <annotations>
+        <fn-verifyTelegramCallsRerunReadiness PURPOSE="Verify the same live window still has active services, local SOCKS5 bind, and a green controlled probe." />
+      </annotations>
+    </M-TELEGRAM-CALLS-RERUN-READINESS>
+
+    <M-TELEGRAM-CALLS-VOICE-RERUN NAME="TelegramCallsVoiceRerun" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded Telegram Desktop voice-call wave after the green datagram round-trip baseline.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-RERUN-READINESS, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-VOICE-RERUN</verification-ref>
+      <annotations>
+        <fn-rerunTelegramVoiceCall PURPOSE="Run one bounded Telegram Desktop voice-call rerun after transport green evidence." />
+      </annotations>
+    </M-TELEGRAM-CALLS-VOICE-RERUN>
+
+    <M-TELEGRAM-CALLS-VIDEO-RERUN NAME="TelegramCallsVideoRerun" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded Telegram Desktop video-call wave after the green datagram round-trip baseline without conflating it with the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-CALLS-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-VIDEO-RERUN</verification-ref>
+      <annotations>
+        <fn-rerunTelegramVideoCall PURPOSE="Run one bounded Telegram Desktop video-call rerun on the same green transport baseline." />
+      </annotations>
+    </M-TELEGRAM-CALLS-VIDEO-RERUN>
+
+    <M-TELEGRAM-CALLS-APP-CLASSIFIER NAME="TelegramCallsAppClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Classify the new Telegram calls outcome as governed media success, direct-media behavior, or signaling-only stall without reopening transport diagnosis.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALLS-APP-BEHAVIOR-CLASSIFIER, M-TELEGRAM-CALLS-VOICE-RERUN, M-TELEGRAM-CALLS-VIDEO-RERUN</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-APP-CLASSIFIER</verification-ref>
+      <annotations>
+        <fn-classifyTelegramCallsAppOutcome PURPOSE="Classify the post-roundtrip Telegram call outcome as app-facing rather than transport-facing." />
+      </annotations>
+    </M-TELEGRAM-CALLS-APP-CLASSIFIER>
+
+    <M-TELEGRAM-CALLS-RECONNECT-RERUN NAME="TelegramCallsReconnectRerun" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one fresh second Telegram call attempt after the first rerun and keep reconnect evidence separate.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-VOICE-RERUN, M-CALLS-RECONNECT-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-RECONNECT-RERUN</verification-ref>
+      <annotations>
+        <fn-rerunTelegramReconnect PURPOSE="Run one bounded reconnect call attempt after the first post-roundtrip rerun." />
+      </annotations>
+    </M-TELEGRAM-CALLS-RECONNECT-RERUN>
+
+    <M-TELEGRAM-CALLS-RERUN-EVIDENCE NAME="TelegramCallsRerunEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the bounded readiness, voice, video, reconnect, and comparison packets for the Telegram-specific rerun wave after Phase-27.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-VIDEO-RERUN, M-TELEGRAM-CALLS-RECONNECT-RERUN</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-RERUN-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleTelegramCallsRerunEvidence PURPOSE="Assemble the post-roundtrip Telegram calls evidence packet and compare it with earlier no-go waves." />
+      </annotations>
+    </M-TELEGRAM-CALLS-RERUN-EVIDENCE>
+
+    <M-TELEGRAM-CALLS-RERUN-DECISION NAME="TelegramCallsRerunDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded post-Phase-27 Telegram calls decision without widening claims beyond the tested Desktop setup.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-RERUN-EVIDENCE, M-TELEGRAM-CALLS-APP-CLASSIFIER</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-RERUN-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsRerunDecision PURPOSE="Issue the bounded decision for the Telegram calls rerun after transport green evidence." />
+      </annotations>
+    </M-TELEGRAM-CALLS-RERUN-DECISION>
+
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
     <CrossLink from="M-CLI" to="M-OBS" relation="initializes tracing and metrics before runtime services" />
@@ -2011,6 +2091,15 @@
     <CrossLink from="M-WSS-SERVER-RETURN-EMIT" to="M-CLIENT-INBOUND-RETURN-RERUN" relation="supplies the repaired server-side return path exercised by the next bounded probe rerun" />
     <CrossLink from="M-CLIENT-INBOUND-RETURN-RERUN" to="M-DATAGRAM-SERVER-INBOUND-EVIDENCE" relation="supplies the post-repair rerun packet for comparison against the Phase-25 and Phase-26 baselines" />
     <CrossLink from="M-DATAGRAM-SERVER-INBOUND-EVIDENCE" to="M-DATAGRAM-SERVER-INBOUND-DECISION" relation="supplies the bounded comparison packet for the final server-inbound return decision" />
+    <CrossLink from="M-DATAGRAM-SERVER-INBOUND-DECISION" to="M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE" relation="supplies the completed controlled round-trip decision that now freezes transport as green for the next calls wave" />
+    <CrossLink from="M-TELEGRAM-CALLS-ROUNDTRIP-PROFILE" to="M-TELEGRAM-CALLS-RERUN-READINESS" relation="supplies the post-roundtrip calls boundary used to verify the same live deployment window" />
+    <CrossLink from="M-TELEGRAM-CALLS-RERUN-READINESS" to="M-TELEGRAM-CALLS-VOICE-RERUN" relation="supplies the bounded readiness packet required before the voice rerun begins" />
+    <CrossLink from="M-TELEGRAM-CALLS-VOICE-RERUN" to="M-TELEGRAM-CALLS-VIDEO-RERUN" relation="supplies the first app-facing rerun packet that the separate video wave must not silently inherit" />
+    <CrossLink from="M-TELEGRAM-CALLS-VOICE-RERUN" to="M-TELEGRAM-CALLS-RECONNECT-RERUN" relation="supplies the first rerun packet that the fresh second call attempt must remain separate from" />
+    <CrossLink from="M-TELEGRAM-CALLS-VIDEO-RERUN" to="M-TELEGRAM-CALLS-APP-CLASSIFIER" relation="supplies the separate video outcome used to classify the app-facing result without reopening transport" />
+    <CrossLink from="M-TELEGRAM-CALLS-RECONNECT-RERUN" to="M-TELEGRAM-CALLS-RERUN-EVIDENCE" relation="supplies the fresh reconnect packet for comparison against older calls no-go waves" />
+    <CrossLink from="M-TELEGRAM-CALLS-RERUN-EVIDENCE" to="M-TELEGRAM-CALLS-RERUN-DECISION" relation="supplies the bounded post-roundtrip Telegram calls evidence packet for the final decision" />
+    <CrossLink from="M-TELEGRAM-CALLS-APP-CLASSIFIER" to="M-TELEGRAM-CALLS-RERUN-DECISION" relation="supplies the app-facing calls classification used by the final post-roundtrip decision" />
 
   </Project>
 </KnowledgeGraph>
