@@ -1,21 +1,21 @@
 // FILE: src/proxy_bridge/udp_relay.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Open real UDP sockets on the server side, relay outbound datagrams to remote targets, and return inbound packets to the owning association.
-//   SCOPE: Outbound target resolution, UDP socket binding, outbound relay, inbound receive, and foreign-source rejection.
+//   PURPOSE: Open real UDP sockets on the server side, retain bounded association return state, relay outbound datagrams to remote targets, and return inbound packets to the owning association.
+//   SCOPE: Outbound target resolution, UDP socket binding, association-scoped relay-state retention, outbound relay, inbound receive, and foreign-source rejection.
 //   DEPENDS: std, thiserror, tokio, tracing, src/transport/datagram_contract.rs
 //   LINKS: M-UDP-EGRESS-RELAY, V-M-UDP-EGRESS-RELAY, DF-UDP-OUTBOUND, DF-UDP-INBOUND
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   UdpRelayRecord - one active server-side UDP relay socket bound to an owning association, remote peer, and outbound receipt metadata
+//   UdpRelayRecord - one active server-side UDP relay socket bound to an owning association, remote peer, client return metadata, and outbound receipt metadata
 //   UdpRelayError - deterministic outbound or inbound UDP relay failure surface
 //   relay_outbound_datagram - send one governed outbound datagram to the resolved remote UDP target
 //   relay_inbound_datagram - receive one inbound UDP packet and map it back to the owning association
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added bounded outbound receipt metadata so repair waves can separate server-side relay intent from later remote-ingress proof.
+//   LAST_CHANGE: v0.1.2 - Added bounded relay-state return metadata so inbound-reply work can map replies back to the owning client association deterministically.
 // END_CHANGE_SUMMARY
 
 use std::net::SocketAddr;
@@ -34,7 +34,9 @@ pub struct UdpRelayRecord {
     pub association_id: DatagramAssociationId,
     pub relay_socket: UdpSocket,
     pub relay_local_addr: SocketAddr,
+    pub relay_client_addr: SocketAddr,
     pub remote_peer: SocketAddr,
+    pub outbound_target: DatagramTarget,
     pub last_sent_payload_len: usize,
 }
 
@@ -90,7 +92,9 @@ pub async fn relay_outbound_datagram(
         association_id: envelope.association_id,
         relay_socket,
         relay_local_addr,
+        relay_client_addr: envelope.relay_client_addr,
         remote_peer,
+        outbound_target: envelope.target.clone(),
         last_sent_payload_len: envelope.payload.len(),
     })
     // END_BLOCK_RELAY_UDP_OUTBOUND
@@ -136,8 +140,8 @@ pub async fn relay_inbound_datagram(
 
     Ok(DatagramEnvelope {
         association_id: relay.association_id,
-        relay_client_addr: relay.relay_local_addr,
-        target: DatagramTarget::Ip(source),
+        relay_client_addr: relay.relay_client_addr,
+        target: relay.outbound_target.clone(),
         payload: buffer[..bytes_read].to_vec(),
     })
     // END_BLOCK_RELAY_UDP_INBOUND
