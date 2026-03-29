@@ -1385,7 +1385,7 @@
       </annotations>
     </M-DATAGRAM-BLOCKING-BOUNDARY>
 
-    <M-DATAGRAM-NEXT-STEP-DECISION NAME="DatagramNextStepDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-DATAGRAM-NEXT-STEP-DECISION NAME="DatagramNextStepDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded next-step decision after the controlled datagram round-trip isolation wave.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-DATAGRAM-BLOCKING-BOUNDARY</depends>

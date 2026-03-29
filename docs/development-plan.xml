@@ -3829,7 +3829,7 @@
       <verification-ref>V-M-DATAGRAM-BLOCKING-BOUNDARY</verification-ref>
     </M-DATAGRAM-BLOCKING-BOUNDARY>
 
-    <M-DATAGRAM-NEXT-STEP-DECISION NAME="DatagramNextStepDecision" TYPE="ENTRY_POINT" LAYER="26" ORDER="7" STATUS="planned">
+    <M-DATAGRAM-NEXT-STEP-DECISION NAME="DatagramNextStepDecision" TYPE="ENTRY_POINT" LAYER="26" ORDER="7" STATUS="done">
       <contract>
         <purpose>Issue the bounded next-step decision after the controlled datagram round-trip isolation wave completes.</purpose>
         <inputs>
@@ -3849,6 +3849,7 @@
         <log-prefix>[DatagramNextStepDecision]</log-prefix>
         <critical-block>BLOCK_DATAGRAM_NEXT_STEP_DECISION</critical-block>
       </observability>
+      <note-1>The current bounded next-step decision after the first Phase-23 packet is transport-side: pursue datagram-path repair or deeper relay-probe work before any new Telegram UI rerun or network-workaround phase.</note-1>
       <verification-ref>V-M-DATAGRAM-NEXT-STEP-DECISION</verification-ref>
     </M-DATAGRAM-NEXT-STEP-DECISION>
   </Modules>
@@ -4440,7 +4441,7 @@
       <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="done" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
       <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="done" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
       <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="done" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>
-      <step-7 module="M-DATAGRAM-NEXT-STEP-DECISION" status="pending" verification="V-M-DATAGRAM-NEXT-STEP-DECISION">Issue the bounded next-step decision for the controlled datagram round-trip</step-7>
+      <step-7 module="M-DATAGRAM-NEXT-STEP-DECISION" status="done" verification="V-M-DATAGRAM-NEXT-STEP-DECISION">Issue the bounded next-step decision for the controlled datagram round-trip</step-7>
     </Phase-23>
   </ImplementationOrder>
 
