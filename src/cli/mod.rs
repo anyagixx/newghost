@@ -1,8 +1,8 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.4
+// VERSION: 0.1.5
 // START_MODULE_CONTRACT
-//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing.
-//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, and local shutdown-state coordination.
+//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery.
+//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, and local shutdown-state coordination.
 //   DEPENDS: std, async-trait, http, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/proxy_bridge/mod.rs, src/session/mod.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs
 //   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, V-M-CLI, DF-CLIENT-BOOT, DF-SHUTDOWN
 // END_MODULE_CONTRACT
@@ -13,6 +13,7 @@
 //   StartupArtifacts - initialized foundation handles returned by run_from
 //   SessionManagerConfig - session-aware idle and shutdown timings derived during bootstrap
 //   ShutdownCoordinator - local shutdown state machine for accept-stop and drain phases
+//   ClientDatagramInboundTarget - client runtime datagram sink that returns inbound replies to the owning local UDP relay socket
 //   CliRuntimeError - typed runtime-launch and shutdown surface errors after bootstrap
 //   run_from - bootstrap config, observability, auth, optional TLS, and selected-mode startup artifacts
 //   run_until_shutdown_from - launch the selected runtime surface and keep it alive until cancellation
@@ -20,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.4 - Wired the client bootstrap into the datagram runtime bridge so live SOCKS5 UDP ingress can reach the real WSS datagram path.
+//   LAST_CHANGE: v0.1.5 - Replaced the client-side inbound datagram noop target with delivery back into the owning governed UDP relay socket.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -46,9 +47,11 @@ use crate::session::{
     SessionManager, SessionManagerConfig, SessionRegistry, TimerCommand, TimerEffectTarget,
     TransportSelector, TransportSelectorConfig, UdpAssociationRegistry,
 };
+use crate::socks5::udp_associate::{encode_udp_datagram, UdpRelaySocketRegistry};
 use crate::socks5::{Socks5Proxy, Socks5ProxyConfig};
 use crate::tls::{ClientTlsConfig, TlsConfig, TlsContextHandle, TlsError};
 use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
+use crate::transport::datagram_contract::DatagramAssociationId;
 use crate::transport::stream::ResolvedStream;
 use crate::transport::task_tracker::AdapterTaskTracker;
 use crate::wss_gateway::{GatewayConfig, WssGateway};
@@ -175,12 +178,33 @@ struct NoopTimerTarget;
 #[derive(Clone, Default)]
 struct NoopMetricTarget;
 
-#[derive(Clone, Default)]
-struct NoopDatagramTarget;
-
 #[derive(Clone)]
 struct UnavailableTransportAdapter {
     task_tracker: Arc<AdapterTaskTracker>,
+}
+
+#[derive(Clone)]
+struct ClientDatagramInboundTarget {
+    registry: Arc<UdpAssociationRegistry>,
+    relay_sockets: UdpRelaySocketRegistry,
+}
+
+#[derive(Debug, Error)]
+enum ClientDatagramInboundTargetError {
+    #[error("udp association not found: {0}")]
+    AssociationNotFound(DatagramAssociationId),
+    #[error("relay-client mismatch for association {association_id}: expected {expected}, got {actual}")]
+    RelayClientMismatch {
+        association_id: DatagramAssociationId,
+        expected: SocketAddr,
+        actual: SocketAddr,
+    },
+    #[error("owning relay socket not found for {0}")]
+    MissingRelaySocket(SocketAddr),
+    #[error("failed to encode inbound relay packet: {0}")]
+    Encode(String),
+    #[error("failed to deliver inbound relay packet: {0}")]
+    Send(String),
 }
 
 impl UnavailableTransportAdapter {
@@ -219,14 +243,56 @@ impl MetricEffectTarget for NoopMetricTarget {
     fn emit(&self, _event: MetricEvent) {}
 }
 
+impl ClientDatagramInboundTarget {
+    fn new(registry: Arc<UdpAssociationRegistry>, relay_sockets: UdpRelaySocketRegistry) -> Self {
+        Self {
+            registry,
+            relay_sockets,
+        }
+    }
+}
+
 #[async_trait]
-impl DatagramDispatchTarget for NoopDatagramTarget {
-    type Error = std::convert::Infallible;
+impl DatagramDispatchTarget for ClientDatagramInboundTarget {
+    type Error = ClientDatagramInboundTargetError;
 
     async fn dispatch(
         &self,
-        _envelope: &crate::transport::datagram_contract::DatagramEnvelope,
+        envelope: &crate::transport::datagram_contract::DatagramEnvelope,
     ) -> Result<(), Self::Error> {
+        let association = self
+            .registry
+            .get(envelope.association_id)
+            .ok_or(ClientDatagramInboundTargetError::AssociationNotFound(
+                envelope.association_id,
+            ))?;
+        if association.expected_client_addr != envelope.relay_client_addr {
+            return Err(ClientDatagramInboundTargetError::RelayClientMismatch {
+                association_id: envelope.association_id,
+                expected: association.expected_client_addr,
+                actual: envelope.relay_client_addr,
+            });
+        }
+        let relay_socket = self
+            .relay_sockets
+            .socket_for(association.relay_addr)
+            .ok_or(ClientDatagramInboundTargetError::MissingRelaySocket(
+                association.relay_addr,
+            ))?;
+        let packet = encode_udp_datagram(envelope)
+            .map_err(|err| ClientDatagramInboundTargetError::Encode(err.to_string()))?;
+        relay_socket
+            .send_to(&packet, association.expected_client_addr)
+            .await
+            .map_err(|err| ClientDatagramInboundTargetError::Send(err.to_string()))?;
+        info!(
+            association_id = envelope.association_id,
+            relay_addr = %association.relay_addr,
+            relay_client_addr = %association.expected_client_addr,
+            target = ?envelope.target,
+            payload_len = envelope.payload.len(),
+            "[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM] delivered governed inbound datagram into the owning local UDP relay socket"
+        );
         Ok(())
     }
 }
@@ -414,6 +480,7 @@ async fn run_client_mode(
     let (intent_tx, intent_rx) = mpsc::channel(app_config.limits.max_pending_intents);
     let wss_gateway = build_client_gateway(startup).await?;
     let datagram_registry = Arc::new(UdpAssociationRegistry::new(app_config.limits.max_sessions));
+    let relay_sockets = UdpRelaySocketRegistry::default();
     let datagram_selector = DatagramTransportSelector::new(
         wss_gateway.clone(),
         DatagramTransportSelectorConfig {
@@ -421,12 +488,13 @@ async fn run_client_mode(
         },
     );
     let datagram_runtime_target = Arc::new(DatagramRuntimeBridge::new(
-        datagram_registry,
+        datagram_registry.clone(),
         datagram_selector,
-        NoopDatagramTarget,
+        ClientDatagramInboundTarget::new(datagram_registry.clone(), relay_sockets.clone()),
     ));
     let proxy = Socks5Proxy::new(socks5_config, intent_tx.clone())
-        .with_udp_runtime_target(datagram_runtime_target);
+        .with_udp_runtime_target(datagram_runtime_target)
+        .with_udp_relay_socket_registry(relay_sockets);
     let selector = TransportSelector::new(
         UnavailableTransportAdapter::new(),
         wss_gateway,

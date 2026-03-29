@@ -1,9 +1,9 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, and shutdown sequencing for client and server startup paths.
-//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, and shutdown ordering.
-//   DEPENDS: src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs
+//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, and shutdown sequencing for client and server startup paths.
+//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, and shutdown ordering.
+//   DEPENDS: src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs
 //   LINKS: V-M-CLI, V-M-TLS
 // END_MODULE_CONTRACT
 //
@@ -14,11 +14,12 @@
 //   server_runtime_binds_listener_until_cancelled - proves server runtime stays alive and binds a socket until cancellation
 //   client_runtime_binds_socks5_listener_until_cancelled - proves client runtime stays alive and binds a SOCKS5 socket until cancellation
 //   client_runtime_forwards_udp_datagram_through_runtime_bridge - proves the live client bootstrap wires UDP ingress into the datagram runtime bridge and reaches a real UDP target
+//   client_inbound_target_delivers_reply_into_owned_udp_socket - proves client-side inbound delivery returns one governed datagram into the owning local UDP relay socket
 //   shutdown_stops_accepts_before_drain_and_release - proves deterministic shutdown ordering
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added raw UDP runtime coverage so the client bootstrap now proves datagram delivery beyond association-only handling.
+//   LAST_CHANGE: v0.1.4 - Added client-side inbound delivery coverage so Phase-26 can prove governed replies return into the owning local UDP relay socket.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -33,7 +34,13 @@ use tokio::net::{TcpStream, UdpSocket};
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
-use super::{coordinate_shutdown, run_from, run_until_shutdown_from, ApplicationMode, ShutdownState};
+use super::{
+    coordinate_shutdown, run_from, run_until_shutdown_from, ApplicationMode,
+    ClientDatagramInboundTarget, ShutdownState,
+};
+use crate::session::{DatagramDispatchTarget, UdpAssociationRegistry};
+use crate::socks5::udp_associate::{encode_udp_datagram, UdpRelaySocketRegistry};
+use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
 
 fn write_server_tls_fixture() -> (tempfile::TempDir, String, String) {
     let dir = tempdir().expect("tempdir should build");
@@ -365,6 +372,49 @@ async fn client_runtime_forwards_udp_datagram_through_runtime_bridge() {
         .await
         .expect("server runtime task should join")
         .expect("server runtime should shut down cleanly");
+}
+
+#[tokio::test]
+async fn client_inbound_target_delivers_reply_into_owned_udp_socket() {
+    let registry = std::sync::Arc::new(UdpAssociationRegistry::new(1));
+    let relay_sockets = UdpRelaySocketRegistry::default();
+    let client_udp = UdpSocket::bind("127.0.0.1:0")
+        .await
+        .expect("client udp should bind");
+    let client_addr = client_udp.local_addr().expect("client addr should resolve");
+    let relay_socket = std::sync::Arc::new(
+        UdpSocket::bind("127.0.0.1:0")
+            .await
+            .expect("relay socket should bind"),
+    );
+    let relay_addr = relay_socket.local_addr().expect("relay addr should resolve");
+    relay_sockets.register(relay_addr, relay_socket);
+
+    let (association_id, _) = registry
+        .open_association(relay_addr, client_addr, std::time::Instant::now())
+        .expect("association should open");
+    let target = ClientDatagramInboundTarget::new(registry, relay_sockets);
+    let envelope = DatagramEnvelope {
+        association_id,
+        relay_client_addr: client_addr,
+        target: DatagramTarget::Ip(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 9001)),
+        payload: b"phase26-inbound".to_vec(),
+    };
+
+    target
+        .dispatch(&envelope)
+        .await
+        .expect("inbound target should deliver datagram");
+
+    let mut buffer = [0_u8; 128];
+    let (bytes_read, source) = client_udp.recv_from(&mut buffer).await.expect("recv reply");
+    assert_eq!(source, relay_addr);
+    assert_eq!(
+        &buffer[..bytes_read],
+        encode_udp_datagram(&envelope)
+            .expect("packet should encode")
+            .as_slice()
+    );
 }
 
 #[test]

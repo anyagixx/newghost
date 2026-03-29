@@ -1,8 +1,8 @@
 // FILE: src/socks5/udp_associate.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Negotiate governed SOCKS5 UDP ASSOCIATE relay binds, normalize SOCKS5 UDP relay packets, and drive the live local UDP runtime receive loop into a bounded handoff target.
-//   SCOPE: Local UDP relay bind allocation, SOCKS5 UDP ASSOCIATE success replies, UDP relay packet parsing, source validation, fragmentation rejection, datagram-envelope validation, runtime source learning, and live relay-loop forwarding.
+//   PURPOSE: Negotiate governed SOCKS5 UDP ASSOCIATE relay binds, normalize SOCKS5 UDP relay packets, encode inbound relay replies, retain live relay sockets, and drive the local UDP runtime receive loop into a bounded handoff target.
+//   SCOPE: Local UDP relay bind allocation, SOCKS5 UDP ASSOCIATE success replies, UDP relay packet parsing, UDP relay packet encoding, source validation, fragmentation rejection, datagram-envelope validation, relay-socket retention, runtime source learning, and live relay-loop forwarding.
 //   DEPENDS: async-trait, std, thiserror, tokio, tokio-util, tracing, src/socks5/mod.rs, src/transport/datagram_contract.rs
 //   LINKS: M-SOCKS5-UDP-ASSOCIATE, V-M-SOCKS5-UDP-ASSOCIATE, DF-SOCKS5-UDP-ASSOCIATE, DF-UDP-OUTBOUND
 // END_MODULE_CONTRACT
@@ -10,18 +10,21 @@
 // START_MODULE_MAP
 //   UdpAssociateRecord - governed UDP relay bind plus owning relay socket
 //   UdpAssociateError - deterministic UDP ASSOCIATE and relay-packet failure surface
+//   UdpRelaySocketRegistry - shared live relay-socket retention used by inbound delivery to the owning local UDP socket
 //   UdpRelayRuntimeTarget - bounded live handoff target for normalized UDP relay packets
 //   handle_udp_associate - negotiate one SOCKS5 UDP ASSOCIATE request and return the governed relay bind
 //   parse_udp_datagram - normalize one SOCKS5 UDP relay packet into the shared datagram contract and emit a bounded normalization anchor
+//   encode_udp_datagram - encode one governed inbound datagram into the SOCKS5 UDP relay packet shape expected by the owning local client
 //   run_udp_relay_runtime_loop - read live UDP relay packets and forward normalized datagrams into the configured runtime handoff
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added the live UDP relay receive loop and bounded runtime handoff target so governed packets can advance beyond UDP ASSOCIATE ingress.
+//   LAST_CHANGE: v0.1.3 - Added a shared relay-socket registry and inbound UDP packet encoder so client-side inbound delivery can reuse the owning governed relay socket.
 // END_CHANGE_SUMMARY
 
+use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use thiserror::Error;
@@ -42,7 +45,7 @@ mod tests;
 #[derive(Debug)]
 pub struct UdpAssociateRecord {
     pub relay_addr: SocketAddr,
-    pub relay_socket: UdpSocket,
+    pub relay_socket: Arc<UdpSocket>,
 }
 
 #[derive(Debug, Error, PartialEq, Eq)]
@@ -64,6 +67,35 @@ pub enum UdpAssociateError {
     },
     #[error("datagram contract violation: {0}")]
     DatagramContract(#[from] DatagramError),
+}
+
+#[derive(Clone, Default)]
+pub struct UdpRelaySocketRegistry {
+    sockets: Arc<Mutex<HashMap<SocketAddr, Arc<UdpSocket>>>>,
+}
+
+impl UdpRelaySocketRegistry {
+    pub fn register(&self, relay_addr: SocketAddr, relay_socket: Arc<UdpSocket>) {
+        self.sockets
+            .lock()
+            .expect("udp relay socket registry lock poisoned")
+            .insert(relay_addr, relay_socket);
+    }
+
+    pub fn socket_for(&self, relay_addr: SocketAddr) -> Option<Arc<UdpSocket>> {
+        self.sockets
+            .lock()
+            .expect("udp relay socket registry lock poisoned")
+            .get(&relay_addr)
+            .cloned()
+    }
+
+    pub fn remove(&self, relay_addr: SocketAddr) -> Option<Arc<UdpSocket>> {
+        self.sockets
+            .lock()
+            .expect("udp relay socket registry lock poisoned")
+            .remove(&relay_addr)
+    }
 }
 
 #[async_trait]
@@ -88,9 +120,11 @@ pub async fn handle_udp_associate(
     stream: &mut TcpStream,
 ) -> Result<UdpAssociateRecord, UdpAssociateError> {
     // START_BLOCK_HANDLE_UDP_ASSOCIATE
-    let relay_socket = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
-        .await
-        .map_err(|err| UdpAssociateError::Io(err.to_string()))?;
+    let relay_socket = Arc::new(
+        UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+            .await
+            .map_err(|err| UdpAssociateError::Io(err.to_string()))?,
+    );
     let relay_addr = relay_socket
         .local_addr()
         .map_err(|err| UdpAssociateError::Io(err.to_string()))?;
@@ -205,6 +239,40 @@ pub fn parse_udp_datagram(
         "[Socks5Proxy][parseUdpDatagram][BLOCK_PARSE_UDP_DATAGRAM] normalized governed UDP relay packet"
     );
     Ok(envelope)
+}
+
+// START_CONTRACT: encode_udp_datagram
+//   PURPOSE: Encode one governed inbound datagram into the SOCKS5 UDP relay packet shape expected by the owning local client.
+//   INPUTS: { envelope: &DatagramEnvelope - normalized inbound datagram envelope for one owned association }
+//   OUTPUTS: { Result<Vec<u8>, UdpAssociateError> - encoded SOCKS5 UDP relay packet ready for local relay delivery }
+//   SIDE_EFFECTS: [none]
+//   LINKS: [M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-CONTRACT, V-M-SOCKS5-UDP-ASSOCIATE]
+// END_CONTRACT: encode_udp_datagram
+pub fn encode_udp_datagram(
+    envelope: &DatagramEnvelope,
+) -> Result<Vec<u8>, UdpAssociateError> {
+    let mut packet = vec![0x00, 0x00, 0x00];
+    match &envelope.target {
+        DatagramTarget::Ip(addr) => match addr.ip() {
+            IpAddr::V4(ipv4) => {
+                packet.push(0x01);
+                packet.extend_from_slice(&ipv4.octets());
+                packet.extend_from_slice(&addr.port().to_be_bytes());
+            }
+            IpAddr::V6(_) => return Err(UdpAssociateError::UnsupportedAddressType(0x04)),
+        },
+        DatagramTarget::Domain(domain, port) => {
+            if domain.len() > u8::MAX as usize {
+                return Err(UdpAssociateError::InvalidTargetAddress);
+            }
+            packet.push(0x03);
+            packet.push(domain.len() as u8);
+            packet.extend_from_slice(domain.as_bytes());
+            packet.extend_from_slice(&port.to_be_bytes());
+        }
+    }
+    packet.extend_from_slice(&envelope.payload);
+    Ok(packet)
 }
 
 // START_CONTRACT: run_udp_relay_runtime_loop

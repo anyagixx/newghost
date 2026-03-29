@@ -1,8 +1,8 @@
 // FILE: src/socks5/udp_associate.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify governed SOCKS5 UDP ASSOCIATE relay binds and deterministic UDP relay packet normalization.
-//   SCOPE: Success replies for UDP ASSOCIATE, domain-target packet parsing, fragmentation rejection, and foreign-source rejection.
+//   PURPOSE: Verify governed SOCKS5 UDP ASSOCIATE relay binds, deterministic UDP relay packet normalization, and deterministic packet encoding for inbound relay delivery.
+//   SCOPE: Success replies for UDP ASSOCIATE, domain-target packet parsing, outbound-to-inbound packet encoding, fragmentation rejection, and foreign-source rejection.
 //   DEPENDS: src/socks5/udp_associate.rs, src/transport/datagram_contract.rs
 //   LINKS: V-M-SOCKS5-UDP-ASSOCIATE
 // END_MODULE_CONTRACT
@@ -10,12 +10,13 @@
 // START_MODULE_MAP
 //   udp_associate_returns_governed_relay_bind - proves UDP ASSOCIATE allocates a loopback relay bind and replies with it
 //   parses_udp_datagram_into_transport_contract - proves a SOCKS5 UDP packet becomes a bounded datagram envelope
+//   encodes_transport_contract_back_into_udp_packet - proves one inbound datagram envelope can be encoded back into the SOCKS5 UDP relay packet shape
 //   fragmented_udp_packets_are_rejected - proves unsupported SOCKS5 UDP fragmentation is rejected deterministically
 //   foreign_udp_source_is_rejected - proves association-owned relay parsing rejects packets from a foreign sender
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added deterministic UDP ASSOCIATE tests so the first UDP-capable step has bounded ingress evidence.
+//   LAST_CHANGE: v0.1.1 - Added packet-encoding coverage so inbound reply delivery can reuse the exact SOCKS5 UDP relay packet shape expected by local clients.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -23,8 +24,8 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use tokio::io::AsyncReadExt;
 use tokio::net::{TcpListener, TcpStream};
 
-use super::{handle_udp_associate, parse_udp_datagram, UdpAssociateError};
-use crate::transport::datagram_contract::DatagramTarget;
+use super::{encode_udp_datagram, handle_udp_associate, parse_udp_datagram, UdpAssociateError};
+use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
 
 async fn tcp_pair() -> (TcpStream, TcpStream) {
     let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind");
@@ -67,6 +68,24 @@ fn parses_udp_datagram_into_transport_contract() {
         DatagramTarget::Domain("example.com".to_string(), 443)
     );
     assert_eq!(envelope.payload, vec![0xde, 0xad, 0xbe, 0xef]);
+}
+
+#[test]
+fn encodes_transport_contract_back_into_udp_packet() {
+    let source = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 53000);
+    let envelope = DatagramEnvelope {
+        association_id: 41,
+        relay_client_addr: source,
+        target: DatagramTarget::Domain("example.com".to_string(), 443),
+        payload: vec![0xde, 0xad, 0xbe, 0xef],
+    };
+
+    let packet = encode_udp_datagram(&envelope).expect("encode udp packet");
+    let reparsed =
+        parse_udp_datagram(source, source, packet.as_slice(), envelope.association_id)
+            .expect("roundtrip parse");
+    assert_eq!(reparsed.target, envelope.target);
+    assert_eq!(reparsed.payload, envelope.payload);
 }
 
 #[test]

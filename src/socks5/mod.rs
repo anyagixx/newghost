@@ -1,8 +1,8 @@
 // FILE: src/socks5/mod.rs
-// VERSION: 0.1.4
+// VERSION: 0.1.5
 // START_MODULE_CONTRACT
-//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and negotiate governed UDP ASSOCIATE control sessions plus the live UDP runtime loop.
-//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, UDP ASSOCIATE control-session handling, optional UDP runtime handoff wiring, helper export, and accept-loop shutdown.
+//   PURPOSE: Expose a local SOCKS5 ingress surface, normalize CONNECT requests into ProxyIntent work items, and negotiate governed UDP ASSOCIATE control sessions plus the live UDP runtime loop and inbound relay-socket retention.
+//   SCOPE: SOCKS5 listener bootstrap, no-auth negotiation, CONNECT parsing, ProxyIntent creation, bounded queue enqueue, reply mapping, UDP ASSOCIATE control-session handling, optional UDP runtime handoff wiring, optional relay-socket retention for inbound delivery, helper export, and accept-loop shutdown.
 //   DEPENDS: std, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/session/mod.rs, src/socks5/udp_associate.rs
 //   LINKS: M-SOCKS5, M-SOCKS5-UDP-ASSOCIATE, V-M-SOCKS5, V-M-SOCKS5-UDP-ASSOCIATE, DF-SOCKS5-INTENT, DF-REPLY-MAPPING, DF-SOCKS5-UDP-ASSOCIATE
 // END_MODULE_CONTRACT
@@ -22,11 +22,12 @@
 //   send_reply_and_close - send a SOCKS5 reply and close the client socket for pre-pump failures
 //   stop_accept - stop accepting new local connections during shutdown
 //   with_udp_runtime_target - attach the bounded UDP runtime handoff target used by the live relay loop
+//   with_udp_relay_socket_registry - attach shared relay-socket retention so inbound replies can reach the owning local UDP socket
 //   udp_associate - governed SOCKS5 UDP ASSOCIATE relay-bind and packet normalization helpers
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.4 - Added the optional live UDP runtime loop so UDP ASSOCIATE sessions can forward normalized packets beyond control-session ingress.
+//   LAST_CHANGE: v0.1.5 - Added optional relay-socket retention so client-side inbound datagrams can reuse the owning governed UDP socket after runtime delivery.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -151,6 +152,7 @@ pub struct Socks5Proxy {
     config: Socks5ProxyConfig,
     intent_tx: mpsc::Sender<ProxyIntent>,
     udp_runtime_target: Option<Arc<dyn udp_associate::UdpRelayRuntimeTarget>>,
+    udp_relay_socket_registry: Option<udp_associate::UdpRelaySocketRegistry>,
     accept_token: CancellationToken,
 }
 
@@ -172,6 +174,7 @@ impl Socks5Proxy {
             config,
             intent_tx,
             udp_runtime_target: None,
+            udp_relay_socket_registry: None,
             accept_token: CancellationToken::new(),
         }
     }
@@ -181,6 +184,14 @@ impl Socks5Proxy {
         udp_runtime_target: Arc<dyn udp_associate::UdpRelayRuntimeTarget>,
     ) -> Self {
         self.udp_runtime_target = Some(udp_runtime_target);
+        self
+    }
+
+    pub fn with_udp_relay_socket_registry(
+        mut self,
+        udp_relay_socket_registry: udp_associate::UdpRelaySocketRegistry,
+    ) -> Self {
+        self.udp_relay_socket_registry = Some(udp_relay_socket_registry);
         self
     }
 
@@ -255,7 +266,12 @@ impl Socks5Proxy {
                     .await
                     .map_err(|err| Socks5Error::Io(err.to_string()))?;
                 let udp_runtime_target = self.udp_runtime_target.clone();
+                let udp_relay_socket_registry = self.udp_relay_socket_registry.clone();
                 let client_hint = intent.client_hint.clone();
+                let relay_addr = association.relay_addr;
+                if let Some(registry) = udp_relay_socket_registry.as_ref() {
+                    registry.register(relay_addr, association.relay_socket.clone());
+                }
 
                 let runtime_task = udp_runtime_target.map(|target| {
                     let runtime_cancel = CancellationToken::new();
@@ -286,7 +302,12 @@ impl Socks5Proxy {
                     let runtime_result = runtime_task
                         .await
                         .map_err(|err| Socks5Error::Io(err.to_string()))?;
+                    if let Some(registry) = udp_relay_socket_registry.as_ref() {
+                        registry.remove(relay_addr);
+                    }
                     runtime_result.map_err(|err| Socks5Error::Io(err.to_string()))?;
+                } else if let Some(registry) = udp_relay_socket_registry.as_ref() {
+                    registry.remove(relay_addr);
                 }
 
                 control_result
