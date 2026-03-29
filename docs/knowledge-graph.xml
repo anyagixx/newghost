@@ -1415,7 +1415,7 @@
       </annotations>
     </M-DATAGRAM-DISPATCH-INSTRUMENTATION>
 
-    <M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR NAME="DatagramOutboundDispatchRepair" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-OUTBOUND-DISPATCH-REPAIR NAME="DatagramOutboundDispatchRepair" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Repair the local handoff from governed UDP relay ingress to outbound datagram dispatch.</purpose>
       <path>src/session/datagram_manager.rs</path>
       <depends>M-DATAGRAM-DISPATCH-INSTRUMENTATION, M-DATAGRAM-SESSION-MANAGER, M-UDP-ASSOCIATION-REGISTRY</depends>
