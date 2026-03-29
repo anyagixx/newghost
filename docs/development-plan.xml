@@ -4145,7 +4145,7 @@
       <verification-ref>V-M-DATAGRAM-RUNTIME-BRIDGE</verification-ref>
     </M-DATAGRAM-RUNTIME-BRIDGE>
 
-    <M-SERVER-DATAGRAM-INGRESS NAME="ServerDatagramIngress" TYPE="INTEGRATION" LAYER="28" ORDER="5" STATUS="planned">
+    <M-SERVER-DATAGRAM-INGRESS NAME="ServerDatagramIngress" TYPE="INTEGRATION" LAYER="28" ORDER="5" STATUS="done">
       <contract>
         <purpose>Add the server-side receive path for WSS datagram frames and invoke the repaired outbound UDP relay helper on the remote runtime.</purpose>
         <inputs>
@@ -4902,7 +4902,7 @@
       <step-2 module="M-SOCKS5-UDP-RUNTIME-LOOP" status="done" verification="V-M-SOCKS5-UDP-RUNTIME-LOOP">Add the live local UDP receive loop after SOCKS5 UDP ASSOCIATE</step-2>
       <step-3 module="M-WSS-DATAGRAM-RUNTIME-CARRIER" status="done" verification="V-M-WSS-DATAGRAM-RUNTIME-CARRIER">Implement the production WSS datagram carrier instead of mock-only emit surfaces</step-3>
       <step-4 module="M-DATAGRAM-RUNTIME-BRIDGE" status="done" verification="V-M-DATAGRAM-RUNTIME-BRIDGE">Bind the live local UDP loop, manager handoff, and production carrier emit path</step-4>
-      <step-5 module="M-SERVER-DATAGRAM-INGRESS" status="pending" verification="V-M-SERVER-DATAGRAM-INGRESS">Add the server-side runtime receive path and relay invocation for datagram frames</step-5>
+      <step-5 module="M-SERVER-DATAGRAM-INGRESS" status="done" verification="V-M-SERVER-DATAGRAM-INGRESS">Add the server-side runtime receive path and relay invocation for datagram frames</step-5>
       <step-6 module="M-DATAGRAM-RUNTIME-RERUN" status="pending" verification="V-M-DATAGRAM-RUNTIME-RERUN">Replay one controlled probe through the full live runtime glue path</step-6>
       <step-7 module="M-DATAGRAM-RUNTIME-EVIDENCE" status="pending" verification="V-M-DATAGRAM-RUNTIME-EVIDENCE">Assemble the bounded post-runtime-glue comparison packet</step-7>
       <step-8 module="M-DATAGRAM-RUNTIME-DECISION" status="pending" verification="V-M-DATAGRAM-RUNTIME-DECISION">Issue the bounded decision on whether a Telegram-specific calls wave is now justified</step-8>

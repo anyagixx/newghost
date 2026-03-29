@@ -1515,7 +1515,7 @@
       </annotations>
     </M-DATAGRAM-RUNTIME-BRIDGE>
 
-    <M-SERVER-DATAGRAM-INGRESS NAME="ServerDatagramIngress" TYPE="INTEGRATION" STATUS="planned">
+    <M-SERVER-DATAGRAM-INGRESS NAME="ServerDatagramIngress" TYPE="INTEGRATION" STATUS="done">
       <purpose>Add the server-side runtime receive path for WSS datagram frames and invoke relay outbound handling.</purpose>
       <path>src/wss_gateway/mod.rs</path>
       <depends>M-WSS-DATAGRAM-RUNTIME-CARRIER, M-UDP-RELAY-OUTBOUND-REPAIR, M-WSS-GATEWAY</depends>
