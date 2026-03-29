@@ -747,6 +747,21 @@ Observed Phase-23 inbound trace packet on 2026-03-29:
 - first missing inbound layer for the current packet:
   before any proven inbound reply reaches the local probe receive surface
 
+Phase-23 bounded correlation packet for the same controlled probe window:
+
+- local probe packet:
+  `probe_status=association-ok`
+  `relay_addr=127.0.0.1:58960`
+  `target_addr=91.99.128.146:55123`
+  `outbound_result=sent`
+  `inbound_result=timeout`
+- local runtime packet:
+  `BLOCK_HANDLE_UDP_ASSOCIATE` accepted the control request and allocated a governed relay bind
+- remote echo-target packet:
+  bounded capture for UDP port `55123` produced no packets in the same probe window
+- correlation result:
+  the local probe, local runtime, and remote capture all belong to one bounded controlled datagram attempt and together show that the first unresolved layer remains before any proven remote echo-target ingress or inbound reply
+
 Remote server-host bounded capture:
 
 ```bash
