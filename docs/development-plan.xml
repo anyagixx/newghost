@@ -4433,7 +4433,7 @@
       <step-6 module="M-CALLS-BLOCKING-BOUNDARY" status="done" verification="V-M-CALLS-BLOCKING-BOUNDARY">Classify the remaining calls blocker without prematurely blaming provider or network filtering</step-6>
       <step-7 module="M-CALLS-DECISION-NEXT-ARCH" status="done" verification="V-M-CALLS-DECISION-NEXT-ARCH">Issue the bounded architectural next-step decision for Telegram calls</step-7>
     </Phase-22>
-    <Phase-23 name="Datagram Round-Trip Isolation" status="pending">
+    <Phase-23 name="Datagram Round-Trip Isolation" status="done">
       <goal>Isolate the controlled UDP round-trip independently of Telegram UI so outbound reachability, remote target ingress, and inbound reply return can be classified precisely.</goal>
       <step-1 module="M-DATAGRAM-ROUNDTRIP-HYPOTHESIS" status="done" verification="V-M-DATAGRAM-ROUNDTRIP-HYPOTHESIS">Freeze the bounded controlled round-trip hypothesis set after Phase-22</step-1>
       <step-2 module="M-DATAGRAM-ECHO-TARGET" status="done" verification="V-M-DATAGRAM-ECHO-TARGET">Prepare a bounded remote UDP echo target with explicit startup, capture window, and cleanup</step-2>
