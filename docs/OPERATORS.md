@@ -361,6 +361,48 @@ Current Telegram calls profile during Phase-18:
 - public wording must still separate the already green text or file envelope from the new UDP media envelope that still needs a dedicated verification wave
 - until `LV-009 TelegramCallsWave` is executed, voice and video calls remain under validation for the tested Telegram Desktop setup
 
+### Phase-19 Live Calls Handoff
+
+The current live calls environment is:
+
+- remote WSS server host: `91.99.128.146`
+- remote managed client host: `178.104.104.208`
+- remote server listener: `0.0.0.0:7443`
+- remote managed client SOCKS5 listener: `127.0.0.1:1080`
+- local Telegram Desktop proxy target: `127.0.0.1:1080`
+- proxy type: `SOCKS5`
+- username: empty
+- password: empty
+
+The controlled operator sequence for `LV-010` is:
+
+1. wait until the controller explicitly says the live calls environment is ready
+2. on the local workstation, start and keep alive:
+
+```bash
+ssh -N -L 127.0.0.1:1080:127.0.0.1:1080 root@178.104.104.208
+```
+
+3. prove the forwarded local bind exists:
+
+```bash
+ss -ltnp | grep ":1080" || true
+```
+
+4. in Telegram Desktop set:
+   - host: `127.0.0.1`
+   - port: `1080`
+   - proxy type: `SOCKS5`
+   - no username
+   - no password
+5. run one voice call and one video call as separate attempts
+6. after the first completed or failed call attempt, run one fresh second call attempt through the same SOCKS5 settings
+7. if the call UI reaches ringing or answer state, do not treat that as final success by itself; report it as signaling evidence only
+8. if Telegram shows `Connecting` or the call stalls, verify the `ssh -N -L ...` process is still alive before changing settings
+9. report voice, video, and second-call outcomes separately so the controller can keep separate packets
+
+The controller must not ask the operator to start the live calls wave before fresh-host baseline, governed deploy, service readiness, and pre-handoff smoke are already green.
+
 ### Telegram Calls Wave Runbook
 
 Use this runbook only after the normal Telegram Desktop SOCKS5 path is already green for text and file traffic on the same setup.

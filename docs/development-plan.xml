@@ -2886,7 +2886,7 @@
       <verification-ref>V-M-CALLS-SERVICE-READINESS</verification-ref>
     </M-CALLS-SERVICE-READINESS>
 
-    <M-CALLS-HANDOFF NAME="CallsHandoff" TYPE="UTILITY" LAYER="22" ORDER="4" STATUS="planned">
+    <M-CALLS-HANDOFF NAME="CallsHandoff" TYPE="UTILITY" LAYER="22" ORDER="4" STATUS="implemented">
       <contract>
         <purpose>Prepare one exact operator handoff for Telegram Desktop calls, including SSH-forward, SOCKS5 settings, and the ordered call checks.</purpose>
         <inputs>
@@ -2912,6 +2912,7 @@
         <log-prefix>[CallsHandoff]</log-prefix>
         <critical-block>BLOCK_CALLS_HANDOFF</critical-block>
       </observability>
+      <note-1>On 2026-03-29 the live calls handoff was frozen to the fresh host pair 91.99.128.146 and 178.104.104.208 with the same local-workstation SSH-forwarded SOCKS5 target 127.0.0.1:1080 used by the governed Telegram Desktop path.</note-1>
       <verification-ref>V-M-CALLS-HANDOFF</verification-ref>
     </M-CALLS-HANDOFF>
 
@@ -3527,7 +3528,7 @@
       <step-1 module="M-CALLS-HOST-REBASELINE" status="done" verification="V-M-CALLS-HOST-REBASELINE">Capture fresh-host identity and baseline tooling evidence for the live calls wave</step-1>
       <step-2 module="M-CALLS-DEPLOY-BOOTSTRAP" status="done" verification="V-M-CALLS-DEPLOY-BOOTSTRAP">Deploy the UDP-capable n0wss build to the fresh client and server hosts</step-2>
       <step-3 module="M-CALLS-SERVICE-READINESS" status="done" verification="V-M-CALLS-SERVICE-READINESS">Prove client or server service readiness and UDP-capable runtime markers before operator handoff</step-3>
-      <step-4 module="M-CALLS-HANDOFF" status="pending" verification="V-M-CALLS-HANDOFF">Prepare the exact SSH-forward and SOCKS5 handoff for Telegram Desktop calls</step-4>
+      <step-4 module="M-CALLS-HANDOFF" status="done" verification="V-M-CALLS-HANDOFF">Prepare the exact SSH-forward and SOCKS5 handoff for Telegram Desktop calls</step-4>
       <step-5 module="M-CALLS-VOICE-WAVE" status="pending" verification="V-M-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call live wave and capture separate signaling and media evidence</step-5>
       <step-6 module="M-CALLS-VIDEO-WAVE" status="pending" verification="V-M-CALLS-VIDEO-WAVE">Run a separate Telegram video-call live wave without conflating it with the voice result</step-6>
       <step-7 module="M-CALLS-RECONNECT-WAVE" status="pending" verification="V-M-CALLS-RECONNECT-WAVE">Trigger one fresh second call attempt and prove a new UDP association lifecycle</step-7>

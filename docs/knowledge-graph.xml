@@ -1045,7 +1045,7 @@
       </annotations>
     </M-CALLS-SERVICE-READINESS>
 
-    <M-CALLS-HANDOFF NAME="CallsHandoff" TYPE="UTILITY" STATUS="planned">
+    <M-CALLS-HANDOFF NAME="CallsHandoff" TYPE="UTILITY" STATUS="implemented">
       <purpose>Prepare one exact operator path for Telegram Desktop calls, including SSH-forward and SOCKS5 settings.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-FORWARD-RUNBOOK, M-TELEGRAM-CALLS-PROFILE, M-TELEGRAM-CALLS-WAVE</depends>
