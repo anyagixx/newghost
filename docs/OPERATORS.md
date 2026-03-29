@@ -721,6 +721,23 @@ Interpretation boundary:
 2. zero captured packets is usable evidence only if the capture window itself is confirmed
 3. if the capture window is missing, classify that as an evidence gap rather than as zero remote ingress
 
+Observed Phase-23 outbound trace packet on 2026-03-29:
+
+- the controlled probe returned
+  `probe_status=association-ok`
+  `relay_addr=127.0.0.1:57179`
+  `target_addr=91.99.128.146:55123`
+  `outbound_result=sent`
+  `inbound_result=timeout`
+- the local runtime emitted
+  `[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE] accepted UDP ASSOCIATE control request`
+  and
+  `[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE] allocated governed UDP relay bind`
+- the same bounded remote capture window on `91.99.128.146` for UDP port `55123` captured `0` packets
+- bounded outbound classification: association negotiation and local relay-bind allocation are green, but remote echo-target ingress is still not proven
+- first missing outbound layer for the current packet:
+  after local `BLOCK_HANDLE_UDP_ASSOCIATE` and before any proven remote echo-target ingress
+
 Remote server-host bounded capture:
 
 ```bash
