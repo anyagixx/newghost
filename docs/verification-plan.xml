@@ -3715,12 +3715,14 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The final decision states whether the tested Telegram Desktop setup is green, partially green, or still blocked, and it may split voice, video, and reconnect outcomes.</scenario-1>
+        <scenario-2>If the same live window preserved a green controlled datagram probe but all call packets still stop before green media, the final decision may stay fully blocked as long as it names the blocker app-facing rather than transport-facing.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The final decision overclaims universal calls success or reopens generic datagram transport diagnosis despite the completed Phase-27 baseline.</scenario-1>
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The final decision must stay bounded to the tested Telegram Desktop setup and explicitly say whether any remaining blocker is app-facing rather than transport-facing.</assertion-1>
+        <assertion-2>The final decision must say whether voice, video, and reconnect converged on the same no-go class or diverged after the green round-trip baseline.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-CALLS-RERUN-DECISION>
   </ModuleVerification>

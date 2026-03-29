@@ -197,6 +197,10 @@ Current calls-profile status:
   readiness kept the same-window `phase27-probe` green, voice reached answer plus key-exchange emoji before falling back to `Соединение...`, video stalled at `Обмен ключами шифрования...` and dropped, and the reconnect audio attempt repeated the same key-exchange symptom
 - the comparison against the older calls no-go waves is now narrower:
   before Phase-27 the first unresolved layer still overlapped generic transport uncertainty, but the new Phase-28 packet keeps the failure boundary app-facing because the same deployment window already preserved the green controlled datagram round-trip
+- the completed Phase-28 decision on 2026-03-29 therefore stays bounded and non-green for the tested Telegram Desktop setup:
+  voice, video, and reconnect all remained below a green media packet even though the transport baseline stayed green in the same window
+- the remaining blocker is now classified as app-facing rather than transport-facing:
+  voice advanced far enough to show answer plus key-exchange emoji before `Соединение...`, while video and reconnect still stalled at key exchange; none of those packets justify reopening generic datagram repair
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
