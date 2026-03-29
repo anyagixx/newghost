@@ -3804,7 +3804,7 @@
       <verification-ref>V-M-DATAGRAM-CAPTURE-CORRELATION</verification-ref>
     </M-DATAGRAM-CAPTURE-CORRELATION>
 
-    <M-DATAGRAM-BLOCKING-BOUNDARY NAME="DatagramBlockingBoundary" TYPE="CORE_LOGIC" LAYER="26" ORDER="6" STATUS="planned">
+    <M-DATAGRAM-BLOCKING-BOUNDARY NAME="DatagramBlockingBoundary" TYPE="CORE_LOGIC" LAYER="26" ORDER="6" STATUS="done">
       <contract>
         <purpose>Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity or escalating early to provider blame.</purpose>
         <inputs>
@@ -3825,6 +3825,7 @@
         <log-prefix>[DatagramBlockingBoundary]</log-prefix>
         <critical-block>BLOCK_DATAGRAM_BLOCKING_BOUNDARY</critical-block>
       </observability>
+      <note-1>The first unresolved controlled datagram layer now stays bounded before proven remote echo-target ingress and therefore before inbound reply return. The packet no longer reopens Telegram UI ambiguity or elevates provider blocking as the leading explanation.</note-1>
       <verification-ref>V-M-DATAGRAM-BLOCKING-BOUNDARY</verification-ref>
     </M-DATAGRAM-BLOCKING-BOUNDARY>
 
@@ -4438,7 +4439,7 @@
       <step-3 module="M-DATAGRAM-OUTBOUND-TRACE" status="done" verification="V-M-DATAGRAM-OUTBOUND-TRACE">Trace the controlled outbound datagram path from local UDP ASSOCIATE to remote echo-target ingress</step-3>
       <step-4 module="M-DATAGRAM-INBOUND-TRACE" status="done" verification="V-M-DATAGRAM-INBOUND-TRACE">Trace the inbound datagram reply path back to the local probe receive surface</step-4>
       <step-5 module="M-DATAGRAM-CAPTURE-CORRELATION" status="done" verification="V-M-DATAGRAM-CAPTURE-CORRELATION">Correlate local probe evidence, runtime markers, and remote capture into one bounded packet</step-5>
-      <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="pending" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>
+      <step-6 module="M-DATAGRAM-BLOCKING-BOUNDARY" status="done" verification="V-M-DATAGRAM-BLOCKING-BOUNDARY">Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity</step-6>
       <step-7 module="M-DATAGRAM-NEXT-STEP-DECISION" status="pending" verification="V-M-DATAGRAM-NEXT-STEP-DECISION">Issue the bounded next-step decision for the controlled datagram round-trip</step-7>
     </Phase-23>
   </ImplementationOrder>

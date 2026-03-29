@@ -1375,7 +1375,7 @@
       </annotations>
     </M-DATAGRAM-CAPTURE-CORRELATION>
 
-    <M-DATAGRAM-BLOCKING-BOUNDARY NAME="DatagramBlockingBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-DATAGRAM-BLOCKING-BOUNDARY NAME="DatagramBlockingBoundary" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Name the first unresolved controlled datagram layer without reopening Telegram UI ambiguity.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-DATAGRAM-CAPTURE-CORRELATION, M-DATAGRAM-ROUNDTRIP-HYPOTHESIS</depends>
