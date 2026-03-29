@@ -2857,7 +2857,7 @@
       <verification-ref>V-M-CALLS-DEPLOY-BOOTSTRAP</verification-ref>
     </M-CALLS-DEPLOY-BOOTSTRAP>
 
-    <M-CALLS-SERVICE-READINESS NAME="CallsServiceReadiness" TYPE="ENTRY_POINT" LAYER="22" ORDER="3" STATUS="planned">
+    <M-CALLS-SERVICE-READINESS NAME="CallsServiceReadiness" TYPE="ENTRY_POINT" LAYER="22" ORDER="3" STATUS="implemented">
       <contract>
         <purpose>Prove that the deployed client and server are ready for Telegram calls, including UDP-capable runtime markers, before operator handoff.</purpose>
         <inputs>
@@ -2882,6 +2882,7 @@
         <log-prefix>[CallsServiceReadiness]</log-prefix>
         <critical-block>BLOCK_CALLS_SERVICE_READINESS</critical-block>
       </observability>
+      <note-1>On 2026-03-29 live readiness ran green after redeploying a non-CA server leaf certificate: ghost-srv bound 0.0.0.0:7443, ghost-cli bound 127.0.0.1:1080, startup anchors were fresh on both hosts, and curl through socks5h://127.0.0.1:1080 returned HTTP 200 from example.com.</note-1>
       <verification-ref>V-M-CALLS-SERVICE-READINESS</verification-ref>
     </M-CALLS-SERVICE-READINESS>
 
@@ -3525,7 +3526,7 @@
       <goal>Deploy the UDP-capable n0wss baseline onto the fresh server pair and collect bounded live Telegram Desktop voice or video call evidence on the tested setup.</goal>
       <step-1 module="M-CALLS-HOST-REBASELINE" status="done" verification="V-M-CALLS-HOST-REBASELINE">Capture fresh-host identity and baseline tooling evidence for the live calls wave</step-1>
       <step-2 module="M-CALLS-DEPLOY-BOOTSTRAP" status="done" verification="V-M-CALLS-DEPLOY-BOOTSTRAP">Deploy the UDP-capable n0wss build to the fresh client and server hosts</step-2>
-      <step-3 module="M-CALLS-SERVICE-READINESS" status="pending" verification="V-M-CALLS-SERVICE-READINESS">Prove client or server service readiness and UDP-capable runtime markers before operator handoff</step-3>
+      <step-3 module="M-CALLS-SERVICE-READINESS" status="done" verification="V-M-CALLS-SERVICE-READINESS">Prove client or server service readiness and UDP-capable runtime markers before operator handoff</step-3>
       <step-4 module="M-CALLS-HANDOFF" status="pending" verification="V-M-CALLS-HANDOFF">Prepare the exact SSH-forward and SOCKS5 handoff for Telegram Desktop calls</step-4>
       <step-5 module="M-CALLS-VOICE-WAVE" status="pending" verification="V-M-CALLS-VOICE-WAVE">Run one bounded Telegram voice-call live wave and capture separate signaling and media evidence</step-5>
       <step-6 module="M-CALLS-VIDEO-WAVE" status="pending" verification="V-M-CALLS-VIDEO-WAVE">Run a separate Telegram video-call live wave without conflating it with the voice result</step-6>

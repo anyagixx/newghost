@@ -1035,7 +1035,7 @@
       </annotations>
     </M-CALLS-DEPLOY-BOOTSTRAP>
 
-    <M-CALLS-SERVICE-READINESS NAME="CallsServiceReadiness" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-CALLS-SERVICE-READINESS NAME="CallsServiceReadiness" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Prove that the live client and server are ready for Telegram calls, including UDP-capable runtime markers.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-CALLS-DEPLOY-BOOTSTRAP, M-DATAGRAM-SESSION-MANAGER, M-DATAGRAM-TRANSPORT-SELECTOR</depends>
