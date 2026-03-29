@@ -4785,7 +4785,7 @@
       <verification-ref>V-M-TELEGRAM-CALLS-RECONNECT-RERUN</verification-ref>
     </M-TELEGRAM-CALLS-RECONNECT-RERUN>
 
-    <M-TELEGRAM-CALLS-RERUN-EVIDENCE NAME="TelegramCallsRerunEvidence" TYPE="UTILITY" LAYER="31" ORDER="7" STATUS="planned">
+    <M-TELEGRAM-CALLS-RERUN-EVIDENCE NAME="TelegramCallsRerunEvidence" TYPE="UTILITY" LAYER="31" ORDER="7" STATUS="done">
       <contract>
         <purpose>Assemble the bounded readiness, voice, video, reconnect, and comparison packets for the new Telegram-specific rerun wave after Phase-27.</purpose>
         <inputs>
@@ -5632,7 +5632,7 @@
       <step-4 module="M-TELEGRAM-CALLS-VIDEO-RERUN" status="done" verification="V-M-TELEGRAM-CALLS-VIDEO-RERUN">Replay one bounded Telegram Desktop video-call wave without conflating it with voice</step-4>
       <step-5 module="M-TELEGRAM-CALLS-APP-CLASSIFIER" status="done" verification="V-M-TELEGRAM-CALLS-APP-CLASSIFIER">Classify the new Telegram calls outcome as governed media, direct-media behavior, or signaling-only stall</step-5>
       <step-6 module="M-TELEGRAM-CALLS-RECONNECT-RERUN" status="done" verification="V-M-TELEGRAM-CALLS-RECONNECT-RERUN">Replay one fresh second call attempt after the first rerun</step-6>
-      <step-7 module="M-TELEGRAM-CALLS-RERUN-EVIDENCE" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-EVIDENCE">Assemble the bounded readiness, voice, video, reconnect, and comparison packets</step-7>
+      <step-7 module="M-TELEGRAM-CALLS-RERUN-EVIDENCE" status="done" verification="V-M-TELEGRAM-CALLS-RERUN-EVIDENCE">Assemble the bounded readiness, voice, video, reconnect, and comparison packets</step-7>
       <step-8 module="M-TELEGRAM-CALLS-RERUN-DECISION" status="pending" verification="V-M-TELEGRAM-CALLS-RERUN-DECISION">Issue the bounded Telegram calls decision after the post-Phase-27 rerun wave</step-8>
       <note-1>The bounded voice rerun on 2026-03-29 advanced beyond the older no-go symptom: ringing and answer were immediate, Telegram showed key-exchange emoji on both devices, and then the call moved into `Connecting...` before ending.</note-1>
       <note-2>The same client-side call window still showed only SOCKS5 CONNECT parsing and WSS transport-selection markers to Telegram network IPs, with no fresh governed UDP or datagram media markers for the voice attempt.</note-2>
@@ -5640,6 +5640,7 @@
       <note-4>The bounded video rerun on 2026-03-29 remained separate from voice and failed earlier in the app-facing flow: the operator reported that the call stalled at `Обмен ключами шифрования...` and then dropped before reaching a green media path.</note-4>
       <note-5>The post-Phase-27 app-classifier packet on 2026-03-29 stays in the `signaling-only stall` bucket: voice reached answer plus key-exchange emoji before falling back to `Соединение...`, while video stalled at key exchange and dropped without a green media packet.</note-5>
       <note-6>The fresh reconnect audio attempt on 2026-03-29 remained separate from the first-call packet and repeated the same key-exchange stall: the operator reported `Обмен ключами шифрования` again without a green media path.</note-6>
+      <note-7>The completed Phase-28 evidence packet now keeps readiness, voice, video, reconnect, and classifier sections separate and compares them explicitly against the older pre-Phase-27 no-go calls waves.</note-7>
     </Phase-28>
   </ImplementationOrder>
 
