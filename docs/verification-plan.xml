@@ -3671,12 +3671,14 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The reconnect packet remains separate from the first call and classifies whether the second attempt rebuilds the media path deterministically.</scenario-1>
+        <scenario-2>If the second fresh call attempt repeats the same key-exchange stall as the first attempt, the reconnect packet still counts as valid evidence as long as it is recorded separately.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The reconnect result is omitted or collapsed into the first call result.</scenario-1>
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The reconnect packet must be anchored as one fresh second call attempt after the first packet finishes, not as a blended continuation.</assertion-1>
+        <assertion-2>The reconnect packet must explicitly say whether the second call changed behavior or repeated the same key-exchange symptom.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-CALLS-RECONNECT-RERUN>
 
