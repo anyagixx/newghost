@@ -1495,7 +1495,7 @@
       </annotations>
     </M-SOCKS5-UDP-RUNTIME-LOOP>
 
-    <M-WSS-DATAGRAM-RUNTIME-CARRIER NAME="WssDatagramRuntimeCarrier" TYPE="INTEGRATION" STATUS="planned">
+    <M-WSS-DATAGRAM-RUNTIME-CARRIER NAME="WssDatagramRuntimeCarrier" TYPE="INTEGRATION" STATUS="done">
       <purpose>Implement the production WSS datagram carrier over the live websocket runtime.</purpose>
       <path>src/wss_gateway/mod.rs</path>
       <depends>M-WSS-DATAGRAM-GATEWAY, M-WSS-DATAGRAM-EMIT-REPAIR, M-DATAGRAM-TRANSPORT-SELECTOR</depends>
