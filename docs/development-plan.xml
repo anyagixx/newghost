@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.28">
+<DevelopmentPlan VERSION="0.2.29">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -5204,6 +5204,184 @@
       </observability>
       <verification-ref>V-M-WORKAROUND-DECISION</verification-ref>
     </M-WORKAROUND-DECISION>
+    <M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS NAME="TelegramDeepWorkaroundHypothesis" TYPE="UTILITY" LAYER="34" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the post-Phase-30 truth-boundary where transport remains green, topology swaps no longer help, and future work stays strictly inside Telegram-specific workaround space.</purpose>
+        <inputs>
+          <input-1>The completed Phase-30 workaround decision packet.</input-1>
+          <input-2>The completed workaround behavior comparison packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded deeper-workaround hypothesis packet above the preserved green transport baseline.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-WORKAROUND-DECISION, M-WORKAROUND-BEHAVIOR-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramDeepWorkaroundHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_DEEP_WORKAROUND_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS>
+    <M-TELEGRAM-APP-VARIANT-PROFILE NAME="TelegramAppVariantProfile" TYPE="ENTRY_POINT" LAYER="34" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Freeze one bounded Telegram-specific app variant for the next workaround wave so comparison value is preserved.</purpose>
+        <inputs>
+          <input-1>The completed deeper-workaround hypothesis packet.</input-1>
+          <input-2>The completed alternate-topology profile and evidence packets.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded app-variant handoff packet for the next Telegram-specific workaround wave.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS, M-ALTERNATE-TOPOLOGY-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramAppVariantProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_APP_VARIANT_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-APP-VARIANT-PROFILE</verification-ref>
+    </M-TELEGRAM-APP-VARIANT-PROFILE>
+    <M-TELEGRAM-DEEP-CAPTURE NAME="TelegramDeepCapture" TYPE="INTEGRATION" LAYER="34" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded capture packet for the Telegram-specific app variant so it stays directly comparable with the completed Phase-29 and Phase-30 packets.</purpose>
+        <inputs>
+          <input-1>The completed workaround capture packet.</input-1>
+          <input-2>The bounded app-variant handoff packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded deeper-workaround capture packet that keeps the next variant wave comparable to earlier Telegram media packets.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-WORKAROUND-CAPTURE, M-TELEGRAM-APP-VARIANT-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramDeepCapture]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_DEEP_CAPTURE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-DEEP-CAPTURE</verification-ref>
+    </M-TELEGRAM-DEEP-CAPTURE>
+    <M-TELEGRAM-VARIANT-VOICE-WAVE NAME="TelegramVariantVoiceWave" TYPE="CORE_LOGIC" LAYER="34" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded Telegram voice-call attempt on the chosen app variant and classify whether the no-go class changes.</purpose>
+        <inputs>
+          <input-1>The bounded app-variant handoff packet.</input-1>
+          <input-2>The bounded deeper-workaround capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded app-variant voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-APP-VARIANT-PROFILE, M-TELEGRAM-DEEP-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramVariantVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VARIANT_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VARIANT-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-VARIANT-VOICE-WAVE>
+    <M-TELEGRAM-VARIANT-VIDEO-WAVE NAME="TelegramVariantVideoWave" TYPE="CORE_LOGIC" LAYER="34" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded Telegram video-call attempt on the same app variant without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded app-variant voice packet.</input-1>
+          <input-2>The bounded deeper-workaround capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded app-variant video packet kept separate from voice.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-VARIANT-VOICE-WAVE, M-TELEGRAM-DEEP-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramVariantVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VARIANT_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VARIANT-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-VARIANT-VIDEO-WAVE>
+    <M-TELEGRAM-VARIANT-COMPARISON NAME="TelegramVariantComparison" TYPE="CORE_LOGIC" LAYER="34" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Compare the new app-variant media packets against the completed Phase-29 and Phase-30 packets and determine whether the Telegram no-go class changed.</purpose>
+        <inputs>
+          <input-1>The bounded app-variant voice and video packets.</input-1>
+          <input-2>The completed workaround evidence packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded app-variant comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-VARIANT-VOICE-WAVE, M-TELEGRAM-VARIANT-VIDEO-WAVE, M-WORKAROUND-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[TelegramVariantComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VARIANT_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VARIANT-COMPARISON</verification-ref>
+    </M-TELEGRAM-VARIANT-COMPARISON>
+    <M-TELEGRAM-VARIANT-EVIDENCE NAME="TelegramVariantEvidence" TYPE="UTILITY" LAYER="34" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Assemble the bounded app-variant handoff, capture, voice, video, and comparison packets for the deeper workaround wave.</purpose>
+        <inputs>
+          <input-1>The bounded app-variant handoff, capture, and media packets.</input-1>
+          <input-2>The completed Phase-29 and Phase-30 evidence packets.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded Telegram app-variant evidence packet that stays separate from earlier workaround packets.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-VARIANT-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramVariantEvidence]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VARIANT_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VARIANT-EVIDENCE</verification-ref>
+    </M-TELEGRAM-VARIANT-EVIDENCE>
+    <M-TELEGRAM-VARIANT-DECISION NAME="TelegramVariantDecision" TYPE="ENTRY_POINT" LAYER="34" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded decision for the tested Telegram setup after the deeper Telegram-specific variant wave.</purpose>
+        <inputs>
+          <input-1>The bounded app-variant evidence packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded decision stating whether the chosen variant helps, still stays no-go, or points to another even narrower Telegram-specific branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-VARIANT-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[TelegramVariantDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VARIANT_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VARIANT-DECISION</verification-ref>
+    </M-TELEGRAM-VARIANT-DECISION>
   </Modules>
 
   <DataFlow>
@@ -5781,6 +5959,31 @@
       <step-2>The comparison packet states whether topology changed the Telegram no-go class or preserved it.</step-2>
       <evidence>A bounded workaround comparison packet.</evidence>
     </DF-WORKAROUND-COMPARISON>
+    <DF-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS NAME="Telegram deep workaround hypothesis" TRIGGER="Phase-30 completed with a bounded alternate-topology no-go packet above the preserved green transport baseline.">
+      <step-1>The completed Phase-30 decision freezes generic transport and topology-swap work as already classified.</step-1>
+      <step-2>The new hypothesis packet preserves the completed Phase-29 and Phase-30 no-go classes as the historical baseline.</step-2>
+      <evidence>A bounded deeper-workaround hypothesis packet above the preserved green transport baseline.</evidence>
+    </DF-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS>
+    <DF-TELEGRAM-APP-VARIANT-HANDOFF NAME="Telegram app variant handoff" TRIGGER="A bounded deeper Telegram-specific workaround wave begins after topology-only work is exhausted.">
+      <step-1>The operator applies one bounded Telegram-specific app variant instead of silently reusing the old app-behavior packet.</step-1>
+      <step-2>The same-wave green `phase27-probe` precondition is preserved before any new media packet is interpreted.</step-2>
+      <evidence>A bounded app-variant handoff packet.</evidence>
+    </DF-TELEGRAM-APP-VARIANT-HANDOFF>
+    <DF-TELEGRAM-VARIANT-VOICE NAME="Telegram app variant voice wave" TRIGGER="A bounded Telegram voice-call attempt runs on the chosen app variant.">
+      <step-1>The app-variant voice packet is collected with the bounded capture surface.</step-1>
+      <step-2>The packet states whether the Telegram no-go class changed relative to the completed Phase-29 and Phase-30 voice packets.</step-2>
+      <evidence>A bounded app-variant voice packet.</evidence>
+    </DF-TELEGRAM-VARIANT-VOICE>
+    <DF-TELEGRAM-VARIANT-VIDEO NAME="Telegram app variant video wave" TRIGGER="A bounded Telegram video-call attempt runs on the same app variant after the voice packet is complete.">
+      <step-1>The app-variant video packet stays separate from the app-variant voice packet.</step-1>
+      <step-2>The packet states whether video changed behavior relative to the completed Phase-29 and Phase-30 video packets.</step-2>
+      <evidence>A bounded app-variant video packet.</evidence>
+    </DF-TELEGRAM-VARIANT-VIDEO>
+    <DF-TELEGRAM-VARIANT-DECISION NAME="Telegram app variant decision" TRIGGER="The app-variant voice and video packets are available for comparison against the completed workaround packets.">
+      <step-1>The new packets are compared directly against the completed Phase-29 and Phase-30 media packets.</step-1>
+      <step-2>The final decision says whether the chosen variant helps, still stays no-go, or points to another even narrower Telegram-specific branch.</step-2>
+      <evidence>A bounded app-variant comparison and decision packet.</evidence>
+    </DF-TELEGRAM-VARIANT-DECISION>
   </DataFlow>
 
   <ImplementationOrder>
@@ -6115,6 +6318,19 @@
       <note-8>The bounded Phase-30 comparison packet therefore shows that switching from the Phase-29 SSH-forwarded route to a truly local `n0wss-client` listener did not change the Telegram no-go class for either voice or video on the tested Desktop setup.</note-8>
       <note-9>The bounded Phase-30 decision on 2026-03-30 remains no-go for the tested Telegram Desktop setup and points the next justified branch toward a more Telegram-specific workaround above the preserved green transport baseline rather than another topology swap or any generic transport repair.</note-9>
     </Phase-30>
+    <Phase-31 name="Telegram Deep Workaround Variant" status="pending">
+      <goal>Evaluate one bounded Telegram-specific app variant above the preserved green transport baseline and compare it directly against the completed Phase-29 and Phase-30 no-go packets.</goal>
+      <step-1 module="M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS">Freeze the post-Phase-30 deeper-workaround boundary</step-1>
+      <step-2 module="M-TELEGRAM-APP-VARIANT-PROFILE" status="pending" verification="V-M-TELEGRAM-APP-VARIANT-PROFILE">Freeze one bounded Telegram-specific app variant for the next wave</step-2>
+      <step-3 module="M-TELEGRAM-DEEP-CAPTURE" status="pending" verification="V-M-TELEGRAM-DEEP-CAPTURE">Define the bounded capture packet for the app-variant wave</step-3>
+      <step-4 module="M-TELEGRAM-VARIANT-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-VARIANT-VOICE-WAVE">Replay one bounded voice attempt on the chosen app variant</step-4>
+      <step-5 module="M-TELEGRAM-VARIANT-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-VARIANT-VIDEO-WAVE">Replay one bounded video attempt on the chosen app variant</step-5>
+      <step-6 module="M-TELEGRAM-VARIANT-COMPARISON" status="pending" verification="V-M-TELEGRAM-VARIANT-COMPARISON">Compare app-variant media packets against the completed Phase-29 and Phase-30 packets</step-6>
+      <step-7 module="M-TELEGRAM-VARIANT-EVIDENCE" status="pending" verification="V-M-TELEGRAM-VARIANT-EVIDENCE">Assemble the bounded app-variant handoff, capture, media, and comparison packets</step-7>
+      <step-8 module="M-TELEGRAM-VARIANT-DECISION" status="pending" verification="V-M-TELEGRAM-VARIANT-DECISION">Issue the bounded app-variant decision for the tested Telegram setup</step-8>
+      <note-1>Phase-31 starts only after the completed Phase-30 no-go packet, which already preserved the green transport baseline and showed that a topology swap alone does not change the Telegram no-go class.</note-1>
+      <note-2>The new phase must keep one Telegram-specific app variant distinct from earlier topology-only packets so a later comparison can say whether the app variant changed the no-go class.</note-2>
+    </Phase-31>
   </ImplementationOrder>
 
   <ExecutionPolicy>

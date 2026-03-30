@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.28">
+  <Project NAME="n0wss" VERSION="0.2.29">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -1964,6 +1964,78 @@
         <fn-issueWorkaroundDecision PURPOSE="Issue the bounded alternate-topology workaround decision for the tested Telegram setup." />
       </annotations>
     </M-WORKAROUND-DECISION>
+    <M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS NAME="TelegramDeepWorkaroundHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the post-Phase-30 truth-boundary where future work stays strictly inside Telegram-specific workaround space above the preserved green transport baseline.</purpose>
+      <path>README.md</path>
+      <depends>M-WORKAROUND-DECISION, M-WORKAROUND-BEHAVIOR-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramDeepWorkaroundHypothesis PURPOSE="Freeze the deeper-workaround-only boundary above the completed Phase-30 packet." />
+      </annotations>
+    </M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS>
+    <M-TELEGRAM-APP-VARIANT-PROFILE NAME="TelegramAppVariantProfile" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Freeze one bounded Telegram-specific app variant for the next workaround wave.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS, M-ALTERNATE-TOPOLOGY-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-APP-VARIANT-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTelegramAppVariant PURPOSE="Freeze one bounded Telegram-specific app variant distinct from earlier topology-only packets." />
+      </annotations>
+    </M-TELEGRAM-APP-VARIANT-PROFILE>
+    <M-TELEGRAM-DEEP-CAPTURE NAME="TelegramDeepCapture" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the bounded capture packet for the Telegram-specific app variant so it stays directly comparable with the completed Phase-29 and Phase-30 packets.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-WORKAROUND-CAPTURE, M-TELEGRAM-APP-VARIANT-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-DEEP-CAPTURE</verification-ref>
+      <annotations>
+        <fn-prepareTelegramDeepCapture PURPOSE="Prepare the deeper-workaround capture packet for the chosen Telegram app variant." />
+      </annotations>
+    </M-TELEGRAM-DEEP-CAPTURE>
+    <M-TELEGRAM-VARIANT-VOICE-WAVE NAME="TelegramVariantVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded Telegram voice-call attempt on the chosen app variant and classify whether the no-go class changes.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-APP-VARIANT-PROFILE, M-TELEGRAM-DEEP-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-VARIANT-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramVariantVoiceWave PURPOSE="Run one bounded Telegram voice-call attempt on the chosen app variant." />
+      </annotations>
+    </M-TELEGRAM-VARIANT-VOICE-WAVE>
+    <M-TELEGRAM-VARIANT-VIDEO-WAVE NAME="TelegramVariantVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded Telegram video-call attempt on the chosen app variant without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-VARIANT-VOICE-WAVE, M-TELEGRAM-DEEP-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-VARIANT-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramVariantVideoWave PURPOSE="Run one bounded Telegram video-call attempt on the chosen app variant." />
+      </annotations>
+    </M-TELEGRAM-VARIANT-VIDEO-WAVE>
+    <M-TELEGRAM-VARIANT-COMPARISON NAME="TelegramVariantComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare app-variant media packets against the completed Phase-29 and Phase-30 packets and determine whether the Telegram no-go class changed.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-VARIANT-VOICE-WAVE, M-TELEGRAM-VARIANT-VIDEO-WAVE, M-WORKAROUND-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-VARIANT-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramVariant PURPOSE="Compare one chosen app variant against the completed workaround packets." />
+      </annotations>
+    </M-TELEGRAM-VARIANT-COMPARISON>
+    <M-TELEGRAM-VARIANT-EVIDENCE NAME="TelegramVariantEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the bounded app-variant handoff, capture, voice, video, and comparison packets for the deeper workaround wave.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-VARIANT-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-VARIANT-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleTelegramVariantEvidence PURPOSE="Assemble the evidence packet for the chosen Telegram app variant." />
+      </annotations>
+    </M-TELEGRAM-VARIANT-EVIDENCE>
+    <M-TELEGRAM-VARIANT-DECISION NAME="TelegramVariantDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded decision for the tested Telegram setup after the deeper Telegram-specific variant wave.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-VARIANT-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-VARIANT-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramVariantDecision PURPOSE="Issue the bounded decision for the chosen Telegram app variant." />
+      </annotations>
+    </M-TELEGRAM-VARIANT-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -2278,6 +2350,15 @@
     <CrossLink from="M-ALTERNATE-VIDEO-WAVE" to="M-WORKAROUND-BEHAVIOR-COMPARISON" relation="supplies the alternate video packet for comparison against Phase-29" />
     <CrossLink from="M-WORKAROUND-BEHAVIOR-COMPARISON" to="M-WORKAROUND-EVIDENCE" relation="supplies the workaround comparison packet for evidence assembly" />
     <CrossLink from="M-WORKAROUND-EVIDENCE" to="M-WORKAROUND-DECISION" relation="supplies the bounded workaround evidence packet for the final alternate-topology decision" />
+    <CrossLink from="M-WORKAROUND-DECISION" to="M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS" relation="supplies the completed Phase-30 no-go decision that now freezes deeper Telegram-specific workaround work above the green transport baseline" />
+    <CrossLink from="M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS" to="M-TELEGRAM-APP-VARIANT-PROFILE" relation="supplies the deeper-workaround boundary used to freeze one Telegram-specific app variant" />
+    <CrossLink from="M-TELEGRAM-APP-VARIANT-PROFILE" to="M-TELEGRAM-DEEP-CAPTURE" relation="supplies the bounded app-variant handoff packet for the deeper workaround capture surface" />
+    <CrossLink from="M-TELEGRAM-DEEP-CAPTURE" to="M-TELEGRAM-VARIANT-VOICE-WAVE" relation="supplies the deeper-workaround capture packet for the app-variant voice wave" />
+    <CrossLink from="M-TELEGRAM-VARIANT-VOICE-WAVE" to="M-TELEGRAM-VARIANT-VIDEO-WAVE" relation="supplies the app-variant voice packet that the video wave must remain separate from" />
+    <CrossLink from="M-TELEGRAM-VARIANT-VOICE-WAVE" to="M-TELEGRAM-VARIANT-COMPARISON" relation="supplies the app-variant voice packet for comparison against the completed workaround packets" />
+    <CrossLink from="M-TELEGRAM-VARIANT-VIDEO-WAVE" to="M-TELEGRAM-VARIANT-COMPARISON" relation="supplies the app-variant video packet for comparison against the completed workaround packets" />
+    <CrossLink from="M-TELEGRAM-VARIANT-COMPARISON" to="M-TELEGRAM-VARIANT-EVIDENCE" relation="supplies the app-variant comparison packet for evidence assembly" />
+    <CrossLink from="M-TELEGRAM-VARIANT-EVIDENCE" to="M-TELEGRAM-VARIANT-DECISION" relation="supplies the bounded app-variant evidence packet for the final deeper-workaround decision" />
 
   </Project>
 </KnowledgeGraph>
