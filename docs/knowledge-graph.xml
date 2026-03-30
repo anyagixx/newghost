@@ -2279,7 +2279,7 @@
         <fn-defineTelegramIsolatedRunbook PURPOSE="Define the isolated Telegram operator runbook for the forced-topology wave." />
       </annotations>
     </M-TELEGRAM-ISOLATED-RUNBOOK>
-    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" STATUS="planned">
+    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" STATUS="done">
       <purpose>Prepare the capture surface for the forced-topology Telegram media wave.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION, M-TELEGRAM-ISOLATED-RUNBOOK</depends>

@@ -5983,7 +5983,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-ISOLATED-RUNBOOK</verification-ref>
     </M-TELEGRAM-ISOLATED-RUNBOOK>
-    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" LAYER="38" ORDER="4" STATUS="planned">
+    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" LAYER="38" ORDER="4" STATUS="done">
       <contract>
         <purpose>Prepare the bounded capture surface for the forced-topology wave so governed-path and direct-path media can still be separated.</purpose>
         <inputs>
@@ -7188,7 +7188,7 @@
       <step-1 module="M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS">Freeze the new topology-only branch above the Phase-34 attribution verdict</step-1>
       <step-2 module="M-TELEGRAM-FORCED-TOPOLOGY-PROFILE" status="done" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE">Freeze one exact forced-routing topology profile without changing the normal Desktop baseline</step-2>
       <step-3 module="M-TELEGRAM-ISOLATED-RUNBOOK" status="done" verification="V-M-TELEGRAM-ISOLATED-RUNBOOK">Define the isolated Telegram operator runbook for the forced topology wave</step-3>
-      <step-4 module="M-TELEGRAM-FORCED-CAPTURE" status="pending" verification="V-M-TELEGRAM-FORCED-CAPTURE">Prepare the bounded forced-topology capture packet</step-4>
+      <step-4 module="M-TELEGRAM-FORCED-CAPTURE" status="done" verification="V-M-TELEGRAM-FORCED-CAPTURE">Prepare the bounded forced-topology capture packet</step-4>
       <step-5 module="M-TELEGRAM-FORCED-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-FORCED-VOICE-WAVE">Run one bounded forced-topology Desktop voice wave</step-5>
       <step-6 module="M-TELEGRAM-FORCED-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-FORCED-VIDEO-WAVE">Run one bounded forced-topology Desktop video wave without inheriting voice</step-6>
       <step-7 module="M-TELEGRAM-FORCED-COMPARISON" status="pending" verification="V-M-TELEGRAM-FORCED-COMPARISON">Compare forced-topology packets against the Phase-34 attribution verdict</step-7>
