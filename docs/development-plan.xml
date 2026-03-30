@@ -6330,6 +6330,7 @@
       <step-8 module="M-TELEGRAM-VARIANT-DECISION" status="pending" verification="V-M-TELEGRAM-VARIANT-DECISION">Issue the bounded app-variant decision for the tested Telegram setup</step-8>
       <note-1>Phase-31 starts only after the completed Phase-30 no-go packet, which already preserved the green transport baseline and showed that a topology swap alone does not change the Telegram no-go class.</note-1>
       <note-2>The new phase must keep one Telegram-specific app variant distinct from earlier topology-only packets so a later comparison can say whether the app variant changed the no-go class.</note-2>
+      <note-3>The chosen Phase-31 variant keeps the completed Phase-30 truly local `n0wss-client` handoff fixed and changes one Telegram-specific dimension only: if the tested build exposes a calls-proxy toggle, keep proxying messages and files through `127.0.0.1:1080` while disabling proxy usage for calls only.</note-3>
     </Phase-31>
   </ImplementationOrder>
 

@@ -984,6 +984,28 @@ The completed Phase-30 packet freezes the next question even more narrowly:
 4. Phase-31 may change only one bounded Telegram-specific app variable at a time
 5. the already-green text-message, media-file, and large-file path must stay outside the workaround experiment and must not be regressed by the controller
 
+### Exact Phase-31 App Variant Profile
+
+The bounded Phase-31 app variant keeps the completed Phase-30 handoff fixed and changes one Telegram-specific dimension only:
+
+- preserved handoff:
+  local Telegram Desktop -> truly local `n0wss-client` listener on the same workstation -> `127.0.0.1:1080`
+- preserved app-side proxy entry:
+  host `127.0.0.1`
+  port `1080`
+  type `SOCKS5`
+  username empty
+  password empty
+- single app-variable delta:
+  if the tested Telegram Desktop build exposes a `Use proxy for calls` style toggle, keep the main proxy enabled for text and file traffic but disable proxy usage for calls only
+
+Phase-31 operator rules:
+
+1. preserve the same-window green `phase27-probe` precondition before touching the app variant
+2. keep the truly local `n0wss-client` listener from Phase-30; do not reintroduce the old `ssh -L` route in this wave
+3. change only the Telegram calls-proxy toggle; do not change the SOCKS host, port, proxy type, credentials, or local listener owner in the same wave
+4. if the tested Telegram Desktop build does not expose a calls-proxy toggle, stop the Phase-31 wave and classify the packet as `variant unavailable` rather than silently choosing a second app variable
+
 ### Phase-30 Workaround Hypothesis Boundary
 
 The completed Phase-29 packet freezes the next question narrowly:
