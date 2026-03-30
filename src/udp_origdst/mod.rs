@@ -1,9 +1,9 @@
 // FILE: src/udp_origdst/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Define the repo-local helper contract for transparently intercepted UDP, original-destination recovery, and governed handoff into the existing datagram path.
-//   SCOPE: Helper configuration, recovered-tuple metadata, helper error taxonomy, Linux-adapter export, governed-handoff trait surface, recovered-tuple runtime forwarding, and repo-local runtime contract helpers.
-//   DEPENDS: async-trait, std, thiserror, tracing, src/transport/datagram_contract.rs, src/session/datagram_manager.rs, src/udp_origdst/linux.rs
+//   PURPOSE: Define the repo-local helper contract for transparently intercepted UDP, original-destination recovery, governed handoff into the existing datagram path, and one cancellable live helper listener loop.
+//   SCOPE: Helper configuration, recovered-tuple metadata, helper error taxonomy, Linux-adapter export, governed-handoff trait surface, recovered-tuple runtime forwarding, cancellable Linux listener execution, and repo-local runtime contract helpers.
+//   DEPENDS: async-trait, std, thiserror, tokio, tokio-util, tracing, src/transport/datagram_contract.rs, src/session/datagram_manager.rs, src/udp_origdst/linux.rs
 //   LINKS: M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, V-M-UDP-ORIGDST-CONTRACT, DF-UDP-ORIGDST-RECOVERY, DF-UDP-ORIGDST-GOVERNED-HANDOFF
 // END_MODULE_CONTRACT
 //
@@ -16,20 +16,26 @@
 //   UdpOrigDstRecoverySurface - bounded contract over recovery of one original destination tuple
 //   tupleEvidenceLabel - emit one stable tuple evidence label for logs and smoke packets
 //   forwardRecoveredDatagram - validate one recovered tuple and forward it into the governed handoff target
+//   runLinuxIpv4ListenerUntilCancelled - run one live repo-local helper listener loop until cancellation while preserving tuple-level evidence
 //   linux - Linux-specific original-destination recovery surface
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added the bounded repo-local runtime surface so recovered tuples can be validated and forwarded into governed handoff with stable trace anchors.
+//   LAST_CHANGE: v0.1.2 - Added one cancellable Linux listener loop so the repo-local helper can run as a live execution surface instead of only one-shot tuple forwarding.
 // END_CHANGE_SUMMARY
 
-use std::net::SocketAddr;
+use std::net::{SocketAddr, UdpSocket};
+use std::time::Duration;
 
 use async_trait::async_trait;
 use thiserror::Error;
+use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 use crate::transport::datagram_contract::{DatagramTarget, MAX_DATAGRAM_PAYLOAD_BYTES};
+use crate::udp_origdst::linux::{
+    enable_ipv4_recv_original_dst, recv_recovered_ipv4_datagram,
+};
 
 pub mod linux;
 
@@ -42,6 +48,8 @@ pub struct UdpOrigDstHelperConfig {
     pub listener_addr: SocketAddr,
     pub preserve_baseline_proxy_addr: SocketAddr,
 }
+
+const LINUX_RECV_POLL_TIMEOUT: Duration = Duration::from_millis(100);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecoveredUdpTuple {
@@ -67,6 +75,8 @@ pub enum UdpOrigDstError {
     PayloadLengthMismatch { expected: usize, actual: usize },
     #[error("recovered payload exceeds maximum supported size")]
     PayloadTooLarge,
+    #[error("no recovered datagram is ready yet on the helper listener")]
+    ReceiveWouldBlock,
 }
 
 #[async_trait]
@@ -142,6 +152,51 @@ where
         );
         Ok(())
         // END_BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF
+    }
+
+    // START_CONTRACT: runLinuxIpv4ListenerUntilCancelled
+    //   PURPOSE: Enable Linux original-destination recovery on one helper socket and keep forwarding recovered datagrams until cancellation.
+    //   INPUTS: { socket: UdpSocket - bound repo-local helper listener socket, payload_capacity: usize - maximum payload bytes to receive per packet, cancel: CancellationToken - shutdown boundary for the bounded helper loop }
+    //   OUTPUTS: { Result<(), UdpOrigDstError> - ok when cancellation stops the helper loop cleanly }
+    //   SIDE_EFFECTS: [enables Linux socket ancillary-data recovery, reads live UDP packets, emits tuple-level runtime logs, forwards recovered payloads into governed handoff]
+    //   LINKS: [M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, V-M-UDP-ORIGDST-RUNTIME]
+    // END_CONTRACT: runLinuxIpv4ListenerUntilCancelled
+    pub async fn run_linux_ipv4_listener_until_cancelled(
+        &self,
+        socket: UdpSocket,
+        payload_capacity: usize,
+        cancel: CancellationToken,
+    ) -> Result<(), UdpOrigDstError> {
+        // START_BLOCK_UDP_ORIGDST_RUNTIME
+        enable_ipv4_recv_original_dst(&socket)?;
+        socket
+            .set_read_timeout(Some(LINUX_RECV_POLL_TIMEOUT))
+            .map_err(|error| UdpOrigDstError::RecoveryFailed(error.to_string()))?;
+        let helper_listener_addr = socket
+            .local_addr()
+            .map_err(|error| UdpOrigDstError::RecoveryFailed(error.to_string()))?;
+
+        while !cancel.is_cancelled() {
+            let recv_socket = socket
+                .try_clone()
+                .map_err(|error| UdpOrigDstError::RecoveryFailed(error.to_string()))?;
+            match tokio::task::spawn_blocking(move || {
+                recv_recovered_ipv4_datagram(&recv_socket, helper_listener_addr, payload_capacity)
+            })
+            .await
+            .map_err(|error| UdpOrigDstError::RecoveryFailed(error.to_string()))?
+            {
+                Ok(recovered) => {
+                    self.forward_recovered_datagram(recovered.tuple, recovered.payload)
+                        .await?;
+                }
+                Err(UdpOrigDstError::ReceiveWouldBlock) => continue,
+                Err(error) => return Err(error),
+            }
+        }
+
+        Ok(())
+        // END_BLOCK_UDP_ORIGDST_RUNTIME
     }
 }
 

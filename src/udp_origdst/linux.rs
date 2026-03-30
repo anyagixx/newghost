@@ -143,7 +143,13 @@ pub fn recv_recovered_ipv4_datagram(
 
     let received = unsafe { libc::recvmsg(socket.as_raw_fd(), &mut message, 0) };
     if received < 0 {
-        return Err(UdpOrigDstError::RecoveryFailed(io::Error::last_os_error().to_string()));
+        let error = io::Error::last_os_error();
+        return match error.kind() {
+            io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut => {
+                Err(UdpOrigDstError::ReceiveWouldBlock)
+            }
+            _ => Err(UdpOrigDstError::RecoveryFailed(error.to_string())),
+        };
     }
     if message.msg_flags & libc::MSG_CTRUNC != 0 {
         return Err(UdpOrigDstError::RecoveryFailed(

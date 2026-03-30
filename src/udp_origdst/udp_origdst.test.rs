@@ -1,9 +1,9 @@
 // FILE: src/udp_origdst/udp_origdst.test.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify the repo-local original-destination helper contract and runtime surfaces leave stable tuple-level evidence and deterministic forwarding behavior.
-//   SCOPE: Helper contract tuple-evidence labeling and runtime forwarding checks.
-//   DEPENDS: async-trait, tokio, src/udp_origdst/mod.rs, src/transport/datagram_contract.rs
+//   PURPOSE: Verify the repo-local original-destination helper contract and runtime surfaces leave stable tuple-level evidence, deterministic forwarding behavior, and one cancellable live listener loop.
+//   SCOPE: Helper contract tuple-evidence labeling, runtime forwarding, and Linux-listener loop checks.
+//   DEPENDS: async-trait, tokio, tokio-util, src/udp_origdst/mod.rs, src/transport/datagram_contract.rs
 //   LINKS: V-M-UDP-ORIGDST-CONTRACT, V-M-UDP-ORIGDST-RUNTIME
 // END_MODULE_CONTRACT
 //
@@ -11,16 +11,21 @@
 //   tuple_evidence_label_includes_tuple_boundaries - proves tuple evidence labels keep source, listener, target, and payload length visible
 //   runtime_forwards_recovered_tuple_into_governed_handoff - proves the runtime forwards a validated recovered tuple into the governed handoff target
 //   runtime_rejects_payload_length_mismatch - proves the runtime rejects a tuple whose declared payload length disagrees with the actual payload
+//   runtime_runs_linux_ipv4_listener_until_cancelled - proves the live repo-local helper loop can recover and forward one packet before bounded cancellation
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added deterministic runtime checks for recovered-tuple forwarding and payload-length mismatch handling.
+//   LAST_CHANGE: v0.1.2 - Added a bounded live-listener runtime check so Phase-41 can prove the repo-local helper is runnable beyond one-shot tuple forwarding.
 // END_CHANGE_SUMMARY
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use async_trait::async_trait;
+use tokio::time::sleep;
+use tokio_util::sync::CancellationToken;
+
 use crate::transport::datagram_contract::DatagramTarget;
 
 use super::{
@@ -118,4 +123,57 @@ async fn runtime_rejects_payload_length_mismatch() {
             actual: 4,
         }
     );
+}
+
+#[tokio::test]
+async fn runtime_runs_linux_ipv4_listener_until_cancelled() {
+    let handoff = RecordingHandoff::default();
+    let runtime = UdpOrigDstRuntime::new(handoff.clone());
+    let helper_socket = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind helper listener");
+    let helper_addr = helper_socket.local_addr().expect("helper listener addr");
+    let sender = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind sender");
+    let sender_addr = sender.local_addr().expect("sender addr");
+    let cancel = CancellationToken::new();
+
+    let task = tokio::spawn({
+        let cancel = cancel.clone();
+        async move {
+            runtime
+                .run_linux_ipv4_listener_until_cancelled(helper_socket, 64, cancel)
+                .await
+        }
+    });
+
+    sleep(Duration::from_millis(25)).await;
+    sender
+        .send_to(b"loop", helper_addr)
+        .expect("send loop packet");
+
+    for _ in 0..20 {
+        if handoff
+            .calls
+            .lock()
+            .expect("recording handoff lock poisoned")
+            .len()
+            == 1
+        {
+            break;
+        }
+        sleep(Duration::from_millis(25)).await;
+    }
+
+    let calls = handoff.calls.lock().expect("recorded calls lock poisoned");
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].0.client_source_addr, sender_addr);
+    assert_eq!(calls[0].0.helper_listener_addr, helper_addr);
+    assert_eq!(calls[0].0.original_target, DatagramTarget::Ip(helper_addr));
+    assert_eq!(calls[0].1, b"loop".to_vec());
+    drop(calls);
+
+    cancel.cancel();
+    task.await
+        .expect("listener task join")
+        .expect("listener loop should stop cleanly");
 }
