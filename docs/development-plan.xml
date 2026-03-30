@@ -5785,7 +5785,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CAPTURE-TOPOLOGY</verification-ref>
     </M-TELEGRAM-CAPTURE-TOPOLOGY>
-    <M-TELEGRAM-DESKTOP-NET-CAPTURE NAME="TelegramDesktopNetCapture" TYPE="INTEGRATION" LAYER="37" ORDER="3" STATUS="planned">
+    <M-TELEGRAM-DESKTOP-NET-CAPTURE NAME="TelegramDesktopNetCapture" TYPE="INTEGRATION" LAYER="37" ORDER="3" STATUS="done">
       <contract>
         <purpose>Define the bounded Desktop network-capture surface needed for Telegram media-path attribution beyond the old SOCKS loopback envelope.</purpose>
         <inputs>
@@ -6993,7 +6993,7 @@
       <goal>Attribute Telegram voice and video media behavior after key exchange on the already-working Desktop baseline without reopening spent workaround branches.</goal>
       <step-1 module="M-TELEGRAM-ATTRIBUTION-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-ATTRIBUTION-HYPOTHESIS">Freeze the bounded Telegram media-path attribution question above the preserved green baseline</step-1>
       <step-2 module="M-TELEGRAM-CAPTURE-TOPOLOGY" status="done" verification="V-M-TELEGRAM-CAPTURE-TOPOLOGY">Freeze one exact Desktop attribution capture topology without changing the working baseline</step-2>
-      <step-3 module="M-TELEGRAM-DESKTOP-NET-CAPTURE" status="pending" verification="V-M-TELEGRAM-DESKTOP-NET-CAPTURE">Define the bounded Desktop network-capture surface for media attribution</step-3>
+      <step-3 module="M-TELEGRAM-DESKTOP-NET-CAPTURE" status="done" verification="V-M-TELEGRAM-DESKTOP-NET-CAPTURE">Define the bounded Desktop network-capture surface for media attribution</step-3>
       <step-4 module="M-TELEGRAM-SERVER-CORRELATION" status="pending" verification="V-M-TELEGRAM-SERVER-CORRELATION">Freeze the governed server-side correlation contract for attribution waves</step-4>
       <step-5 module="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" status="pending" verification="V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE">Replay one bounded Desktop voice attribution wave</step-5>
       <step-6 module="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" status="pending" verification="V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE">Replay one bounded Desktop video attribution wave without inheriting voice</step-6>
