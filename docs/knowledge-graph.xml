@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.35">
+  <Project NAME="n0wss" VERSION="0.2.37">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2441,7 +2441,7 @@
         <fn-freezeHelperRuntimeProfile PURPOSE="Freeze the exact helper-backed runtime profile for the transparent interception branch." />
       </annotations>
     </M-HELPER-RUNTIME-PROFILE>
-    <M-HELPER-SMOKE-PROOF NAME="HelperSmokeProof" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-HELPER-SMOKE-PROOF NAME="HelperSmokeProof" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Prove the helper outside Telegram UI with synthetic isolated TCP and UDP attempts plus destination and governed-handoff evidence.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-HELPER-RUNTIME-PROFILE, M-HELPER-INSTALL-RUNBOOK</depends>

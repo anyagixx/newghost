@@ -1656,6 +1656,13 @@ Operator rule:
   one synthetic UDP packet to the fixed `redudp` destination
 - no Telegram voice or video packet is methodologically valid until that helper smoke is green and the bounded UDP limitation remains visible in the packet
 
+Observed green helper smoke on 2026-03-30:
+
+- after correcting the helper listener bind from `127.0.0.1` to the host-side namespace-facing address, one bounded synthetic TCP packet reached the governed local SOCKS5 surface at `127.0.0.1:1080`, opened a fresh WSS uplink, and returned an HTTP response
+- the bounded synthetic UDP helper packet also turned green when its fixed `redudp` target was the deterministic server-side echo tuple `91.99.128.146:55123`
+- keep that boundary honest:
+  helper smoke is now green for transparent TCP and for the one fixed deterministic UDP tuple above, but this still does not widen into a claim of arbitrary Telegram media UDP interception
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
