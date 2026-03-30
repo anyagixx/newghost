@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.61">
+<VerificationPlan VERSION="0.2.62">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -5125,12 +5125,13 @@
         <file>docs/verification-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'install|remove|cleanup|restore|explicit package|baseline|dnsmasq|resolver|resolv.conf' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-1>rg -n 'install|remove|cleanup|restore|explicit package|baseline|dnsmasq|resolver|resolv.conf|tdata|logout|auth' docs/OPERATORS.md docs/verification-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The runbook defines explicit install, remove, cleanup, and restore steps for the helper without contaminating the normal Desktop baseline.</scenario-1>
         <scenario-2>The runbook explicitly says what host-side experiment surfaces must not survive after cleanup.</scenario-2>
         <scenario-3>The runbook names one bounded namespace DNS surface for helper-backed readiness instead of assuming the host stub resolver or unnamed public DNS behavior.</scenario-3>
+        <scenario-4>The runbook forbids cloning the live authenticated Telegram Desktop session into helper-backed workdirs after the 2026-03-30 logout incident.</scenario-4>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The runbook assumes a helper binary exists without an explicit install or bootstrap path.</scenario-1>
@@ -5171,6 +5172,7 @@
       <failure-scenarios>
         <scenario-1>The helper reaches Telegram UI without a successful synthetic smoke packet first.</scenario-1>
         <scenario-2>The smoke packet proves only generic reachability and not destination recovery plus governed handoff.</scenario-2>
+        <scenario-3>The branch spends helper-backed Telegram UI packets after a known unsafe bootstrap method has already caused logout across windows.</scenario-3>
       </failure-scenarios>
     </V-M-HELPER-SMOKE-PROOF>
     <V-M-TELEGRAM-HELPER-VOICE-WAVE MODULE="M-TELEGRAM-HELPER-VOICE-WAVE" PRIORITY="high">

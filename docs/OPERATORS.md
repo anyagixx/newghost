@@ -1616,9 +1616,9 @@ Install and safety contract:
    the package install must not repoint or replace the preserved `127.0.0.1:1080` Telegram Desktop path
 5. For snap-backed isolated Telegram waves, any helper-specific `-workdir` must be owned by the unprivileged desktop user before launch:
    if the directory is created by a root-run setup script, correct it before `systemd-run --uid=1000 ... telegram-desktop -workdir ...`, otherwise Telegram can fail early with `Could not open ... log_startXX.txt`
-6. For helper-backed Telegram call waves, do not spend the isolated window on fresh account bootstrap if the normal workstation Telegram session is already authenticated:
-   seed the helper-specific `-workdir` from a bounded copy of the normal snap profile `~/.local/share/TelegramDesktop/tdata`, then launch the isolated window from that copied profile snapshot
-   this keeps the helper-backed voice or video packet downstream of green helper smoke instead of collapsing it into unrelated QR or login bootstrap behavior
+6. Do not seed a helper-backed Telegram `-workdir` from the live authenticated Desktop `tdata` profile on this workstation:
+   the 2026-03-30 Phase-37 experiment showed that a copied live session snapshot can still trigger account logout across Telegram windows and therefore exceeds the allowed user-impact boundary
+   helper-backed waves must not reuse or clone the active authenticated Desktop session state until a safer isolated auth bootstrap method is explicitly approved
 7. For isolated helper-backed Telegram readiness, do not reuse the host stub resolver address inside the network namespace:
    if `/etc/resolv.conf` inside the namespace still points to `127.0.0.53`, create one namespace-specific `resolv.conf` under `/etc/netns/<phase37-telegram-ns>/resolv.conf` that points to one host-side DNS bridge on the namespace-facing address, for example `10.203.37.1`
    on this workstation the bounded bridge is a helper-local `dnsmasq` instance bound to `10.203.37.1:53` and forwarding upstream to the real uplink DNS servers `77.88.8.8` and `8.8.8.8`
