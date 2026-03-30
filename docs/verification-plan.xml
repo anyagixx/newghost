@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.64">
+<VerificationPlan VERSION="0.2.65">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -5303,11 +5303,12 @@
         <file>docs/development-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'safe topology|no live-session cloning|calls-only' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-1>rg -n 'safe topology|no live-session cloning|calls-only|-many|phase38-safe-workdir' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The phase names one exact safe calls-only topology and explicitly excludes live-session cloning.</scenario-1>
         <scenario-2>The topology profile does not silently depend on temporary recovery proxies used only to restore the normal Telegram account.</scenario-2>
+        <scenario-3>The first launcher candidate uses a fresh empty safe workdir plus Telegram Desktop `-many -workdir ...` so the experiment window starts process-isolated from the ordinary Desktop window.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The topology profile still relies on the unsafe copied-session helper path.</scenario-1>
@@ -5320,11 +5321,12 @@
         <file>docs/verification-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'auth|bootstrap|logout|no cloned tdata|safe window' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+        <check-1>rg -n 'auth|bootstrap|logout|no cloned tdata|safe window|-many|phase38-safe-workdir' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The auth/bootstrap contract explicitly prevents touching the live Telegram session state.</scenario-1>
         <scenario-2>The auth/bootstrap contract separates safe-window bootstrap from any out-of-band restoration of the ordinary Telegram account.</scenario-2>
+        <scenario-3>The first acceptable bootstrap candidate is a fresh multi-instance safe window, not a copied live session snapshot.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The auth/bootstrap contract can still mutate, clone, or invalidate the live session state.</scenario-1>

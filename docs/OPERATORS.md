@@ -1689,11 +1689,13 @@ Bounded operator rules:
 4. The exact safe calls-only topology is now frozen narrowly:
    the ordinary Desktop window stays on the preserved working path
    any future calls experiment window must use a separate safe workdir and a non-destructive auth/bootstrap method that does not mutate or invalidate the ordinary live session
+   on this workstation the first approved launcher shape is: fresh empty `phase38-safe-workdir` plus Telegram Desktop `-many -workdir ...`, so the experiment window is process-isolated from the ordinary Desktop window before any auth step begins
 5. The exact auth isolation contract is now frozen:
    no cloned live session state
    no copied authenticated `tdata`
    no implicit proxy inheritance from the ordinary Telegram window
    no helper-backed window is valid if opening it can prompt or force logout in the ordinary Telegram session
+   the first acceptable bootstrap candidate is a fresh multi-instance Telegram window launched from the separate safe workdir, not a copied live session snapshot
 6. The readiness gate is strict and must be green before any new call attempt:
    the candidate safe window must show no `Connection...`
    no `Reconnecting to proxy`

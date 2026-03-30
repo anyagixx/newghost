@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.44">
+<DevelopmentPlan VERSION="0.2.45">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7875,6 +7875,7 @@
       <note-6>On 2026-03-30 the first six Phase-38 steps were closed as docs-only safety work: the calls branch was explicitly narrowed above the already-working ordinary Telegram baseline, unsafe Phase-37 helper bootstrap was superseded after the logout incident, and the preserved Desktop path at `127.0.0.1:1080` was frozen as the only approved live operator baseline.</note-6>
       <note-7>On the same date the safe calls topology and auth contract were frozen negatively but explicitly: no copied or cloned live `tdata`, no reuse of the quarantined `phase37-workdir`, no implicit proxy inheritance from the ordinary Telegram window, and no future calls packet until a separate safe workdir plus non-destructive auth/bootstrap method is approved.</note-7>
       <note-8>On the same date the readiness gate was made strict before any future calls packet: a candidate safe window must show no `Connection...`, no `Reconnecting to proxy`, no QR or login bootstrap screen, and at least one bounded stable dialog surface in the same packet window; otherwise the branch stops before voice or video.</note-8>
+      <note-9>Later on the same date the first bounded safe-bootstrap candidate turned green at the launcher layer without touching the ordinary session state: Telegram Desktop started in a separate network namespace through `systemd-run` with a fresh empty `phase38-safe-workdir` and `-many -workdir ...`, while namespace DNS still resolved `api.telegram.org` through the host-side `dnsmasq` bridge at `10.203.38.1`.</note-9>
     </Phase-38>
   </ImplementationOrder>
 
