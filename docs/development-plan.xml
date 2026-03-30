@@ -7614,7 +7614,7 @@
     <Phase-37 name="Telegram Transparent Interception Helper" status="pending">
       <goal>Introduce one explicit helper-backed transparent interception branch so Phase-36 can become runnable without changing the preserved normal Desktop baseline.</goal>
       <step-1 module="M-TELEGRAM-HELPER-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-HELPER-HYPOTHESIS">Freeze the helper-only blocker boundary above the blocked Phase-36 packet</step-1>
-      <step-2 module="M-HELPER-TECH-DECISION" status="pending" verification="V-M-HELPER-TECH-DECISION">Choose one exact transparent interception helper class</step-2>
+      <step-2 module="M-HELPER-TECH-DECISION" status="done" verification="V-M-HELPER-TECH-DECISION">Choose one exact transparent interception helper class</step-2>
       <step-3 module="M-HELPER-INSTALL-RUNBOOK" status="pending" verification="V-M-HELPER-INSTALL-RUNBOOK">Define the bounded install, setup, remove, and cleanup path for the helper</step-3>
       <step-4 module="M-HELPER-RUNTIME-PROFILE" status="pending" verification="V-M-HELPER-RUNTIME-PROFILE">Freeze the exact helper-backed runtime topology</step-4>
       <step-5 module="M-HELPER-SMOKE-PROOF" status="pending" verification="V-M-HELPER-SMOKE-PROOF">Prove the helper outside Telegram UI with synthetic TCP and UDP smoke</step-5>
@@ -7627,6 +7627,7 @@
       <note-3>The only approved new variable is the transparent interception helper surface; the preserved normal Desktop baseline at `127.0.0.1:1080` must remain untouched.</note-3>
       <note-4>Any package install or helper bootstrap must be explicit, reversible, experiment-local, and recorded in the operator runbook.</note-4>
       <note-5>Voice and video claims remain split unless the helper-backed comparison packet proves both changed class.</note-5>
+      <note-6>On 2026-03-30 the helper technology decision fixed one exact helper class for the current host: Ubuntu package `redsocks` candidate `0.5-2build4`, chosen because it is already available on the workstation package archive, supports transparent TCP redirection plus UDP packets via upstream SOCKS5, and can remain experiment-local without changing the existing n0wss transport contract before synthetic helper smoke begins.</note-6>
     </Phase-37>
   </ImplementationOrder>
 

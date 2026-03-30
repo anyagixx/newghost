@@ -2414,7 +2414,7 @@
         <fn-freezeTelegramHelperHypothesis PURPOSE="Freeze the helper-only blocker boundary above the blocked Phase-36 packet." />
       </annotations>
     </M-TELEGRAM-HELPER-HYPOTHESIS>
-    <M-HELPER-TECH-DECISION NAME="HelperTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-HELPER-TECH-DECISION NAME="HelperTechDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Choose one exact transparent interception helper class for the experiment-local Telegram helper branch.</purpose>
       <path>docs/technology.xml</path>
       <depends>M-TELEGRAM-HELPER-HYPOTHESIS</depends>

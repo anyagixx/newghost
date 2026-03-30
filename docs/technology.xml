@@ -1,4 +1,4 @@
-<TechnologyStack VERSION="0.2.1">
+<TechnologyStack VERSION="0.2.2">
   <Runtime>Tokio 1.48.0</Runtime>
   <Language>Rust 1.94 (edition 2021)</Language>
   <Framework>iroh + WSS transport stack 0.97/0.28</Framework>
@@ -33,7 +33,16 @@
     <tool name="formatter" value="rustfmt" version="bundled-with-rust-1.94" />
     <tool name="linter" value="clippy" version="bundled-with-rust-1.94" />
     <tool name="test-runner" value="cargo test" version="bundled-with-rust-1.94" />
+    <tool name="transparent-helper" value="redsocks" version="0.5-2build4 (Ubuntu plucky/universe candidate)" />
   </Tooling>
+
+  <ExperimentSurfaces>
+    <surface name="telegram-transparent-helper" class="external-package-helper">
+      <decision>`Phase-37` freezes `redsocks` as the one exact experiment-local transparent interception helper class on the current Ubuntu 25.04 workstation.</decision>
+      <reason>`redsocks` is already available from the default Ubuntu package archive on this host, supports transparent TCP redirection plus UDP packets via SOCKS4/SOCKS5 or HTTP proxying, and does not require changing the existing n0wss runtime contract before synthetic helper smoke can begin.</reason>
+      <boundary>The helper stays experiment-local only, must remain reversible through explicit install and cleanup steps, and must not replace the preserved normal Desktop baseline at `127.0.0.1:1080`.</boundary>
+    </surface>
+  </ExperimentSurfaces>
 
   <Testing>
     <module-level>
