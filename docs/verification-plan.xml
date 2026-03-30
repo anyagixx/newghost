@@ -4292,19 +4292,19 @@
         <file>docs/development-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'Use proxy for calls|mobile|SOCKS5|phase27-probe' docs/OPERATORS.md docs/development-plan.xml</check-1>
-        <check-2>rg -n 'same SOCKS5|toggle state|what changed|what stayed fixed|Desktop packets' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-2>
+        <check-1>rg -n 'Use proxy for calls|mobile|SOCKS5|phase27-probe|laptop LAN IP|dedicated mobile SOCKS5 port' docs/OPERATORS.md docs/development-plan.xml</check-1>
+        <check-2>rg -n 'Desktop listener|127.0.0.1:1080|toggle state|what changed|what stayed fixed|Desktop packets|LAN-facing' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-2>
       </module-checks>
       <success-scenarios>
-        <scenario-1>The mobile handoff packet names the exact proxy settings and the exact calls-proxy toggle state.</scenario-1>
+        <scenario-1>The mobile handoff packet names the exact laptop LAN IP, exact dedicated mobile SOCKS5 port, exact proxy settings, and the exact calls-proxy toggle state.</scenario-1>
         <scenario-2>The mobile handoff packet states exactly what changed relative to the completed Desktop packet and what stayed fixed from the preserved transport baseline.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
-        <scenario-1>The mobile handoff packet changes multiple uncontrolled variables instead of just the mobile calls-proxy toggle state.</scenario-1>
-        <scenario-2>The mobile handoff packet omits the exact toggle state or silently drifts the SOCKS5 route at the same time.</scenario-2>
+        <scenario-1>The mobile handoff packet changes multiple uncontrolled variables beyond the dedicated LAN listener and the mobile calls-proxy toggle state.</scenario-1>
+        <scenario-2>The mobile handoff packet omits the exact toggle state, exact LAN IP, or exact mobile SOCKS5 port, or silently drifts the Desktop listener at the same time.</scenario-2>
       </failure-scenarios>
       <required-trace-assertions>
-        <assertion-1>The mobile handoff packet must preserve the same-window green `phase27-probe` precondition while changing only the mobile calls-proxy toggle state.</assertion-1>
+        <assertion-1>The mobile handoff packet must preserve the same-window green `phase27-probe` precondition while changing only the mobile-specific handoff: dedicated LAN listener plus explicit calls-proxy toggle state.</assertion-1>
       </required-trace-assertions>
     </V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE>
     <V-M-TELEGRAM-MOBILE-CAPTURE MODULE="M-TELEGRAM-MOBILE-CAPTURE" PRIORITY="high">
@@ -4313,16 +4313,16 @@
         <file>docs/verification-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'mobile capture|voice|video|comparison|phase27-probe' docs/OPERATORS.md docs/verification-plan.xml</check-1>
-        <check-2>rg -n 'mobile-loopback|mobile-uplink|packet split|toggle state' docs/OPERATORS.md docs/verification-plan.xml</check-2>
+        <check-1>rg -n 'mobile capture|voice|video|comparison|phase27-probe|mobile handoff blocked' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'laptop LAN IP|dedicated mobile SOCKS5 port|packet split|toggle state|handoff failure packet' docs/OPERATORS.md docs/verification-plan.xml</check-2>
       </module-checks>
       <success-scenarios>
         <scenario-1>The mobile capture packet stays directly comparable with the completed Desktop packets.</scenario-1>
-        <scenario-2>The capture packet keeps mobile handoff evidence separate from the later voice, video, and comparison packets.</scenario-2>
+        <scenario-2>The capture packet keeps mobile handoff evidence and mobile handoff failures separate from the later voice, video, and comparison packets.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The mobile capture packet cannot be compared directly against the earlier Desktop packets.</scenario-1>
-        <scenario-2>The mobile capture packet collapses handoff proof and media outcome into one blended transcript.</scenario-2>
+        <scenario-2>The mobile capture packet collapses handoff proof, handoff failure, and media outcome into one blended transcript.</scenario-2>
       </failure-scenarios>
       <required-trace-assertions>
         <assertion-1>The mobile capture surface must stay reusable for separate voice and video packets under one exact toggle-state contract.</assertion-1>

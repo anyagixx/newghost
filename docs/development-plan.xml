@@ -5429,13 +5429,13 @@
     </M-PHASE31-SUPERSEDE>
     <M-TELEGRAM-MOBILE-HANDOFF-PROFILE NAME="TelegramMobileHandoffProfile" TYPE="ENTRY_POINT" LAYER="35" ORDER="3" STATUS="done">
       <contract>
-        <purpose>Freeze the exact mobile handoff profile using the same SOCKS5 path plus an explicit `Use proxy for calls` toggle state.</purpose>
+        <purpose>Freeze the exact mobile handoff profile using a dedicated LAN-facing SOCKS5 listener on the laptop plus an explicit `Use proxy for calls` toggle state, without touching the working Desktop listener.</purpose>
         <inputs>
           <input-1>The completed mobile-variant hypothesis packet.</input-1>
           <input-2>The completed app-variant profile and capture packets.</input-2>
         </inputs>
         <outputs>
-          <output-1>A bounded mobile handoff packet with exact proxy settings and exact calls-proxy toggle state.</output-1>
+          <output-1>A bounded mobile handoff packet with exact laptop LAN IP, exact dedicated mobile SOCKS5 port, exact proxy settings, and exact calls-proxy toggle state.</output-1>
         </outputs>
       </contract>
       <target-files>
@@ -5451,7 +5451,7 @@
     </M-TELEGRAM-MOBILE-HANDOFF-PROFILE>
     <M-TELEGRAM-MOBILE-CAPTURE NAME="TelegramMobileCapture" TYPE="INTEGRATION" LAYER="35" ORDER="4" STATUS="done">
       <contract>
-        <purpose>Define the bounded capture packet for the mobile Telegram wave so it stays directly comparable with the completed Desktop packets.</purpose>
+        <purpose>Define the bounded capture packet for the mobile Telegram wave so it stays directly comparable with the completed Desktop packets while separating mobile handoff failures from mobile media outcomes.</purpose>
         <inputs>
           <input-1>The completed deeper-workaround capture packet.</input-1>
           <input-2>The bounded mobile handoff packet.</input-2>
@@ -6571,7 +6571,8 @@
       <step-9 module="M-TELEGRAM-MOBILE-DECISION" status="pending" verification="V-M-TELEGRAM-MOBILE-DECISION">Issue the bounded mobile decision for the tested Telegram setup</step-9>
       <note-1>Phase-32 starts only after the blocked Phase-31 packet, which already proved that the chosen Desktop app variant is unavailable on the tested build.</note-1>
       <note-2>The new phase must keep the mobile setup distinct from the completed Desktop packets so a later comparison can say whether the mobile app behavior changed the no-go class.</note-2>
-      <note-3>The chosen mobile variant keeps the same SOCKS5 proxy path but makes the calls-proxy toggle state explicit via the mobile `Use proxy for calls` control.</note-3>
+      <note-3>The chosen mobile variant keeps the same remote tunnel path but replaces the Desktop-only localhost handoff with one dedicated LAN-facing mobile listener on a separate port.</note-3>
+      <note-4>The already-working local Desktop listener on `127.0.0.1:1080` must remain untouched during the mobile wave so text messages, media files, and large files keep their preserved path.</note-4>
     </Phase-32>
   </ImplementationOrder>
 

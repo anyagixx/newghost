@@ -995,13 +995,19 @@ The blocked Phase-31 packet now freezes the next branch even more tightly:
 
 ### Exact Phase-32 Mobile Handoff Profile
 
-The bounded Phase-32 mobile variant keeps the preserved SOCKS5 path fixed and changes one mobile-only app dimension:
+The bounded Phase-32 mobile variant keeps the preserved remote tunnel fixed, but it must not reuse the Desktop-only localhost listener shape:
 
-- preserved proxy path:
-  Telegram Mobile -> SOCKS5 `127.0.0.1:1080` on the controlled client side
-- preserved proxy settings:
-  host `127.0.0.1`
-  port `1080`
+- preserved transport path:
+  Telegram Mobile -> dedicated LAN-facing `n0wss-client` listener on the laptop -> same remote WSS path
+- preserved remote path:
+  same `n0wss-client` build, same auth token, same trust anchor, same remote WSS endpoint, same green transport baseline
+- preserved Desktop path:
+  keep the already-working local workstation listener on `127.0.0.1:1080` untouched for text messages, media files, and large files
+- bounded mobile-only handoff delta:
+  launch one second local `n0wss-client` listener for mobile on a separate LAN-visible port such as `192.168.31.241:11080`
+- bounded mobile proxy settings:
+  host `<laptop-lan-ip>`
+  port `<mobile-socks-port>`
   type `SOCKS5`
   username empty
   password empty
@@ -1011,18 +1017,42 @@ The bounded Phase-32 mobile variant keeps the preserved SOCKS5 path fixed and ch
 Phase-32 operator rules:
 
 1. preserve the same-window green `phase27-probe` packet before any mobile media attempt
-2. keep the same SOCKS5 route that already carries text messages, media files, and large files; do not change host, port, proxy type, or credentials in the same wave
+2. do not repoint the already-working Desktop route on `127.0.0.1:1080`; the mobile wave must use a second listener on a different port
 3. the handoff packet must say exactly one of:
    `Use proxy for calls = enabled`
    `Use proxy for calls = disabled`
-4. if the mobile build or device does not expose the calls-proxy toggle, stop the wave and classify the packet as `mobile variant unavailable`
+4. the handoff packet must record the exact laptop LAN IP and the exact dedicated mobile SOCKS5 port
+5. if the mobile build or device does not expose the calls-proxy toggle, stop the wave and classify the packet as `mobile variant unavailable`
+6. if the dedicated LAN-facing listener cannot be reached from the phone, stop the wave and classify the packet as `mobile handoff blocked` rather than blaming Telegram media behavior
+
+Recommended local launch shape for the dedicated mobile listener:
+
+```bash
+set -a
+source /secure-inputs/client.env
+set +a
+
+./target/release/n0wss \
+  --auth-token "$N0WSS_AUTH_TOKEN" \
+  client \
+  --listen-addr 0.0.0.0:11080 \
+  --remote-wss-url "$N0WSS_REMOTE_WSS_URL" \
+  --tls-trust-anchor-path /secure-inputs/server.pem
+```
+
+Recommended mobile handoff checks before any call packet:
+
+1. verify from the laptop that the dedicated listener exists on the chosen LAN-facing port
+2. verify the phone and laptop are on the same Wi-Fi segment
+3. configure Telegram Mobile to use `<laptop-lan-ip>:<mobile-socks-port>` instead of `127.0.0.1:1080`
+4. only then capture the mobile voice or video packet
 
 ### Phase-32 Mobile Capture Surface
 
 The mobile wave must keep its evidence directly comparable with the completed Desktop packets while preserving the blocked Phase-31 packet as history:
 
 - mobile handoff packet:
-  device type, app build when visible, exact SOCKS5 settings, and exact `Use proxy for calls` toggle state
+  device type, app build when visible, exact laptop LAN IP, exact dedicated mobile SOCKS5 port, exact SOCKS5 settings, and exact `Use proxy for calls` toggle state
 - mobile voice packet:
   one bounded voice attempt with ringing, answer, key-exchange, media, and drop state kept separate
 - mobile video packet:
@@ -1031,6 +1061,8 @@ The mobile wave must keep its evidence directly comparable with the completed De
   compare the mobile voice and video packets against the completed Phase-29 and Phase-30 Desktop packets and the blocked Phase-31 packet
 - packet split:
   keep mobile handoff, voice, video, comparison, and decision packets separate even if they happen in one operator session
+- mobile handoff failure packet:
+  if the phone cannot even establish the dedicated LAN-facing SOCKS5 route, classify the wave as `mobile handoff blocked` before interpreting any call UI
 
 ### Exact Phase-31 App Variant Profile
 
