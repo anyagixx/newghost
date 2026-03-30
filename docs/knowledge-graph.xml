@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.41">
+  <Project NAME="n0wss" VERSION="0.2.42">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2657,7 +2657,7 @@
         <fn-issueTelegramCallsAttachedDecision PURPOSE="Issue the bounded final decision after the baseline-attached calls branch." />
       </annotations>
     </M-TELEGRAM-CALLS-ATTACHED-DECISION>
-    <M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS NAME="TelegramArbitraryUdpHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS NAME="TelegramArbitraryUdpHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the new calls branch above the fixed-tuple smoke boundary and the direct-media attribution verdict.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-ATTACHED-DECISION, M-TELEGRAM-CALLS-INTERCEPT-SMOKE</depends>
@@ -2666,7 +2666,7 @@
         <fn-freezeTelegramArbitraryUdpHypothesis PURPOSE="Freeze the arbitrary-destination UDP branch boundary." />
       </annotations>
     </M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS>
-    <M-PHASE39-SMOKE-BOUNDARY NAME="Phase39SmokeBoundary" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE39-SMOKE-BOUNDARY NAME="Phase39SmokeBoundary" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the Phase-39 smoke packet as valid but insufficient for real calls because the helper is fixed-destination-only.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS</depends>
@@ -2675,7 +2675,7 @@
         <fn-freezePhase39SmokeBoundary PURPOSE="Keep the fixed-tuple smoke packet visible as a bounded boundary." />
       </annotations>
     </M-PHASE39-SMOKE-BOUNDARY>
-    <M-ARBITRARY-UDP-TECH-DECISION NAME="ArbitraryUdpTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-ARBITRARY-UDP-TECH-DECISION NAME="ArbitraryUdpTechDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Choose one exact arbitrary-destination UDP interception class for the next calls branch.</purpose>
       <path>docs/technology.xml</path>
       <depends>M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS</depends>
@@ -2684,7 +2684,7 @@
         <fn-chooseArbitraryUdpTechDecision PURPOSE="Choose one exact arbitrary-destination UDP interception class." />
       </annotations>
     </M-ARBITRARY-UDP-TECH-DECISION>
-    <M-ARBITRARY-UDP-RUNBOOK NAME="ArbitraryUdpRunbook" TYPE="INTEGRATION" STATUS="planned">
+    <M-ARBITRARY-UDP-RUNBOOK NAME="ArbitraryUdpRunbook" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define bounded install, setup, remove, and cleanup surfaces for arbitrary-destination UDP interception.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-ARBITRARY-UDP-TECH-DECISION, M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE</depends>
@@ -2693,7 +2693,7 @@
         <fn-defineArbitraryUdpRunbook PURPOSE="Define the arbitrary-UDP operator runbook and cleanup shape." />
       </annotations>
     </M-ARBITRARY-UDP-RUNBOOK>
-    <M-ARBITRARY-UDP-RUNTIME-PROFILE NAME="ArbitraryUdpRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-ARBITRARY-UDP-RUNTIME-PROFILE NAME="ArbitraryUdpRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze one exact arbitrary-destination UDP interception and destination-recovery surface while preserving the ordinary baseline.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-ARBITRARY-UDP-TECH-DECISION, M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE</depends>
