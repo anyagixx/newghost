@@ -5427,7 +5427,7 @@
       </observability>
       <verification-ref>V-M-PHASE31-SUPERSEDE</verification-ref>
     </M-PHASE31-SUPERSEDE>
-    <M-TELEGRAM-MOBILE-HANDOFF-PROFILE NAME="TelegramMobileHandoffProfile" TYPE="ENTRY_POINT" LAYER="35" ORDER="3" STATUS="planned">
+    <M-TELEGRAM-MOBILE-HANDOFF-PROFILE NAME="TelegramMobileHandoffProfile" TYPE="ENTRY_POINT" LAYER="35" ORDER="3" STATUS="done">
       <contract>
         <purpose>Freeze the exact mobile handoff profile using the same SOCKS5 path plus an explicit `Use proxy for calls` toggle state.</purpose>
         <inputs>
@@ -5449,7 +5449,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE</verification-ref>
     </M-TELEGRAM-MOBILE-HANDOFF-PROFILE>
-    <M-TELEGRAM-MOBILE-CAPTURE NAME="TelegramMobileCapture" TYPE="INTEGRATION" LAYER="35" ORDER="4" STATUS="planned">
+    <M-TELEGRAM-MOBILE-CAPTURE NAME="TelegramMobileCapture" TYPE="INTEGRATION" LAYER="35" ORDER="4" STATUS="done">
       <contract>
         <purpose>Define the bounded capture packet for the mobile Telegram wave so it stays directly comparable with the completed Desktop packets.</purpose>
         <inputs>
@@ -6562,8 +6562,8 @@
       <goal>Evaluate one bounded Telegram Mobile workaround variant above the preserved green transport baseline and compare it directly against the completed Desktop no-go packets.</goal>
       <step-1 module="M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS">Freeze the mobile-only workaround boundary after the blocked Desktop variant</step-1>
       <step-2 module="M-PHASE31-SUPERSEDE" status="done" verification="V-M-PHASE31-SUPERSEDE">Explicitly supersede the blocked Phase-31 tail</step-2>
-      <step-3 module="M-TELEGRAM-MOBILE-HANDOFF-PROFILE" status="pending" verification="V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE">Freeze the exact mobile handoff profile with explicit calls-proxy toggle state</step-3>
-      <step-4 module="M-TELEGRAM-MOBILE-CAPTURE" status="pending" verification="V-M-TELEGRAM-MOBILE-CAPTURE">Define the bounded capture packet for the mobile wave</step-4>
+      <step-3 module="M-TELEGRAM-MOBILE-HANDOFF-PROFILE" status="done" verification="V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE">Freeze the exact mobile handoff profile with explicit calls-proxy toggle state</step-3>
+      <step-4 module="M-TELEGRAM-MOBILE-CAPTURE" status="done" verification="V-M-TELEGRAM-MOBILE-CAPTURE">Define the bounded capture packet for the mobile wave</step-4>
       <step-5 module="M-TELEGRAM-MOBILE-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-MOBILE-VOICE-WAVE">Replay one bounded mobile voice attempt</step-5>
       <step-6 module="M-TELEGRAM-MOBILE-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-MOBILE-VIDEO-WAVE">Replay one bounded mobile video attempt</step-6>
       <step-7 module="M-TELEGRAM-MOBILE-COMPARISON" status="pending" verification="V-M-TELEGRAM-MOBILE-COMPARISON">Compare the mobile packets against the completed Desktop packets</step-7>
