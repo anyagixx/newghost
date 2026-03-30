@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.50">
+<VerificationPlan VERSION="0.2.52">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -86,6 +86,10 @@
     <single-app-variant-rule>No Phase-31 wave may change more than one Telegram-specific app variable at a time; if multiple app variables drift together, the packet is invalid for comparison against the completed Phase-29 and Phase-30 waves.</single-app-variant-rule>
     <deep-workaround-packet-split-rule>Phase-31 must keep deeper-workaround hypothesis, app-variant handoff, deep capture, voice packet, video packet, comparison packet, evidence packet, and decision packet separate so later agents can isolate app-variant impact without rereading blended transcripts.</deep-workaround-packet-split-rule>
     <telegram-deep-workaround-no-transport-reopen-rule>After Phase-30, deeper Telegram-specific workaround verification must stay above the already-green transport baseline and may not reopen generic datagram or topology diagnosis unless the same wave first disproves the preserved controlled round-trip packet.</telegram-deep-workaround-no-transport-reopen-rule>
+    <phase31-mobile-baseline-lock-rule>Any Phase-32 mobile wave must preserve the blocked Phase-31 Desktop packet as `variant unavailable` and the completed Phase-29 plus Phase-30 Desktop no-go packets as the historical baseline.</phase31-mobile-baseline-lock-rule>
+    <mobile-toggle-proof-rule>No mobile packet may be interpreted unless the handoff packet states the exact SOCKS5 settings and the exact `Use proxy for calls` toggle state used during that same wave.</mobile-toggle-proof-rule>
+    <mobile-packet-split-rule>Phase-32 must keep mobile hypothesis, Phase-31 supersede packet, mobile handoff, mobile capture, mobile voice, mobile video, mobile comparison, mobile evidence, and mobile decision separate so later agents can isolate mobile-only app behavior without rereading blended transcripts.</mobile-packet-split-rule>
+    <telegram-mobile-no-desktop-overclaim-rule>After Phase-31 is superseded, Phase-32 may compare against completed Desktop packets but may not widen any mobile result into a Desktop support claim.</telegram-mobile-no-desktop-overclaim-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -4240,6 +4244,192 @@
         <assertion-1>The final decision must choose one bounded outcome: variant helps, variant still no-go, or another even narrower Telegram-specific branch is needed.</assertion-1>
       </required-trace-assertions>
     </V-M-TELEGRAM-VARIANT-DECISION>
+    <V-M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS MODULE="M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'mobile variant|Desktop app variant|variant unavailable|green transport baseline' README.md docs/OPERATORS.md docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The hypothesis packet freezes future work inside the mobile Telegram branch without reopening Desktop transport or topology diagnosis.</scenario-1>
+        <scenario-2>The hypothesis packet preserves the blocked Phase-31 `variant unavailable` result and the completed Phase-29 plus Phase-30 no-go packets as the mobile comparison baseline.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new phase silently continues Phase-31 as if the Desktop app variant were still available.</scenario-1>
+        <scenario-2>The hypothesis packet treats the blocked Desktop variant as transport or topology failure instead of as app-variant unavailability.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The mobile-only workaround boundary must remain strictly above the preserved green `phase27-probe` transport baseline.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS>
+    <V-M-PHASE31-SUPERSEDE MODULE="M-PHASE31-SUPERSEDE" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/knowledge-graph.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Phase-31|superseded|variant unavailable' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The blocked Phase-31 tail no longer appears as runnable pending work in the shared artifacts.</scenario-1>
+        <scenario-2>The supersede packet preserves the historical Desktop evidence instead of deleting or rewriting it.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The queue still treats the unavailable Desktop-only toggle as executable pending work.</scenario-1>
+        <scenario-2>The supersede packet erases the blocked Phase-31 story instead of keeping it available for later comparison.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>Phase-31 must remain superseded in plan, graph, and verification simultaneously.</assertion-1>
+      </required-trace-assertions>
+    </V-M-PHASE31-SUPERSEDE>
+    <V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE MODULE="M-TELEGRAM-MOBILE-HANDOFF-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Use proxy for calls|mobile|SOCKS5|phase27-probe' docs/OPERATORS.md docs/development-plan.xml</check-1>
+        <check-2>rg -n 'same SOCKS5|toggle state|what changed|what stayed fixed|Desktop packets' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The mobile handoff packet names the exact proxy settings and the exact calls-proxy toggle state.</scenario-1>
+        <scenario-2>The mobile handoff packet states exactly what changed relative to the completed Desktop packet and what stayed fixed from the preserved transport baseline.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The mobile handoff packet changes multiple uncontrolled variables instead of just the mobile calls-proxy toggle state.</scenario-1>
+        <scenario-2>The mobile handoff packet omits the exact toggle state or silently drifts the SOCKS5 route at the same time.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The mobile handoff packet must preserve the same-window green `phase27-probe` precondition while changing only the mobile calls-proxy toggle state.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE>
+    <V-M-TELEGRAM-MOBILE-CAPTURE MODULE="M-TELEGRAM-MOBILE-CAPTURE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'mobile capture|voice|video|comparison|phase27-probe' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'mobile-loopback|mobile-uplink|packet split|toggle state' docs/OPERATORS.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The mobile capture packet stays directly comparable with the completed Desktop packets.</scenario-1>
+        <scenario-2>The capture packet keeps mobile handoff evidence separate from the later voice, video, and comparison packets.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The mobile capture packet cannot be compared directly against the earlier Desktop packets.</scenario-1>
+        <scenario-2>The mobile capture packet collapses handoff proof and media outcome into one blended transcript.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The mobile capture surface must stay reusable for separate voice and video packets under one exact toggle-state contract.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-CAPTURE>
+    <V-M-TELEGRAM-MOBILE-VOICE-WAVE MODULE="M-TELEGRAM-MOBILE-VOICE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'mobile voice|voice attempt|Phase-29|Phase-30|no-go class' docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The mobile voice packet states whether the no-go class changed relative to the completed Desktop voice packets.</scenario-1>
+        <scenario-2>The mobile voice packet stays above the preserved green transport baseline and does not reopen generic datagram diagnosis.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The mobile voice packet collapses into an older Desktop packet or reopens transport diagnosis.</scenario-1>
+        <scenario-2>The mobile voice packet cannot say whether the chosen mobile variant changed the no-go class or reproduced it unchanged.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The mobile voice packet must classify whether the chosen toggle state changed the no-go class for voice only, not for the whole media surface.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-VOICE-WAVE>
+    <V-M-TELEGRAM-MOBILE-VIDEO-WAVE MODULE="M-TELEGRAM-MOBILE-VIDEO-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'mobile video|video attempt|separate from voice|Phase-29|Phase-30' docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The mobile video packet stays separate from voice and states whether the no-go class changed relative to the completed Desktop video packets.</scenario-1>
+        <scenario-2>The mobile video packet states whether the chosen mobile variant diverges earlier, later, or at the same layer as the new mobile voice packet.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The mobile video packet silently inherits the mobile voice result.</scenario-1>
+        <scenario-2>The mobile video packet cannot be distinguished from the completed Desktop video packets.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The mobile video packet must remain a separate evidence class even when it reproduces the same no-go class as mobile voice.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-VIDEO-WAVE>
+    <V-M-TELEGRAM-MOBILE-COMPARISON MODULE="M-TELEGRAM-MOBILE-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'mobile comparison|Phase-29|Phase-30|voice|video|both|neither' README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet explicitly says whether the chosen mobile variant changed the Telegram no-go class for voice, video, both, or neither.</scenario-1>
+        <scenario-2>The comparison packet keeps the blocked Phase-31 packet visible together with the completed Desktop packets and the preserved green transport baseline.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison packet cannot distinguish the mobile wave from the completed Desktop packets.</scenario-1>
+        <scenario-2>The comparison packet cannot say whether the observed delta came from the explicit mobile toggle state or from uncontrolled mobile setup drift.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The comparison packet must say whether the chosen mobile variant changed the no-go class for voice, video, both, or neither.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-COMPARISON>
+    <V-M-TELEGRAM-MOBILE-EVIDENCE MODULE="M-TELEGRAM-MOBILE-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'mobile evidence|voice|video|comparison|toggle state' README.md docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The mobile evidence packet keeps handoff, capture, voice, video, and comparison sections separate.</scenario-1>
+        <scenario-2>The mobile evidence packet stays directly comparable with the blocked Phase-31 packet and the completed Desktop packets.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The mobile evidence packet cannot be distinguished from the completed Desktop packets.</scenario-1>
+        <scenario-2>The mobile evidence packet omits the exact calls-proxy toggle state and therefore loses comparison value.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The mobile evidence packet must preserve separate sections for hypothesis, supersede, handoff, capture, voice, video, comparison, and final decision.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-EVIDENCE>
+    <V-M-TELEGRAM-MOBILE-DECISION MODULE="M-TELEGRAM-MOBILE-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'mobile decision|helps|still no-go|another Telegram-specific branch' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision says whether the chosen mobile variant helps, still stays no-go, or points to another narrower Telegram-specific branch.</scenario-1>
+        <scenario-2>The final decision explicitly limits any improvement claim to the tested mobile setup and the one chosen calls-proxy toggle state only.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision widens claims beyond the tested mobile setup or reopens generic transport diagnosis.</scenario-1>
+        <scenario-2>The final decision fails to say whether the chosen mobile variant changed the no-go class for voice, video, both, or neither.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must choose one bounded outcome: mobile variant helps, mobile variant still no-go, or another narrower Telegram-specific branch is needed.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MOBILE-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -4684,6 +4874,26 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramDeepWorkaroundVariantWave; expected-evidence=same-window green controlled probe plus separate app-variant handoff, capture, voice, video, and comparison packets; observed-evidence=module-local checks, bounded app-variant attempts, packet captures, and bounded comparison evidence; first-divergent-block=first missing deeper-workaround layer after the preserved transport-green baseline; next-action=repair only the first unresolved Telegram-specific variant layer without reopening generic transport work</failure-packet-template>
     </LV-022>
+    <LV-023 NAME="TelegramMobileCallsProxyWave" PRIORITY="high">
+      <goal>Replay one bounded Telegram Mobile workaround wave only after the same live window still preserves the green controlled datagram baseline and the blocked Desktop app-variant packet.</goal>
+      <commands>
+        <command-1>cargo test udp_relay</command-1>
+        <command-2>cargo test wss_gateway</command-2>
+        <command-3>cargo test cli</command-3>
+        <command-4>replay one bounded `phase27-probe` in the same live window before any mobile packet is interpreted</command-4>
+        <command-5>capture one bounded mobile handoff packet with exact SOCKS5 settings and exact `Use proxy for calls` toggle state</command-5>
+        <command-6>capture one bounded mobile voice packet, one bounded mobile video packet, and one comparison packet against the completed Desktop packets</command-6>
+        <command-7>keep the blocked Phase-31 `variant unavailable` packet attached to the same mobile wave evidence set</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave starts only on the same transport-green baseline already preserved by Phase-27, Phase-29, and Phase-30.</evidence-1>
+        <evidence-2>The wave keeps mobile handoff, capture, voice, video, and comparison packets separate.</evidence-2>
+        <evidence-3>The wave states explicitly whether the chosen mobile variant changed the Telegram no-go class for voice, video, both, or neither.</evidence-3>
+        <evidence-4>The final decision remains bounded to the tested mobile setup and the chosen calls-proxy toggle state only.</evidence-4>
+        <evidence-5>The wave preserves the blocked Phase-31 Desktop packet as historical evidence rather than silently dropping it.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramMobileCallsProxyWave; expected-evidence=same-window green controlled probe plus separate mobile handoff, capture, voice, video, and comparison packets; observed-evidence=module-local checks, bounded mobile attempts, packet captures, and bounded comparison evidence; first-divergent-block=first missing mobile-specific layer after the preserved transport-green baseline; next-action=repair only the first unresolved mobile-specific layer without reopening generic transport work</failure-packet-template>
+    </LV-023>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -5222,6 +5432,23 @@
         <evidence-6>The gate requires the comparison packet to say whether the chosen app variant changed the no-go class for voice, video, both, or neither.</evidence-6>
       </required-evidence>
     </Gate-Phase-31>
+    <Gate-Phase-32 PHASE="Phase-32">
+      <goal>The project has an execution-ready Telegram Mobile workaround wave that stays above the green transport baseline and compares itself directly against the completed Desktop packets.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-32|M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS|M-TELEGRAM-MOBILE-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-023|phase27-probe|mobile|Use proxy for calls|voice|video|comparison|tested mobile setup' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>rg -n 'Phase-31|superseded|variant unavailable|toggle state|both|neither' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>The phase preserves the completed Desktop truth that media remains app-facing no-go above a green transport baseline.</evidence-1>
+        <evidence-2>The phase defines separate mobile handoff, capture, voice, video, comparison, evidence, and final decision packets.</evidence-2>
+        <evidence-3>The gate requires the same-window green `phase27-probe` packet before any mobile media interpretation.</evidence-3>
+        <evidence-4>The gate requires the mobile handoff packet to say the exact `Use proxy for calls` toggle state.</evidence-4>
+        <evidence-5>The final decision remains bounded to the tested mobile setup and the chosen toggle state only.</evidence-5>
+        <evidence-6>The gate requires the comparison packet to say whether the chosen mobile variant changed the no-go class for voice, video, both, or neither.</evidence-6>
+        <evidence-7>The gate requires the blocked Phase-31 packet to remain visible as historical evidence inside the mobile comparison story.</evidence-7>
+      </required-evidence>
+    </Gate-Phase-32>
   </PhaseGates>
 
   <FailurePackets>

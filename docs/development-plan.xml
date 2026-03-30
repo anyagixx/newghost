@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.29">
+<DevelopmentPlan VERSION="0.2.30">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -5382,6 +5382,206 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-VARIANT-DECISION</verification-ref>
     </M-TELEGRAM-VARIANT-DECISION>
+    <M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS NAME="TelegramMobileVariantHypothesis" TYPE="UTILITY" LAYER="35" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the new truth-boundary where the Desktop app variant is unavailable and the next justified Telegram-specific branch moves to a mobile build with an explicit calls-proxy toggle.</purpose>
+        <inputs>
+          <input-1>The blocked Phase-31 decision packet.</input-1>
+          <input-2>The completed deeper-workaround hypothesis packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded mobile-variant hypothesis packet above the preserved green transport baseline.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-VARIANT-DECISION, M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[TelegramMobileVariantHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_VARIANT_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS>
+    <M-PHASE31-SUPERSEDE NAME="Phase31Supersede" TYPE="UTILITY" LAYER="35" ORDER="2" STATUS="done">
+      <contract>
+        <purpose>Explicitly supersede the blocked Phase-31 Desktop app-variant tail so the execution queue no longer treats an unavailable Desktop-only toggle as runnable work.</purpose>
+        <inputs>
+          <input-1>The completed mobile-variant hypothesis packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A clean execution truth where the remaining Phase-31 tail is marked superseded by the mobile-specific branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase31Supersede]</log-prefix>
+        <critical-block>BLOCK_PHASE31_SUPERSEDE</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE31-SUPERSEDE</verification-ref>
+    </M-PHASE31-SUPERSEDE>
+    <M-TELEGRAM-MOBILE-HANDOFF-PROFILE NAME="TelegramMobileHandoffProfile" TYPE="ENTRY_POINT" LAYER="35" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Freeze the exact mobile handoff profile using the same SOCKS5 path plus an explicit `Use proxy for calls` toggle state.</purpose>
+        <inputs>
+          <input-1>The completed mobile-variant hypothesis packet.</input-1>
+          <input-2>The completed app-variant profile and capture packets.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded mobile handoff packet with exact proxy settings and exact calls-proxy toggle state.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-APP-VARIANT-PROFILE, M-TELEGRAM-DEEP-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramMobileHandoffProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_HANDOFF_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE</verification-ref>
+    </M-TELEGRAM-MOBILE-HANDOFF-PROFILE>
+    <M-TELEGRAM-MOBILE-CAPTURE NAME="TelegramMobileCapture" TYPE="INTEGRATION" LAYER="35" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded capture packet for the mobile Telegram wave so it stays directly comparable with the completed Desktop packets.</purpose>
+        <inputs>
+          <input-1>The completed deeper-workaround capture packet.</input-1>
+          <input-2>The bounded mobile handoff packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded mobile capture packet for the next Telegram-specific workaround wave.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-DEEP-CAPTURE, M-TELEGRAM-MOBILE-HANDOFF-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramMobileCapture]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_CAPTURE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-CAPTURE</verification-ref>
+    </M-TELEGRAM-MOBILE-CAPTURE>
+    <M-TELEGRAM-MOBILE-VOICE-WAVE NAME="TelegramMobileVoiceWave" TYPE="CORE_LOGIC" LAYER="35" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded mobile Telegram voice-call attempt under the chosen calls-proxy toggle state and classify whether the no-go class changes.</purpose>
+        <inputs>
+          <input-1>The bounded mobile handoff packet.</input-1>
+          <input-2>The bounded mobile capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded mobile voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-MOBILE-HANDOFF-PROFILE, M-TELEGRAM-MOBILE-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramMobileVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-MOBILE-VOICE-WAVE>
+    <M-TELEGRAM-MOBILE-VIDEO-WAVE NAME="TelegramMobileVideoWave" TYPE="CORE_LOGIC" LAYER="35" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Replay one bounded mobile Telegram video-call attempt under the same handoff profile without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded mobile voice packet.</input-1>
+          <input-2>The bounded mobile capture packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded mobile video packet kept separate from voice.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-MOBILE-VOICE-WAVE, M-TELEGRAM-MOBILE-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramMobileVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-MOBILE-VIDEO-WAVE>
+    <M-TELEGRAM-MOBILE-COMPARISON NAME="TelegramMobileComparison" TYPE="CORE_LOGIC" LAYER="35" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Compare the new mobile voice and video packets against the completed Desktop packets and determine whether the mobile app behavior changes the Telegram no-go class.</purpose>
+        <inputs>
+          <input-1>The bounded mobile voice and video packets.</input-1>
+          <input-2>The completed app-variant evidence packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded mobile comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-MOBILE-VOICE-WAVE, M-TELEGRAM-MOBILE-VIDEO-WAVE, M-TELEGRAM-VARIANT-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[TelegramMobileComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-COMPARISON</verification-ref>
+    </M-TELEGRAM-MOBILE-COMPARISON>
+    <M-TELEGRAM-MOBILE-EVIDENCE NAME="TelegramMobileEvidence" TYPE="UTILITY" LAYER="35" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Assemble the bounded mobile handoff, capture, voice, video, and comparison packets for the mobile workaround wave.</purpose>
+        <inputs>
+          <input-1>The bounded mobile handoff, capture, and media packets.</input-1>
+          <input-2>The completed Desktop evidence packets.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded mobile evidence packet that stays separate from earlier Desktop workaround packets.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-MOBILE-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramMobileEvidence]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-EVIDENCE</verification-ref>
+    </M-TELEGRAM-MOBILE-EVIDENCE>
+    <M-TELEGRAM-MOBILE-DECISION NAME="TelegramMobileDecision" TYPE="ENTRY_POINT" LAYER="35" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded decision for the tested mobile Telegram setup after the mobile workaround wave.</purpose>
+        <inputs>
+          <input-1>The bounded mobile evidence packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded decision stating whether the mobile variant helps, still stays no-go, or points to another even narrower Telegram-specific branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-MOBILE-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[TelegramMobileDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_MOBILE_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-MOBILE-DECISION</verification-ref>
+    </M-TELEGRAM-MOBILE-DECISION>
   </Modules>
 
   <DataFlow>
@@ -5984,6 +6184,31 @@
       <step-2>The final decision says whether the chosen variant helps, still stays no-go, or points to another even narrower Telegram-specific branch.</step-2>
       <evidence>A bounded app-variant comparison and decision packet.</evidence>
     </DF-TELEGRAM-VARIANT-DECISION>
+    <DF-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS NAME="Telegram mobile variant hypothesis" TRIGGER="Phase-31 is blocked because the chosen Desktop app variant is unavailable on the tested build.">
+      <step-1>The blocked Phase-31 packet is preserved as `variant unavailable` rather than as a transport or topology failure.</step-1>
+      <step-2>The next hypothesis packet freezes future work inside the mobile Telegram branch with an explicit calls-proxy toggle.</step-2>
+      <evidence>A bounded mobile-variant hypothesis packet.</evidence>
+    </DF-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS>
+    <DF-TELEGRAM-MOBILE-HANDOFF NAME="Telegram mobile handoff" TRIGGER="A bounded mobile Telegram workaround wave begins after the Desktop app variant is blocked as unavailable.">
+      <step-1>The operator applies one exact mobile proxy handoff with the same SOCKS5 settings plus an explicit `Use proxy for calls` toggle state.</step-1>
+      <step-2>The same-wave green `phase27-probe` precondition is preserved before any new mobile media packet is interpreted.</step-2>
+      <evidence>A bounded mobile handoff packet.</evidence>
+    </DF-TELEGRAM-MOBILE-HANDOFF>
+    <DF-TELEGRAM-MOBILE-VOICE NAME="Telegram mobile voice wave" TRIGGER="A bounded Telegram mobile voice-call attempt runs under the chosen calls-proxy toggle state.">
+      <step-1>The mobile voice packet is collected with the bounded mobile capture surface.</step-1>
+      <step-2>The packet states whether the mobile no-go class changed relative to the completed Desktop voice packets.</step-2>
+      <evidence>A bounded mobile voice packet.</evidence>
+    </DF-TELEGRAM-MOBILE-VOICE>
+    <DF-TELEGRAM-MOBILE-VIDEO NAME="Telegram mobile video wave" TRIGGER="A bounded Telegram mobile video-call attempt runs under the same mobile handoff profile after the voice packet is complete.">
+      <step-1>The mobile video packet stays separate from the mobile voice packet.</step-1>
+      <step-2>The packet states whether video changed behavior relative to the completed Desktop video packets.</step-2>
+      <evidence>A bounded mobile video packet.</evidence>
+    </DF-TELEGRAM-MOBILE-VIDEO>
+    <DF-TELEGRAM-MOBILE-DECISION NAME="Telegram mobile decision" TRIGGER="The mobile voice and video packets are available for comparison against the completed Desktop workaround packets.">
+      <step-1>The new mobile packets are compared directly against the completed Phase-29 and Phase-30 Desktop packets.</step-1>
+      <step-2>The final decision says whether the mobile variant helps, still stays no-go, or points to another even narrower Telegram-specific branch.</step-2>
+      <evidence>A bounded mobile comparison and decision packet.</evidence>
+    </DF-TELEGRAM-MOBILE-DECISION>
   </DataFlow>
 
   <ImplementationOrder>
@@ -6318,20 +6543,36 @@
       <note-8>The bounded Phase-30 comparison packet therefore shows that switching from the Phase-29 SSH-forwarded route to a truly local `n0wss-client` listener did not change the Telegram no-go class for either voice or video on the tested Desktop setup.</note-8>
       <note-9>The bounded Phase-30 decision on 2026-03-30 remains no-go for the tested Telegram Desktop setup and points the next justified branch toward a more Telegram-specific workaround above the preserved green transport baseline rather than another topology swap or any generic transport repair.</note-9>
     </Phase-30>
-    <Phase-31 name="Telegram Deep Workaround Variant" status="pending">
+    <Phase-31 name="Telegram Deep Workaround Variant" status="superseded">
       <goal>Evaluate one bounded Telegram-specific app variant above the preserved green transport baseline and compare it directly against the completed Phase-29 and Phase-30 no-go packets.</goal>
       <step-1 module="M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS">Freeze the post-Phase-30 deeper-workaround boundary</step-1>
       <step-2 module="M-TELEGRAM-APP-VARIANT-PROFILE" status="done" verification="V-M-TELEGRAM-APP-VARIANT-PROFILE">Freeze one bounded Telegram-specific app variant for the next wave</step-2>
       <step-3 module="M-TELEGRAM-DEEP-CAPTURE" status="done" verification="V-M-TELEGRAM-DEEP-CAPTURE">Define the bounded capture packet for the app-variant wave</step-3>
-      <step-4 module="M-TELEGRAM-VARIANT-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-VARIANT-VOICE-WAVE">Replay one bounded voice attempt on the chosen app variant</step-4>
-      <step-5 module="M-TELEGRAM-VARIANT-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-VARIANT-VIDEO-WAVE">Replay one bounded video attempt on the chosen app variant</step-5>
-      <step-6 module="M-TELEGRAM-VARIANT-COMPARISON" status="pending" verification="V-M-TELEGRAM-VARIANT-COMPARISON">Compare app-variant media packets against the completed Phase-29 and Phase-30 packets</step-6>
-      <step-7 module="M-TELEGRAM-VARIANT-EVIDENCE" status="pending" verification="V-M-TELEGRAM-VARIANT-EVIDENCE">Assemble the bounded app-variant handoff, capture, media, and comparison packets</step-7>
-      <step-8 module="M-TELEGRAM-VARIANT-DECISION" status="pending" verification="V-M-TELEGRAM-VARIANT-DECISION">Issue the bounded app-variant decision for the tested Telegram setup</step-8>
+      <step-4 module="M-TELEGRAM-VARIANT-VOICE-WAVE" status="superseded" verification="V-M-TELEGRAM-VARIANT-VOICE-WAVE">Replay one bounded voice attempt on the chosen app variant</step-4>
+      <step-5 module="M-TELEGRAM-VARIANT-VIDEO-WAVE" status="superseded" verification="V-M-TELEGRAM-VARIANT-VIDEO-WAVE">Replay one bounded video attempt on the chosen app variant</step-5>
+      <step-6 module="M-TELEGRAM-VARIANT-COMPARISON" status="superseded" verification="V-M-TELEGRAM-VARIANT-COMPARISON">Compare app-variant media packets against the completed Phase-29 and Phase-30 packets</step-6>
+      <step-7 module="M-TELEGRAM-VARIANT-EVIDENCE" status="superseded" verification="V-M-TELEGRAM-VARIANT-EVIDENCE">Assemble the bounded app-variant handoff, capture, media, and comparison packets</step-7>
+      <step-8 module="M-TELEGRAM-VARIANT-DECISION" status="superseded" verification="V-M-TELEGRAM-VARIANT-DECISION">Issue the bounded app-variant decision for the tested Telegram setup</step-8>
       <note-1>Phase-31 starts only after the completed Phase-30 no-go packet, which already preserved the green transport baseline and showed that a topology swap alone does not change the Telegram no-go class.</note-1>
       <note-2>The new phase must keep one Telegram-specific app variant distinct from earlier topology-only packets so a later comparison can say whether the app variant changed the no-go class.</note-2>
       <note-3>The chosen Phase-31 variant keeps the completed Phase-30 truly local `n0wss-client` handoff fixed and changes one Telegram-specific dimension only: if the tested build exposes a calls-proxy toggle, keep proxying messages and files through `127.0.0.1:1080` while disabling proxy usage for calls only.</note-3>
+      <note-4>On the tested Desktop build that variant was unavailable because the app exposes no separate calls-proxy toggle, so the remaining Phase-31 tail is superseded rather than silently replaced by another app variable.</note-4>
     </Phase-31>
+    <Phase-32 name="Telegram Mobile Calls-Proxy Variant" status="pending">
+      <goal>Evaluate one bounded Telegram Mobile workaround variant above the preserved green transport baseline and compare it directly against the completed Desktop no-go packets.</goal>
+      <step-1 module="M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS">Freeze the mobile-only workaround boundary after the blocked Desktop variant</step-1>
+      <step-2 module="M-PHASE31-SUPERSEDE" status="done" verification="V-M-PHASE31-SUPERSEDE">Explicitly supersede the blocked Phase-31 tail</step-2>
+      <step-3 module="M-TELEGRAM-MOBILE-HANDOFF-PROFILE" status="pending" verification="V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE">Freeze the exact mobile handoff profile with explicit calls-proxy toggle state</step-3>
+      <step-4 module="M-TELEGRAM-MOBILE-CAPTURE" status="pending" verification="V-M-TELEGRAM-MOBILE-CAPTURE">Define the bounded capture packet for the mobile wave</step-4>
+      <step-5 module="M-TELEGRAM-MOBILE-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-MOBILE-VOICE-WAVE">Replay one bounded mobile voice attempt</step-5>
+      <step-6 module="M-TELEGRAM-MOBILE-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-MOBILE-VIDEO-WAVE">Replay one bounded mobile video attempt</step-6>
+      <step-7 module="M-TELEGRAM-MOBILE-COMPARISON" status="pending" verification="V-M-TELEGRAM-MOBILE-COMPARISON">Compare the mobile packets against the completed Desktop packets</step-7>
+      <step-8 module="M-TELEGRAM-MOBILE-EVIDENCE" status="pending" verification="V-M-TELEGRAM-MOBILE-EVIDENCE">Assemble the bounded mobile handoff, capture, media, and comparison packets</step-8>
+      <step-9 module="M-TELEGRAM-MOBILE-DECISION" status="pending" verification="V-M-TELEGRAM-MOBILE-DECISION">Issue the bounded mobile decision for the tested Telegram setup</step-9>
+      <note-1>Phase-32 starts only after the blocked Phase-31 packet, which already proved that the chosen Desktop app variant is unavailable on the tested build.</note-1>
+      <note-2>The new phase must keep the mobile setup distinct from the completed Desktop packets so a later comparison can say whether the mobile app behavior changed the no-go class.</note-2>
+      <note-3>The chosen mobile variant keeps the same SOCKS5 proxy path but makes the calls-proxy toggle state explicit via the mobile `Use proxy for calls` control.</note-3>
+    </Phase-32>
   </ImplementationOrder>
 
   <ExecutionPolicy>

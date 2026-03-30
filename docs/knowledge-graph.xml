@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.29">
+  <Project NAME="n0wss" VERSION="0.2.30">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2027,7 +2027,7 @@
         <fn-assembleTelegramVariantEvidence PURPOSE="Assemble the evidence packet for the chosen Telegram app variant." />
       </annotations>
     </M-TELEGRAM-VARIANT-EVIDENCE>
-    <M-TELEGRAM-VARIANT-DECISION NAME="TelegramVariantDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-VARIANT-DECISION NAME="TelegramVariantDecision" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Issue the bounded decision for the tested Telegram setup after the deeper Telegram-specific variant wave.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-VARIANT-EVIDENCE</depends>
@@ -2036,6 +2036,87 @@
         <fn-issueTelegramVariantDecision PURPOSE="Issue the bounded decision for the chosen Telegram app variant." />
       </annotations>
     </M-TELEGRAM-VARIANT-DECISION>
+    <M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS NAME="TelegramMobileVariantHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the new truth-boundary where the Desktop app variant is unavailable and the next justified Telegram-specific branch moves to a mobile build with an explicit calls-proxy toggle.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-VARIANT-DECISION, M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramMobileVariantHypothesis PURPOSE="Freeze the mobile-only workaround boundary after the blocked Desktop variant." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS>
+    <M-PHASE31-SUPERSEDE NAME="Phase31Supersede" TYPE="UTILITY" STATUS="done">
+      <purpose>Explicitly supersede the blocked Phase-31 Desktop app-variant tail so execution truth stays clean.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE31-SUPERSEDE</verification-ref>
+      <annotations>
+        <fn-supersedePhase31 PURPOSE="Mark the blocked Desktop app-variant tail as superseded by the mobile-specific branch." />
+      </annotations>
+    </M-PHASE31-SUPERSEDE>
+    <M-TELEGRAM-MOBILE-HANDOFF-PROFILE NAME="TelegramMobileHandoffProfile" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Freeze the exact mobile handoff profile using the same SOCKS5 path plus an explicit `Use proxy for calls` toggle state.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-APP-VARIANT-PROFILE, M-TELEGRAM-DEEP-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-HANDOFF-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTelegramMobileHandoffProfile PURPOSE="Freeze the exact mobile proxy handoff and calls-toggle state." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-HANDOFF-PROFILE>
+    <M-TELEGRAM-MOBILE-CAPTURE NAME="TelegramMobileCapture" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the bounded capture packet for the mobile Telegram wave so it stays directly comparable with the completed Desktop packets.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-DEEP-CAPTURE, M-TELEGRAM-MOBILE-HANDOFF-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-CAPTURE</verification-ref>
+      <annotations>
+        <fn-defineTelegramMobileCapture PURPOSE="Define the bounded mobile capture surface for the next workaround wave." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-CAPTURE>
+    <M-TELEGRAM-MOBILE-VOICE-WAVE NAME="TelegramMobileVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded mobile Telegram voice-call attempt under the chosen calls-proxy toggle state.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-MOBILE-HANDOFF-PROFILE, M-TELEGRAM-MOBILE-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramMobileVoiceWave PURPOSE="Run one bounded Telegram mobile voice-call attempt under the chosen calls-toggle state." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-VOICE-WAVE>
+    <M-TELEGRAM-MOBILE-VIDEO-WAVE NAME="TelegramMobileVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Replay one bounded mobile Telegram video-call attempt under the same handoff profile without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-MOBILE-VOICE-WAVE, M-TELEGRAM-MOBILE-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramMobileVideoWave PURPOSE="Run one bounded Telegram mobile video-call attempt under the chosen calls-toggle state." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-VIDEO-WAVE>
+    <M-TELEGRAM-MOBILE-COMPARISON NAME="TelegramMobileComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the new mobile voice and video packets against the completed Desktop packets and determine whether the mobile app behavior changes the Telegram no-go class.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MOBILE-VOICE-WAVE, M-TELEGRAM-MOBILE-VIDEO-WAVE, M-TELEGRAM-VARIANT-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramMobilePackets PURPOSE="Compare the mobile packets against the completed Desktop no-go packets." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-COMPARISON>
+    <M-TELEGRAM-MOBILE-EVIDENCE NAME="TelegramMobileEvidence" TYPE="UTILITY" STATUS="planned">
+      <purpose>Assemble the bounded mobile handoff, capture, voice, video, and comparison packets for the mobile workaround wave.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MOBILE-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleTelegramMobileEvidence PURPOSE="Assemble the bounded mobile workaround evidence packet." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-EVIDENCE>
+    <M-TELEGRAM-MOBILE-DECISION NAME="TelegramMobileDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded decision for the tested mobile Telegram setup after the mobile workaround wave.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MOBILE-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-MOBILE-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramMobileDecision PURPOSE="Issue the bounded decision for the chosen mobile Telegram variant." />
+      </annotations>
+    </M-TELEGRAM-MOBILE-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -2359,6 +2440,16 @@
     <CrossLink from="M-TELEGRAM-VARIANT-VIDEO-WAVE" to="M-TELEGRAM-VARIANT-COMPARISON" relation="supplies the app-variant video packet for comparison against the completed workaround packets" />
     <CrossLink from="M-TELEGRAM-VARIANT-COMPARISON" to="M-TELEGRAM-VARIANT-EVIDENCE" relation="supplies the app-variant comparison packet for evidence assembly" />
     <CrossLink from="M-TELEGRAM-VARIANT-EVIDENCE" to="M-TELEGRAM-VARIANT-DECISION" relation="supplies the bounded app-variant evidence packet for the final deeper-workaround decision" />
+    <CrossLink from="M-TELEGRAM-VARIANT-DECISION" to="M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS" relation="supplies the blocked Desktop app-variant decision that now freezes the next branch inside the mobile Telegram workaround space" />
+    <CrossLink from="M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS" to="M-PHASE31-SUPERSEDE" relation="supplies the blocked-variant truth used to supersede the remaining Phase-31 tail" />
+    <CrossLink from="M-TELEGRAM-MOBILE-VARIANT-HYPOTHESIS" to="M-TELEGRAM-MOBILE-HANDOFF-PROFILE" relation="supplies the mobile-only workaround boundary used to freeze the next handoff profile" />
+    <CrossLink from="M-TELEGRAM-MOBILE-HANDOFF-PROFILE" to="M-TELEGRAM-MOBILE-CAPTURE" relation="supplies the exact mobile proxy and calls-toggle state for the mobile capture surface" />
+    <CrossLink from="M-TELEGRAM-MOBILE-CAPTURE" to="M-TELEGRAM-MOBILE-VOICE-WAVE" relation="supplies the bounded capture packet for the mobile voice wave" />
+    <CrossLink from="M-TELEGRAM-MOBILE-VOICE-WAVE" to="M-TELEGRAM-MOBILE-VIDEO-WAVE" relation="keeps the mobile video packet separate from the mobile voice packet" />
+    <CrossLink from="M-TELEGRAM-MOBILE-VOICE-WAVE" to="M-TELEGRAM-MOBILE-COMPARISON" relation="supplies the mobile voice packet for comparison against the completed Desktop packets" />
+    <CrossLink from="M-TELEGRAM-MOBILE-VIDEO-WAVE" to="M-TELEGRAM-MOBILE-COMPARISON" relation="supplies the mobile video packet for comparison against the completed Desktop packets" />
+    <CrossLink from="M-TELEGRAM-MOBILE-COMPARISON" to="M-TELEGRAM-MOBILE-EVIDENCE" relation="supplies the bounded mobile comparison packet for the mobile evidence set" />
+    <CrossLink from="M-TELEGRAM-MOBILE-EVIDENCE" to="M-TELEGRAM-MOBILE-DECISION" relation="supplies the bounded mobile evidence packet for the final mobile decision" />
 
   </Project>
 </KnowledgeGraph>
