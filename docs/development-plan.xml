@@ -5807,7 +5807,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-DESKTOP-NET-CAPTURE</verification-ref>
     </M-TELEGRAM-DESKTOP-NET-CAPTURE>
-    <M-TELEGRAM-SERVER-CORRELATION NAME="TelegramServerCorrelation" TYPE="INTEGRATION" LAYER="37" ORDER="4" STATUS="planned">
+    <M-TELEGRAM-SERVER-CORRELATION NAME="TelegramServerCorrelation" TYPE="INTEGRATION" LAYER="37" ORDER="4" STATUS="done">
       <contract>
         <purpose>Freeze the governed server-side correlation contract for proving whether Telegram call media ever enters the n0wss path during attribution waves.</purpose>
         <inputs>
@@ -6994,7 +6994,7 @@
       <step-1 module="M-TELEGRAM-ATTRIBUTION-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-ATTRIBUTION-HYPOTHESIS">Freeze the bounded Telegram media-path attribution question above the preserved green baseline</step-1>
       <step-2 module="M-TELEGRAM-CAPTURE-TOPOLOGY" status="done" verification="V-M-TELEGRAM-CAPTURE-TOPOLOGY">Freeze one exact Desktop attribution capture topology without changing the working baseline</step-2>
       <step-3 module="M-TELEGRAM-DESKTOP-NET-CAPTURE" status="done" verification="V-M-TELEGRAM-DESKTOP-NET-CAPTURE">Define the bounded Desktop network-capture surface for media attribution</step-3>
-      <step-4 module="M-TELEGRAM-SERVER-CORRELATION" status="pending" verification="V-M-TELEGRAM-SERVER-CORRELATION">Freeze the governed server-side correlation contract for attribution waves</step-4>
+      <step-4 module="M-TELEGRAM-SERVER-CORRELATION" status="done" verification="V-M-TELEGRAM-SERVER-CORRELATION">Freeze the governed server-side correlation contract for attribution waves</step-4>
       <step-5 module="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" status="pending" verification="V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE">Replay one bounded Desktop voice attribution wave</step-5>
       <step-6 module="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" status="pending" verification="V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE">Replay one bounded Desktop video attribution wave without inheriting voice</step-6>
       <step-7 module="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER">Classify voice and video packets as governed-media, direct-media, signaling-only, or insufficient evidence</step-7>
