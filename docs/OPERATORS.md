@@ -1416,11 +1416,19 @@ Exact Phase-34 capture topology:
    workstation uplink capture
    broader workstation network capture
    server-side correlation packet
+   recommended commands:
+   `sudo timeout 20 tcpdump -i lo -nn '(tcp port 1080) or (udp port 1080)' -c 200 -w /tmp/n0wss-phase34-loopback.pcap`
+   `sudo timeout 20 tcpdump -i any -nn 'host 91.99.128.146 and tcp port 7443' -c 200 -w /tmp/n0wss-phase34-uplink.pcap`
+   `sudo timeout 20 tcpdump -i any -nn '((udp) or (tcp and not port 1080 and not port 7443))' -c 400 -w /tmp/n0wss-phase34-network.pcap`
 4. If one capture surface is missing, keep that as an evidence gap:
    do not silently infer governed-media or direct-media behavior from the remaining captures
 5. Voice and video must run as separate attribution packets:
    do not blend them into one operator transcript
 6. Any deviation from this topology is a handoff defect, not a media-path conclusion
+7. Capture interpretation stays split:
+   loopback proves whether Telegram touched the preserved local SOCKS endpoint
+   uplink proves whether the governed WSS path stayed alive during the same call window
+   broader network capture proves whether the workstation emitted non-SOCKS traffic that could represent direct media attempts
 
 ## Quick Runtime Shapes
 
