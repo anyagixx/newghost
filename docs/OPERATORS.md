@@ -1682,6 +1682,9 @@ Bounded operator rules:
 2. Separate ordinary account recovery from calls evidence:
    if provider blocking forces you to use a temporary MTProto or other proxy only to restore the normal Telegram account, treat that as recovery-only operator state
    it is not evidence that the new calls branch is green
+   the same rule now applies to the safe calls experiment window:
+   a temporary MTProto proxy is allowed only to make the fresh safe window reach QR or complete first auth bootstrap under provider blocking
+   that temporary proxy must then be removed before readiness-gate evaluation and before any voice or video packet
 3. Do not reuse any unsafe helper-backed session state:
    do not launch from copied `tdata`
    do not reuse the quarantined `phase37-workdir`
@@ -1697,6 +1700,7 @@ Bounded operator rules:
    no helper-backed window is valid if opening it can prompt or force logout in the ordinary Telegram session
    the first acceptable bootstrap candidate is a fresh multi-instance Telegram window launched from the separate safe workdir, not a copied live session snapshot
 6. The readiness gate is strict and must be green before any new call attempt:
+   if temporary MTProto was needed for QR or first auth, disable it before evaluating readiness
    the candidate safe window must show no `Connection...`
    no `Reconnecting to proxy`
    no QR or login bootstrap screen
