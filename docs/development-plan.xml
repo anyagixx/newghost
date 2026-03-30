@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.46">
+<DevelopmentPlan VERSION="0.2.47">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -6487,7 +6487,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-HELPER-DECISION</verification-ref>
     </M-TELEGRAM-HELPER-DECISION>
-    <M-TELEGRAM-CALLS-SAFE-HYPOTHESIS NAME="TelegramCallsSafeHypothesis" TYPE="UTILITY" LAYER="41" ORDER="1" STATUS="planned">
+    <M-TELEGRAM-CALLS-SAFE-HYPOTHESIS NAME="TelegramCallsSafeHypothesis" TYPE="UTILITY" LAYER="41" ORDER="1" STATUS="done">
       <contract>
         <purpose>Freeze the new calls-only safety boundary above the already-green ordinary Telegram traffic path.</purpose>
         <inputs>
@@ -6510,7 +6510,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-SAFE-HYPOTHESIS</verification-ref>
     </M-TELEGRAM-CALLS-SAFE-HYPOTHESIS>
-    <M-PHASE37-SAFETY-SUPERSEDE NAME="Phase37SafetySupersede" TYPE="UTILITY" LAYER="41" ORDER="2" STATUS="planned">
+    <M-PHASE37-SAFETY-SUPERSEDE NAME="Phase37SafetySupersede" TYPE="UTILITY" LAYER="41" ORDER="2" STATUS="done">
       <contract>
         <purpose>Explicitly supersede the unsafe Phase-37 helper bootstrap tail after the logout incident.</purpose>
         <inputs>
@@ -6532,7 +6532,7 @@
       </observability>
       <verification-ref>V-M-PHASE37-SAFETY-SUPERSEDE</verification-ref>
     </M-PHASE37-SAFETY-SUPERSEDE>
-    <M-TELEGRAM-CALLS-BASELINE-PRESERVE NAME="TelegramCallsBaselinePreserve" TYPE="UTILITY" LAYER="41" ORDER="3" STATUS="planned">
+    <M-TELEGRAM-CALLS-BASELINE-PRESERVE NAME="TelegramCallsBaselinePreserve" TYPE="UTILITY" LAYER="41" ORDER="3" STATUS="done">
       <contract>
         <purpose>Freeze the preserved normal Telegram Desktop baseline at `127.0.0.1:1080` while calls-only work continues on a separate safe branch.</purpose>
         <inputs>
@@ -6553,7 +6553,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-BASELINE-PRESERVE</verification-ref>
     </M-TELEGRAM-CALLS-BASELINE-PRESERVE>
-    <M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE NAME="TelegramCallsSafeTopologyProfile" TYPE="ENTRY_POINT" LAYER="41" ORDER="4" STATUS="planned">
+    <M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE NAME="TelegramCallsSafeTopologyProfile" TYPE="ENTRY_POINT" LAYER="41" ORDER="4" STATUS="done">
       <contract>
         <purpose>Freeze one exact safe calls-only experiment topology that does not clone or reuse the live authenticated Telegram Desktop session state.</purpose>
         <inputs>
@@ -6575,7 +6575,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE</verification-ref>
     </M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE>
-    <M-TELEGRAM-CALLS-AUTH-ISOLATION NAME="TelegramCallsAuthIsolation" TYPE="INTEGRATION" LAYER="41" ORDER="5" STATUS="planned">
+    <M-TELEGRAM-CALLS-AUTH-ISOLATION NAME="TelegramCallsAuthIsolation" TYPE="INTEGRATION" LAYER="41" ORDER="5" STATUS="done">
       <contract>
         <purpose>Define a safe authentication and bootstrap contract for the calls-only experiment window so it cannot touch the live Telegram session state.</purpose>
         <inputs>
@@ -6596,7 +6596,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-AUTH-ISOLATION</verification-ref>
     </M-TELEGRAM-CALLS-AUTH-ISOLATION>
-    <M-TELEGRAM-CALLS-READINESS-GATE NAME="TelegramCallsReadinessGate" TYPE="CORE_LOGIC" LAYER="41" ORDER="6" STATUS="planned">
+    <M-TELEGRAM-CALLS-READINESS-GATE NAME="TelegramCallsReadinessGate" TYPE="CORE_LOGIC" LAYER="41" ORDER="6" STATUS="done">
       <contract>
         <purpose>Require stable safe-window readiness before any calls packet is spent.</purpose>
         <inputs>
@@ -6617,7 +6617,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-READINESS-GATE</verification-ref>
     </M-TELEGRAM-CALLS-READINESS-GATE>
-    <M-TELEGRAM-CALLS-VOICE-SAFE-WAVE NAME="TelegramCallsVoiceSafeWave" TYPE="CORE_LOGIC" LAYER="41" ORDER="7" STATUS="planned">
+    <M-TELEGRAM-CALLS-VOICE-SAFE-WAVE NAME="TelegramCallsVoiceSafeWave" TYPE="CORE_LOGIC" LAYER="41" ORDER="7" STATUS="superseded">
       <contract>
         <purpose>Run one bounded voice attempt only after the safe readiness gate is green.</purpose>
         <inputs>
@@ -6639,7 +6639,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-VOICE-SAFE-WAVE</verification-ref>
     </M-TELEGRAM-CALLS-VOICE-SAFE-WAVE>
-    <M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE NAME="TelegramCallsVideoSafeWave" TYPE="CORE_LOGIC" LAYER="41" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE NAME="TelegramCallsVideoSafeWave" TYPE="CORE_LOGIC" LAYER="41" ORDER="8" STATUS="superseded">
       <contract>
         <purpose>Run one bounded video attempt on the same safe branch without inheriting the voice result.</purpose>
         <inputs>
@@ -6660,7 +6660,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE</verification-ref>
     </M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE>
-    <M-TELEGRAM-CALLS-SAFE-COMPARISON NAME="TelegramCallsSafeComparison" TYPE="CORE_LOGIC" LAYER="41" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-SAFE-COMPARISON NAME="TelegramCallsSafeComparison" TYPE="CORE_LOGIC" LAYER="41" ORDER="9" STATUS="superseded">
       <contract>
         <purpose>Compare the safe calls-only packets against the old direct-media verdict and the unsafe helper branch.</purpose>
         <inputs>
@@ -6682,7 +6682,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-SAFE-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-SAFE-COMPARISON>
-    <M-TELEGRAM-CALLS-SAFE-DECISION NAME="TelegramCallsSafeDecision" TYPE="ENTRY_POINT" LAYER="41" ORDER="10" STATUS="planned">
+    <M-TELEGRAM-CALLS-SAFE-DECISION NAME="TelegramCallsSafeDecision" TYPE="ENTRY_POINT" LAYER="41" ORDER="10" STATUS="superseded">
       <contract>
         <purpose>Issue the bounded decision after the safe calls-only branch finishes or blocks.</purpose>
         <inputs>
@@ -6704,6 +6704,204 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-SAFE-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-SAFE-DECISION>
+    <M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS NAME="TelegramCallsAttachedHypothesis" TYPE="UTILITY" LAYER="42" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the new calls branch above the working logged-in baseline and the exhausted second-window auth branches.</purpose>
+        <inputs>
+          <input-1>The blocked safe-window auth branch history.</input-1>
+          <input-2>The bounded Telegram direct-media attribution decision.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A baseline-attached calls boundary packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-SAFE-DECISION, M-TELEGRAM-ATTRIBUTION-DECISION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsAttachedHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ATTACHED_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS>
+    <M-PHASE38-SUPERSEDE NAME="Phase38Supersede" TYPE="UTILITY" LAYER="42" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Explicitly supersede the blocked fresh safe-window auth branch from Phase-38.</purpose>
+        <inputs>
+          <input-1>The baseline-attached calls boundary packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>An explicit blocked-auth supersede packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase38Supersede]</log-prefix>
+        <critical-block>BLOCK_PHASE38_SUPERSEDE</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE38-SUPERSEDE</verification-ref>
+    </M-PHASE38-SUPERSEDE>
+    <M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE NAME="TelegramCallsBaselineAttachProfile" TYPE="ENTRY_POINT" LAYER="42" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Freeze one exact experiment profile that reuses the already logged-in normal Telegram Desktop window.</purpose>
+        <inputs>
+          <input-1>The preserved ordinary Telegram baseline packet.</input-1>
+          <input-2>The bounded Telegram media attribution classifier packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A baseline-attached calls experiment profile.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-BASELINE-PRESERVE, M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</depends>
+      <observability>
+        <log-prefix>[TelegramCallsBaselineAttachProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_BASELINE_ATTACH_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE</verification-ref>
+    </M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE>
+    <M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE NAME="TelegramCallsSelectiveInterceptProfile" TYPE="INTEGRATION" LAYER="42" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Define one exact selective interception surface for direct-media escape traffic only.</purpose>
+        <inputs>
+          <input-1>The baseline-attached calls profile.</input-1>
+          <input-2>The bounded helper runtime profile.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A selective interception runtime profile.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/technology.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE, M-HELPER-RUNTIME-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsSelectiveInterceptProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_SELECTIVE_INTERCEPT_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE</verification-ref>
+    </M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE>
+    <M-TELEGRAM-CALLS-INTERCEPT-SMOKE NAME="TelegramCallsInterceptSmoke" TYPE="CORE_LOGIC" LAYER="42" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Prove selective interception outside Telegram UI before any new call packet is spent.</purpose>
+        <inputs>
+          <input-1>The selective interception runtime profile.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A green or blocked selective interception smoke packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsInterceptSmoke]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_INTERCEPT_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE</verification-ref>
+    </M-TELEGRAM-CALLS-INTERCEPT-SMOKE>
+    <M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE NAME="TelegramCallsAttachedVoiceWave" TYPE="CORE_LOGIC" LAYER="42" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded voice attempt in the ordinary logged-in Telegram window while selective interception is active.</purpose>
+        <inputs>
+          <input-1>The green selective interception smoke packet.</input-1>
+          <input-2>The bounded server-correlation packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded attached voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-INTERCEPT-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsAttachedVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ATTACHED_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE>
+    <M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE NAME="TelegramCallsAttachedVideoWave" TYPE="CORE_LOGIC" LAYER="42" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded video attempt on the same attached branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded attached voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded attached video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsAttachedVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ATTACHED_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE>
+    <M-TELEGRAM-CALLS-ATTACHED-COMPARISON NAME="TelegramCallsAttachedComparison" TYPE="CORE_LOGIC" LAYER="42" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Compare the baseline-attached packets against Phase-34 and the blocked auth branches from Phase-37 and Phase-38.</purpose>
+        <inputs>
+          <input-1>The bounded attached voice packet.</input-1>
+          <input-2>The bounded attached video packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded attached comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE, M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsAttachedComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ATTACHED_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ATTACHED-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-ATTACHED-COMPARISON>
+    <M-TELEGRAM-CALLS-ATTACHED-DECISION NAME="TelegramCallsAttachedDecision" TYPE="ENTRY_POINT" LAYER="42" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded decision after the baseline-attached direct-media branch.</purpose>
+        <inputs>
+          <input-1>The bounded attached comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded baseline-attached calls decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ATTACHED-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsAttachedDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ATTACHED_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ATTACHED-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-ATTACHED-DECISION>
   </Modules>
 
   <DataFlow>
@@ -7855,7 +8053,7 @@
       <note-14>Later on the same date that DNS surface was fixed more precisely for this workstation: direct public resolvers inside the namespace were still not sufficient for stable readiness, so the Phase-37 helper profile now requires a host-side `dnsmasq` bridge bound on the namespace-facing address `10.203.37.1:53` with the isolated namespace pointing its `resolv.conf` at `10.203.37.1`; after that bridge was added, `getent ahostsv4 api.telegram.org` inside `phase37tg` returned `149.154.166.110` and the helper-backed TCP path remained active.</note-14>
       <note-15>Later on the same date the helper-backed branch hit a stricter operator-safety boundary: despite the DNS bridge and active helper-backed TCP path, the copied-session isolated window still caused Telegram to offer logout and the user exited all windows. From that point the first unresolved layer is no longer helper transport readiness but safe authentication isolation; no further helper-backed Telegram UI packet is valid until a non-destructive auth/bootstrap method is designed.</note-15>
     </Phase-37>
-    <Phase-38 name="Telegram Calls Safe Bootstrap And Media Branch" status="planned">
+    <Phase-38 name="Telegram Calls Safe Bootstrap And Media Branch" status="superseded">
       <goal>Continue Telegram calls work on one safe calls-only branch that preserves the already-working ordinary `n0wss` baseline and forbids reuse of unsafe helper bootstrap state.</goal>
       <step-1 module="M-TELEGRAM-CALLS-SAFE-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-CALLS-SAFE-HYPOTHESIS">Freeze the calls-only safety boundary above the green ordinary Telegram baseline</step-1>
       <step-2 module="M-PHASE37-SAFETY-SUPERSEDE" status="done" verification="V-M-PHASE37-SAFETY-SUPERSEDE">Explicitly supersede the unsafe Phase-37 helper bootstrap tail</step-2>
@@ -7863,10 +8061,10 @@
       <step-4 module="M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE">Define one exact safe calls-only experiment topology without live-session cloning</step-4>
       <step-5 module="M-TELEGRAM-CALLS-AUTH-ISOLATION" status="done" verification="V-M-TELEGRAM-CALLS-AUTH-ISOLATION">Define a safe auth/bootstrap contract for the experiment window</step-5>
       <step-6 module="M-TELEGRAM-CALLS-READINESS-GATE" status="done" verification="V-M-TELEGRAM-CALLS-READINESS-GATE">Require stable dialogs and no logout or reconnect loop before any call packet</step-6>
-      <step-7 module="M-TELEGRAM-CALLS-VOICE-SAFE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-VOICE-SAFE-WAVE">Run one bounded voice attempt only after the safe readiness gate is green</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE">Run one bounded video attempt on the same safe branch without inheriting voice</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-SAFE-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-SAFE-COMPARISON">Compare safe calls-only packets against the Phase-34 attribution verdict and unsafe Phase-37 branch</step-9>
-      <step-10 module="M-TELEGRAM-CALLS-SAFE-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-SAFE-DECISION">Issue the bounded decision after the safe calls-only branch</step-10>
+      <step-7 module="M-TELEGRAM-CALLS-VOICE-SAFE-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-VOICE-SAFE-WAVE">Run one bounded voice attempt only after the safe readiness gate is green</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE">Run one bounded video attempt on the same safe branch without inheriting voice</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-SAFE-COMPARISON" status="superseded" verification="V-M-TELEGRAM-CALLS-SAFE-COMPARISON">Compare safe calls-only packets against the Phase-34 attribution verdict and unsafe Phase-37 branch</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-SAFE-DECISION" status="superseded" verification="V-M-TELEGRAM-CALLS-SAFE-DECISION">Issue the bounded decision after the safe calls-only branch</step-10>
       <note-1>Phase-38 starts only after the preserved working Desktop baseline and the unsafe Phase-37 logout packet are both visible together.</note-1>
       <note-2>The phase must not reopen generic transport diagnosis and must not weaken the already-working messages/files path through `n0wss`.</note-2>
       <note-3>The only approved new variable is safe calls-only bootstrap and readiness isolation; no live authenticated `tdata` cloning is allowed.</note-3>
@@ -7879,6 +8077,23 @@
       <note-10>Later on the same date the provider-blocking boundary remained visible even on the safe launcher: the fresh isolated window still needed a temporary MTProto proxy to reach QR or first auth bootstrap, so the safe auth contract is now narrowed further to allow temporary MTProto only for that bootstrap step and to require removing it again before readiness-gate evaluation or any voice or video packet.</note-10>
       <note-11>Later on the same date the next safe-bootstrap mismatch was narrowed to inherited host proxy policy rather than direct session mutation: the workstation had global proxy env vars and GNOME system proxy mode pinned to `127.0.0.1:12334`, so the fresh safe window could still open in `use system proxy` mode; the approved launcher now has to scrub proxy env vars and force `GSETTINGS_BACKEND=memory` so the safe branch no longer silently inherits that host proxy state.</note-11>
     </Phase-38>
+    <Phase-39 name="Telegram Calls Baseline-Attached Direct Media Interception" status="planned">
+      <goal>Continue Telegram calls work on the already logged-in ordinary Desktop baseline and target only direct-media escape, without any second-window auth/bootstrap branch.</goal>
+      <step-1 module="M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS">Freeze the new calls branch above the working logged-in baseline and the exhausted second-window auth branches</step-1>
+      <step-2 module="M-PHASE38-SUPERSEDE" status="planned" verification="V-M-PHASE38-SUPERSEDE">Explicitly supersede the blocked fresh safe-window auth branch from Phase-38</step-2>
+      <step-3 module="M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE" status="planned" verification="V-M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE">Freeze one exact experiment profile that reuses the already logged-in normal Telegram Desktop window</step-3>
+      <step-4 module="M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE" status="planned" verification="V-M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE">Define one exact selective interception surface for direct-media escape traffic only</step-4>
+      <step-5 module="M-TELEGRAM-CALLS-INTERCEPT-SMOKE" status="planned" verification="V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE">Prove selective interception outside Telegram UI before any new call packet is spent</step-5>
+      <step-6 module="M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE">Run one bounded voice attempt in the ordinary logged-in Telegram window while selective interception is active</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE">Run one bounded video attempt on the same attached branch without inheriting voice</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-ATTACHED-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-COMPARISON">Compare attached-branch packets against Phase-34 and the blocked auth branches from Phase-37 and Phase-38</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-ATTACHED-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-DECISION">Issue the bounded decision after the baseline-attached direct-media branch</step-9>
+      <note-1>Phase-39 starts only after the already-working ordinary Telegram Desktop baseline and the blocked second-window auth/bootstrap branches are both visible together.</note-1>
+      <note-2>The phase must not weaken the working `127.0.0.1:1080` message and file path while it targets only the direct-media escape branch identified in Phase-34.</note-2>
+      <note-3>No second Telegram auth/bootstrap window is allowed anywhere in this branch; the experiment attaches only to the already logged-in ordinary Desktop window.</note-3>
+      <note-4>No voice or video packet is valid before selective interception smoke proves governed handoff for the targeted direct-egress class outside Telegram UI.</note-4>
+      <note-5>Voice and video claims remain split unless the attached comparison packet proves both changed class.</note-5>
+    </Phase-39>
   </ImplementationOrder>
 
   <ExecutionPolicy>
