@@ -1982,7 +1982,7 @@
         <fn-freezeTelegramAppVariant PURPOSE="Freeze one bounded Telegram-specific app variant distinct from earlier topology-only packets." />
       </annotations>
     </M-TELEGRAM-APP-VARIANT-PROFILE>
-    <M-TELEGRAM-DEEP-CAPTURE NAME="TelegramDeepCapture" TYPE="INTEGRATION" STATUS="planned">
+    <M-TELEGRAM-DEEP-CAPTURE NAME="TelegramDeepCapture" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define the bounded capture packet for the Telegram-specific app variant so it stays directly comparable with the completed Phase-29 and Phase-30 packets.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-WORKAROUND-CAPTURE, M-TELEGRAM-APP-VARIANT-PROFILE</depends>
