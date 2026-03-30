@@ -289,6 +289,10 @@ Current calls-profile status:
   the next justified branch is no longer second-window auth, no longer fixed-tuple smoke, and no longer a generic transport rerun; it is only arbitrary-destination UDP interception plus original-destination recovery above the preserved ordinary Telegram Desktop baseline
 - the current Phase-40 technology decision is now bounded to one exact class on this host:
   no suitable arbitrary-UDP helper package is installed, while kernel `TPROXY`, `socket`, and `nf_tproxy` surfaces are already present, so the next honest implementation surface is a repo-local helper runtime on top of kernel-assisted interception rather than another `redsocks/redudp` packet or a blended helper stack
+- the old Phase-40 execution tail is now explicitly blocked by one exact missing surface:
+  the current repository still lacks a repo-local helper runtime that can recover arbitrary UDP original destinations and normalize them into the governed datagram path, so the next honest branch is helper-runtime engineering rather than another smoke or calls rerun
+- the new Phase-41 branch is therefore repo-local-helper-only:
+  it keeps the already logged-in ordinary Telegram Desktop baseline, keeps the fixed historical boundaries from Phase-34 and Phase-39/40 visible, and isolates Linux original-destination recovery from the generic helper runtime before any new Telegram voice or video packet is allowed
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

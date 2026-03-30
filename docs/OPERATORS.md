@@ -1785,6 +1785,31 @@ Bounded operator rules for the new branch:
    stop the branch there
    do not spend a new Telegram voice or video packet
 
+### Phase-41 Repo-Local Original-Destination Helper
+
+The old Phase-40 tail is now frozen as blocked by one exact missing runtime surface:
+
+- do not treat the existing `redsocks/redudp` packet as if it already provides arbitrary Telegram media control
+- do not spend any new Telegram voice or video packet until one repo-local helper runtime proves original-destination recovery plus governed handoff for at least two distinct tuples
+
+Bounded operator rules for the new branch:
+
+1. Keep the ordinary logged-in Telegram Desktop window and its preserved SOCKS path untouched:
+   ordinary text messages, media files, and large files must continue to use `SOCKS5 127.0.0.1:1080`
+   no second auth/bootstrap window may reappear
+2. Keep the helper split explicit:
+   Linux-specific original-destination recovery must stay isolated from generic helper runtime logic
+   if the packet cannot say whether failure happened in tuple recovery or in governed handoff, the packet is too weak
+3. Keep the host-side interception surface narrow and reversible:
+   use only experiment-local interception rules and helper listeners
+   remove all temporary rules, marks, and helper listeners after each packet window
+4. Smoke first, calls later:
+   before any new Telegram call, prove at least two distinct synthetic UDP tuples
+   each tuple must show its own recovery evidence and its own governed-handoff evidence
+5. If any one of those conditions fails:
+   stop the branch there
+   do not spend a new Telegram voice or video packet
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
