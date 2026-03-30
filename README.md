@@ -277,6 +277,12 @@ Current calls-profile status:
   it does not try to re-prove generic Telegram reachability, does not weaken the ordinary message or file path, and does not spend any new voice or video packet until one separate safe experiment window exists without live-session cloning
 - the bounded Phase-38 auth and readiness contract is now fixed before any new calls attempt:
   no safe calls packet is valid while a candidate experiment window still shows `Connection...`, `Reconnecting to proxy`, a QR or login bootstrap screen, or an unstable partial-dialog surface; only a stable dialog-ready safe window may advance to the next voice or video packet
+- the old Phase-38 fresh safe-window auth branch is now explicitly superseded:
+  even after launcher isolation, proxy-policy scrubbing, and bootstrap-only MTProto allowance, the fresh second window still did not produce a valid QR or stable auth surface under the provider block, so it is no longer the honest next branch for calls work
+- the new Phase-39 branch is therefore baseline-attached and calls-only:
+  it must attach only to the already logged-in ordinary Telegram Desktop window, must not require a second auth/bootstrap window, and must target only the direct-media escape branch identified in Phase-34
+- the bounded Phase-39 contract is now smoke-first and ordinary-path-preserving:
+  no attached voice or video packet is valid until one selective interception smoke packet proves governed handoff for the targeted direct-egress class while ordinary messages and files through `127.0.0.1:1080` remain healthy in the same wave
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

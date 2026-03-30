@@ -1717,6 +1717,37 @@ Observed green helper smoke on 2026-03-30:
 - keep that boundary honest:
   helper smoke is now green for transparent TCP and for the one fixed deterministic UDP tuple above, but this still does not widen into a claim of arbitrary Telegram media UDP interception
 
+### Phase-39 Baseline-Attached Calls Branch
+
+The old fresh safe-window auth branch is now blocked and superseded:
+
+- even after separate `phase38-safe-workdir`, `-many -workdir ...`, proxy-env scrubbing, and bootstrap-only MTProto allowance, the second Telegram window still did not produce a valid QR or stable auth surface under the provider block
+- do not spend more calls work on that second-window auth/bootstrap path
+
+Bounded operator rules for the new branch:
+
+1. Keep the ordinary logged-in Telegram window as the only UI surface:
+   do not open a second auth/bootstrap window
+   do not depend on QR, login, or temporary MTProto inside a separate Telegram instance
+2. Preserve the already-working baseline first:
+   ordinary text messages, media files, and large files through `SOCKS5 127.0.0.1:1080` must remain healthy
+   if the calls experiment harms that path, the packet is invalid
+3. Keep UI config stable:
+   do not flip proxy mode inside the ordinary Telegram window
+   do not repoint the ordinary window away from the preserved `127.0.0.1:1080` route
+4. The only approved new variable is selective interception of direct-media escape:
+   the branch may add one bounded host-side interception surface for the direct-egress class identified in Phase-34
+   that surface must leave the already-working SOCKS-governed message and file path untouched
+5. Smoke first, calls later:
+   before any new voice or video attempt, prove one selective interception smoke packet outside Telegram UI
+   that smoke packet must also say whether ordinary messages/files remained healthy while the interception surface was active
+6. Voice and video stay separate:
+   run one bounded attached voice packet first
+   run one separate attached video packet only after the voice packet is captured
+7. If any one of these conditions fails:
+   stop the branch there
+   do not spend more calls attempts until that exact layer is repaired
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
