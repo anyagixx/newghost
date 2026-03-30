@@ -1748,6 +1748,43 @@ Bounded operator rules for the new branch:
    stop the branch there
    do not spend more calls attempts until that exact layer is repaired
 
+Observed fixed-tuple smoke boundary on 2026-03-30:
+
+- host-side `iptables -t nat OUTPUT` selective redirection for user `1000` stayed narrow enough that the preserved ordinary Telegram baseline at `127.0.0.1:1080` remained healthy in the same wave
+- one deterministic UDP tuple `91.99.128.146:55123` was redirected through `redudp`, reached the governed local surface, and returned the synthetic payload `phase39-selective-smoke`
+- keep that packet bounded honestly:
+  it proves selective interception for one fixed tuple only
+  it does not prove arbitrary Telegram media UDP interception across changing remote tuples
+
+### Phase-40 Arbitrary UDP Branch
+
+The Phase-39 smoke packet is now frozen as a boundary, not as a calls-ready surface:
+
+- do not reuse the fixed `redudp` tuple packet as if it already solved Telegram calls
+- do not spend any new voice or video packet until arbitrary-destination UDP smoke proves more than one distinct tuple plus original-destination recovery
+
+Bounded operator rules for the new branch:
+
+1. Keep the ordinary logged-in Telegram window and its working SOCKS path untouched:
+   ordinary text messages, media files, and large files must continue to use `SOCKS5 127.0.0.1:1080`
+   no second auth/bootstrap window is allowed back into the wave
+2. Keep one exact arbitrary-UDP tech choice for the whole branch:
+   on this host `redsocks/redudp` remains only the historical fixed-tuple boundary
+   the approved next class is kernel-assisted interception with original-destination recovery plus one repo-local helper runtime
+   do not blend that branch with a different helper package in the same evidence set
+3. Keep the install and cleanup surface narrow:
+   use only experiment-local `iptables` or `nft` plus policy-routing or socket-mark rules needed for arbitrary UDP interception
+   remove all temporary interception rules and helper listeners after each packet window
+4. Keep the runtime profile explicit:
+   intercepted UDP must preserve the ordinary Telegram Desktop window as the only UI surface
+   destination recovery must stay visible per tuple before any call packet is considered honest
+5. Smoke first, calls later:
+   before any new Telegram call, prove at least two distinct synthetic UDP tuples with explicit destination-recovery evidence and governed local handoff evidence
+   retries against one tuple do not count
+6. If arbitrary-UDP smoke is not green:
+   stop the branch there
+   do not spend a new Telegram voice or video packet
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.

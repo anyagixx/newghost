@@ -283,6 +283,12 @@ Current calls-profile status:
   it must attach only to the already logged-in ordinary Telegram Desktop window, must not require a second auth/bootstrap window, and must target only the direct-media escape branch identified in Phase-34
 - the bounded Phase-39 contract is now smoke-first and ordinary-path-preserving:
   no attached voice or video packet is valid until one selective interception smoke packet proves governed handoff for the targeted direct-egress class while ordinary messages and files through `127.0.0.1:1080` remain healthy in the same wave
+- the bounded Phase-39 smoke packet is now explicitly frozen as valid but insufficient:
+  on 2026-03-30 host-side selective interception plus `redudp` proved one deterministic UDP tuple `91.99.128.146:55123` can be redirected into the governed local surface without regressing the ordinary baseline, but that packet still remains fixed-destination-only and therefore does not justify a real Telegram calls claim
+- the new Phase-40 branch is therefore arbitrary-UDP-only:
+  the next justified branch is no longer second-window auth, no longer fixed-tuple smoke, and no longer a generic transport rerun; it is only arbitrary-destination UDP interception plus original-destination recovery above the preserved ordinary Telegram Desktop baseline
+- the current Phase-40 technology decision is now bounded to one exact class on this host:
+  no suitable arbitrary-UDP helper package is installed, while kernel `TPROXY`, `socket`, and `nf_tproxy` surfaces are already present, so the next honest implementation surface is a repo-local helper runtime on top of kernel-assisted interception rather than another `redsocks/redudp` packet or a blended helper stack
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
