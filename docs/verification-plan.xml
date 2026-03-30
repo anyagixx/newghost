@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.58">
+<VerificationPlan VERSION="0.2.60">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -108,6 +108,10 @@
     <telegram-transparent-routing-single-variable-rule>Phase-36 may change routing class only; if interception method, app topology, and proxy settings drift together, the comparison packet is invalid.</telegram-transparent-routing-single-variable-rule>
     <telegram-transparent-routing-proof-rule>Phase-36 must prove transparent interception and local governed handoff separately; a mere SOCKS listener or blocked-direct-egress packet is not valid transparent-routing evidence.</telegram-transparent-routing-proof-rule>
     <telegram-transparent-routing-baseline-lock-rule>Any Phase-36 wave must preserve the normal Desktop baseline at 127.0.0.1:1080 outside the experiment and keep the Phase-34 direct-media verdict plus the superseded Phase-35 packet visible together.</telegram-transparent-routing-baseline-lock-rule>
+    <telegram-helper-install-explicit-rule>Phase-37 may install or bootstrap one helper surface only if the package or binary, setup path, and removal path are each explicit in the runbook and comparison packet.</telegram-helper-install-explicit-rule>
+    <telegram-helper-smoke-first-rule>Phase-37 must prove the helper with synthetic isolated TCP and UDP smoke before any new Telegram UI packet is spent.</telegram-helper-smoke-first-rule>
+    <telegram-helper-destination-proof-rule>Phase-37 synthetic smoke is valid only if destination recovery and governed upstream handoff are both evidenced explicitly; reachability alone is insufficient.</telegram-helper-destination-proof-rule>
+    <telegram-helper-package-boundary-rule>If Phase-37 uses an external package, the package name, install command, remove command, and cleanup proof must stay fixed for the whole wave.</telegram-helper-package-boundary-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5081,6 +5085,160 @@
         <scenario-1>The final decision reopens generic transport work or treats the old Phase-35 packet as valid transparent-routing evidence.</scenario-1>
       </failure-scenarios>
     </V-M-TELEGRAM-TPROXY-DECISION>
+    <V-M-TELEGRAM-HELPER-HYPOTHESIS MODULE="M-TELEGRAM-HELPER-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'helper-only|Phase-36|transparent interception helper|127.0.0.1:1080' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The hypothesis names the missing helper surface as the blocker without reopening generic transport work.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The hypothesis blames n0wss transport instead of the absent helper surface.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-HELPER-HYPOTHESIS>
+    <V-M-HELPER-TECH-DECISION MODULE="M-HELPER-TECH-DECISION" PRIORITY="high">
+      <test-files>
+        <file>docs/technology.xml</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'helper|transparent interception|install|external helper|repo-local helper' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The decision selects one exact helper class only.</scenario-1>
+        <scenario-2>The decision says whether the helper is external-package-backed or repo-local and preserves that boundary for the whole wave.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The decision leaves helper class ambiguous or mixes multiple helper classes at once.</scenario-1>
+        <scenario-2>The decision quietly assumes system packages without naming install and removal shape.</scenario-2>
+      </failure-scenarios>
+    </V-M-HELPER-TECH-DECISION>
+    <V-M-HELPER-INSTALL-RUNBOOK MODULE="M-HELPER-INSTALL-RUNBOOK" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'install|remove|cleanup|restore|explicit package|baseline' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The runbook defines explicit install, remove, cleanup, and restore steps for the helper without contaminating the normal Desktop baseline.</scenario-1>
+        <scenario-2>The runbook explicitly says what host-side experiment surfaces must not survive after cleanup.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The runbook assumes a helper binary exists without an explicit install or bootstrap path.</scenario-1>
+        <scenario-2>The runbook lacks a bounded revert path for helper packages or transient host routing state.</scenario-2>
+      </failure-scenarios>
+    </V-M-HELPER-INSTALL-RUNBOOK>
+    <V-M-HELPER-RUNTIME-PROFILE MODULE="M-HELPER-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'destination recovery|governed upstream handoff|isolated namespace|transparent interception' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The runtime profile names one exact interception method, one destination-recovery surface, and one governed upstream handoff surface.</scenario-1>
+        <scenario-2>The runtime profile keeps the preserved normal Desktop baseline and the helper-backed experiment on disjoint surfaces.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The profile still lacks destination recovery or governed handoff detail and therefore cannot prove transparent interception value.</scenario-1>
+        <scenario-2>The profile silently reuses the ordinary Desktop path or changes multiple routing surfaces at once.</scenario-2>
+      </failure-scenarios>
+    </V-M-HELPER-RUNTIME-PROFILE>
+    <V-M-HELPER-SMOKE-PROOF MODULE="M-HELPER-SMOKE-PROOF" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'synthetic|TCP|UDP|destination proof|governed handoff proof|helper smoke' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The smoke packet proves helper interception and governed handoff on both synthetic TCP and UDP attempts before Telegram is used.</scenario-1>
+        <scenario-2>The smoke packet separates synthetic TCP evidence from synthetic UDP evidence rather than reporting one blended helper result.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The helper reaches Telegram UI without a successful synthetic smoke packet first.</scenario-1>
+        <scenario-2>The smoke packet proves only generic reachability and not destination recovery plus governed handoff.</scenario-2>
+      </failure-scenarios>
+    </V-M-HELPER-SMOKE-PROOF>
+    <V-M-TELEGRAM-HELPER-VOICE-WAVE MODULE="M-TELEGRAM-HELPER-VOICE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'helper-backed voice|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The helper-backed voice packet says whether first positive evidence appeared on the governed path, outside it, or nowhere.</scenario-1>
+        <scenario-2>The voice packet stays explicitly downstream of a green helper smoke packet from the same helper profile.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The voice packet is spent before helper smoke is green.</scenario-1>
+        <scenario-2>The voice packet collapses helper smoke, interception proof, and Telegram UI result into one transcript.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-HELPER-VOICE-WAVE>
+    <V-M-TELEGRAM-HELPER-VIDEO-WAVE MODULE="M-TELEGRAM-HELPER-VIDEO-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'helper-backed video|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The helper-backed video packet stays separate from voice.</scenario-1>
+        <scenario-2>The video packet states whether its first positive evidence appeared on the governed path, outside it, or nowhere.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The video packet silently inherits the helper-backed voice result.</scenario-1>
+        <scenario-2>The video packet is spent without a preserved helper smoke baseline from the same topology window.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-HELPER-VIDEO-WAVE>
+    <V-M-TELEGRAM-HELPER-COMPARISON MODULE="M-TELEGRAM-HELPER-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'voice|video|both|neither|Phase-34|Phase-36|helper-backed' README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet explicitly says whether the helper changed the class for voice, video, both, or neither.</scenario-1>
+        <scenario-2>The comparison packet keeps the blocked Phase-36 helper-gap packet visible instead of silently replacing it.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison packet is too vague to separate helper value from the old Phase-36 helper-gap blocker.</scenario-1>
+        <scenario-2>The comparison packet overclaims helper success from synthetic smoke alone.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-HELPER-COMPARISON>
+    <V-M-TELEGRAM-HELPER-DECISION MODULE="M-TELEGRAM-HELPER-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'helper-backed decision|helps|still no-go|outside controllable envelope' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final helper-backed decision names one bounded outcome only.</scenario-1>
+        <scenario-2>The final decision says whether the blocker moved from helper absence to governed-media behavior, or stayed outside the controllable envelope.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision reopens generic transport work or ignores the helper smoke gate.</scenario-1>
+        <scenario-2>The final decision widens claims beyond the tested helper-backed topology.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-HELPER-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -5638,6 +5796,26 @@ PY</command-5>
         <evidence-6>The final decision remains bounded to the exact tested transparent-routing topology only.</evidence-6>
       </required-evidence>
     </LV-027>
+    <LV-028 NAME="TelegramTransparentHelperWave" PRIORITY="high">
+      <goal>Run one helper-backed transparent interception wave that proves the helper synthetically before spending Telegram voice and video packets.</goal>
+      <commands>
+        <command-1>verify the chosen helper package or binary exists or can be installed through the explicit helper runbook</command-1>
+        <command-2>run the helper install, setup, and cleanup commands from the Phase-37 runbook</command-2>
+        <command-3>run one isolated synthetic TCP attempt through the helper-backed topology and capture destination plus governed-handoff proof</command-3>
+        <command-4>run one isolated synthetic UDP attempt through the helper-backed topology and capture destination plus governed-handoff proof</command-4>
+        <command-5>capture bounded workstation and server evidence for the same helper smoke window</command-5>
+        <command-6>only after green helper smoke, run one bounded Telegram Desktop voice packet and one bounded Telegram Desktop video packet</command-6>
+        <command-7>rg -n 'Phase-37|helper-backed|helper smoke|destination recovery|cleanup proof' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md docs/technology.xml</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave proves explicit helper install or bootstrap and explicit helper cleanup.</evidence-1>
+        <evidence-2>The wave proves synthetic TCP and UDP helper smoke before any Telegram UI packet is spent.</evidence-2>
+        <evidence-3>The wave proves destination recovery and governed handoff separately.</evidence-3>
+        <evidence-4>The wave yields separate helper-backed voice and video packets.</evidence-4>
+        <evidence-5>The comparison packet says whether the helper changed the class for voice, video, both, or neither against the Phase-34 and blocked Phase-36 baselines.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramTransparentHelperWave; expected-evidence=explicit helper lifecycle, green synthetic TCP and UDP smoke, destination recovery plus governed handoff proof, and separate helper-backed voice and video packets; observed-evidence=helper setup output, synthetic smoke evidence, operator summary, workstation captures, and server correlation; first-divergent-block=first missing install, synthetic TCP, synthetic UDP, destination recovery, governed handoff, voice, video, or comparison marker; next-action=repair only that helper layer before another Telegram packet</failure-packet-template>
+    </LV-028>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -6287,6 +6465,27 @@ PY</command-3>
         <evidence-5>The final decision must stay routing-only and must not reopen generic transport work.</evidence-5>
       </required-evidence>
     </Gate-Phase-36>
+    <Gate-Phase-37 PHASE="Phase-37">
+      <goal>The project has an execution-ready helper-backed transparent interception wave that keeps the normal Desktop baseline intact and spends Telegram packets only after green helper smoke.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-37|M-TELEGRAM-HELPER-HYPOTHESIS|M-TELEGRAM-HELPER-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-028|helper-backed|helper smoke|destination recovery|cleanup proof' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md docs/technology.xml</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the blocked Phase-36 helper-gap packet visible together with the new helper-only branch.</evidence-1>
+        <evidence-2>The gate requires explicit helper install and cleanup proof.</evidence-2>
+        <evidence-3>The gate requires synthetic helper smoke before Telegram voice and video steps.</evidence-3>
+        <evidence-4>The gate requires separate helper-backed voice and video packets plus a bounded final decision.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-37; expected-evidence=execution-ready helper-backed wave with explicit helper lifecycle, green helper smoke, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, helper runbook, verification coverage, and execution packet; first-divergent-block=first missing helper gate requirement; next-action=repair the missing helper artifact before executing the wave</failure-packet-template>
+    </Gate-Phase-37>
   </PhaseGates>
 
   <FailurePackets>

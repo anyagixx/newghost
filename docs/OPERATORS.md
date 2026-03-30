@@ -1578,6 +1578,20 @@ Transparent-routing capture contract:
   if direct media still appears outside the governed envelope while interception proof and governed handoff proof are both strong, the packet stays a no-change transparent-routing result
   if fresh governed markers appear on the same bounded window, only then does a new n0wss-side protocol/code branch become justified
 
+### Phase-37 Helper-Only Boundary
+
+The first blocked `Phase-36` packet is now narrowed one level deeper:
+
+- the preserved normal Desktop baseline at `127.0.0.1:1080` is still not the blocker
+- the green governed `n0wss` transport envelope is still not the blocker
+- the snap-safe isolated Telegram launcher is still not the blocker
+- the first unresolved layer is now one missing transparent interception helper surface between isolated Telegram egress and the governed local handoff
+
+Bounded rule:
+
+- do not spend new Telegram UI packets on `Phase-37` until one explicit helper class is chosen and synthetic TCP plus UDP helper smoke are green
+- do not treat package installation itself as progress unless install, cleanup, destination recovery, and governed handoff all become explicit evidence surfaces
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.

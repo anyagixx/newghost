@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.33">
+<DevelopmentPlan VERSION="0.2.34">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -6289,6 +6289,204 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-TPROXY-DECISION</verification-ref>
     </M-TELEGRAM-TPROXY-DECISION>
+    <M-TELEGRAM-HELPER-HYPOTHESIS NAME="TelegramHelperHypothesis" TYPE="UTILITY" LAYER="40" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the new bounded truth that Phase-36 is blocked by a missing transparent interception helper surface rather than by a generic n0wss transport defect.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-34 attribution decision packet.</input-1>
+          <input-2>The blocked Phase-36 transparent-routing boundary.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper-only hypothesis packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-TPROXY-DECISION, M-TELEGRAM-TPROXY-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramHelperHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_HELPER_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-HELPER-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-HELPER-HYPOTHESIS>
+    <M-HELPER-TECH-DECISION NAME="HelperTechDecision" TYPE="ENTRY_POINT" LAYER="40" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Select one exact experiment-local transparent interception helper class so Phase-37 changes only the helper surface and not the preserved Desktop baseline.</purpose>
+        <inputs>
+          <input-1>The bounded helper-only hypothesis packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper technology decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/technology.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-HELPER-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[HelperTechDecision]</log-prefix>
+        <critical-block>BLOCK_HELPER_TECH_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-HELPER-TECH-DECISION</verification-ref>
+    </M-HELPER-TECH-DECISION>
+    <M-HELPER-INSTALL-RUNBOOK NAME="HelperInstallRunbook" TYPE="INTEGRATION" LAYER="40" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded install, setup, remove, and cleanup path for the transparent interception helper without contaminating the normal Desktop baseline.</purpose>
+        <inputs>
+          <input-1>The bounded helper technology decision packet.</input-1>
+          <input-2>The operator cleanup packet that preserves the working Desktop baseline.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper install and cleanup runbook packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-HELPER-TECH-DECISION, M-TELEGRAM-OPERATOR-CLEANUP</depends>
+      <observability>
+        <log-prefix>[HelperInstallRunbook]</log-prefix>
+        <critical-block>BLOCK_HELPER_INSTALL_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-HELPER-INSTALL-RUNBOOK</verification-ref>
+    </M-HELPER-INSTALL-RUNBOOK>
+    <M-HELPER-RUNTIME-PROFILE NAME="HelperRuntimeProfile" TYPE="INTEGRATION" LAYER="40" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Freeze the exact helper-backed runtime topology: isolated Telegram namespace, interception rule, destination recovery, and governed upstream handoff.</purpose>
+        <inputs>
+          <input-1>The bounded helper technology decision packet.</input-1>
+          <input-2>The bounded transparent-routing profile.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper-backed runtime profile.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-HELPER-TECH-DECISION, M-TELEGRAM-TPROXY-PROFILE</depends>
+      <observability>
+        <log-prefix>[HelperRuntimeProfile]</log-prefix>
+        <critical-block>BLOCK_HELPER_RUNTIME_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-HELPER-RUNTIME-PROFILE</verification-ref>
+    </M-HELPER-RUNTIME-PROFILE>
+    <M-HELPER-SMOKE-PROOF NAME="HelperSmokeProof" TYPE="CORE_LOGIC" LAYER="40" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Prove the transparent interception helper outside Telegram UI with synthetic isolated TCP and UDP attempts plus destination and governed-handoff evidence.</purpose>
+        <inputs>
+          <input-1>The bounded helper-backed runtime profile.</input-1>
+          <input-2>The bounded helper install and cleanup runbook packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper smoke-proof packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-HELPER-RUNTIME-PROFILE, M-HELPER-INSTALL-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[HelperSmokeProof]</log-prefix>
+        <critical-block>BLOCK_HELPER_SMOKE_PROOF</critical-block>
+      </observability>
+      <verification-ref>V-M-HELPER-SMOKE-PROOF</verification-ref>
+    </M-HELPER-SMOKE-PROOF>
+    <M-TELEGRAM-HELPER-VOICE-WAVE NAME="TelegramHelperVoiceWave" TYPE="CORE_LOGIC" LAYER="40" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Desktop voice attempt through the helper-backed transparent interception topology and classify any changed attribution class.</purpose>
+        <inputs>
+          <input-1>The bounded helper smoke-proof packet.</input-1>
+          <input-2>The bounded server-correlation packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper-backed Telegram voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-HELPER-SMOKE-PROOF, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramHelperVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_HELPER_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-HELPER-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-HELPER-VOICE-WAVE>
+    <M-TELEGRAM-HELPER-VIDEO-WAVE NAME="TelegramHelperVideoWave" TYPE="CORE_LOGIC" LAYER="40" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Desktop video attempt through the same helper-backed transparent interception topology without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded helper-backed Telegram voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper-backed Telegram video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-HELPER-VOICE-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramHelperVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_HELPER_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-HELPER-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-HELPER-VIDEO-WAVE>
+    <M-TELEGRAM-HELPER-COMPARISON NAME="TelegramHelperComparison" TYPE="CORE_LOGIC" LAYER="40" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Compare the helper-backed Telegram packets against the Phase-34 direct-media baseline and the blocked Phase-36 helper-gap packet.</purpose>
+        <inputs>
+          <input-1>The bounded helper-backed Telegram voice packet.</input-1>
+          <input-2>The bounded helper-backed Telegram video packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper-backed comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-HELPER-VOICE-WAVE, M-TELEGRAM-HELPER-VIDEO-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramHelperComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_HELPER_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-HELPER-COMPARISON</verification-ref>
+    </M-TELEGRAM-HELPER-COMPARISON>
+    <M-TELEGRAM-HELPER-DECISION NAME="TelegramHelperDecision" TYPE="ENTRY_POINT" LAYER="40" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded helper-backed decision after comparing the new packets with the Phase-34 baseline and the blocked Phase-36 helper-gap packet.</purpose>
+        <inputs>
+          <input-1>The bounded helper-backed comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded helper-backed decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-HELPER-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramHelperDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_HELPER_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-HELPER-DECISION</verification-ref>
+    </M-TELEGRAM-HELPER-DECISION>
   </Modules>
 
   <DataFlow>
@@ -7413,6 +7611,23 @@
       <note-4>The normal Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched outside the isolated transparent-routing runbook.</note-4>
       <note-5>Transparent-routing evidence is valid only if namespace proof, interception proof, governed handoff proof, workstation captures, and server correlation are all recorded inside the same bounded packet window.</note-5>
     </Phase-36>
+    <Phase-37 name="Telegram Transparent Interception Helper" status="pending">
+      <goal>Introduce one explicit helper-backed transparent interception branch so Phase-36 can become runnable without changing the preserved normal Desktop baseline.</goal>
+      <step-1 module="M-TELEGRAM-HELPER-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-HELPER-HYPOTHESIS">Freeze the helper-only blocker boundary above the blocked Phase-36 packet</step-1>
+      <step-2 module="M-HELPER-TECH-DECISION" status="pending" verification="V-M-HELPER-TECH-DECISION">Choose one exact transparent interception helper class</step-2>
+      <step-3 module="M-HELPER-INSTALL-RUNBOOK" status="pending" verification="V-M-HELPER-INSTALL-RUNBOOK">Define the bounded install, setup, remove, and cleanup path for the helper</step-3>
+      <step-4 module="M-HELPER-RUNTIME-PROFILE" status="pending" verification="V-M-HELPER-RUNTIME-PROFILE">Freeze the exact helper-backed runtime topology</step-4>
+      <step-5 module="M-HELPER-SMOKE-PROOF" status="pending" verification="V-M-HELPER-SMOKE-PROOF">Prove the helper outside Telegram UI with synthetic TCP and UDP smoke</step-5>
+      <step-6 module="M-TELEGRAM-HELPER-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-HELPER-VOICE-WAVE">Run one bounded Telegram Desktop voice attempt through the helper-backed topology</step-6>
+      <step-7 module="M-TELEGRAM-HELPER-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-HELPER-VIDEO-WAVE">Run one bounded Telegram Desktop video attempt through the same helper-backed topology without inheriting voice</step-7>
+      <step-8 module="M-TELEGRAM-HELPER-COMPARISON" status="pending" verification="V-M-TELEGRAM-HELPER-COMPARISON">Compare helper-backed packets against the Phase-34 direct-media baseline and the blocked Phase-36 packet</step-8>
+      <step-9 module="M-TELEGRAM-HELPER-DECISION" status="pending" verification="V-M-TELEGRAM-HELPER-DECISION">Issue the bounded helper-backed decision</step-9>
+      <note-1>Phase-37 starts only after the blocked Phase-36 helper-gap packet is visible together with the preserved green transport baseline.</note-1>
+      <note-2>The phase must not reopen generic transport diagnosis and must not spend any new Telegram UI packet before helper smoke is green.</note-2>
+      <note-3>The only approved new variable is the transparent interception helper surface; the preserved normal Desktop baseline at `127.0.0.1:1080` must remain untouched.</note-3>
+      <note-4>Any package install or helper bootstrap must be explicit, reversible, experiment-local, and recorded in the operator runbook.</note-4>
+      <note-5>Voice and video claims remain split unless the helper-backed comparison packet proves both changed class.</note-5>
+    </Phase-37>
   </ImplementationOrder>
 
   <ExecutionPolicy>

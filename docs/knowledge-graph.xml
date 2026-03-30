@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.33">
+  <Project NAME="n0wss" VERSION="0.2.34">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2405,6 +2405,87 @@
         <fn-issueTelegramTproxyDecision PURPOSE="Issue the bounded decision after the transparent-routing Telegram wave." />
       </annotations>
     </M-TELEGRAM-TPROXY-DECISION>
+    <M-TELEGRAM-HELPER-HYPOTHESIS NAME="TelegramHelperHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the helper-only blocker boundary after Phase-36 proved a missing transparent interception helper surface rather than a generic transport defect.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-TPROXY-DECISION, M-TELEGRAM-TPROXY-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-HELPER-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramHelperHypothesis PURPOSE="Freeze the helper-only blocker boundary above the blocked Phase-36 packet." />
+      </annotations>
+    </M-TELEGRAM-HELPER-HYPOTHESIS>
+    <M-HELPER-TECH-DECISION NAME="HelperTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Choose one exact transparent interception helper class for the experiment-local Telegram helper branch.</purpose>
+      <path>docs/technology.xml</path>
+      <depends>M-TELEGRAM-HELPER-HYPOTHESIS</depends>
+      <verification-ref>V-M-HELPER-TECH-DECISION</verification-ref>
+      <annotations>
+        <fn-chooseHelperTechDecision PURPOSE="Choose one exact helper technology for the transparent interception branch." />
+      </annotations>
+    </M-HELPER-TECH-DECISION>
+    <M-HELPER-INSTALL-RUNBOOK NAME="HelperInstallRunbook" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the bounded install, setup, removal, and cleanup path for the helper without contaminating the normal Desktop baseline.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-HELPER-TECH-DECISION, M-TELEGRAM-OPERATOR-CLEANUP</depends>
+      <verification-ref>V-M-HELPER-INSTALL-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-defineHelperInstallRunbook PURPOSE="Define the helper install and cleanup runbook." />
+      </annotations>
+    </M-HELPER-INSTALL-RUNBOOK>
+    <M-HELPER-RUNTIME-PROFILE NAME="HelperRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze the exact helper-backed runtime topology with interception, destination recovery, and governed upstream handoff.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-HELPER-TECH-DECISION, M-TELEGRAM-TPROXY-PROFILE</depends>
+      <verification-ref>V-M-HELPER-RUNTIME-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeHelperRuntimeProfile PURPOSE="Freeze the exact helper-backed runtime profile for the transparent interception branch." />
+      </annotations>
+    </M-HELPER-RUNTIME-PROFILE>
+    <M-HELPER-SMOKE-PROOF NAME="HelperSmokeProof" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Prove the helper outside Telegram UI with synthetic isolated TCP and UDP attempts plus destination and governed-handoff evidence.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-HELPER-RUNTIME-PROFILE, M-HELPER-INSTALL-RUNBOOK</depends>
+      <verification-ref>V-M-HELPER-SMOKE-PROOF</verification-ref>
+      <annotations>
+        <fn-runHelperSmokeProof PURPOSE="Run helper smoke proof before spending Telegram UI packets." />
+      </annotations>
+    </M-HELPER-SMOKE-PROOF>
+    <M-TELEGRAM-HELPER-VOICE-WAVE NAME="TelegramHelperVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded Telegram Desktop voice attempt through the helper-backed topology and determine whether the media-path class changes.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-HELPER-SMOKE-PROOF, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-HELPER-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramHelperVoiceWave PURPOSE="Run one bounded Telegram voice attempt through the helper-backed transparent interception topology." />
+      </annotations>
+    </M-TELEGRAM-HELPER-VOICE-WAVE>
+    <M-TELEGRAM-HELPER-VIDEO-WAVE NAME="TelegramHelperVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded Telegram Desktop video attempt through the same helper-backed topology without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-HELPER-VOICE-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-HELPER-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramHelperVideoWave PURPOSE="Run one bounded Telegram video attempt through the helper-backed transparent interception topology." />
+      </annotations>
+    </M-TELEGRAM-HELPER-VIDEO-WAVE>
+    <M-TELEGRAM-HELPER-COMPARISON NAME="TelegramHelperComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare helper-backed Telegram packets against the Phase-34 direct-media baseline and the blocked Phase-36 helper-gap packet.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-HELPER-VOICE-WAVE, M-TELEGRAM-HELPER-VIDEO-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-HELPER-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramHelperPackets PURPOSE="Compare helper-backed Telegram packets against the old direct-media and helper-gap baselines." />
+      </annotations>
+    </M-TELEGRAM-HELPER-COMPARISON>
+    <M-TELEGRAM-HELPER-DECISION NAME="TelegramHelperDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded helper-backed decision after comparing the new packets with the Phase-34 baseline and the blocked Phase-36 packet.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-HELPER-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-HELPER-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramHelperDecision PURPOSE="Issue the bounded decision after the helper-backed Telegram wave." />
+      </annotations>
+    </M-TELEGRAM-HELPER-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />

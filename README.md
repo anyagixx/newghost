@@ -267,6 +267,8 @@ Current calls-profile status:
   the isolated namespace helper proved only SOCKS-only containment with blocked direct egress, not true transparent forced routing, so that packet must not be reused as if it had already tested transparent interception of Telegram media
 - the bounded Phase-36 transparent-routing branch is now the only justified topology follow-up:
   because the current classifier still points to `direct-media outside SOCKS`, the next valid experiment must preserve the normal `127.0.0.1:1080` Desktop baseline for text messages and files while proving transparent interception, local governed handoff, and fresh attribution evidence inside an isolated Telegram-specific routing surface
+- the first blocked Phase-36 packet has now narrowed the next blocker one level deeper:
+  the current system already has isolated netns launch, preserved Desktop baseline, and governed SOCKS/WSS transport, but it still lacks one explicit transparent interception helper surface between isolated Telegram egress and the governed local handoff, so the next justified branch is helper-only rather than another blind Telegram rerun or a generic transport repair
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
