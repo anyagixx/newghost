@@ -2072,7 +2072,7 @@
         <fn-defineTelegramMobileCapture PURPOSE="Define the bounded mobile capture surface for the next workaround wave." />
       </annotations>
     </M-TELEGRAM-MOBILE-CAPTURE>
-    <M-TELEGRAM-MOBILE-VOICE-WAVE NAME="TelegramMobileVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-MOBILE-VOICE-WAVE NAME="TelegramMobileVoiceWave" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Replay one bounded mobile Telegram voice-call attempt under the chosen calls-proxy toggle state.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-MOBILE-HANDOFF-PROFILE, M-TELEGRAM-MOBILE-CAPTURE</depends>
@@ -2081,7 +2081,7 @@
         <fn-runTelegramMobileVoiceWave PURPOSE="Run one bounded Telegram mobile voice-call attempt under the chosen calls-toggle state." />
       </annotations>
     </M-TELEGRAM-MOBILE-VOICE-WAVE>
-    <M-TELEGRAM-MOBILE-VIDEO-WAVE NAME="TelegramMobileVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-MOBILE-VIDEO-WAVE NAME="TelegramMobileVideoWave" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Replay one bounded mobile Telegram video-call attempt under the same handoff profile without inheriting the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-MOBILE-VOICE-WAVE, M-TELEGRAM-MOBILE-CAPTURE</depends>
@@ -2090,7 +2090,7 @@
         <fn-runTelegramMobileVideoWave PURPOSE="Run one bounded Telegram mobile video-call attempt under the chosen calls-toggle state." />
       </annotations>
     </M-TELEGRAM-MOBILE-VIDEO-WAVE>
-    <M-TELEGRAM-MOBILE-COMPARISON NAME="TelegramMobileComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-MOBILE-COMPARISON NAME="TelegramMobileComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare the new mobile voice and video packets against the completed Desktop packets and determine whether the mobile app behavior changes the Telegram no-go class.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-MOBILE-VOICE-WAVE, M-TELEGRAM-MOBILE-VIDEO-WAVE, M-TELEGRAM-VARIANT-EVIDENCE</depends>
@@ -2099,7 +2099,7 @@
         <fn-compareTelegramMobilePackets PURPOSE="Compare the mobile packets against the completed Desktop no-go packets." />
       </annotations>
     </M-TELEGRAM-MOBILE-COMPARISON>
-    <M-TELEGRAM-MOBILE-EVIDENCE NAME="TelegramMobileEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-MOBILE-EVIDENCE NAME="TelegramMobileEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Assemble the bounded mobile handoff, capture, voice, video, and comparison packets for the mobile workaround wave.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-MOBILE-COMPARISON</depends>
@@ -2108,7 +2108,7 @@
         <fn-assembleTelegramMobileEvidence PURPOSE="Assemble the bounded mobile workaround evidence packet." />
       </annotations>
     </M-TELEGRAM-MOBILE-EVIDENCE>
-    <M-TELEGRAM-MOBILE-DECISION NAME="TelegramMobileDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-MOBILE-DECISION NAME="TelegramMobileDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded decision for the tested mobile Telegram setup after the mobile workaround wave.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-MOBILE-EVIDENCE</depends>
