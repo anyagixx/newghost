@@ -993,6 +993,45 @@ The blocked Phase-31 packet now freezes the next branch even more tightly:
 3. the same green transport baseline, text-message path, media-file path, and large-file path remain preserved and must not be re-diagnosed here
 4. any mobile result must stay bounded to the tested mobile setup and must not be widened into a Desktop support claim
 
+### Exact Phase-32 Mobile Handoff Profile
+
+The bounded Phase-32 mobile variant keeps the preserved SOCKS5 path fixed and changes one mobile-only app dimension:
+
+- preserved proxy path:
+  Telegram Mobile -> SOCKS5 `127.0.0.1:1080` on the controlled client side
+- preserved proxy settings:
+  host `127.0.0.1`
+  port `1080`
+  type `SOCKS5`
+  username empty
+  password empty
+- explicit mobile-only delta:
+  set the mobile `Use proxy for calls` toggle explicitly and preserve that exact state in the handoff packet
+
+Phase-32 operator rules:
+
+1. preserve the same-window green `phase27-probe` packet before any mobile media attempt
+2. keep the same SOCKS5 route that already carries text messages, media files, and large files; do not change host, port, proxy type, or credentials in the same wave
+3. the handoff packet must say exactly one of:
+   `Use proxy for calls = enabled`
+   `Use proxy for calls = disabled`
+4. if the mobile build or device does not expose the calls-proxy toggle, stop the wave and classify the packet as `mobile variant unavailable`
+
+### Phase-32 Mobile Capture Surface
+
+The mobile wave must keep its evidence directly comparable with the completed Desktop packets while preserving the blocked Phase-31 packet as history:
+
+- mobile handoff packet:
+  device type, app build when visible, exact SOCKS5 settings, and exact `Use proxy for calls` toggle state
+- mobile voice packet:
+  one bounded voice attempt with ringing, answer, key-exchange, media, and drop state kept separate
+- mobile video packet:
+  one bounded video attempt under the same handoff profile, kept separate from the voice packet
+- comparison packet:
+  compare the mobile voice and video packets against the completed Phase-29 and Phase-30 Desktop packets and the blocked Phase-31 packet
+- packet split:
+  keep mobile handoff, voice, video, comparison, and decision packets separate even if they happen in one operator session
+
 ### Exact Phase-31 App Variant Profile
 
 The bounded Phase-31 app variant keeps the completed Phase-30 handoff fixed and changes one Telegram-specific dimension only:
