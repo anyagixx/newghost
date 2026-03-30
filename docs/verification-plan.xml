@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.73">
+<VerificationPlan VERSION="0.2.74">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -134,6 +134,8 @@
     <telegram-origdst-baseline-lock-rule>Phase-41 evidence is invalid if the repo-local helper changes, reroutes, or degrades the already-working ordinary Telegram Desktop path at `127.0.0.1:1080` while smoke or calls packets are collected.</telegram-origdst-baseline-lock-rule>
     <telegram-origdst-live-launch-first-rule>Phase-42 may spend voice or video packets only after a live helper launch packet proves process launch, listener bind, tuple recovery, governed handoff, and preserved baseline in one bounded window.</telegram-origdst-live-launch-first-rule>
     <telegram-origdst-no-second-auth-rule>Phase-42 is invalid if it reopens a second Telegram auth or bootstrap window instead of staying attached to the ordinary logged-in Desktop baseline.</telegram-origdst-no-second-auth-rule>
+    <telegram-origdst-live-launch-anchor-rule>Phase-42 live-launch evidence is invalid unless process launch and listener-bind surfaces are each proven by their own stable anchor instead of one blended helper-success summary.</telegram-origdst-live-launch-anchor-rule>
+    <telegram-origdst-live-config-single-shape-rule>Phase-42 must freeze one exact live helper config shape; mixed launch flags, ad hoc shell state, or silent env inheritance invalidate the packet.</telegram-origdst-live-config-single-shape-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5840,21 +5842,39 @@
     </V-M-PHASE41-LAUNCH-BOUNDARY>
     <V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT MODULE="M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT" PRIORITY="high">
       <test-files><file>src/cli/mod.rs</file><file>src/cli/mod.test.rs</file><file>docs/development-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'origdst live entrypoint|helper listener|cancellation|launch anchor' src/cli/mod.rs src/cli/mod.test.rs docs/development-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The entrypoint contract names one exact live process surface for the repo-local helper and keeps its observability explicit.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The entrypoint stays vague enough that launch, listener bind, and cancellation cannot be debugged separately.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'origdst live entrypoint|helper listener|cancellation|launch anchor|listener bind' src/cli/mod.rs src/cli/mod.test.rs docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The entrypoint contract names one exact live process surface for the repo-local helper and keeps its observability explicit.</scenario-1>
+        <scenario-2>The entrypoint contract distinguishes process launch from listener bind so a failure packet can name the first divergent launch layer precisely.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The entrypoint stays vague enough that launch, listener bind, and cancellation cannot be debugged separately.</scenario-1>
+        <scenario-2>The entrypoint relies on an implicit shell wrapper or hidden environment instead of one governed process surface.</scenario-2>
+      </failure-scenarios>
     </V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT>
     <V-M-ORIGDST-LIVE-CONFIG-SHAPE MODULE="M-ORIGDST-LIVE-CONFIG-SHAPE" PRIORITY="high">
       <test-files><file>src/config/mod.rs</file><file>src/config/mod.test.rs</file><file>docs/OPERATORS.md</file></test-files>
-      <module-checks><check-1>rg -n '127.0.0.1:10073|payload capacity|operator user|baseline preserve|live helper' src/config/mod.rs src/config/mod.test.rs docs/OPERATORS.md</check-1></module-checks>
-      <success-scenarios><scenario-1>The config shape names the live helper listener, payload capacity, and baseline-preserve fields explicitly.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The config shape leaves live helper launch dependent on ad hoc shell state or hidden defaults.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n '127.0.0.1:10073|payload capacity|operator user|baseline preserve|live helper|env' src/config/mod.rs src/config/mod.test.rs docs/OPERATORS.md</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The config shape names the live helper listener, payload capacity, and baseline-preserve fields explicitly.</scenario-1>
+        <scenario-2>The config shape freezes one exact launch shape and does not depend on inherited shell or desktop environment state.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The config shape leaves live helper launch dependent on ad hoc shell state or hidden defaults.</scenario-1>
+        <scenario-2>The config shape permits multiple silent launch variants that later blur evidence between packets.</scenario-2>
+      </failure-scenarios>
     </V-M-ORIGDST-LIVE-CONFIG-SHAPE>
     <V-M-ORIGDST-LIVE-LAUNCHER MODULE="M-ORIGDST-LIVE-LAUNCHER" PRIORITY="high">
       <test-files><file>src/cli/mod.rs</file><file>src/cli/mod.test.rs</file></test-files>
-      <module-checks><check-1>cargo test cli</check-1><check-2>rg -n 'BLOCK_ORIGDST_LIVE_ENTRYPOINT|BLOCK_ORIGDST_LIVE_LAUNCHER|origdst live' src/cli/mod.rs src/cli/mod.test.rs</check-2></module-checks>
-      <success-scenarios><scenario-1>The live launcher can bind the helper listener, stay alive until cancellation, and emit stable launch anchors.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The launcher cannot keep the helper alive for a bounded packet window or leaves launch state invisible.</scenario-1></failure-scenarios>
+      <module-checks><check-1>cargo test cli</check-1><check-2>rg -n 'BLOCK_ORIGDST_LIVE_ENTRYPOINT|BLOCK_ORIGDST_LIVE_LAUNCHER|origdst live|listener bind' src/cli/mod.rs src/cli/mod.test.rs</check-2></module-checks>
+      <success-scenarios>
+        <scenario-1>The live launcher can bind the helper listener, stay alive until cancellation, and emit stable launch anchors.</scenario-1>
+        <scenario-2>The live launcher emits listener-bind evidence separately from process-start evidence.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The launcher cannot keep the helper alive for a bounded packet window or leaves launch state invisible.</scenario-1>
+        <scenario-2>The launcher starts a process but leaves the listener-bind surface unproven.</scenario-2>
+      </failure-scenarios>
     </V-M-ORIGDST-LIVE-LAUNCHER>
     <V-M-ORIGDST-LIVE-RUNBOOK MODULE="M-ORIGDST-LIVE-RUNBOOK" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
@@ -5864,14 +5884,16 @@
     </V-M-ORIGDST-LIVE-RUNBOOK>
     <V-M-ORIGDST-LIVE-SMOKE MODULE="M-ORIGDST-LIVE-SMOKE" PRIORITY="high">
       <test-files><file>src/cli/mod.test.rs</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'live helper launch|listener bind|tuple recovery|governed handoff|preserved baseline' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>cargo test cli</check-2></module-checks>
+      <module-checks><check-1>rg -n 'live helper launch|listener bind|tuple recovery|governed handoff|preserved baseline|no second auth' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>cargo test cli</check-2></module-checks>
       <success-scenarios>
         <scenario-1>The live smoke packet proves process launch, listener bind, tuple recovery, governed handoff, and preserved baseline in one bounded window.</scenario-1>
         <scenario-2>The live smoke packet stays outside Telegram UI and therefore spends no call packet.</scenario-2>
+        <scenario-3>The live smoke packet explicitly proves that no second auth/bootstrap window was needed for the helper launch surface.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The live smoke packet shows runtime tuple recovery only, but no process-launch evidence.</scenario-1>
         <scenario-2>The live smoke packet looks green only because the ordinary baseline regressed.</scenario-2>
+        <scenario-3>The live smoke packet silently depends on a second Telegram auth or bootstrap surface.</scenario-3>
       </failure-scenarios>
     </V-M-ORIGDST-LIVE-SMOKE>
     <V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE MODULE="M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE" PRIORITY="high">
@@ -6576,6 +6598,7 @@ PY</command-5>
         <evidence-2>The wave proves live helper process launch and listener bind before any Telegram call packet.</evidence-2>
         <evidence-3>The wave proves tuple recovery and governed handoff under the live launch surface, not just in test-only smoke.</evidence-3>
         <evidence-4>The wave keeps voice and video as separate downstream packets.</evidence-4>
+        <evidence-5>The wave proves no second Telegram auth/bootstrap window was involved anywhere in the launch packet.</evidence-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsLiveOrigDstLaunchWave; expected-evidence=preserved ordinary baseline, explicit blocked Phase-41 launch boundary, one exact live helper entrypoint and config shape, green live-launch smoke, and separate voice and video packets; observed-evidence=phase artifacts, live-launch evidence, and execution packet; first-divergent-block=first missing live-launch gate requirement; next-action=repair that exact live-launch layer before spending more call attempts</failure-packet-template>
     </LV-033>
@@ -7362,6 +7385,7 @@ PY</command-3>
         <evidence-4>The gate requires green live helper launch smoke before any new calls packet.</evidence-4>
         <evidence-5>The gate requires no second auth/bootstrap window anywhere in the branch.</evidence-5>
         <evidence-6>The gate requires separate voice and video packets plus a bounded final decision.</evidence-6>
+        <evidence-7>The gate rejects blended launch evidence; process start and listener bind must each stay explicit.</evidence-7>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-42; expected-evidence=execution-ready live-launch repo-local helper wave with preserved ordinary baseline, explicit blocked Phase-41 launch boundary, one exact live helper entrypoint and config shape, green live-launch smoke, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, live-launch contract, verification coverage, and execution packet; first-divergent-block=first missing live-launch gate requirement; next-action=repair the missing Phase-42 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-42>
