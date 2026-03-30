@@ -2576,7 +2576,7 @@
         <fn-issueTelegramCallsSafeDecision PURPOSE="Issue the bounded decision after the safe calls-only branch." />
       </annotations>
     </M-TELEGRAM-CALLS-SAFE-DECISION>
-    <M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS NAME="TelegramCallsAttachedHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS NAME="TelegramCallsAttachedHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the new calls branch above the working logged-in baseline and the exhausted second-window auth branches.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-SAFE-DECISION, M-TELEGRAM-ATTRIBUTION-DECISION</depends>
@@ -2585,7 +2585,7 @@
         <fn-freezeTelegramCallsAttachedHypothesis PURPOSE="Freeze the baseline-attached calls-only branch boundary." />
       </annotations>
     </M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS>
-    <M-PHASE38-SUPERSEDE NAME="Phase38Supersede" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE38-SUPERSEDE NAME="Phase38Supersede" TYPE="UTILITY" STATUS="done">
       <purpose>Explicitly supersede the blocked fresh safe-window auth branch from Phase-38.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS</depends>
@@ -2594,7 +2594,7 @@
         <fn-supersedePhase38 PURPOSE="Mark the old safe-window auth branch as non-runnable after the auth bootstrap blocker." />
       </annotations>
     </M-PHASE38-SUPERSEDE>
-    <M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE NAME="TelegramCallsBaselineAttachProfile" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE NAME="TelegramCallsBaselineAttachProfile" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Freeze one exact experiment profile that reuses the already logged-in normal Telegram Desktop window.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-CALLS-BASELINE-PRESERVE, M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</depends>
@@ -2603,7 +2603,7 @@
         <fn-freezeTelegramCallsBaselineAttachProfile PURPOSE="Freeze the baseline-attached calls experiment profile." />
       </annotations>
     </M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE>
-    <M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE NAME="TelegramCallsSelectiveInterceptProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE NAME="TelegramCallsSelectiveInterceptProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define one exact selective interception surface for direct-media escape traffic only.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE, M-HELPER-RUNTIME-PROFILE</depends>

@@ -8079,10 +8079,10 @@
     </Phase-38>
     <Phase-39 name="Telegram Calls Baseline-Attached Direct Media Interception" status="planned">
       <goal>Continue Telegram calls work on the already logged-in ordinary Desktop baseline and target only direct-media escape, without any second-window auth/bootstrap branch.</goal>
-      <step-1 module="M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS">Freeze the new calls branch above the working logged-in baseline and the exhausted second-window auth branches</step-1>
-      <step-2 module="M-PHASE38-SUPERSEDE" status="planned" verification="V-M-PHASE38-SUPERSEDE">Explicitly supersede the blocked fresh safe-window auth branch from Phase-38</step-2>
-      <step-3 module="M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE" status="planned" verification="V-M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE">Freeze one exact experiment profile that reuses the already logged-in normal Telegram Desktop window</step-3>
-      <step-4 module="M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE" status="planned" verification="V-M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE">Define one exact selective interception surface for direct-media escape traffic only</step-4>
+      <step-1 module="M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS">Freeze the new calls branch above the working logged-in baseline and the exhausted second-window auth branches</step-1>
+      <step-2 module="M-PHASE38-SUPERSEDE" status="done" verification="V-M-PHASE38-SUPERSEDE">Explicitly supersede the blocked fresh safe-window auth branch from Phase-38</step-2>
+      <step-3 module="M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE">Freeze one exact experiment profile that reuses the already logged-in normal Telegram Desktop window</step-3>
+      <step-4 module="M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE">Define one exact selective interception surface for direct-media escape traffic only</step-4>
       <step-5 module="M-TELEGRAM-CALLS-INTERCEPT-SMOKE" status="planned" verification="V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE">Prove selective interception outside Telegram UI before any new call packet is spent</step-5>
       <step-6 module="M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE">Run one bounded voice attempt in the ordinary logged-in Telegram window while selective interception is active</step-6>
       <step-7 module="M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE">Run one bounded video attempt on the same attached branch without inheriting voice</step-7>
