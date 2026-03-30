@@ -1592,6 +1592,36 @@ Bounded rule:
 - do not spend new Telegram UI packets on `Phase-37` until one explicit helper class is chosen and synthetic TCP plus UDP helper smoke are green
 - do not treat package installation itself as progress unless install, cleanup, destination recovery, and governed handoff all become explicit evidence surfaces
 
+### Phase-37 Helper Install Runbook
+
+The bounded `Phase-37` helper class on this workstation is:
+
+- Ubuntu package `redsocks` candidate `0.5-2build4`
+
+Install and safety contract:
+
+1. Install explicitly and record the package boundary:
+   `sudo apt-get update`
+   `sudo apt-get install -y redsocks`
+2. Immediately verify what the package changed:
+   `command -v redsocks`
+   `systemctl is-enabled redsocks || true`
+   `systemctl is-active redsocks || true`
+   `dpkg -L redsocks`
+3. Do not leave the distro service as ambient baseline state:
+   on this host the package install enabled and started `redsocks.service`, so the runbook must stop and disable it before any experiment packet is considered clean:
+   `sudo systemctl stop redsocks`
+   `sudo systemctl disable redsocks`
+4. Preserve the normal Desktop baseline:
+   the package install must not repoint or replace the preserved `127.0.0.1:1080` Telegram Desktop path
+5. Remove the helper cleanly if the branch is abandoned:
+   `sudo apt-get purge -y redsocks`
+   `sudo apt-get autoremove -y`
+6. Cleanup proof for every helper wave:
+   `systemctl is-active redsocks || true`
+   `systemctl is-enabled redsocks || true`
+   any helper-specific config, nftables, iptables, namespace, or temporary files must be removed before the next normal Desktop packet
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
