@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.31">
+  <Project NAME="n0wss" VERSION="0.2.32">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2180,6 +2180,78 @@
         <fn-freezeTelegramOperatorCleanup PURPOSE="Freeze the safe operator cleanup state after Telegram workaround exploration." />
       </annotations>
     </M-TELEGRAM-OPERATOR-CLEANUP>
+    <M-TELEGRAM-ATTRIBUTION-HYPOTHESIS NAME="TelegramAttributionHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the bounded post-Phase-33 question about what Telegram media does after key exchange on the already-working baseline.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-FINAL-DECISION, M-TELEGRAM-VARIANT-MATRIX</depends>
+      <verification-ref>V-M-TELEGRAM-ATTRIBUTION-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramAttributionHypothesis PURPOSE="Freeze the attribution-only question above the completed Telegram terminal decision." />
+      </annotations>
+    </M-TELEGRAM-ATTRIBUTION-HYPOTHESIS>
+    <M-TELEGRAM-CAPTURE-TOPOLOGY NAME="TelegramCaptureTopology" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Freeze one exact Desktop attribution capture topology without changing the preserved working baseline.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-OPERATOR-CLEANUP, M-TELEGRAM-DESKTOP-HANDOFF-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-CAPTURE-TOPOLOGY</verification-ref>
+      <annotations>
+        <fn-freezeTelegramCaptureTopology PURPOSE="Freeze one exact Desktop capture topology for the attribution wave." />
+      </annotations>
+    </M-TELEGRAM-CAPTURE-TOPOLOGY>
+    <M-TELEGRAM-DESKTOP-NET-CAPTURE NAME="TelegramDesktopNetCapture" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the bounded Desktop network-capture surface needed for Telegram media-path attribution.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-MEDIA-CAPTURE, M-TELEGRAM-CAPTURE-TOPOLOGY</depends>
+      <verification-ref>V-M-TELEGRAM-DESKTOP-NET-CAPTURE</verification-ref>
+      <annotations>
+        <fn-prepareTelegramDesktopNetCapture PURPOSE="Prepare the bounded workstation network capture surface for Telegram media attribution." />
+      </annotations>
+    </M-TELEGRAM-DESKTOP-NET-CAPTURE>
+    <M-TELEGRAM-SERVER-CORRELATION NAME="TelegramServerCorrelation" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze the governed server-side correlation contract for attribution waves.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-FINAL-EVIDENCE, M-CALLS-LIVE-PACKET-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-SERVER-CORRELATION</verification-ref>
+      <annotations>
+        <fn-freezeTelegramServerCorrelation PURPOSE="Freeze what server-side evidence would prove governed Telegram media attempts during attribution waves." />
+      </annotations>
+    </M-TELEGRAM-SERVER-CORRELATION>
+    <M-TELEGRAM-VOICE-ATTRIBUTION-WAVE NAME="TelegramVoiceAttributionWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded Desktop voice attribution wave and classify whether media stays inside the governed SOCKS envelope or escapes it.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramVoiceAttributionWave PURPOSE="Run one bounded Telegram Desktop voice attribution attempt." />
+      </annotations>
+    </M-TELEGRAM-VOICE-ATTRIBUTION-WAVE>
+    <M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE NAME="TelegramVideoAttributionWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded Desktop video attribution wave under the same capture contract without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-VOICE-ATTRIBUTION-WAVE, M-TELEGRAM-DESKTOP-NET-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramVideoAttributionWave PURPOSE="Run one bounded Telegram Desktop video attribution attempt." />
+      </annotations>
+    </M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE>
+    <M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER NAME="TelegramMediaAttributionClassifier" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Classify Telegram media behavior as governed-media attempt, direct-media attempt outside SOCKS, signaling-only stall, or insufficient evidence.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-VOICE-ATTRIBUTION-WAVE, M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</verification-ref>
+      <annotations>
+        <fn-classifyTelegramMediaAttribution PURPOSE="Classify the bounded Telegram media attribution packet." />
+      </annotations>
+    </M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER>
+    <M-TELEGRAM-ATTRIBUTION-DECISION NAME="TelegramAttributionDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded next-step decision after Telegram media-path attribution without reopening spent workaround branches.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</depends>
+      <verification-ref>V-M-TELEGRAM-ATTRIBUTION-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramAttributionDecision PURPOSE="Issue the bounded next-step decision after Telegram media-path attribution." />
+      </annotations>
+    </M-TELEGRAM-ATTRIBUTION-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -2522,6 +2594,21 @@
     <CrossLink from="M-TELEGRAM-STOP-CRITERIA" to="M-TELEGRAM-FINAL-EVIDENCE" relation="supplies explicit stop criteria for the final Telegram evidence packet" />
     <CrossLink from="M-TELEGRAM-FINAL-EVIDENCE" to="M-TELEGRAM-FINAL-DECISION" relation="supplies the bounded final Telegram evidence packet for the final decision" />
     <CrossLink from="M-TELEGRAM-FINAL-DECISION" to="M-TELEGRAM-OPERATOR-CLEANUP" relation="supplies the final Telegram decision for the safe operator cleanup end-state" />
+    <CrossLink from="M-TELEGRAM-FINAL-DECISION" to="M-TELEGRAM-ATTRIBUTION-HYPOTHESIS" relation="supplies the terminal no-go decision that narrows the next question to media-path attribution only" />
+    <CrossLink from="M-TELEGRAM-VARIANT-MATRIX" to="M-TELEGRAM-ATTRIBUTION-HYPOTHESIS" relation="supplies the exhausted spent-branch matrix that attribution work must preserve" />
+    <CrossLink from="M-TELEGRAM-ATTRIBUTION-HYPOTHESIS" to="M-TELEGRAM-CAPTURE-TOPOLOGY" relation="supplies the bounded attribution question for the exact Desktop capture topology" />
+    <CrossLink from="M-TELEGRAM-OPERATOR-CLEANUP" to="M-TELEGRAM-CAPTURE-TOPOLOGY" relation="supplies the preserved operator baseline that attribution work must not alter" />
+    <CrossLink from="M-TELEGRAM-CAPTURE-TOPOLOGY" to="M-TELEGRAM-DESKTOP-NET-CAPTURE" relation="supplies the exact Desktop handoff and capture shape for broader workstation evidence" />
+    <CrossLink from="M-TELEGRAM-MEDIA-CAPTURE" to="M-TELEGRAM-DESKTOP-NET-CAPTURE" relation="supplies the earlier Telegram capture packet that the attribution capture extends" />
+    <CrossLink from="M-TELEGRAM-FINAL-EVIDENCE" to="M-TELEGRAM-SERVER-CORRELATION" relation="supplies the completed Telegram evidence packet that server-side attribution must preserve" />
+    <CrossLink from="M-CALLS-LIVE-PACKET-CAPTURE" to="M-TELEGRAM-SERVER-CORRELATION" relation="supplies the earlier live packet-capture surfaces reused for governed server-side correlation" />
+    <CrossLink from="M-TELEGRAM-DESKTOP-NET-CAPTURE" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the workstation-side attribution evidence surface for voice" />
+    <CrossLink from="M-TELEGRAM-SERVER-CORRELATION" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the governed server-side correlation contract for voice attribution" />
+    <CrossLink from="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" to="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" relation="keeps the video attribution packet separate but sequenced after voice under the same capture contract" />
+    <CrossLink from="M-TELEGRAM-DESKTOP-NET-CAPTURE" to="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" relation="supplies the workstation-side attribution evidence surface for video" />
+    <CrossLink from="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" to="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" relation="supplies the bounded voice attribution packet for final classification" />
+    <CrossLink from="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" to="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" relation="supplies the bounded video attribution packet for final classification" />
+    <CrossLink from="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" to="M-TELEGRAM-ATTRIBUTION-DECISION" relation="supplies the exact attribution class needed for the bounded next-step decision" />
 
   </Project>
 </KnowledgeGraph>

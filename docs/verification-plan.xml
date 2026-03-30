@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.54">
+<VerificationPlan VERSION="0.2.56">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -95,6 +95,11 @@
     <telegram-stop-criteria-rule>Any final Telegram stop decision must remain explicitly bounded to the tested Desktop and Android variants and must distinguish stop-here from one genuinely unspent narrow branch.</telegram-stop-criteria-rule>
     <telegram-terminal-matrix-completeness-rule>Phase-33 may not issue a final Telegram decision until the tested-variant matrix explicitly preserves the Phase-29 Desktop packet, Phase-30 alternate-topology packet, blocked Phase-31 Desktop-variant packet, and Phase-32 Android packet together.</telegram-terminal-matrix-completeness-rule>
     <telegram-cleanup-end-state-rule>Phase-33 cleanup proof must preserve the working Desktop listener end-state and must reject any temporary Telegram-only listener as part of the normal operator baseline.</telegram-cleanup-end-state-rule>
+    <telegram-attribution-no-rerun-rule>Phase-34 may not silently reopen any already-spent Telegram workaround branch; it must stay attribution-only above the preserved green baseline.</telegram-attribution-no-rerun-rule>
+    <telegram-attribution-capture-split-rule>Phase-34 must keep workstation loopback, workstation uplink, broader workstation network capture, and server-side correlation as separate evidence surfaces.</telegram-attribution-capture-split-rule>
+    <telegram-attribution-baseline-preservation-rule>Phase-34 may not alter the preserved working Desktop baseline at 127.0.0.1:1080 while gathering attribution evidence.</telegram-attribution-baseline-preservation-rule>
+    <telegram-attribution-classifier-bounds-rule>Phase-34 classifier output must be one of governed-media attempt, direct-media outside SOCKS, signaling-only stall, or insufficient evidence; no blended fallback wording is allowed.</telegram-attribution-classifier-bounds-rule>
+    <telegram-attribution-same-window-rule>Phase-34 attribution packets must remain tied to the same preserved Desktop baseline window and may not mix evidence from a different operator topology or temporary listener state.</telegram-attribution-same-window-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -4587,6 +4592,167 @@
         <assertion-1>The cleanup packet must preserve the documented working Desktop path while removing temporary experiment surfaces.</assertion-1>
       </required-trace-assertions>
     </V-M-TELEGRAM-OPERATOR-CLEANUP>
+    <V-M-TELEGRAM-ATTRIBUTION-HYPOTHESIS MODULE="M-TELEGRAM-ATTRIBUTION-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'attribution|governed-media|direct-media|signaling-only|Phase-33|127.0.0.1:1080' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The new hypothesis keeps the next question bounded to media-path attribution above the preserved green baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The phase silently reopens an already-spent workaround branch or generic transport diagnosis.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The hypothesis must preserve the completed terminal no-go matrix and the green transport baseline together.</assertion-1>
+        <assertion-2>The hypothesis must ask only whether media attempts the governed path, a direct path outside SOCKS, or no media path at all.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-ATTRIBUTION-HYPOTHESIS>
+    <V-M-TELEGRAM-CAPTURE-TOPOLOGY MODULE="M-TELEGRAM-CAPTURE-TOPOLOGY" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'capture topology|127.0.0.1:1080|loopback|uplink|network capture|server correlation' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The capture topology stays exact and preserves the working Desktop baseline while adding attribution evidence surfaces.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The topology changes the preserved baseline or leaves the attribution capture shape ambiguous.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The capture topology must keep the working Desktop listener at `127.0.0.1:1080` unchanged.</assertion-1>
+        <assertion-2>The capture topology must explicitly name all capture surfaces required for attribution.</assertion-2>
+        <assertion-3>The capture topology must explicitly forbid temporary mobile listeners, alternate ports, and stale SSH-forward variants inside the same attribution packet.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-CAPTURE-TOPOLOGY>
+    <V-M-TELEGRAM-DESKTOP-NET-CAPTURE MODULE="M-TELEGRAM-DESKTOP-NET-CAPTURE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'loopback|uplink|network capture|pcap|separate evidence|insufficient evidence' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The workstation-side capture packet can distinguish SOCKS-governed media from traffic that escapes the old envelope.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The capture packet remains too weak and collapses back into UI-only symptom reading.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The capture contract must keep loopback, uplink, and broader workstation network evidence separate.</assertion-1>
+        <assertion-2>Missing capture evidence must remain classified as an evidence gap rather than guessed behavior.</assertion-2>
+        <assertion-3>The network-capture packet must be strong enough to distinguish SOCKS-governed traffic from workstation traffic that bypasses the preserved SOCKS endpoint.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-DESKTOP-NET-CAPTURE>
+    <V-M-TELEGRAM-SERVER-CORRELATION MODULE="M-TELEGRAM-SERVER-CORRELATION" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'server correlation|BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_SEND_WSS_DATAGRAM|SERVER_DATAGRAM|correlation' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The server-side contract says exactly what governed-path evidence should appear if Telegram media really enters n0wss.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>Server silence cannot be interpreted because the correlation contract is too vague.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The contract must separate workstation evidence from server-side governed-path evidence.</assertion-1>
+        <assertion-2>The contract must let later packets classify server silence honestly.</assertion-2>
+        <assertion-3>The server-side packet must say which historical governed markers would count as positive media-path evidence during the same attribution window.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-SERVER-CORRELATION>
+    <V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE MODULE="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'voice attribution|governed-media|direct-media|signaling-only|insufficient evidence' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The voice packet yields one bounded attribution class without reopening spent branches.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The voice packet remains a blended UI transcript with no attribution value.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The voice packet must stay separate from video.</assertion-1>
+        <assertion-2>The voice packet must correlate workstation and server evidence before any classification is accepted.</assertion-2>
+        <assertion-3>The voice packet must say whether the first positive evidence appeared on the SOCKS-governed path, outside it, or nowhere.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE>
+    <V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE MODULE="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'video attribution|governed-media|direct-media|signaling-only|insufficient evidence' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The video packet remains separate from voice and yields its own attribution class.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>Video silently inherits the voice result or remains UI-only.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The video packet must preserve its own capture and correlation evidence.</assertion-1>
+        <assertion-2>The packet must remain separate from the voice result even if the final class matches.</assertion-2>
+        <assertion-3>The video packet must say whether the first positive evidence appeared on the SOCKS-governed path, outside it, or nowhere.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE>
+    <V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER MODULE="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'governed-media|direct-media|signaling-only stall|insufficient evidence|attribution class' README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The classifier chooses one bounded attribution class from the separate voice and video packets.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The classifier remains vague or silently reopens old workaround stories.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The classifier must explicitly allow `insufficient evidence` instead of guessing.</assertion-1>
+        <assertion-2>The classifier must name whether media appears governed, direct, signaling-only, or still unproven.</assertion-2>
+        <assertion-3>The classifier must not use blended wording that hides whether the evidence came from the governed SOCKS path or from outside it.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER>
+    <V-M-TELEGRAM-ATTRIBUTION-DECISION MODULE="M-TELEGRAM-ATTRIBUTION-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'attribution decision|direct-media|governed-path code branch|app-build branch|insufficient evidence' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final attribution decision names one exact next branch type or a bounded stop-here outcome.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision falls back to another blind rerun or reopens generic transport diagnosis.</scenario-1>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The decision must stay above the preserved green baseline and spent-branch matrix.</assertion-1>
+        <assertion-2>The decision must translate the attribution class into one exact next-step type.</assertion-2>
+        <assertion-3>The decision must explicitly reject another blind Desktop rerun if the attribution packet still lacks a new class beyond the spent matrix.</assertion-3>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-ATTRIBUTION-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -5072,6 +5238,29 @@ PY</command-2>
       </required-evidence>
       <failure-packet-template>scenario=TelegramTerminalDecisionWave; expected-evidence=final tested-variant matrix plus bounded stop-or-branch decision; observed-evidence=shared-artifact review and final Telegram evidence packet; first-divergent-block=first missing final-decision layer above the preserved green transport baseline; next-action=repair only the terminal Telegram decision surface without reopening generic transport work</failure-packet-template>
     </LV-024>
+    <LV-025 NAME="TelegramMediaPathAttributionWave" PRIORITY="high">
+      <goal>Run an attribution-only Telegram media wave that preserves the working Desktop baseline while distinguishing governed-path media, direct-media behavior, signaling-only stall, and insufficient evidence.</goal>
+      <commands>
+        <command-1>cargo test udp_relay</command-1>
+        <command-2>cargo test wss_gateway</command-2>
+        <command-3>cargo test cli</command-3>
+        <command-4>rg -n '127.0.0.1:1080|loopback|uplink|network capture|server correlation|governed-media|direct-media|insufficient evidence' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-4>
+        <command-5>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave preserves the working Desktop baseline at `127.0.0.1:1080`.</evidence-1>
+        <evidence-2>The wave keeps loopback, uplink, broader workstation network capture, and server-side correlation as separate evidence surfaces.</evidence-2>
+        <evidence-3>The wave yields separate voice and video attribution packets.</evidence-3>
+        <evidence-4>The final classifier and decision stay attribution-only and do not reopen spent workaround branches.</evidence-4>
+        <evidence-5>The final packet says whether positive evidence first appeared on the governed path, outside it, or nowhere at all.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramMediaPathAttributionWave; expected-evidence=separate workstation and server attribution evidence plus one bounded classifier; observed-evidence=capture packet set and attribution classification; first-divergent-block=first missing attribution evidence layer above the preserved working Desktop baseline; next-action=repair only the attribution surface or classify the packet as insufficient evidence before any further branch planning</failure-packet-template>
+    </LV-025>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -5648,6 +5837,30 @@ PY</command-3>
         <evidence-4>The gate requires the tested-variant matrix to keep Phase-29, Phase-30, blocked Phase-31, and Phase-32 visible together.</evidence-4>
       </required-evidence>
     </Gate-Phase-33>
+    <Gate-Phase-34 PHASE="Phase-34">
+      <goal>The project has an execution-ready Telegram media-path attribution wave that preserves the working Desktop baseline while producing one bounded attribution decision.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-34|M-TELEGRAM-ATTRIBUTION-HYPOTHESIS|M-TELEGRAM-ATTRIBUTION-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-025|attribution|governed-media|direct-media|signaling-only|insufficient evidence|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>cargo test udp_relay</command-3>
+        <command-4>cargo test wss_gateway</command-4>
+        <command-5>cargo test cli</command-5>
+        <command-6>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-6>
+        <command-7>git diff --check</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate preserves the working Desktop path at `127.0.0.1:1080` and does not reopen old workaround branches.</evidence-1>
+        <evidence-2>The gate requires loopback, uplink, broader workstation network capture, and server-side correlation to remain separate evidence surfaces.</evidence-2>
+        <evidence-3>The gate requires separate voice and video attribution packets.</evidence-3>
+        <evidence-4>The final decision must say whether the next branch is governed-path code, app-build behavior, direct-media outside SOCKS, or bounded stop due to insufficient evidence.</evidence-4>
+        <evidence-5>The gate requires the classifier to use one bounded attribution class only and forbids blended fallback wording.</evidence-5>
+      </required-evidence>
+    </Gate-Phase-34>
   </PhaseGates>
 
   <FailurePackets>
