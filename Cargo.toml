@@ -13,6 +13,7 @@ clap = { version = "4.5", features = ["derive"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 http = "1.3"
 iroh = "0.97"
+libc = "0.2"
 rustls-pemfile = "2.2"
 rustls-pki-types = "1.13"
 thiserror = "2.0"

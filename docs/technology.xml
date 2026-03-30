@@ -1,4 +1,4 @@
-<TechnologyStack VERSION="0.2.3">
+<TechnologyStack VERSION="0.2.4">
   <Runtime>Tokio 1.48.0</Runtime>
   <Language>Rust 1.94 (edition 2021)</Language>
   <Framework>iroh + WSS transport stack 0.97/0.28</Framework>
@@ -9,6 +9,7 @@
     <dep name="futures-util" version="0.3" purpose="Stream and sink helpers around websocket and async transport boundaries." />
     <dep name="http" version="1.3" purpose="HTTP request and response primitives used by the WSS boundary." />
     <dep name="iroh" version="0.97" purpose="Peer transport, NAT traversal, relay fallback, and encrypted connectivity primitives." />
+    <dep name="libc" version="0.2" purpose="Linux socket options, recvmsg control-message parsing, and original-destination recovery for the repo-local UDP helper surface." />
     <dep name="rustls-pemfile" version="2.2" purpose="Load TLS certificate and private key material from PEM files." />
     <dep name="rustls-pki-types" version="1.13" purpose="Typed certificate and key representations for rustls loaders." />
     <dep name="thiserror" version="2.0" purpose="Deterministic project error enums across config, auth, transport, and proxy boundaries." />

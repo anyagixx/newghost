@@ -1,30 +1,36 @@
 // FILE: src/udp_origdst/linux.test.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify the Linux original-destination adapter keeps explicit recovery-plan markers visible.
-//   SCOPE: Linux recovery-plan strategy and marker checks.
-//   DEPENDS: src/udp_origdst/linux.rs
+//   PURPOSE: Verify the Linux original-destination adapter keeps explicit recovery-plan markers visible and parses recovered IPv4 tuples deterministically.
+//   SCOPE: Linux recovery-plan strategy, marker, and control-message parsing checks.
+//   DEPENDS: libc, src/udp_origdst/linux.rs
 //   LINKS: V-M-UDP-ORIGDST-LINUX-ADAPTER
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   plan_linux_origdst_socket_prefers_ipv6_recvmsg_strategy - proves IPv6 planning stays on an explicit recvmsg control-message surface
+//   udp_origdst_linux_plan_socket_prefers_ipv6_recvmsg_strategy - proves IPv6 planning stays on an explicit recvmsg control-message surface
+//   udp_origdst_linux_enables_ipv4_original_dst_option - proves Linux socket setup can enable original-destination ancillary data on a UDP socket
+//   udp_origdst_linux_recovers_ipv4_original_destination_from_control_message - proves ancillary control parsing yields the expected original IPv4 destination tuple
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added a deterministic Linux adapter plan check for the repo-local helper branch.
+//   LAST_CHANGE: v0.1.1 - Added deterministic Linux adapter checks for enabling original-destination ancillary data and parsing recovered IPv4 tuples from control messages.
 // END_CHANGE_SUMMARY
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::mem::size_of;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
+use std::os::fd::AsRawFd;
+
+use crate::transport::datagram_contract::DatagramTarget;
 
 use super::{
-    plan_linux_origdst_socket, LinuxOrigDstRecoveryStrategy, CONTROL_MESSAGE_API_MARKER,
-    IPV4_ORIGINAL_DST_MARKER, IPV4_RECV_ORIGINAL_DST_MARKER, IPV6_RECV_ORIGINAL_DST_MARKER,
-    RECVMSG_API_MARKER,
+    enable_ipv4_recv_original_dst, plan_linux_origdst_socket, recv_recovered_ipv4_datagram,
+    LinuxOrigDstRecoveryStrategy, CONTROL_MESSAGE_API_MARKER, IPV4_ORIGINAL_DST_MARKER,
+    IPV4_RECV_ORIGINAL_DST_MARKER, IPV6_RECV_ORIGINAL_DST_MARKER, RECVMSG_API_MARKER,
 };
 
 #[test]
-fn plan_linux_origdst_socket_prefers_ipv6_recvmsg_strategy() {
+fn udp_origdst_linux_plan_socket_prefers_ipv6_recvmsg_strategy() {
     let plan = plan_linux_origdst_socket(
         SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 12000),
         true,
@@ -40,4 +46,53 @@ fn plan_linux_origdst_socket_prefers_ipv6_recvmsg_strategy() {
     assert_eq!(IPV6_RECV_ORIGINAL_DST_MARKER, "IPV6_RECVORIGDSTADDR");
     assert_eq!(RECVMSG_API_MARKER, "recvmsg");
     assert_eq!(CONTROL_MESSAGE_API_MARKER, "cmsg");
+}
+
+#[test]
+fn udp_origdst_linux_enables_ipv4_original_dst_option() {
+    let socket = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind udp socket");
+
+    enable_ipv4_recv_original_dst(&socket).expect("enable original-destination ancillary data");
+
+    let mut enabled: libc::c_int = 0;
+    let mut enabled_len = size_of::<libc::c_int>() as libc::socklen_t;
+    let rc = unsafe {
+        libc::getsockopt(
+            socket.as_raw_fd(),
+            libc::IPPROTO_IP,
+            libc::IP_RECVORIGDSTADDR,
+            &mut enabled as *mut _ as *mut libc::c_void,
+            &mut enabled_len as *mut libc::socklen_t,
+        )
+    };
+
+    assert_eq!(rc, 0);
+    assert_eq!(enabled, 1);
+}
+
+#[test]
+fn udp_origdst_linux_recovers_ipv4_original_destination_from_control_message() {
+    let receiver = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind receiver");
+    enable_ipv4_recv_original_dst(&receiver).expect("enable original destination");
+    let sender = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind sender");
+    let receiver_addr = receiver.local_addr().expect("receiver addr");
+    let sender_addr = sender.local_addr().expect("sender addr");
+    sender
+        .send_to(b"ping", receiver_addr)
+        .expect("send ping");
+
+    let recovered = recv_recovered_ipv4_datagram(&receiver, receiver_addr, 32)
+        .expect("recover first recvmsg packet");
+
+    assert_eq!(recovered.payload, b"ping");
+    assert_eq!(recovered.tuple.client_source_addr, sender_addr);
+    assert_eq!(recovered.tuple.helper_listener_addr, receiver_addr);
+    assert_eq!(
+        recovered.tuple.original_target,
+        DatagramTarget::Ip(receiver_addr)
+    );
+    assert_eq!(recovered.tuple.payload_len, 4);
 }
