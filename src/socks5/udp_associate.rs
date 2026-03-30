@@ -1,5 +1,5 @@
 // FILE: src/socks5/udp_associate.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
 //   PURPOSE: Negotiate governed SOCKS5 UDP ASSOCIATE relay binds, normalize SOCKS5 UDP relay packets, encode inbound relay replies, retain live relay sockets, and drive the local UDP runtime receive loop into a bounded handoff target.
 //   SCOPE: Local UDP relay bind allocation, SOCKS5 UDP ASSOCIATE success replies, UDP relay packet parsing, UDP relay packet encoding, source validation, fragmentation rejection, datagram-envelope validation, relay-socket retention, runtime source learning, and live relay-loop forwarding.
@@ -19,7 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added a shared relay-socket registry and inbound UDP packet encoder so client-side inbound delivery can reuse the owning governed relay socket.
+//   LAST_CHANGE: v0.1.4 - Bound UDP ASSOCIATE relay sockets to the control socket local address so LAN-facing listeners can return a reachable relay bind without breaking localhost callers.
 // END_CHANGE_SUMMARY
 
 use std::collections::HashMap;
@@ -120,8 +120,15 @@ pub async fn handle_udp_associate(
     stream: &mut TcpStream,
 ) -> Result<UdpAssociateRecord, UdpAssociateError> {
     // START_BLOCK_HANDLE_UDP_ASSOCIATE
+    let control_local_addr = stream
+        .local_addr()
+        .map_err(|err| UdpAssociateError::Io(err.to_string()))?;
+    let relay_bind_ip = match control_local_addr.ip() {
+        IpAddr::V4(ipv4) if ipv4.is_unspecified() => IpAddr::V4(Ipv4Addr::LOCALHOST),
+        ip => ip,
+    };
     let relay_socket = Arc::new(
-        UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        UdpSocket::bind(SocketAddr::new(relay_bind_ip, 0))
             .await
             .map_err(|err| UdpAssociateError::Io(err.to_string()))?,
     );
@@ -129,24 +136,25 @@ pub async fn handle_udp_associate(
         .local_addr()
         .map_err(|err| UdpAssociateError::Io(err.to_string()))?;
 
-    let reply = [
-        0x05,
-        0x00,
-        0x00,
-        0x01,
-        127,
-        0,
-        0,
-        1,
-        (relay_addr.port() >> 8) as u8,
-        (relay_addr.port() & 0xff) as u8,
-    ];
+    let mut reply = vec![0x05, 0x00, 0x00];
+    match relay_addr.ip() {
+        IpAddr::V4(ipv4) => {
+            reply.push(0x01);
+            reply.extend_from_slice(&ipv4.octets());
+        }
+        IpAddr::V6(ipv6) => {
+            reply.push(0x04);
+            reply.extend_from_slice(&ipv6.octets());
+        }
+    }
+    reply.extend_from_slice(&relay_addr.port().to_be_bytes());
     stream
         .write_all(&reply)
         .await
         .map_err(|err| UdpAssociateError::Io(err.to_string()))?;
 
     info!(
+        control_local_addr = %control_local_addr,
         relay_addr = %relay_addr,
         "[Socks5Proxy][handleUdpAssociate][BLOCK_HANDLE_UDP_ASSOCIATE] allocated governed UDP relay bind"
     );

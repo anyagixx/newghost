@@ -1,5 +1,5 @@
 // FILE: src/socks5/udp_associate.test.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify governed SOCKS5 UDP ASSOCIATE relay binds, deterministic UDP relay packet normalization, and deterministic packet encoding for inbound relay delivery.
 //   SCOPE: Success replies for UDP ASSOCIATE, domain-target packet parsing, outbound-to-inbound packet encoding, fragmentation rejection, and foreign-source rejection.
@@ -8,7 +8,7 @@
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
-//   udp_associate_returns_governed_relay_bind - proves UDP ASSOCIATE allocates a loopback relay bind and replies with it
+//   udp_associate_returns_governed_relay_bind - proves UDP ASSOCIATE allocates a relay bind that follows the control socket local address and replies with it
 //   parses_udp_datagram_into_transport_contract - proves a SOCKS5 UDP packet becomes a bounded datagram envelope
 //   encodes_transport_contract_back_into_udp_packet - proves one inbound datagram envelope can be encoded back into the SOCKS5 UDP relay packet shape
 //   fragmented_udp_packets_are_rejected - proves unsupported SOCKS5 UDP fragmentation is rejected deterministically
@@ -16,7 +16,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added packet-encoding coverage so inbound reply delivery can reuse the exact SOCKS5 UDP relay packet shape expected by local clients.
+//   LAST_CHANGE: v0.1.2 - Tightened UDP ASSOCIATE expectations so the returned relay bind follows the control-socket local address instead of assuming localhost forever.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -44,11 +44,15 @@ async fn udp_associate_returns_governed_relay_bind() {
     client.read_exact(&mut reply).await.expect("read udp reply");
 
     let record = task.await.expect("join").expect("udp associate");
+    let expected_ip = client.local_addr().expect("control local addr").ip();
     assert_eq!(reply[0], 0x05);
     assert_eq!(reply[1], 0x00);
     assert_eq!(reply[3], 0x01);
-    assert_eq!(&reply[4..8], &[127, 0, 0, 1]);
-    assert_eq!(record.relay_addr.ip(), IpAddr::V4(Ipv4Addr::LOCALHOST));
+    assert_eq!(
+        IpAddr::V4(Ipv4Addr::new(reply[4], reply[5], reply[6], reply[7])),
+        expected_ip
+    );
+    assert_eq!(record.relay_addr.ip(), expected_ip);
     assert_eq!(record.relay_socket.local_addr().expect("udp local addr"), record.relay_addr);
 }
 

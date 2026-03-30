@@ -1,5 +1,5 @@
 // FILE: src/socks5/mod.test.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify SOCKS5 request parsing, bounded queue failure behavior, UDP ASSOCIATE control handling, live UDP runtime-loop forwarding, and success-reply socket semantics.
 //   SCOPE: Valid CONNECT parsing, UDP ASSOCIATE control-path acceptance, bounded live UDP relay forwarding, queue saturation failure replies, closed-queue behavior, and success replies that keep the client socket open.
@@ -17,7 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added a runtime-loop forwarding test so UDP ASSOCIATE sessions must drive a bounded live handoff target after the first governed UDP packet.
+//   LAST_CHANGE: v0.1.3 - Tightened UDP ASSOCIATE reply expectations so tests follow the control-socket local address rather than hardcoded localhost bytes.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -144,10 +144,14 @@ async fn udp_associate_returns_reply_without_queueing_connect_intent() {
 
     let mut reply = [0_u8; 10];
     client.read_exact(&mut reply).await.expect("read udp reply");
+    let expected_ip = client.local_addr().expect("control local addr").ip();
     assert_eq!(reply[0], 0x05);
     assert_eq!(reply[1], 0x00);
     assert_eq!(reply[3], 0x01);
-    assert_eq!(&reply[4..8], &[127, 0, 0, 1]);
+    assert_eq!(
+        IpAddr::V4(Ipv4Addr::new(reply[4], reply[5], reply[6], reply[7])),
+        expected_ip
+    );
 
     client.shutdown().await.expect("close control stream");
     handler_task
