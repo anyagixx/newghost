@@ -227,6 +227,10 @@ Current calls-profile status:
   the same tested setup keeps text messages, media files, large files, and the controlled datagram `reply-received` packet as already-green evidence; Phase-31 must not widen its edits into generic proxy, transport, or file-transfer regressions
 - the next decision is therefore variant-only:
   each new wave may change exactly one Telegram-specific app variable, then compare that packet directly against the completed Phase-29 and Phase-30 no-go packets
+- the blocked Phase-31 Desktop packet is now part of the historical baseline:
+  the tested Desktop build exposes no separate calls-proxy toggle, so that app variant is unavailable rather than transport-broken
+- the next justified branch is now mobile-only:
+  future workaround work may move to a Telegram Mobile build with an explicit `Use proxy for calls` toggle, but any result there must stay separate from Desktop claims
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

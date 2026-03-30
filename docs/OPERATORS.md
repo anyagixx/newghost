@@ -984,6 +984,15 @@ The completed Phase-30 packet freezes the next question even more narrowly:
 4. Phase-31 may change only one bounded Telegram-specific app variable at a time
 5. the already-green text-message, media-file, and large-file path must stay outside the workaround experiment and must not be regressed by the controller
 
+### Phase-32 Mobile Variant Boundary
+
+The blocked Phase-31 packet now freezes the next branch even more tightly:
+
+1. the Desktop app-variant story remains historical evidence only; it is blocked as `variant unavailable`, not as a transport failure
+2. the next justified workaround branch is Telegram Mobile only, because mobile exposes an explicit `Use proxy for calls` toggle
+3. the same green transport baseline, text-message path, media-file path, and large-file path remain preserved and must not be re-diagnosed here
+4. any mobile result must stay bounded to the tested mobile setup and must not be widened into a Desktop support claim
+
 ### Exact Phase-31 App Variant Profile
 
 The bounded Phase-31 app variant keeps the completed Phase-30 handoff fixed and changes one Telegram-specific dimension only:
