@@ -237,6 +237,16 @@ Current calls-profile status:
   the chosen mobile variant changed the no-go class for neither voice nor video, and it degraded the ordinary app path relative to the preserved Desktop envelope instead of improving it
 - the next decision therefore stays narrow:
   the tested mobile calls-proxy variant is still no-go and must not widen into any support claim for Desktop, Android generally, or generic proxy compatibility
+- the bounded Phase-33 terminal matrix now freezes all spent Telegram branches together:
+  tested Desktop media-behavior no-go from Phase-29, tested Desktop alternate-topology no-go from Phase-30, blocked Desktop-only app variant from Phase-31, and tested Android mobile calls-proxy no-go from Phase-32 are now one exact historical matrix above the preserved green transport baseline
+- the bounded Phase-33 branch screen is now exhausted for the tested variants:
+  no genuinely new Telegram-specific branch remains without changing the tested app family, build family, or another major operator variable, so another workaround rerun on the same Desktop or Android variants would only spend more manual effort on an already-spent branch
+- the explicit stop criteria are therefore frozen:
+  stop Telegram workaround exploration whenever a proposed next wave would only replay the tested Desktop route, the tested truly local Desktop route, the unavailable Desktop-only calls-proxy toggle, or the tested Android `Use proxy for calls = enabled` route without a genuinely new bounded variable
+- the bounded Phase-33 final decision on 2026-03-30 is terminal for the tested variants:
+  stop workaround exploration as no-go for the tested Telegram Desktop and tested Android variants, keep the green transport baseline as already proven, and do not reopen generic transport diagnosis
+- the safe operator end-state is also frozen:
+  keep only the preserved Desktop listener on `127.0.0.1:1080`, do not leave any temporary LAN-facing mobile listener running, and treat future Telegram work as a fresh branch only if it starts from a genuinely new bounded variant rather than another rerun of the spent variants
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

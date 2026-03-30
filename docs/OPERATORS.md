@@ -1346,6 +1346,42 @@ Operational rule:
 - Increase queue capacity second.
 - Treat repeated queue saturation as a capacity problem, not only a logging problem.
 
+### Phase-33 Telegram Terminal Decision
+
+Tested-variant matrix frozen on 2026-03-30:
+
+- Desktop Phase-29:
+  exact SSH-forwarded Desktop handoff preserved, bounded captures completed, voice and video both converged on `signaling-only stall`
+- Desktop Phase-30:
+  truly local `n0wss-client` listener replaced the SSH-forwarded route, same-window `phase30-probe` stayed green, but voice and video still stalled at `Обмен ключами шифрования`
+- Desktop Phase-31:
+  the chosen Desktop-only variant was structurally unavailable because the tested Desktop build exposed no separate calls-proxy toggle
+- Android Phase-32:
+  `SOCKS5 192.168.31.241:11080` with `Use proxy for calls = enabled` connected, but ordinary app behavior degraded and both voice and video still stalled at key exchange
+
+Terminal branch-screen result:
+
+- do not reopen generic transport diagnosis
+- do not rerun any already-tested Desktop or Android workaround branch
+- treat the current Telegram workaround space as exhausted for the tested variants
+
+Explicit stop criteria:
+
+- stop if the next proposed wave only reuses the SSH-forwarded Desktop route from Phase-29
+- stop if the next proposed wave only reuses the truly local Desktop topology from Phase-30
+- stop if the next proposed wave depends on the unavailable Desktop-only calls-proxy toggle from Phase-31
+- stop if the next proposed wave only repeats the tested Android `Use proxy for calls = enabled` path from Phase-32
+- allow a future Telegram wave only if it introduces one genuinely new bounded variant and keeps that variant separate from the spent matrix above
+
+Safe operator end-state after Telegram exploration:
+
+- keep the normal Desktop baseline only:
+  `127.0.0.1:1080`
+- do not leave a temporary LAN-facing mobile listener running
+- do not leave an extra Telegram-only local forward running as part of the normal baseline
+- preserve the already-working Desktop path for text messages, media files, and large files
+- classify any future Telegram experiment as a fresh branch only after its exact new variable is frozen up front
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.

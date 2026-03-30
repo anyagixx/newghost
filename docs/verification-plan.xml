@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.52">
+<VerificationPlan VERSION="0.2.54">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -90,6 +90,11 @@
     <mobile-toggle-proof-rule>No mobile packet may be interpreted unless the handoff packet states the exact SOCKS5 settings and the exact `Use proxy for calls` toggle state used during that same wave.</mobile-toggle-proof-rule>
     <mobile-packet-split-rule>Phase-32 must keep mobile hypothesis, Phase-31 supersede packet, mobile handoff, mobile capture, mobile voice, mobile video, mobile comparison, mobile evidence, and mobile decision separate so later agents can isolate mobile-only app behavior without rereading blended transcripts.</mobile-packet-split-rule>
     <telegram-mobile-no-desktop-overclaim-rule>After Phase-31 is superseded, Phase-32 may compare against completed Desktop packets but may not widen any mobile result into a Desktop support claim.</telegram-mobile-no-desktop-overclaim-rule>
+    <telegram-terminal-no-transport-reopen-rule>Any Phase-33 terminal decision must stay above the preserved green transport baseline and must not reopen generic transport diagnosis.</telegram-terminal-no-transport-reopen-rule>
+    <telegram-branch-exhaustion-rule>No Phase-33 packet may silently reopen a Telegram workaround branch that is already represented in the tested-variant matrix.</telegram-branch-exhaustion-rule>
+    <telegram-stop-criteria-rule>Any final Telegram stop decision must remain explicitly bounded to the tested Desktop and Android variants and must distinguish stop-here from one genuinely unspent narrow branch.</telegram-stop-criteria-rule>
+    <telegram-terminal-matrix-completeness-rule>Phase-33 may not issue a final Telegram decision until the tested-variant matrix explicitly preserves the Phase-29 Desktop packet, Phase-30 alternate-topology packet, blocked Phase-31 Desktop-variant packet, and Phase-32 Android packet together.</telegram-terminal-matrix-completeness-rule>
+    <telegram-cleanup-end-state-rule>Phase-33 cleanup proof must preserve the working Desktop listener end-state and must reject any temporary Telegram-only listener as part of the normal operator baseline.</telegram-cleanup-end-state-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -4430,6 +4435,158 @@
         <assertion-1>The final decision must choose one bounded outcome: mobile variant helps, mobile variant still no-go, or another narrower Telegram-specific branch is needed.</assertion-1>
       </required-trace-assertions>
     </V-M-TELEGRAM-MOBILE-DECISION>
+    <V-M-TELEGRAM-TERMINAL-HYPOTHESIS MODULE="M-TELEGRAM-TERMINAL-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'tested Desktop|tested Android|green transport baseline|stop-or-branch|no-go' README.md docs/OPERATORS.md docs/development-plan.xml</check-1>
+        <check-2>rg -n 'Desktop no-go|Android no-go|stop workaround exploration|one real remaining branch' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The terminal hypothesis packet freezes the new decision boundary above the preserved green transport baseline.</scenario-1>
+        <scenario-2>The terminal hypothesis packet keeps both the tested Desktop and tested Android no-go packets visible together.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The terminal hypothesis reopens generic transport diagnosis.</scenario-1>
+        <scenario-2>The terminal hypothesis drops one of the already-tested Telegram variants from the boundary.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The terminal hypothesis must remain strictly above the preserved green transport baseline.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-TERMINAL-HYPOTHESIS>
+    <V-M-TELEGRAM-VARIANT-MATRIX MODULE="M-TELEGRAM-VARIANT-MATRIX" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Desktop|Android|variant unavailable|alternate topology|mobile|matrix|no-go class' README.md docs/OPERATORS.md docs/development-plan.xml</check-1>
+        <check-2>rg -n 'Phase-29|Phase-30|Phase-31|Phase-32|green transport baseline|tested-variant matrix' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The tested-variant matrix names the completed Desktop, alternate-topology, blocked Desktop-variant, and Android mobile packets explicitly.</scenario-1>
+        <scenario-2>The matrix preserves the green transport baseline alongside the no-go packets.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The matrix allows an already-tested branch to be reopened by ambiguity.</scenario-1>
+        <scenario-2>The matrix loses one of the completed no-go packets or the green transport baseline.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The tested-variant matrix must keep all already-tested Telegram branches explicit and separable.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-VARIANT-MATRIX>
+    <V-M-TELEGRAM-BRANCH-SCREEN MODULE="M-TELEGRAM-BRANCH-SCREEN" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'branch screen|branch-space exhaustion|one real remaining branch|tested variants' docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'stop here|branch exhausted|genuinely new branch|already-tested branch' docs/development-plan.xml docs/verification-plan.xml README.md</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The branch screen says either that branch space is exhausted or that exactly one real branch remains.</scenario-1>
+        <scenario-2>The branch screen does not silently reopen already-tested Telegram workaround branches.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The branch screen cannot distinguish genuine novelty from a disguised rerun of an old branch.</scenario-1>
+        <scenario-2>The branch screen reopens transport or topology work instead of staying inside Telegram-specific branch space.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The branch screen must say whether branch-space exhaustion is reached for the tested variants.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-BRANCH-SCREEN>
+    <V-M-TELEGRAM-STOP-CRITERIA MODULE="M-TELEGRAM-STOP-CRITERIA" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/knowledge-graph.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'stop criteria|tested variants|manual effort|stop here|one real branch remains' README.md docs/verification-plan.xml docs/knowledge-graph.xml</check-1>
+        <check-2>rg -n 'Desktop only|Android only|bounded to tested variants|do not widen claims' README.md docs/verification-plan.xml docs/knowledge-graph.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The stop criteria explicitly say when Telegram workaround exploration should stop for the tested variants.</scenario-1>
+        <scenario-2>The stop criteria keep the compatibility claim bounded and do not widen into unsupported support claims.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The stop criteria are too vague and allow repeated low-value workaround waves.</scenario-1>
+        <scenario-2>The stop criteria overclaim beyond the tested Desktop and Android variants.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The stop criteria must distinguish stop-here from exactly one still-unspent narrow branch.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-STOP-CRITERIA>
+    <V-M-TELEGRAM-FINAL-EVIDENCE MODULE="M-TELEGRAM-FINAL-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'final evidence|green transport baseline|Desktop|Android|no-go|stop criteria' README.md docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'Phase-29|Phase-30|Phase-31|Phase-32|final tested-variant matrix|final Telegram evidence' README.md docs/OPERATORS.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final evidence packet spans the green transport baseline and all completed Telegram no-go packets.</scenario-1>
+        <scenario-2>The final evidence packet stays bounded to the tested Desktop and Android variants.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final evidence packet drops part of the completed Telegram history.</scenario-1>
+        <scenario-2>The final evidence packet cannot be distinguished from the earlier workaround packets.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final evidence packet must preserve the completed Telegram history as one bounded final packet.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FINAL-EVIDENCE>
+    <V-M-TELEGRAM-FINAL-DECISION MODULE="M-TELEGRAM-FINAL-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'final Telegram decision|stop workaround exploration|one real remaining branch|tested variants' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'stop-here|branch exhausted|exactly one branch|no generic transport reopen' README.md docs/development-plan.xml docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision chooses one bounded outcome: stop-here no-go closure or exactly one still-unspent narrow branch.</scenario-1>
+        <scenario-2>The final decision remains bounded to the tested Desktop and Android variants.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision reopens already-tested branches or generic transport work.</scenario-1>
+        <scenario-2>The final decision overclaims beyond the tested variants.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must distinguish stop-here from one genuinely unspent branch.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FINAL-DECISION>
+    <V-M-TELEGRAM-OPERATOR-CLEANUP MODULE="M-TELEGRAM-OPERATOR-CLEANUP" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>README.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'operator cleanup|127.0.0.1:1080|temporary listener|11080|safe end-state' docs/OPERATORS.md README.md</check-1>
+        <check-2>rg -n 'preserved working Desktop path|temporary experiment surfaces|normal operator baseline' docs/OPERATORS.md README.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The cleanup packet keeps only the preserved working Desktop path active in the documented end-state.</scenario-1>
+        <scenario-2>The cleanup packet prevents temporary workaround surfaces from confusing later waves.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The cleanup packet leaves temporary workaround listeners in the active operator state.</scenario-1>
+        <scenario-2>The cleanup packet accidentally removes the preserved working Desktop path from the safe end-state.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The cleanup packet must preserve the documented working Desktop path while removing temporary experiment surfaces.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-OPERATOR-CLEANUP>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -4894,6 +5051,27 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramMobileCallsProxyWave; expected-evidence=same-window green controlled probe plus separate mobile handoff, capture, voice, video, and comparison packets; observed-evidence=module-local checks, bounded mobile attempts, packet captures, and bounded comparison evidence; first-divergent-block=first missing mobile-specific layer after the preserved transport-green baseline; next-action=repair only the first unresolved mobile-specific layer without reopening generic transport work</failure-packet-template>
     </LV-023>
+    <LV-024 NAME="TelegramTerminalDecisionWave" PRIORITY="high">
+      <goal>Decide whether Telegram workaround exploration should stop for the tested variants or whether exactly one genuinely new branch remains.</goal>
+      <commands>
+        <command-1>rg -n 'Desktop|Android|variant unavailable|alternate topology|mobile|tested variants' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-2>
+        <command-3>git diff --check</command-3>
+        <command-4>rg -n 'Phase-29|Phase-30|Phase-31|Phase-32|stop here|one real remaining branch|127.0.0.1:1080' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave keeps the preserved green transport baseline and all completed Telegram no-go packets visible together.</evidence-1>
+        <evidence-2>The wave explicitly says whether workaround exploration stops here or exactly one real branch remains.</evidence-2>
+        <evidence-3>The wave preserves a safe operator cleanup packet with only the working Desktop path left active.</evidence-3>
+        <evidence-4>The wave explicitly preserves the full tested-variant matrix and does not let any already-tested branch disappear from the final decision surface.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramTerminalDecisionWave; expected-evidence=final tested-variant matrix plus bounded stop-or-branch decision; observed-evidence=shared-artifact review and final Telegram evidence packet; first-divergent-block=first missing final-decision layer above the preserved green transport baseline; next-action=repair only the terminal Telegram decision surface without reopening generic transport work</failure-packet-template>
+    </LV-024>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -5449,6 +5627,27 @@
         <evidence-7>The gate requires the blocked Phase-31 packet to remain visible as historical evidence inside the mobile comparison story.</evidence-7>
       </required-evidence>
     </Gate-Phase-32>
+    <Gate-Phase-33 PHASE="Phase-33">
+      <goal>Telegram workaround exploration ends in one bounded final decision and one safe operator cleanup state.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-33|M-TELEGRAM-TERMINAL-HYPOTHESIS|M-TELEGRAM-FINAL-DECISION|M-TELEGRAM-OPERATOR-CLEANUP' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-024|Desktop|Android|stop criteria|final Telegram decision|safe end-state' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+        <command-5>rg -n 'Phase-29|Phase-30|Phase-31|Phase-32|127.0.0.1:1080|stop-here|one real remaining branch' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the preserved green transport baseline and all completed Telegram no-go packets visible together.</evidence-1>
+        <evidence-2>The gate requires the final decision to say either stop-here or exactly one still-unspent narrow branch.</evidence-2>
+        <evidence-3>The gate requires the operator cleanup packet to preserve the working Desktop path and remove temporary experiment surfaces.</evidence-3>
+        <evidence-4>The gate requires the tested-variant matrix to keep Phase-29, Phase-30, blocked Phase-31, and Phase-32 visible together.</evidence-4>
+      </required-evidence>
+    </Gate-Phase-33>
   </PhaseGates>
 
   <FailurePackets>

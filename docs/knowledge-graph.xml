@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.30">
+  <Project NAME="n0wss" VERSION="0.2.31">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2117,6 +2117,69 @@
         <fn-issueTelegramMobileDecision PURPOSE="Issue the bounded decision for the chosen mobile Telegram variant." />
       </annotations>
     </M-TELEGRAM-MOBILE-DECISION>
+    <M-TELEGRAM-TERMINAL-HYPOTHESIS NAME="TelegramTerminalHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the terminal Telegram truth-boundary after the completed Desktop and Android no-go packets.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MOBILE-DECISION, M-WORKAROUND-DECISION</depends>
+      <verification-ref>V-M-TELEGRAM-TERMINAL-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramTerminalHypothesis PURPOSE="Freeze the stop-or-branch boundary for further Telegram workaround exploration." />
+      </annotations>
+    </M-TELEGRAM-TERMINAL-HYPOTHESIS>
+    <M-TELEGRAM-VARIANT-MATRIX NAME="TelegramVariantMatrix" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Assemble the exact tested-variant matrix across the completed Telegram workaround waves.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-MEDIA-EVIDENCE, M-WORKAROUND-EVIDENCE, M-TELEGRAM-MOBILE-EVIDENCE</depends>
+      <verification-ref>V-M-TELEGRAM-VARIANT-MATRIX</verification-ref>
+      <annotations>
+        <fn-assembleTelegramVariantMatrix PURPOSE="Assemble the exact tested-variant matrix and preserve the green transport baseline." />
+      </annotations>
+    </M-TELEGRAM-VARIANT-MATRIX>
+    <M-TELEGRAM-BRANCH-SCREEN NAME="TelegramBranchScreen" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Screen the remaining Telegram-specific branch space and decide whether any genuinely new narrow branch remains.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-VARIANT-MATRIX, M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS</depends>
+      <verification-ref>V-M-TELEGRAM-BRANCH-SCREEN</verification-ref>
+      <annotations>
+        <fn-screenTelegramBranches PURPOSE="Decide whether the remaining Telegram-specific branch space is exhausted or still contains one real branch." />
+      </annotations>
+    </M-TELEGRAM-BRANCH-SCREEN>
+    <M-TELEGRAM-STOP-CRITERIA NAME="TelegramStopCriteria" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze explicit stop criteria for further Telegram workaround exploration.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-BRANCH-SCREEN, M-TELEGRAM-COMPAT-CLAIM</depends>
+      <verification-ref>V-M-TELEGRAM-STOP-CRITERIA</verification-ref>
+      <annotations>
+        <fn-freezeTelegramStopCriteria PURPOSE="Freeze explicit stop criteria for Telegram workaround exploration." />
+      </annotations>
+    </M-TELEGRAM-STOP-CRITERIA>
+    <M-TELEGRAM-FINAL-EVIDENCE NAME="TelegramFinalEvidence" TYPE="UTILITY" STATUS="done">
+      <purpose>Assemble one bounded final evidence packet spanning the green transport baseline and all completed Telegram no-go packets.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-VARIANT-MATRIX, M-TELEGRAM-STOP-CRITERIA</depends>
+      <verification-ref>V-M-TELEGRAM-FINAL-EVIDENCE</verification-ref>
+      <annotations>
+        <fn-assembleTelegramFinalEvidence PURPOSE="Assemble the final bounded Telegram evidence packet for the tested variants." />
+      </annotations>
+    </M-TELEGRAM-FINAL-EVIDENCE>
+    <M-TELEGRAM-FINAL-DECISION NAME="TelegramFinalDecision" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Issue the bounded final Telegram decision for the tested variants.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-FINAL-EVIDENCE, M-TELEGRAM-BRANCH-SCREEN</depends>
+      <verification-ref>V-M-TELEGRAM-FINAL-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramFinalDecision PURPOSE="Issue the bounded final Telegram stop-or-branch decision." />
+      </annotations>
+    </M-TELEGRAM-FINAL-DECISION>
+    <M-TELEGRAM-OPERATOR-CLEANUP NAME="TelegramOperatorCleanup" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the safe operator end-state so only the preserved working Desktop path remains active after Telegram workaround exploration.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-FINAL-DECISION, M-LOCAL-CLIENT-BOOTSTRAP</depends>
+      <verification-ref>V-M-TELEGRAM-OPERATOR-CLEANUP</verification-ref>
+      <annotations>
+        <fn-freezeTelegramOperatorCleanup PURPOSE="Freeze the safe operator cleanup state after Telegram workaround exploration." />
+      </annotations>
+    </M-TELEGRAM-OPERATOR-CLEANUP>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -2450,6 +2513,15 @@
     <CrossLink from="M-TELEGRAM-MOBILE-VIDEO-WAVE" to="M-TELEGRAM-MOBILE-COMPARISON" relation="supplies the mobile video packet for comparison against the completed Desktop packets" />
     <CrossLink from="M-TELEGRAM-MOBILE-COMPARISON" to="M-TELEGRAM-MOBILE-EVIDENCE" relation="supplies the bounded mobile comparison packet for the mobile evidence set" />
     <CrossLink from="M-TELEGRAM-MOBILE-EVIDENCE" to="M-TELEGRAM-MOBILE-DECISION" relation="supplies the bounded mobile evidence packet for the final mobile decision" />
+    <CrossLink from="M-TELEGRAM-MOBILE-DECISION" to="M-TELEGRAM-TERMINAL-HYPOTHESIS" relation="supplies the completed Android no-go packet for the terminal Telegram boundary" />
+    <CrossLink from="M-WORKAROUND-DECISION" to="M-TELEGRAM-TERMINAL-HYPOTHESIS" relation="supplies the completed Desktop workaround no-go packet for the terminal Telegram boundary" />
+    <CrossLink from="M-TELEGRAM-TERMINAL-HYPOTHESIS" to="M-TELEGRAM-VARIANT-MATRIX" relation="supplies the stop-or-branch boundary used to freeze the tested-variant matrix" />
+    <CrossLink from="M-TELEGRAM-VARIANT-MATRIX" to="M-TELEGRAM-BRANCH-SCREEN" relation="supplies the exact tested-variant matrix for remaining-branch screening" />
+    <CrossLink from="M-TELEGRAM-BRANCH-SCREEN" to="M-TELEGRAM-STOP-CRITERIA" relation="supplies the branch-space verdict used to freeze stop criteria" />
+    <CrossLink from="M-TELEGRAM-VARIANT-MATRIX" to="M-TELEGRAM-FINAL-EVIDENCE" relation="supplies the completed tested-variant matrix for the final Telegram evidence packet" />
+    <CrossLink from="M-TELEGRAM-STOP-CRITERIA" to="M-TELEGRAM-FINAL-EVIDENCE" relation="supplies explicit stop criteria for the final Telegram evidence packet" />
+    <CrossLink from="M-TELEGRAM-FINAL-EVIDENCE" to="M-TELEGRAM-FINAL-DECISION" relation="supplies the bounded final Telegram evidence packet for the final decision" />
+    <CrossLink from="M-TELEGRAM-FINAL-DECISION" to="M-TELEGRAM-OPERATOR-CLEANUP" relation="supplies the final Telegram decision for the safe operator cleanup end-state" />
 
   </Project>
 </KnowledgeGraph>

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.30">
+<DevelopmentPlan VERSION="0.2.31">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -5582,6 +5582,164 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-MOBILE-DECISION</verification-ref>
     </M-TELEGRAM-MOBILE-DECISION>
+    <M-TELEGRAM-TERMINAL-HYPOTHESIS NAME="TelegramTerminalHypothesis" TYPE="UTILITY" LAYER="36" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the terminal Telegram truth-boundary after the completed Desktop and Android no-go packets.</purpose>
+        <inputs>
+          <input-1>The completed mobile decision packet.</input-1>
+          <input-2>The completed workaround decision packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded terminal Telegram hypothesis packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-MOBILE-DECISION, M-WORKAROUND-DECISION</depends>
+      <observability>
+        <log-prefix>[TelegramTerminalHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TERMINAL_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TERMINAL-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-TERMINAL-HYPOTHESIS>
+    <M-TELEGRAM-VARIANT-MATRIX NAME="TelegramVariantMatrix" TYPE="CORE_LOGIC" LAYER="36" ORDER="2" STATUS="done">
+      <contract>
+        <purpose>Assemble the exact tested-variant matrix across the completed Telegram workaround waves.</purpose>
+        <inputs>
+          <input-1>The completed Desktop, alternate-topology, blocked Desktop-variant, and Android mobile packets.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded tested-variant matrix packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-MEDIA-EVIDENCE, M-WORKAROUND-EVIDENCE, M-TELEGRAM-MOBILE-EVIDENCE</depends>
+      <observability>
+        <log-prefix>[TelegramVariantMatrix]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_VARIANT_MATRIX</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-VARIANT-MATRIX</verification-ref>
+    </M-TELEGRAM-VARIANT-MATRIX>
+    <M-TELEGRAM-BRANCH-SCREEN NAME="TelegramBranchScreen" TYPE="CORE_LOGIC" LAYER="36" ORDER="3" STATUS="done">
+      <contract>
+        <purpose>Screen the remaining Telegram-specific branch space and decide whether any genuinely new narrow branch remains.</purpose>
+        <inputs>
+          <input-1>The bounded tested-variant matrix packet.</input-1>
+          <input-2>The completed deeper-workaround hypothesis packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded branch-screen packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-VARIANT-MATRIX, M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[TelegramBranchScreen]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_BRANCH_SCREEN</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-BRANCH-SCREEN</verification-ref>
+    </M-TELEGRAM-BRANCH-SCREEN>
+    <M-TELEGRAM-STOP-CRITERIA NAME="TelegramStopCriteria" TYPE="UTILITY" LAYER="36" ORDER="4" STATUS="done">
+      <contract>
+        <purpose>Freeze explicit stop criteria for further Telegram workaround exploration.</purpose>
+        <inputs>
+          <input-1>The bounded branch-screen packet.</input-1>
+          <input-2>The bounded Telegram compatibility claim.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded Telegram stop-criteria packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/knowledge-graph.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-BRANCH-SCREEN, M-TELEGRAM-COMPAT-CLAIM</depends>
+      <observability>
+        <log-prefix>[TelegramStopCriteria]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_STOP_CRITERIA</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-STOP-CRITERIA</verification-ref>
+    </M-TELEGRAM-STOP-CRITERIA>
+    <M-TELEGRAM-FINAL-EVIDENCE NAME="TelegramFinalEvidence" TYPE="UTILITY" LAYER="36" ORDER="5" STATUS="done">
+      <contract>
+        <purpose>Assemble one bounded final Telegram evidence packet spanning the green transport baseline and all completed Telegram no-go packets.</purpose>
+        <inputs>
+          <input-1>The bounded tested-variant matrix packet.</input-1>
+          <input-2>The bounded stop-criteria packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded final Telegram evidence packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-VARIANT-MATRIX, M-TELEGRAM-STOP-CRITERIA</depends>
+      <observability>
+        <log-prefix>[TelegramFinalEvidence]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FINAL_EVIDENCE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FINAL-EVIDENCE</verification-ref>
+    </M-TELEGRAM-FINAL-EVIDENCE>
+    <M-TELEGRAM-FINAL-DECISION NAME="TelegramFinalDecision" TYPE="ENTRY_POINT" LAYER="36" ORDER="6" STATUS="done">
+      <contract>
+        <purpose>Issue the bounded final Telegram decision for the tested variants.</purpose>
+        <inputs>
+          <input-1>The bounded final Telegram evidence packet.</input-1>
+          <input-2>The bounded branch-screen packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded final Telegram decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-FINAL-EVIDENCE, M-TELEGRAM-BRANCH-SCREEN</depends>
+      <observability>
+        <log-prefix>[TelegramFinalDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FINAL_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FINAL-DECISION</verification-ref>
+    </M-TELEGRAM-FINAL-DECISION>
+    <M-TELEGRAM-OPERATOR-CLEANUP NAME="TelegramOperatorCleanup" TYPE="UTILITY" LAYER="36" ORDER="7" STATUS="done">
+      <contract>
+        <purpose>Freeze the safe operator end-state so only the preserved working Desktop path remains active after Telegram workaround exploration.</purpose>
+        <inputs>
+          <input-1>The bounded final Telegram decision packet.</input-1>
+          <input-2>The completed local client bootstrap packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded Telegram operator-cleanup packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>README.md</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-FINAL-DECISION, M-LOCAL-CLIENT-BOOTSTRAP</depends>
+      <observability>
+        <log-prefix>[TelegramOperatorCleanup]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_OPERATOR_CLEANUP</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-OPERATOR-CLEANUP</verification-ref>
+    </M-TELEGRAM-OPERATOR-CLEANUP>
   </Modules>
 
   <DataFlow>
@@ -6209,6 +6367,36 @@
       <step-2>The final decision says whether the mobile variant helps, still stays no-go, or points to another even narrower Telegram-specific branch.</step-2>
       <evidence>A bounded mobile comparison and decision packet.</evidence>
     </DF-TELEGRAM-MOBILE-DECISION>
+    <DF-TELEGRAM-VARIANT-MATRIX NAME="Telegram tested-variant matrix" TRIGGER="The completed Telegram workaround waves must be frozen into one exact tested-variant matrix.">
+      <step-1>The completed Desktop, alternate-topology, blocked Desktop-variant, and Android mobile packets are assembled into one tested-variant matrix.</step-1>
+      <step-2>The preserved green transport baseline remains attached so no later branch can silently reopen generic transport diagnosis.</step-2>
+      <evidence>A bounded tested-variant matrix packet.</evidence>
+    </DF-TELEGRAM-VARIANT-MATRIX>
+    <DF-TELEGRAM-BRANCH-SCREEN NAME="Telegram remaining-branch screen" TRIGGER="The tested-variant matrix is complete and the next branch must be justified or rejected.">
+      <step-1>The matrix is screened for any genuinely new narrow Telegram-specific branch.</step-1>
+      <step-2>The screen names either one real remaining branch or branch-space exhaustion.</step-2>
+      <evidence>A bounded branch-screen packet.</evidence>
+    </DF-TELEGRAM-BRANCH-SCREEN>
+    <DF-TELEGRAM-STOP-CRITERIA NAME="Telegram workaround stop criteria" TRIGGER="The branch-screen packet is complete and future workaround exploration must either stop or become tightly bounded.">
+      <step-1>The stop criteria record what evidence is already sufficient to stop manual workaround exploration.</step-1>
+      <step-2>The criteria keep the compatibility claim bounded to the tested variants only.</step-2>
+      <evidence>A bounded Telegram stop-criteria packet.</evidence>
+    </DF-TELEGRAM-STOP-CRITERIA>
+    <DF-TELEGRAM-FINAL-EVIDENCE NAME="Telegram final evidence packet" TRIGGER="The tested-variant matrix and stop criteria are complete.">
+      <step-1>The green transport baseline and all completed no-go packets are assembled into one final Telegram evidence packet.</step-1>
+      <step-2>The final evidence packet remains bounded to the tested Desktop and Android variants.</step-2>
+      <evidence>A bounded final Telegram evidence packet.</evidence>
+    </DF-TELEGRAM-FINAL-EVIDENCE>
+    <DF-TELEGRAM-FINAL-DECISION NAME="Telegram final bounded decision" TRIGGER="The final Telegram evidence packet is complete.">
+      <step-1>The final decision chooses between stop-here no-go closure and exactly one still-unspent narrow branch.</step-1>
+      <step-2>The final decision keeps the preserved transport baseline intact and does not widen claims beyond the tested variants.</step-2>
+      <evidence>A bounded final Telegram decision packet.</evidence>
+    </DF-TELEGRAM-FINAL-DECISION>
+    <DF-TELEGRAM-OPERATOR-CLEANUP NAME="Telegram operator environment cleanup" TRIGGER="The final Telegram decision is complete and the operator environment must end in a safe preserved state.">
+      <step-1>Temporary workaround listeners and experiment-only paths are identified and removed from the active operator state.</step-1>
+      <step-2>The preserved working Desktop path remains the only active local proxy path unless a later approved phase says otherwise.</step-2>
+      <evidence>A bounded Telegram operator-cleanup packet.</evidence>
+    </DF-TELEGRAM-OPERATOR-CLEANUP>
   </DataFlow>
 
   <ImplementationOrder>
@@ -6576,6 +6764,24 @@
       <note-5>On 2026-03-30 the tested Android packet used `SOCKS5 192.168.31.241:11080` with `Use proxy for calls = enabled`, connected successfully, but text messages became high-latency, media files no longer sent or received, and both voice and video stalled at `Обмен ключами шифрования`.</note-5>
       <note-6>The bounded comparison against the completed Desktop packets changed the no-go class for neither voice nor video and degraded the ordinary app path instead of helping it, so Phase-32 closes as no-go for the tested Android variant.</note-6>
     </Phase-32>
+    <Phase-33 name="Telegram Terminal Decision" status="done">
+      <goal>Decide whether Telegram workaround exploration should stop for the tested variants or whether exactly one genuinely new branch remains.</goal>
+      <step-1 module="M-TELEGRAM-TERMINAL-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-TERMINAL-HYPOTHESIS">Freeze the bounded terminal hypothesis after the completed Desktop and Android no-go packets</step-1>
+      <step-2 module="M-TELEGRAM-VARIANT-MATRIX" status="done" verification="V-M-TELEGRAM-VARIANT-MATRIX">Assemble the exact tested-variant matrix across the completed Telegram waves</step-2>
+      <step-3 module="M-TELEGRAM-BRANCH-SCREEN" status="done" verification="V-M-TELEGRAM-BRANCH-SCREEN">Screen the remaining Telegram-specific branch space for genuine novelty</step-3>
+      <step-4 module="M-TELEGRAM-STOP-CRITERIA" status="done" verification="V-M-TELEGRAM-STOP-CRITERIA">Freeze explicit stop criteria for workaround exploration</step-4>
+      <step-5 module="M-TELEGRAM-FINAL-EVIDENCE" status="done" verification="V-M-TELEGRAM-FINAL-EVIDENCE">Assemble the bounded final Telegram evidence packet</step-5>
+      <step-6 module="M-TELEGRAM-FINAL-DECISION" status="done" verification="V-M-TELEGRAM-FINAL-DECISION">Issue the bounded final Telegram decision for the tested variants</step-6>
+      <step-7 module="M-TELEGRAM-OPERATOR-CLEANUP" status="done" verification="V-M-TELEGRAM-OPERATOR-CLEANUP">Freeze the safe operator end-state after Telegram workaround exploration</step-7>
+      <note-1>Phase-33 starts only after the preserved green transport baseline and the completed Desktop and Android no-go packets are all simultaneously visible.</note-1>
+      <note-2>The phase must not reopen generic transport diagnosis or any already-spent Telegram workaround branch.</note-2>
+      <note-3>The phase may either stop Telegram workaround exploration for the tested variants or justify exactly one still-unspent narrow branch, but not both.</note-3>
+      <note-4>On 2026-03-30 the tested-variant matrix was frozen explicitly: Phase-29 preserved the SSH-forwarded Desktop no-go packet, Phase-30 preserved the truly local Desktop no-go packet, Phase-31 preserved the unavailable Desktop-only variant packet, and Phase-32 preserved the Android mobile calls-proxy no-go packet.</note-4>
+      <note-5>The bounded branch-screen result on the same date exhausted the remaining Telegram-specific branch space for the tested variants because any further Desktop or Android rerun would only replay an already-spent branch without a genuinely new bounded variable.</note-5>
+      <note-6>The explicit stop criteria now forbid reopening the SSH-forwarded Desktop route, the truly local Desktop route, the unavailable Desktop-only calls-proxy toggle, or the tested Android `Use proxy for calls = enabled` route as if they were new work.</note-6>
+      <note-7>The bounded final decision for Phase-33 is to stop workaround exploration as no-go for the tested Telegram Desktop and tested Android variants while keeping the green transport baseline intact and without widening the claim beyond those tested variants.</note-7>
+      <note-8>The operator cleanup end-state preserves only the working Desktop listener at `127.0.0.1:1080`, removes temporary Telegram-only mobile listener surfaces from the baseline, and preserves the already-working Desktop path for text messages, media files, and large files.</note-8>
+    </Phase-33>
   </ImplementationOrder>
 
   <ExecutionPolicy>
