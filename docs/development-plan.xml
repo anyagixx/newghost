@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.34">
+<DevelopmentPlan VERSION="0.2.35">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7616,7 +7616,7 @@
       <step-1 module="M-TELEGRAM-HELPER-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-HELPER-HYPOTHESIS">Freeze the helper-only blocker boundary above the blocked Phase-36 packet</step-1>
       <step-2 module="M-HELPER-TECH-DECISION" status="done" verification="V-M-HELPER-TECH-DECISION">Choose one exact transparent interception helper class</step-2>
       <step-3 module="M-HELPER-INSTALL-RUNBOOK" status="done" verification="V-M-HELPER-INSTALL-RUNBOOK">Define the bounded install, setup, remove, and cleanup path for the helper</step-3>
-      <step-4 module="M-HELPER-RUNTIME-PROFILE" status="pending" verification="V-M-HELPER-RUNTIME-PROFILE">Freeze the exact helper-backed runtime topology</step-4>
+      <step-4 module="M-HELPER-RUNTIME-PROFILE" status="done" verification="V-M-HELPER-RUNTIME-PROFILE">Freeze the exact helper-backed runtime topology</step-4>
       <step-5 module="M-HELPER-SMOKE-PROOF" status="pending" verification="V-M-HELPER-SMOKE-PROOF">Prove the helper outside Telegram UI with synthetic TCP and UDP smoke</step-5>
       <step-6 module="M-TELEGRAM-HELPER-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-HELPER-VOICE-WAVE">Run one bounded Telegram Desktop voice attempt through the helper-backed topology</step-6>
       <step-7 module="M-TELEGRAM-HELPER-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-HELPER-VIDEO-WAVE">Run one bounded Telegram Desktop video attempt through the same helper-backed topology without inheriting voice</step-7>
@@ -7629,6 +7629,7 @@
       <note-5>Voice and video claims remain split unless the helper-backed comparison packet proves both changed class.</note-5>
       <note-6>On 2026-03-30 the helper technology decision fixed one exact helper class for the current host: Ubuntu package `redsocks` candidate `0.5-2build4`, chosen because it is already available on the workstation package archive, supports transparent TCP redirection plus UDP packets via upstream SOCKS5, and can remain experiment-local without changing the existing n0wss transport contract before synthetic helper smoke begins.</note-6>
       <note-7>On the same date the bounded helper install runbook was proven on the workstation: `apt-get install -y redsocks` installed the helper and its `libevent` dependency, the package exposed `/usr/sbin/redsocks` and `/etc/redsocks.conf`, and the distro service was immediately stopped and disabled so no ambient helper daemon remained in the preserved Desktop baseline.</note-7>
+      <note-8>On the same date the helper runtime profile was frozen with an honest boundary: `redsocks` provides generic transparent TCP interception into the preserved host-local SOCKS5 surface at `127.0.0.1:1080`, while `redudp` remains bounded to one fixed synthetic destination tuple per section and therefore cannot yet justify a claim of arbitrary Telegram media UDP interception before helper smoke proves the fixed-destination packet.</note-8>
     </Phase-37>
   </ImplementationOrder>
 

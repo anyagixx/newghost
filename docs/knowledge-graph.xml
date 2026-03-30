@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.34">
+  <Project NAME="n0wss" VERSION="0.2.35">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2432,7 +2432,7 @@
         <fn-defineHelperInstallRunbook PURPOSE="Define the helper install and cleanup runbook." />
       </annotations>
     </M-HELPER-INSTALL-RUNBOOK>
-    <M-HELPER-RUNTIME-PROFILE NAME="HelperRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-HELPER-RUNTIME-PROFILE NAME="HelperRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze the exact helper-backed runtime topology with interception, destination recovery, and governed upstream handoff.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-HELPER-TECH-DECISION, M-TELEGRAM-TPROXY-PROFILE</depends>

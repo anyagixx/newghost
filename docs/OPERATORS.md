@@ -1622,6 +1622,39 @@ Install and safety contract:
    `systemctl is-enabled redsocks || true`
    any helper-specific config, nftables, iptables, namespace, or temporary files must be removed before the next normal Desktop packet
 
+### Phase-37 Helper Runtime Profile
+
+The exact helper-backed runtime profile is now fixed as:
+
+- one isolated Telegram network namespace connected to the host by one dedicated `veth` pair
+- one host-side transparent TCP interception rule on the namespace-facing interface only
+- one local `redsocks` TCP listener, for example `127.0.0.1:12345`
+- one governed upstream SOCKS5 surface:
+  host-local `n0wss-client` on the preserved `127.0.0.1:1080`
+- one bounded UDP helper surface through `redudp`, for example `127.0.0.1:10053`
+
+Exact routing split:
+
+1. TCP helper path:
+   namespace TCP egress -> host-side REDIRECT on the namespace-facing interface -> local `redsocks` TCP listener -> upstream `SOCKS5 127.0.0.1:1080` -> governed `n0wss` WSS path
+2. UDP helper path:
+   namespace UDP egress for one fixed synthetic destination tuple only -> host-side redirect rule -> local `redudp` listener -> upstream `SOCKS5 127.0.0.1:1080`
+
+Important bounded limitation:
+
+- the shipped `redudp` surface requires an explicit `dest_ip` and `dest_port` in config
+- therefore this helper profile is honest only for:
+  generic transparent TCP interception
+  one bounded synthetic UDP destination per `redudp` section
+- it is not yet valid to claim that this profile already provides arbitrary Telegram media UDP interception across changing remote tuples
+
+Operator rule:
+
+- Phase-37 helper smoke may spend:
+  one synthetic TCP packet
+  one synthetic UDP packet to the fixed `redudp` destination
+- no Telegram voice or video packet is methodologically valid until that helper smoke is green and the bounded UDP limitation remains visible in the packet
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
