@@ -1006,6 +1006,22 @@ Phase-31 operator rules:
 3. change only the Telegram calls-proxy toggle; do not change the SOCKS host, port, proxy type, credentials, or local listener owner in the same wave
 4. if the tested Telegram Desktop build does not expose a calls-proxy toggle, stop the Phase-31 wave and classify the packet as `variant unavailable` rather than silently choosing a second app variable
 
+### Phase-31 Deep Capture Surface
+
+The deeper-workaround wave keeps the completed Phase-30 local topology fixed but records a new app-variant packet:
+
+- workstation loopback capture:
+  `sudo rm -f /tmp/n0wss-phase31-loopback.pcap /tmp/n0wss-phase31-uplink.pcap`
+  `sudo timeout 20 tcpdump -i lo -nn '(tcp port 1080) or (udp port 1080)' -c 200 -w /tmp/n0wss-phase31-loopback.pcap`
+- workstation uplink capture:
+  `sudo timeout 20 tcpdump -i any -nn 'host 91.99.128.146 and tcp port 7443' -c 200 -w /tmp/n0wss-phase31-uplink.pcap`
+- local runtime evidence:
+  preserve the local `n0wss-client` log for the same packet window
+- packet split:
+  keep the app-variant handoff packet, the voice packet, the video packet, and the comparison packet separate even if they happen during one operator session
+- comparison rule:
+  the Phase-31 packet is comparable only if the exact chosen app variable is named and all topology fields stay fixed relative to the completed Phase-30 packet
+
 ### Phase-30 Workaround Hypothesis Boundary
 
 The completed Phase-29 packet freezes the next question narrowly:
