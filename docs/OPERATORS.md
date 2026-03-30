@@ -1666,6 +1666,43 @@ Operator rule:
   one synthetic UDP packet to the fixed `redudp` destination
 - no Telegram voice or video packet is methodologically valid until that helper smoke is green and the bounded UDP limitation remains visible in the packet
 
+### Phase-38 Safe Calls Branch
+
+The old helper-backed copied-session branch is now unsafe on this workstation:
+
+- the 2026-03-30 logout incident superseded the old `Phase-37` pending tail
+- copied or cloned live Desktop `tdata` is no longer an allowed experiment surface
+- the already-working ordinary Telegram Desktop path at `127.0.0.1:1080` remains the only approved live operator baseline
+
+Bounded operator rules:
+
+1. Preserve the ordinary baseline first:
+   keep your normal Telegram Desktop working through the already-verified `n0wss` path for text messages, media files, and large files
+   do not weaken that baseline just to create a calls experiment
+2. Separate ordinary account recovery from calls evidence:
+   if provider blocking forces you to use a temporary MTProto or other proxy only to restore the normal Telegram account, treat that as recovery-only operator state
+   it is not evidence that the new calls branch is green
+3. Do not reuse any unsafe helper-backed session state:
+   do not launch from copied `tdata`
+   do not reuse the quarantined `phase37-workdir`
+   do not reuse any old helper-backed window that inherited proxy or session state from the unsafe branch
+4. The exact safe calls-only topology is now frozen narrowly:
+   the ordinary Desktop window stays on the preserved working path
+   any future calls experiment window must use a separate safe workdir and a non-destructive auth/bootstrap method that does not mutate or invalidate the ordinary live session
+5. The exact auth isolation contract is now frozen:
+   no cloned live session state
+   no copied authenticated `tdata`
+   no implicit proxy inheritance from the ordinary Telegram window
+   no helper-backed window is valid if opening it can prompt or force logout in the ordinary Telegram session
+6. The readiness gate is strict and must be green before any new call attempt:
+   the candidate safe window must show no `Connection...`
+   no `Reconnecting to proxy`
+   no QR or login bootstrap screen
+   and at least one bounded stable dialog surface in the same packet window
+7. If any one of those readiness conditions fails:
+   stop the calls branch there
+   do not spend a voice or video packet
+
 Observed green helper smoke on 2026-03-30:
 
 - after correcting the helper listener bind from `127.0.0.1` to the host-side namespace-facing address, one bounded synthetic TCP packet reached the governed local SOCKS5 surface at `127.0.0.1:1080`, opened a fresh WSS uplink, and returned an HTTP response

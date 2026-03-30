@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.43">
+<DevelopmentPlan VERSION="0.2.44">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7857,12 +7857,12 @@
     </Phase-37>
     <Phase-38 name="Telegram Calls Safe Bootstrap And Media Branch" status="planned">
       <goal>Continue Telegram calls work on one safe calls-only branch that preserves the already-working ordinary `n0wss` baseline and forbids reuse of unsafe helper bootstrap state.</goal>
-      <step-1 module="M-TELEGRAM-CALLS-SAFE-HYPOTHESIS" status="planned" verification="V-M-TELEGRAM-CALLS-SAFE-HYPOTHESIS">Freeze the calls-only safety boundary above the green ordinary Telegram baseline</step-1>
-      <step-2 module="M-PHASE37-SAFETY-SUPERSEDE" status="planned" verification="V-M-PHASE37-SAFETY-SUPERSEDE">Explicitly supersede the unsafe Phase-37 helper bootstrap tail</step-2>
-      <step-3 module="M-TELEGRAM-CALLS-BASELINE-PRESERVE" status="planned" verification="V-M-TELEGRAM-CALLS-BASELINE-PRESERVE">Freeze the preserved normal Telegram Desktop baseline at `127.0.0.1:1080`</step-3>
-      <step-4 module="M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE" status="planned" verification="V-M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE">Define one exact safe calls-only experiment topology without live-session cloning</step-4>
-      <step-5 module="M-TELEGRAM-CALLS-AUTH-ISOLATION" status="planned" verification="V-M-TELEGRAM-CALLS-AUTH-ISOLATION">Define a safe auth/bootstrap contract for the experiment window</step-5>
-      <step-6 module="M-TELEGRAM-CALLS-READINESS-GATE" status="planned" verification="V-M-TELEGRAM-CALLS-READINESS-GATE">Require stable dialogs and no logout or reconnect loop before any call packet</step-6>
+      <step-1 module="M-TELEGRAM-CALLS-SAFE-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-CALLS-SAFE-HYPOTHESIS">Freeze the calls-only safety boundary above the green ordinary Telegram baseline</step-1>
+      <step-2 module="M-PHASE37-SAFETY-SUPERSEDE" status="done" verification="V-M-PHASE37-SAFETY-SUPERSEDE">Explicitly supersede the unsafe Phase-37 helper bootstrap tail</step-2>
+      <step-3 module="M-TELEGRAM-CALLS-BASELINE-PRESERVE" status="done" verification="V-M-TELEGRAM-CALLS-BASELINE-PRESERVE">Freeze the preserved normal Telegram Desktop baseline at `127.0.0.1:1080`</step-3>
+      <step-4 module="M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE">Define one exact safe calls-only experiment topology without live-session cloning</step-4>
+      <step-5 module="M-TELEGRAM-CALLS-AUTH-ISOLATION" status="done" verification="V-M-TELEGRAM-CALLS-AUTH-ISOLATION">Define a safe auth/bootstrap contract for the experiment window</step-5>
+      <step-6 module="M-TELEGRAM-CALLS-READINESS-GATE" status="done" verification="V-M-TELEGRAM-CALLS-READINESS-GATE">Require stable dialogs and no logout or reconnect loop before any call packet</step-6>
       <step-7 module="M-TELEGRAM-CALLS-VOICE-SAFE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-VOICE-SAFE-WAVE">Run one bounded voice attempt only after the safe readiness gate is green</step-7>
       <step-8 module="M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE">Run one bounded video attempt on the same safe branch without inheriting voice</step-8>
       <step-9 module="M-TELEGRAM-CALLS-SAFE-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-SAFE-COMPARISON">Compare safe calls-only packets against the Phase-34 attribution verdict and unsafe Phase-37 branch</step-9>
@@ -7872,6 +7872,9 @@
       <note-3>The only approved new variable is safe calls-only bootstrap and readiness isolation; no live authenticated `tdata` cloning is allowed.</note-3>
       <note-4>No voice or video packet is valid before the readiness gate proves stable dialogs, no reconnect loop, and no logout prompt in the safe experiment window.</note-4>
       <note-5>Voice and video claims remain split unless the comparison packet proves both changed class.</note-5>
+      <note-6>On 2026-03-30 the first six Phase-38 steps were closed as docs-only safety work: the calls branch was explicitly narrowed above the already-working ordinary Telegram baseline, unsafe Phase-37 helper bootstrap was superseded after the logout incident, and the preserved Desktop path at `127.0.0.1:1080` was frozen as the only approved live operator baseline.</note-6>
+      <note-7>On the same date the safe calls topology and auth contract were frozen negatively but explicitly: no copied or cloned live `tdata`, no reuse of the quarantined `phase37-workdir`, no implicit proxy inheritance from the ordinary Telegram window, and no future calls packet until a separate safe workdir plus non-destructive auth/bootstrap method is approved.</note-7>
+      <note-8>On the same date the readiness gate was made strict before any future calls packet: a candidate safe window must show no `Connection...`, no `Reconnecting to proxy`, no QR or login bootstrap screen, and at least one bounded stable dialog surface in the same packet window; otherwise the branch stops before voice or video.</note-8>
     </Phase-38>
   </ImplementationOrder>
 

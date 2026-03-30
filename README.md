@@ -269,6 +269,14 @@ Current calls-profile status:
   because the current classifier still points to `direct-media outside SOCKS`, the next valid experiment must preserve the normal `127.0.0.1:1080` Desktop baseline for text messages and files while proving transparent interception, local governed handoff, and fresh attribution evidence inside an isolated Telegram-specific routing surface
 - the first blocked Phase-36 packet has now narrowed the next blocker one level deeper:
   the current system already has isolated netns launch, preserved Desktop baseline, and governed SOCKS/WSS transport, but it still lacks one explicit transparent interception helper surface between isolated Telegram egress and the governed local handoff, so the next justified branch is helper-only rather than another blind Telegram rerun or a generic transport repair
+- the old Phase-37 helper bootstrap branch is now explicitly unsafe and superseded:
+  after the 2026-03-30 logout incident, copied live Telegram Desktop session state is no longer an allowed experiment surface on this workstation, so no future calls branch may clone or reuse the authenticated `tdata` from the ordinary Desktop profile
+- the ordinary Telegram baseline remains the only approved live operator path:
+  keep the already-working Desktop path through `127.0.0.1:1080` for text messages, media files, and large files, and treat any temporary MTProto or other recovery proxy used only to restore the ordinary Telegram account after provider blocking as operator recovery evidence rather than calls-branch progress
+- the new Phase-38 branch is therefore calls-only and safety-first:
+  it does not try to re-prove generic Telegram reachability, does not weaken the ordinary message or file path, and does not spend any new voice or video packet until one separate safe experiment window exists without live-session cloning
+- the bounded Phase-38 auth and readiness contract is now fixed before any new calls attempt:
+  no safe calls packet is valid while a candidate experiment window still shows `Connection...`, `Reconnecting to proxy`, a QR or login bootstrap screen, or an unstable partial-dialog surface; only a stable dialog-ready safe window may advance to the next voice or video packet
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

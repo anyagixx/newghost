@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.38">
+  <Project NAME="n0wss" VERSION="0.2.39">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2486,7 +2486,7 @@
         <fn-issueTelegramHelperDecision PURPOSE="Issue the bounded decision after the helper-backed Telegram wave." />
       </annotations>
     </M-TELEGRAM-HELPER-DECISION>
-    <M-TELEGRAM-CALLS-SAFE-HYPOTHESIS NAME="TelegramCallsSafeHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-CALLS-SAFE-HYPOTHESIS NAME="TelegramCallsSafeHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the calls-only safety boundary above the already-green ordinary Telegram traffic path.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-HELPER-DECISION, M-TELEGRAM-FINAL-DECISION</depends>
@@ -2495,7 +2495,7 @@
         <fn-freezeTelegramCallsSafeHypothesis PURPOSE="Freeze the calls-only safety boundary after the unsafe helper branch." />
       </annotations>
     </M-TELEGRAM-CALLS-SAFE-HYPOTHESIS>
-    <M-PHASE37-SAFETY-SUPERSEDE NAME="Phase37SafetySupersede" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE37-SAFETY-SUPERSEDE NAME="Phase37SafetySupersede" TYPE="UTILITY" STATUS="done">
       <purpose>Explicitly supersede the unsafe Phase-37 helper bootstrap tail after the logout incident.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-SAFE-HYPOTHESIS</depends>
@@ -2504,7 +2504,7 @@
         <fn-supersedeUnsafePhase37 PURPOSE="Explicitly mark the unsafe helper branch as non-runnable." />
       </annotations>
     </M-PHASE37-SAFETY-SUPERSEDE>
-    <M-TELEGRAM-CALLS-BASELINE-PRESERVE NAME="TelegramCallsBaselinePreserve" TYPE="UTILITY" STATUS="planned">
+    <M-TELEGRAM-CALLS-BASELINE-PRESERVE NAME="TelegramCallsBaselinePreserve" TYPE="UTILITY" STATUS="done">
       <purpose>Preserve the normal Telegram Desktop baseline at `127.0.0.1:1080` while calls-only work continues on a separate safe branch.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-OPERATOR-CLEANUP</depends>
@@ -2513,7 +2513,7 @@
         <fn-preserveTelegramCallsBaseline PURPOSE="Preserve the already-working ordinary Telegram baseline while calls-only work continues." />
       </annotations>
     </M-TELEGRAM-CALLS-BASELINE-PRESERVE>
-    <M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE NAME="TelegramCallsSafeTopologyProfile" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE NAME="TelegramCallsSafeTopologyProfile" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Freeze one exact safe calls-only experiment topology without live-session cloning.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-CALLS-BASELINE-PRESERVE, M-TELEGRAM-ATTRIBUTION-DECISION</depends>
@@ -2522,7 +2522,7 @@
         <fn-freezeTelegramCallsSafeTopology PURPOSE="Freeze one exact safe calls-only topology profile." />
       </annotations>
     </M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE>
-    <M-TELEGRAM-CALLS-AUTH-ISOLATION NAME="TelegramCallsAuthIsolation" TYPE="INTEGRATION" STATUS="planned">
+    <M-TELEGRAM-CALLS-AUTH-ISOLATION NAME="TelegramCallsAuthIsolation" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define a safe authentication and bootstrap contract for the calls-only experiment window.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE</depends>
@@ -2531,7 +2531,7 @@
         <fn-defineTelegramCallsAuthIsolation PURPOSE="Define a non-destructive auth/bootstrap contract for the calls-only branch." />
       </annotations>
     </M-TELEGRAM-CALLS-AUTH-ISOLATION>
-    <M-TELEGRAM-CALLS-READINESS-GATE NAME="TelegramCallsReadinessGate" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-READINESS-GATE NAME="TelegramCallsReadinessGate" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Require stable safe-window readiness before any calls packet is spent.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-AUTH-ISOLATION</depends>
