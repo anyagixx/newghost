@@ -1540,6 +1540,29 @@ Isolated runbook contract:
    ordinary Telegram Desktop use outside the experiment must still be the preserved `127.0.0.1:1080` path
    if cleanup proof is missing, treat the next packet as contaminated rather than as valid `Phase-35` evidence
 
+Forced-topology capture contract:
+
+- preserve the same evidence families from Phase-34 so comparison stays honest:
+  workstation loopback capture
+  workstation uplink capture
+  broader workstation network capture
+  server-side correlation packet
+- add one new forced-topology proof surface:
+  namespace-local process proof that the tested Telegram process really ran inside the isolated topology rather than on the ordinary workstation path
+- recommended bounded file set for one forced-topology packet:
+  `/tmp/n0wss-phase35-loopback.pcap`
+  `/tmp/n0wss-phase35-uplink.pcap`
+  `/tmp/n0wss-phase35-network.pcap`
+  `/tmp/n0wss-phase35-namespace.txt`
+- recommended command families:
+  `sudo timeout 20 tcpdump -i lo -nn '(tcp port 1080) or (udp port 1080)' -c 200 -w /tmp/n0wss-phase35-loopback.pcap`
+  `sudo timeout 20 tcpdump -i any -nn 'host 91.99.128.146 and tcp port 7443' -c 200 -w /tmp/n0wss-phase35-uplink.pcap`
+  `sudo timeout 20 tcpdump -i any -nn '((udp) or (tcp and not port 1080 and not port 7443))' -c 400 -w /tmp/n0wss-phase35-network.pcap`
+  `sudo ip netns exec <phase35-telegram-ns> ss -tunp > /tmp/n0wss-phase35-namespace.txt`
+- interpretation rule:
+  if direct media still appears outside the governed envelope, the packet stays a no-change topology result
+  if fresh governed markers appear on the same bounded window, only then does a new n0wss-side protocol/code branch become justified
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
