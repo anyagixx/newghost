@@ -7234,7 +7234,7 @@
       </observability>
       <verification-ref>V-M-UDP-ORIGDST-RUNTIME</verification-ref>
     </M-UDP-ORIGDST-RUNTIME>
-    <M-UDP-ORIGDST-RUNBOOK NAME="UdpOrigDstRunbook" TYPE="INTEGRATION" LAYER="44" ORDER="6" STATUS="planned">
+    <M-UDP-ORIGDST-RUNBOOK NAME="UdpOrigDstRunbook" TYPE="INTEGRATION" LAYER="44" ORDER="6" STATUS="done">
       <contract>
         <purpose>Define the exact host-side interception setup and cleanup runbook for the repo-local helper without weakening the preserved Desktop baseline.</purpose>
         <inputs>
@@ -8587,7 +8587,7 @@
       <step-3 module="M-UDP-ORIGDST-CONTRACT" status="done" verification="V-M-UDP-ORIGDST-CONTRACT">Define the repo-local helper contract for original-destination recovery and governed handoff</step-3>
       <step-4 module="M-UDP-ORIGDST-LINUX-ADAPTER" status="done" verification="V-M-UDP-ORIGDST-LINUX-ADAPTER">Isolate Linux-specific socket and original-destination recovery behavior</step-4>
       <step-5 module="M-UDP-ORIGDST-RUNTIME" status="done" verification="V-M-UDP-ORIGDST-RUNTIME">Implement the repo-local helper runtime for recovered UDP tuples</step-5>
-      <step-6 module="M-UDP-ORIGDST-RUNBOOK" status="planned" verification="V-M-UDP-ORIGDST-RUNBOOK">Define the exact host-side interception setup and cleanup runbook</step-6>
+      <step-6 module="M-UDP-ORIGDST-RUNBOOK" status="done" verification="V-M-UDP-ORIGDST-RUNBOOK">Define the exact host-side interception setup and cleanup runbook</step-6>
       <step-7 module="M-UDP-ORIGDST-SMOKE" status="planned" verification="V-M-UDP-ORIGDST-SMOKE">Prove repo-local original-destination recovery and governed handoff for more than one tuple</step-7>
       <step-8 module="M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE">Run one bounded voice attempt only after repo-local helper smoke is green</step-8>
       <step-9 module="M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-9>

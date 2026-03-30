@@ -2792,7 +2792,7 @@
         <fn-runUdpOrigDstRuntime PURPOSE="Run the repo-local helper runtime for recovered UDP tuples." />
       </annotations>
     </M-UDP-ORIGDST-RUNTIME>
-    <M-UDP-ORIGDST-RUNBOOK NAME="UdpOrigDstRunbook" TYPE="INTEGRATION" STATUS="planned">
+    <M-UDP-ORIGDST-RUNBOOK NAME="UdpOrigDstRunbook" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define the exact host-side interception setup and cleanup runbook for the repo-local helper.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-UDP-ORIGDST-CONTRACT, M-ARBITRARY-UDP-RUNBOOK</depends>
