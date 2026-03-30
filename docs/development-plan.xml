@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.49">
+<DevelopmentPlan VERSION="0.2.51">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7014,7 +7014,7 @@
       </observability>
       <verification-ref>V-M-ARBITRARY-UDP-RUNTIME-PROFILE</verification-ref>
     </M-ARBITRARY-UDP-RUNTIME-PROFILE>
-    <M-ARBITRARY-UDP-SMOKE NAME="ArbitraryUdpSmoke" TYPE="CORE_LOGIC" LAYER="43" ORDER="6" STATUS="planned">
+    <M-ARBITRARY-UDP-SMOKE NAME="ArbitraryUdpSmoke" TYPE="CORE_LOGIC" LAYER="43" ORDER="6" STATUS="superseded">
       <contract>
         <purpose>Prove arbitrary-destination UDP interception outside Telegram UI before any real calls packet is spent.</purpose>
         <inputs>
@@ -7036,7 +7036,7 @@
       </observability>
       <verification-ref>V-M-ARBITRARY-UDP-SMOKE</verification-ref>
     </M-ARBITRARY-UDP-SMOKE>
-    <M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE NAME="TelegramCallsArbitraryVoiceWave" TYPE="CORE_LOGIC" LAYER="43" ORDER="7" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE NAME="TelegramCallsArbitraryVoiceWave" TYPE="CORE_LOGIC" LAYER="43" ORDER="7" STATUS="superseded">
       <contract>
         <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after arbitrary-UDP smoke is green.</purpose>
         <inputs>
@@ -7058,7 +7058,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE</verification-ref>
     </M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE>
-    <M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE NAME="TelegramCallsArbitraryVideoWave" TYPE="CORE_LOGIC" LAYER="43" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE NAME="TelegramCallsArbitraryVideoWave" TYPE="CORE_LOGIC" LAYER="43" ORDER="8" STATUS="superseded">
       <contract>
         <purpose>Run one bounded video attempt on the same arbitrary-UDP branch without inheriting the voice result.</purpose>
         <inputs>
@@ -7079,7 +7079,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE</verification-ref>
     </M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE>
-    <M-TELEGRAM-CALLS-ARBITRARY-COMPARISON NAME="TelegramCallsArbitraryComparison" TYPE="CORE_LOGIC" LAYER="43" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-COMPARISON NAME="TelegramCallsArbitraryComparison" TYPE="CORE_LOGIC" LAYER="43" ORDER="9" STATUS="superseded">
       <contract>
         <purpose>Compare arbitrary-UDP packets against Phase-34 and the Phase-39 fixed-tuple smoke boundary.</purpose>
         <inputs>
@@ -7101,7 +7101,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-ARBITRARY-COMPARISON>
-    <M-TELEGRAM-CALLS-ARBITRARY-DECISION NAME="TelegramCallsArbitraryDecision" TYPE="ENTRY_POINT" LAYER="43" ORDER="10" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-DECISION NAME="TelegramCallsArbitraryDecision" TYPE="ENTRY_POINT" LAYER="43" ORDER="10" STATUS="superseded">
       <contract>
         <purpose>Issue the bounded decision after the arbitrary-destination UDP calls branch.</purpose>
         <inputs>
@@ -7123,6 +7123,249 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-ARBITRARY-DECISION>
+    <M-ARBITRARY-UDP-HELPER-HYPOTHESIS NAME="ArbitraryUdpHelperHypothesis" TYPE="UTILITY" LAYER="44" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the missing repo-local helper runtime as the next exact blocker above the arbitrary-UDP branch.</purpose>
+        <inputs>
+          <input-1>The blocked arbitrary-UDP runtime profile packet.</input-1>
+          <input-2>The bounded arbitrary-UDP branch decision packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A repo-local helper-only branch boundary packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ARBITRARY-DECISION, M-ARBITRARY-UDP-RUNTIME-PROFILE</depends>
+      <observability>
+        <log-prefix>[ArbitraryUdpHelperHypothesis]</log-prefix>
+        <critical-block>BLOCK_ARBITRARY_UDP_HELPER_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-ARBITRARY-UDP-HELPER-HYPOTHESIS</verification-ref>
+    </M-ARBITRARY-UDP-HELPER-HYPOTHESIS>
+    <M-PHASE40-SUPERSEDE NAME="Phase40Supersede" TYPE="UTILITY" LAYER="44" ORDER="2" STATUS="done">
+      <contract>
+        <purpose>Freeze the Phase-40 docs-only packet as valid but blocked by the missing repo-local helper runtime.</purpose>
+        <inputs>
+          <input-1>The repo-local helper-only branch boundary packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded supersede packet for the old Phase-40 tail.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-ARBITRARY-UDP-HELPER-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase40Supersede]</log-prefix>
+        <critical-block>BLOCK_PHASE40_SUPERSEDE</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE40-SUPERSEDE</verification-ref>
+    </M-PHASE40-SUPERSEDE>
+    <M-UDP-ORIGDST-CONTRACT NAME="UdpOrigDstContract" TYPE="ENTRY_POINT" LAYER="44" ORDER="3" STATUS="done">
+      <contract>
+        <purpose>Define the repo-local helper contract for transparently intercepted UDP, original-destination recovery, and governed handoff into the existing datagram path.</purpose>
+        <inputs>
+          <input-1>The arbitrary-UDP tech decision.</input-1>
+          <input-2>The existing datagram runtime surfaces.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An approved repo-local helper contract.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/udp_origdst/mod.rs</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/knowledge-graph.xml</file-3>
+      </target-files>
+      <depends>M-ARBITRARY-UDP-TECH-DECISION, M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-SESSION-MANAGER</depends>
+      <observability>
+        <log-prefix>[UdpOrigDstContract]</log-prefix>
+        <critical-block>BLOCK_UDP_ORIGDST_CONTRACT</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-ORIGDST-CONTRACT</verification-ref>
+    </M-UDP-ORIGDST-CONTRACT>
+    <M-UDP-ORIGDST-LINUX-ADAPTER NAME="UdpOrigDstLinuxAdapter" TYPE="INTEGRATION" LAYER="44" ORDER="4" STATUS="done">
+      <contract>
+        <purpose>Isolate Linux-specific socket and original-destination recovery behavior for the repo-local arbitrary-UDP helper.</purpose>
+        <inputs>
+          <input-1>The approved helper contract.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A Linux-specific original-destination adapter surface.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/udp_origdst/linux.rs</file-1>
+        <file-2>src/udp_origdst/linux.test.rs</file-2>
+      </target-files>
+      <depends>M-UDP-ORIGDST-CONTRACT</depends>
+      <observability>
+        <log-prefix>[UdpOrigDstLinuxAdapter]</log-prefix>
+        <critical-block>BLOCK_UDP_ORIGDST_LINUX_ADAPTER</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-ORIGDST-LINUX-ADAPTER</verification-ref>
+    </M-UDP-ORIGDST-LINUX-ADAPTER>
+    <M-UDP-ORIGDST-RUNTIME NAME="UdpOrigDstRuntime" TYPE="CORE_LOGIC" LAYER="44" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Implement the repo-local helper runtime that recovers original UDP destinations and forwards normalized tuples into the governed datagram path.</purpose>
+        <inputs>
+          <input-1>The approved helper contract.</input-1>
+          <input-2>The Linux original-destination adapter.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A repo-local arbitrary-UDP helper runtime.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/udp_origdst/mod.rs</file-1>
+        <file-2>src/udp_origdst.test.rs</file-2>
+      </target-files>
+      <depends>M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-LINUX-ADAPTER, M-DATAGRAM-SESSION-MANAGER, M-OBS</depends>
+      <observability>
+        <log-prefix>[UdpOrigDstRuntime]</log-prefix>
+        <critical-block>BLOCK_UDP_ORIGDST_RUNTIME</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-ORIGDST-RUNTIME</verification-ref>
+    </M-UDP-ORIGDST-RUNTIME>
+    <M-UDP-ORIGDST-RUNBOOK NAME="UdpOrigDstRunbook" TYPE="INTEGRATION" LAYER="44" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Define the exact host-side interception setup and cleanup runbook for the repo-local helper without weakening the preserved Desktop baseline.</purpose>
+        <inputs>
+          <input-1>The approved helper contract.</input-1>
+          <input-2>The arbitrary-UDP runbook boundary.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A repo-local helper operator runbook.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-UDP-ORIGDST-CONTRACT, M-ARBITRARY-UDP-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[UdpOrigDstRunbook]</log-prefix>
+        <critical-block>BLOCK_UDP_ORIGDST_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-ORIGDST-RUNBOOK</verification-ref>
+    </M-UDP-ORIGDST-RUNBOOK>
+    <M-UDP-ORIGDST-SMOKE NAME="UdpOrigDstSmoke" TYPE="CORE_LOGIC" LAYER="44" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Prove repo-local original-destination recovery and governed handoff for more than one UDP tuple before any Telegram calls packet is spent.</purpose>
+        <inputs>
+          <input-1>The repo-local helper runtime.</input-1>
+          <input-2>The repo-local helper runbook.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A green or blocked repo-local helper smoke packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>tests/udp_origdst_smoke.rs</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, M-UDP-ORIGDST-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[UdpOrigDstSmoke]</log-prefix>
+        <critical-block>BLOCK_UDP_ORIGDST_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-UDP-ORIGDST-SMOKE</verification-ref>
+    </M-UDP-ORIGDST-SMOKE>
+    <M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE NAME="TelegramCallsOrigDstVoiceWave" TYPE="CORE_LOGIC" LAYER="44" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Telegram voice attempt on the ordinary logged-in Desktop window only after repo-local original-destination smoke is green.</purpose>
+        <inputs>
+          <input-1>The green repo-local helper smoke packet.</input-1>
+          <input-2>The bounded server-correlation packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded repo-local helper voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-UDP-ORIGDST-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsOrigDstVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ORIGDST_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE>
+    <M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE NAME="TelegramCallsOrigDstVideoWave" TYPE="CORE_LOGIC" LAYER="44" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Telegram video attempt on the same repo-local helper branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded repo-local helper voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded repo-local helper video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsOrigDstVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ORIGDST_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE>
+    <M-TELEGRAM-CALLS-ORIGDST-COMPARISON NAME="TelegramCallsOrigDstComparison" TYPE="CORE_LOGIC" LAYER="44" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Compare repo-local helper call packets against the old direct-media and arbitrary-UDP boundary packets.</purpose>
+        <inputs>
+          <input-1>The bounded repo-local helper voice packet.</input-1>
+          <input-2>The bounded repo-local helper video packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded repo-local helper comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE, M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsOrigDstComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ORIGDST_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-ORIGDST-COMPARISON>
+    <M-TELEGRAM-CALLS-ORIGDST-DECISION NAME="TelegramCallsOrigDstDecision" TYPE="ENTRY_POINT" LAYER="44" ORDER="11" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded decision after the repo-local helper arbitrary-UDP calls branch.</purpose>
+        <inputs>
+          <input-1>The bounded repo-local helper comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded repo-local helper calls decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ORIGDST-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsOrigDstDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ORIGDST_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-ORIGDST-DECISION>
   </Modules>
 
   <DataFlow>
@@ -8317,18 +8560,18 @@
       <note-6>On 2026-03-30 the first Phase-39 selective interception smoke turned green on the ordinary workstation without touching Telegram UI: one host-side `iptables -t nat OUTPUT` redirect for user `1000` and the deterministic UDP tuple `91.99.128.146:55123` fed `redudp`, `redudp` logged `via 127.0.0.1:1080` and `Starting UDP relay`, the synthetic payload `phase39-selective-smoke` returned from `91.99.128.146:55123`, and at the same time `curl --proxy socks5h://127.0.0.1:1080 -I https://example.com` still returned `HTTP/2 200`.</note-6>
       <note-7>The same smoke packet also narrowed the next blocker honestly: the current `redudp` helper remains fixed-destination-only, so green interception on one deterministic tuple does not yet justify spending a real Telegram voice or video packet that may target arbitrary Telegram media tuples.</note-7>
     </Phase-39>
-    <Phase-40 name="Telegram Arbitrary UDP Interception Surface" status="in_progress">
+    <Phase-40 name="Telegram Arbitrary UDP Interception Surface" status="superseded">
       <goal>Continue Telegram calls work only after arbitrary-destination UDP interception and destination recovery become explicit and verifiable above the preserved ordinary Desktop baseline.</goal>
       <step-1 module="M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS">Freeze the new calls branch above the fixed-tuple smoke boundary and the direct-media attribution verdict</step-1>
       <step-2 module="M-PHASE39-SMOKE-BOUNDARY" status="done" verification="V-M-PHASE39-SMOKE-BOUNDARY">Explicitly freeze the Phase-39 smoke packet as valid but insufficient for real calls</step-2>
       <step-3 module="M-ARBITRARY-UDP-TECH-DECISION" status="done" verification="V-M-ARBITRARY-UDP-TECH-DECISION">Choose one exact arbitrary-destination UDP interception class</step-3>
       <step-4 module="M-ARBITRARY-UDP-RUNBOOK" status="done" verification="V-M-ARBITRARY-UDP-RUNBOOK">Define the bounded install, setup, remove, and cleanup path for the arbitrary-UDP surface</step-4>
       <step-5 module="M-ARBITRARY-UDP-RUNTIME-PROFILE" status="done" verification="V-M-ARBITRARY-UDP-RUNTIME-PROFILE">Freeze one exact arbitrary-destination UDP interception and destination-recovery profile</step-5>
-      <step-6 module="M-ARBITRARY-UDP-SMOKE" status="planned" verification="V-M-ARBITRARY-UDP-SMOKE">Prove arbitrary-destination UDP interception outside Telegram UI before any real calls packet is spent</step-6>
-      <step-7 module="M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE">Run one bounded voice attempt only after arbitrary-UDP smoke is green</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-ARBITRARY-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-COMPARISON">Compare arbitrary-UDP packets against Phase-34 and the Phase-39 fixed-tuple smoke boundary</step-9>
-      <step-10 module="M-TELEGRAM-CALLS-ARBITRARY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-DECISION">Issue the bounded decision after the arbitrary-destination UDP calls branch</step-10>
+      <step-6 module="M-ARBITRARY-UDP-SMOKE" status="superseded" verification="V-M-ARBITRARY-UDP-SMOKE">Prove arbitrary-destination UDP interception outside Telegram UI before any real calls packet is spent</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE">Run one bounded voice attempt only after arbitrary-UDP smoke is green</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-ARBITRARY-COMPARISON" status="superseded" verification="V-M-TELEGRAM-CALLS-ARBITRARY-COMPARISON">Compare arbitrary-UDP packets against Phase-34 and the Phase-39 fixed-tuple smoke boundary</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-ARBITRARY-DECISION" status="superseded" verification="V-M-TELEGRAM-CALLS-ARBITRARY-DECISION">Issue the bounded decision after the arbitrary-destination UDP calls branch</step-10>
       <note-1>Phase-40 starts only after the preserved ordinary Telegram Desktop baseline and the bounded fixed-tuple smoke boundary from Phase-39 are both visible together.</note-1>
       <note-2>The phase must not weaken the working `127.0.0.1:1080` message and file path while it expands only the UDP interception class.</note-2>
       <note-3>No second Telegram auth/bootstrap window is allowed anywhere in this branch; the experiment remains attached to the already logged-in ordinary Desktop window.</note-3>
@@ -8337,6 +8580,26 @@
       <note-6>On 2026-03-30 the first Phase-40 execution packet froze the Phase-39 smoke packet as a visible boundary: host-side selective interception plus `redudp` proved only one deterministic UDP tuple `91.99.128.146:55123`, so the old packet remains valid-but-insufficient for real Telegram calls.</note-6>
       <note-7>On the same date the host technology decision also became explicit: `redsocks/redudp` remains installed only as a historical fixed-destination helper, while the workstation already exposes `nft`, `iptables`, `nft_tproxy`, `xt_TPROXY`, `xt_socket`, `nf_tproxy_ipv4`, and `nf_tproxy_ipv6`, so the approved next class is kernel-assisted interception with original-destination recovery plus one repo-local helper runtime.</note-7>
     </Phase-40>
+    <Phase-41 name="Repo-Local Arbitrary UDP Recovery Helper" status="in_progress">
+      <goal>Implement one repo-local helper runtime that can recover original UDP destinations for arbitrary tuples and feed them into the governed datagram path before any new Telegram calls packet is spent.</goal>
+      <step-1 module="M-ARBITRARY-UDP-HELPER-HYPOTHESIS" status="done" verification="V-M-ARBITRARY-UDP-HELPER-HYPOTHESIS">Freeze the missing repo-local helper runtime as the next exact blocker above the arbitrary-UDP branch</step-1>
+      <step-2 module="M-PHASE40-SUPERSEDE" status="done" verification="V-M-PHASE40-SUPERSEDE">Explicitly freeze the old Phase-40 tail as blocked by the missing repo-local helper runtime</step-2>
+      <step-3 module="M-UDP-ORIGDST-CONTRACT" status="done" verification="V-M-UDP-ORIGDST-CONTRACT">Define the repo-local helper contract for original-destination recovery and governed handoff</step-3>
+      <step-4 module="M-UDP-ORIGDST-LINUX-ADAPTER" status="done" verification="V-M-UDP-ORIGDST-LINUX-ADAPTER">Isolate Linux-specific socket and original-destination recovery behavior</step-4>
+      <step-5 module="M-UDP-ORIGDST-RUNTIME" status="planned" verification="V-M-UDP-ORIGDST-RUNTIME">Implement the repo-local helper runtime for recovered UDP tuples</step-5>
+      <step-6 module="M-UDP-ORIGDST-RUNBOOK" status="planned" verification="V-M-UDP-ORIGDST-RUNBOOK">Define the exact host-side interception setup and cleanup runbook</step-6>
+      <step-7 module="M-UDP-ORIGDST-SMOKE" status="planned" verification="V-M-UDP-ORIGDST-SMOKE">Prove repo-local original-destination recovery and governed handoff for more than one tuple</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE">Run one bounded voice attempt only after repo-local helper smoke is green</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-ORIGDST-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON">Compare repo-local helper packets against the old direct-media and arbitrary-UDP boundary packets</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-ORIGDST-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-DECISION">Issue the bounded decision after the repo-local helper arbitrary-UDP calls branch</step-11>
+      <note-1>Phase-41 starts only after the preserved ordinary Telegram Desktop baseline, the Phase-34 direct-media verdict, and the blocked-by-missing-helper Phase-40 packet are all visible together.</note-1>
+      <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
+      <note-3>No Telegram voice or video packet is valid before repo-local helper smoke proves original-destination recovery and governed handoff for at least two distinct tuples.</note-3>
+      <note-4>The repo-local helper branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files throughout the wave.</note-4>
+      <note-5>Linux-specific destination recovery must remain isolated from generic helper runtime logic so the verification story stays explicit and debuggable.</note-5>
+      <note-6>On 2026-03-31 the first implementation packet made the helper boundary visible in operator-facing docs, exported a new `src/udp_origdst` module at the crate root, and froze compile-safe contract and Linux-adapter skeletons before any runtime behavior was added.</note-6>
+    </Phase-41>
   </ImplementationOrder>
 
   <ExecutionPolicy>

@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.70">
+<VerificationPlan VERSION="0.2.72">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -128,6 +128,10 @@
     <telegram-arbitrary-udp-smoke-first-rule>Phase-40 may spend voice or video packets only after arbitrary-destination UDP smoke proves original-destination recovery and governed handoff for more than one tuple outside Telegram UI.</telegram-arbitrary-udp-smoke-first-rule>
     <telegram-arbitrary-udp-distinct-tuples-rule>Phase-40 arbitrary-UDP smoke is green only if it proves governed handoff for at least two distinct destination tuples; retries against one tuple do not count.</telegram-arbitrary-udp-distinct-tuples-rule>
     <telegram-arbitrary-udp-tech-single-choice-rule>Phase-40 must keep one exact arbitrary-UDP interception class for the whole wave; installable helper, repo-local helper, and kernel-assisted approaches may not be blended inside one evidence set.</telegram-arbitrary-udp-tech-single-choice-rule>
+    <telegram-origdst-helper-separation-rule>Phase-41 must isolate Linux original-destination recovery from the generic helper runtime so the first divergent layer remains debuggable.</telegram-origdst-helper-separation-rule>
+    <telegram-origdst-smoke-first-rule>Phase-41 may spend voice or video packets only after repo-local helper smoke proves recovered original destinations and governed handoff for at least two distinct tuples outside Telegram UI.</telegram-origdst-smoke-first-rule>
+    <telegram-origdst-per-tuple-proof-rule>Phase-41 smoke is green only if each recovered tuple has explicit recovery evidence and explicit governed-handoff evidence; one tuple may not stand in for another.</telegram-origdst-per-tuple-proof-rule>
+    <telegram-origdst-baseline-lock-rule>Phase-41 evidence is invalid if the repo-local helper changes, reroutes, or degrades the already-working ordinary Telegram Desktop path at `127.0.0.1:1080` while smoke or calls packets are collected.</telegram-origdst-baseline-lock-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5688,6 +5692,138 @@
         <scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1>
       </failure-scenarios>
     </V-M-TELEGRAM-CALLS-ARBITRARY-DECISION>
+    <V-M-ARBITRARY-UDP-HELPER-HYPOTHESIS MODULE="M-ARBITRARY-UDP-HELPER-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-41|repo-local helper|missing helper runtime|original-destination recovery' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The new branch explicitly starts from the missing repo-local helper runtime rather than pretending arbitrary smoke is already runnable.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new branch hides the missing helper runtime and reopens old arbitrary-UDP smoke as if it were already code-complete.</scenario-1>
+      </failure-scenarios>
+    </V-M-ARBITRARY-UDP-HELPER-HYPOTHESIS>
+    <V-M-PHASE40-SUPERSEDE MODULE="M-PHASE40-SUPERSEDE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/knowledge-graph.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-40|blocked by the missing repo-local helper runtime|valid but blocked' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The old Phase-40 packet remains visible as a valid boundary but not as runnable smoke or calls work.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The old Phase-40 tail still appears runnable after the repo-local helper branch is introduced.</scenario-1>
+      </failure-scenarios>
+    </V-M-PHASE40-SUPERSEDE>
+    <V-M-UDP-ORIGDST-CONTRACT MODULE="M-UDP-ORIGDST-CONTRACT" PRIORITY="high">
+      <test-files><file>src/udp_origdst/mod.rs</file><file>docs/development-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks>
+        <check-1>rg -n 'original-destination|governed handoff|repo-local helper|DatagramTarget' src/udp_origdst/mod.rs docs/development-plan.xml docs/knowledge-graph.xml</check-1>
+        <check-2>rg -n 'BLOCK_UDP_ORIGDST_CONTRACT|BLOCK_UDP_ORIGDST_RUNTIME' src/udp_origdst/mod.rs</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The helper contract explicitly names recovered original destination and governed datagram handoff.</scenario-1>
+        <scenario-2>The helper contract explicitly names the stable log or trace anchors that prove recovery and governed handoff.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The helper contract stays vague about where destination recovery ends and governed handoff begins.</scenario-1>
+        <scenario-2>The helper contract leaves recovery evidence implicit instead of naming the proof anchors.</scenario-2>
+      </failure-scenarios>
+    </V-M-UDP-ORIGDST-CONTRACT>
+    <V-M-UDP-ORIGDST-LINUX-ADAPTER MODULE="M-UDP-ORIGDST-LINUX-ADAPTER" PRIORITY="high">
+      <test-files><file>src/udp_origdst/linux.rs</file><file>src/udp_origdst/linux.test.rs</file></test-files>
+      <module-checks>
+        <check-1>cargo test udp_origdst_linux</check-1>
+        <check-2>rg -n 'SO_ORIGINAL_DST|IP_RECVORIGDSTADDR|IPV6_RECVORIGDSTADDR|recvmsg|cmsg' src/udp_origdst/linux.rs</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The Linux adapter recovers original destination tuples deterministically and exposes explicit error surfaces.</scenario-1>
+        <scenario-2>The Linux adapter keeps socket setup and tuple recovery separate enough that a failure packet can name the first divergent layer precisely.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The Linux adapter silently blends socket setup, recovery, and governed forwarding into one opaque surface.</scenario-1>
+        <scenario-2>The Linux adapter falls back to fixed destination configuration or hides tuple-recovery failure behind a generic IO error only.</scenario-2>
+      </failure-scenarios>
+    </V-M-UDP-ORIGDST-LINUX-ADAPTER>
+    <V-M-UDP-ORIGDST-RUNTIME MODULE="M-UDP-ORIGDST-RUNTIME" PRIORITY="high">
+      <test-files><file>src/udp_origdst/mod.rs</file><file>src/udp_origdst.test.rs</file></test-files>
+      <module-checks>
+        <check-1>cargo test udp_origdst</check-1>
+        <check-2>rg -n 'BLOCK_UDP_ORIGDST_RUNTIME|BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF|tuple|association_id' src/udp_origdst/mod.rs src/udp_origdst.test.rs</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The helper runtime forwards recovered tuples into the governed datagram path without weakening the ordinary baseline contract.</scenario-1>
+        <scenario-2>The helper runtime leaves explicit tuple-level evidence that another agent can map from recovered destination to governed handoff.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The helper runtime bypasses governed handoff or leaves tuple ownership ambiguous.</scenario-1>
+        <scenario-2>The helper runtime proves only outcome success but not trajectory success from recovered tuple to governed dispatch target.</scenario-2>
+      </failure-scenarios>
+    </V-M-UDP-ORIGDST-RUNTIME>
+    <V-M-UDP-ORIGDST-RUNBOOK MODULE="M-UDP-ORIGDST-RUNBOOK" PRIORITY="high">
+      <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'repo-local helper|setup|cleanup|127.0.0.1:1080|ordinary baseline' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The runbook defines explicit setup and cleanup for repo-local helper interception without harming the preserved baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The runbook leaves host-side interception drift or cleanup ambiguous.</scenario-1>
+      </failure-scenarios>
+    </V-M-UDP-ORIGDST-RUNBOOK>
+    <V-M-UDP-ORIGDST-SMOKE MODULE="M-UDP-ORIGDST-SMOKE" PRIORITY="high">
+      <test-files><file>tests/udp_origdst_smoke.rs</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks>
+        <check-1>rg -n 'two distinct tuples|original-destination recovery|governed handoff|ordinary baseline' docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-2>cargo test udp_origdst_smoke</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The smoke packet proves recovered original destinations and governed handoff for at least two distinct tuples.</scenario-1>
+        <scenario-2>The smoke packet separately proves the ordinary Telegram message and file path stays healthy during the same wave.</scenario-2>
+        <scenario-3>The smoke packet records recovery evidence and governed-handoff evidence per tuple instead of one blended success summary.</scenario-3>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The smoke packet recovers only one tuple or hides destination recovery behind opaque logs.</scenario-1>
+        <scenario-2>The smoke packet is green only because the ordinary baseline regressed.</scenario-2>
+        <scenario-3>The smoke packet names two tuples but proves recovery or governed handoff for only one of them.</scenario-3>
+      </failure-scenarios>
+    </V-M-UDP-ORIGDST-SMOKE>
+    <V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE MODULE="M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE" PRIORITY="high">
+      <test-files><file>docs/verification-plan.xml</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'origdst voice|already logged-in|repo-local helper smoke|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The repo-local helper voice packet is explicitly downstream of green original-destination smoke and the ordinary logged-in baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The repo-local helper voice packet is spent before smoke is green or reopens a second auth window.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE>
+    <V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE MODULE="M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE" PRIORITY="high">
+      <test-files><file>docs/verification-plan.xml</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'origdst video|already logged-in|repo-local helper smoke|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The repo-local helper video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The repo-local helper video packet silently inherits voice or bypasses smoke-first policy.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE>
+    <V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON MODULE="M-TELEGRAM-CALLS-ORIGDST-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-34|Phase-39|Phase-40|origdst voice|origdst video' README.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison keeps the old direct-media verdict and the arbitrary-UDP helper boundaries visible while evaluating the repo-local helper packets.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison forgets either the old direct-media verdict or the blocked arbitrary-UDP boundary packets.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON>
+    <V-M-TELEGRAM-CALLS-ORIGDST-DECISION MODULE="M-TELEGRAM-CALLS-ORIGDST-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'origdst decision|127.0.0.1:1080|Phase-40|Phase-34' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision stays bounded to the repo-local helper arbitrary-UDP branch and preserves the ordinary baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ORIGDST-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -6332,6 +6468,29 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsArbitraryUdpWave; expected-evidence=preserved ordinary baseline, explicit fixed-tuple smoke boundary, one exact arbitrary-UDP tech choice, green multi-tuple arbitrary-UDP smoke with explicit distinct tuples and destination-recovery proof, and separate arbitrary voice/video packets; observed-evidence=phase artifacts, operator evidence, smoke outcome, distinct-tuple packet, and arbitrary-UDP calls packets; first-divergent-block=first missing arbitrary-UDP tech, runbook, smoke, distinct-tuple proof, voice, video, or comparison marker; next-action=repair that exact arbitrary-UDP layer before spending more calls attempts</failure-packet-template>
     </LV-031>
+    <LV-032 NAME="TelegramCallsRepoLocalOrigDstWave" PRIORITY="high">
+      <scope>Phase-41 repo-local helper branch after the Phase-40 missing-helper boundary was frozen.</scope>
+      <commands>
+        <command-1>keep the preserved normal Telegram Desktop baseline at `127.0.0.1:1080` untouched</command-1>
+        <command-2>keep the blocked-by-missing-helper Phase-40 packet explicitly visible</command-2>
+        <command-3>define one repo-local helper contract plus Linux original-destination adapter only</command-3>
+        <command-4>define one bounded repo-local helper runbook and runtime profile</command-4>
+        <command-5>prove repo-local helper smoke with recovered original destinations and at least two distinct tuples before any new call packet</command-5>
+        <command-6>run one repo-local helper voice packet</command-6>
+        <command-7>run one separate repo-local helper video packet</command-7>
+        <command-8>compare the repo-local helper packets against Phase-34, Phase-39, and Phase-40 boundaries</command-8>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave never requires a second Telegram auth/bootstrap window.</evidence-1>
+        <evidence-2>The wave keeps ordinary Telegram baseline preservation explicit and separate from new calls work.</evidence-2>
+        <evidence-3>Repo-local helper smoke proves original-destination recovery and governed handoff for at least two distinct tuples.</evidence-3>
+        <evidence-4>Voice and video remain separate packets.</evidence-4>
+        <evidence-5>The comparison packet says whether positive evidence first appeared on governed path, still outside it, or nowhere.</evidence-5>
+        <evidence-6>The smoke packet records the recovered tuples explicitly and keeps them separate from any later Telegram voice/video tuples.</evidence-6>
+        <evidence-7>The wave proves tuple-level recovery and tuple-level governed handoff, not just a single blended helper success message.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsRepoLocalOrigDstWave; expected-evidence=preserved ordinary baseline, explicit blocked Phase-40 boundary, one exact repo-local helper contract and Linux adapter, green multi-tuple original-destination smoke, and separate repo-local helper voice/video packets; observed-evidence=phase artifacts, helper evidence, smoke outcome, recovered-tuple packet, and repo-local helper calls packets; first-divergent-block=first missing helper-contract, Linux-adapter, smoke, tuple-proof, voice, video, or comparison marker; next-action=repair that exact repo-local-helper layer before spending more calls attempts</failure-packet-template>
+    </LV-032>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -7071,6 +7230,30 @@ PY</command-3>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-40; expected-evidence=execution-ready arbitrary-UDP calls wave with preserved ordinary baseline, explicit fixed-tuple smoke boundary, one exact arbitrary-UDP tech choice, green multi-tuple arbitrary-UDP smoke with distinct-tuple and destination-recovery proof, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, operator runbook, verification coverage, and execution packet; first-divergent-block=first missing arbitrary-UDP gate requirement; next-action=repair the missing Phase-40 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-40>
+    <Gate-Phase-41 PHASE="Phase-41">
+      <goal>The project has an execution-ready repo-local helper branch that proves original-destination recovery and governed handoff for multiple UDP tuples before any new Telegram calls packet.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-41|M-ARBITRARY-UDP-HELPER-HYPOTHESIS|M-TELEGRAM-CALLS-ORIGDST-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-032|127.0.0.1:1080|two distinct tuples|original-destination recovery|Phase-40|Phase-34|no second auth' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the already-working ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the blocked-by-missing-helper Phase-40 packet explicit.</evidence-2>
+        <evidence-3>The gate requires one exact repo-local helper contract plus Linux adapter and runtime separation.</evidence-3>
+        <evidence-4>The gate requires green repo-local helper smoke before any new calls packet.</evidence-4>
+        <evidence-5>The gate requires explicit original-destination recovery and governed handoff proof for at least two distinct tuples.</evidence-5>
+        <evidence-6>The gate requires separate voice and video packets plus a bounded final decision.</evidence-6>
+        <evidence-7>The gate rejects blended tuple evidence; each tuple must show recovery and governed handoff independently.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-41; expected-evidence=execution-ready repo-local helper arbitrary-UDP wave with preserved ordinary baseline, explicit blocked Phase-40 boundary, one exact helper contract, Linux-adapter separation, green multi-tuple recovery smoke, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, helper contract, verification coverage, and execution packet; first-divergent-block=first missing repo-local-helper gate requirement; next-action=repair the missing Phase-41 artifact before executing the wave</failure-packet-template>
+    </Gate-Phase-41>
   </PhaseGates>
 
   <FailurePackets>

@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.42">
+  <Project NAME="n0wss" VERSION="0.2.44">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2702,7 +2702,7 @@
         <fn-freezeArbitraryUdpRuntimeProfile PURPOSE="Freeze the arbitrary-UDP runtime and destination-recovery profile." />
       </annotations>
     </M-ARBITRARY-UDP-RUNTIME-PROFILE>
-    <M-ARBITRARY-UDP-SMOKE NAME="ArbitraryUdpSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-ARBITRARY-UDP-SMOKE NAME="ArbitraryUdpSmoke" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Prove arbitrary-destination UDP interception outside Telegram UI before any real calls packet is spent.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-ARBITRARY-UDP-RUNTIME-PROFILE, M-ARBITRARY-UDP-RUNBOOK</depends>
@@ -2711,7 +2711,7 @@
         <fn-runArbitraryUdpSmoke PURPOSE="Prove arbitrary-destination UDP recovery and governed handoff before Telegram UI is reused." />
       </annotations>
     </M-ARBITRARY-UDP-SMOKE>
-    <M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE NAME="TelegramCallsArbitraryVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE NAME="TelegramCallsArbitraryVoiceWave" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after arbitrary-UDP smoke is green.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-ARBITRARY-UDP-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
@@ -2720,7 +2720,7 @@
         <fn-runTelegramCallsArbitraryVoiceWave PURPOSE="Run one bounded voice wave after arbitrary-UDP smoke is green." />
       </annotations>
     </M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE>
-    <M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE NAME="TelegramCallsArbitraryVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE NAME="TelegramCallsArbitraryVideoWave" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded video attempt on the same arbitrary-UDP branch without inheriting the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE</depends>
@@ -2729,7 +2729,7 @@
         <fn-runTelegramCallsArbitraryVideoWave PURPOSE="Run one bounded video wave after the arbitrary-UDP voice wave." />
       </annotations>
     </M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE>
-    <M-TELEGRAM-CALLS-ARBITRARY-COMPARISON NAME="TelegramCallsArbitraryComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-COMPARISON NAME="TelegramCallsArbitraryComparison" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Compare arbitrary-UDP packets against Phase-34 and the Phase-39 fixed-tuple smoke boundary.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE, M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE</depends>
@@ -2738,7 +2738,7 @@
         <fn-compareTelegramCallsArbitraryPackets PURPOSE="Compare arbitrary-UDP packets against old direct-media and fixed-tuple smoke boundaries." />
       </annotations>
     </M-TELEGRAM-CALLS-ARBITRARY-COMPARISON>
-    <M-TELEGRAM-CALLS-ARBITRARY-DECISION NAME="TelegramCallsArbitraryDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-ARBITRARY-DECISION NAME="TelegramCallsArbitraryDecision" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Issue the bounded decision after the arbitrary-destination UDP calls branch.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-ARBITRARY-COMPARISON</depends>
@@ -2747,6 +2747,105 @@
         <fn-issueTelegramCallsArbitraryDecision PURPOSE="Issue the bounded final decision after the arbitrary-destination UDP calls branch." />
       </annotations>
     </M-TELEGRAM-CALLS-ARBITRARY-DECISION>
+    <M-ARBITRARY-UDP-HELPER-HYPOTHESIS NAME="ArbitraryUdpHelperHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the missing repo-local helper runtime as the next exact blocker above the arbitrary-UDP branch.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-ARBITRARY-DECISION, M-ARBITRARY-UDP-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-ARBITRARY-UDP-HELPER-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeArbitraryUdpHelperHypothesis PURPOSE="Freeze the repo-local helper-only boundary for arbitrary UDP recovery." />
+      </annotations>
+    </M-ARBITRARY-UDP-HELPER-HYPOTHESIS>
+    <M-PHASE40-SUPERSEDE NAME="Phase40Supersede" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the Phase-40 docs-only packet as valid but blocked by the missing repo-local helper runtime.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-ARBITRARY-UDP-HELPER-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE40-SUPERSEDE</verification-ref>
+      <annotations>
+        <fn-freezePhase40Supersede PURPOSE="Keep the blocked-by-missing-helper Phase-40 packet visible as a bounded boundary." />
+      </annotations>
+    </M-PHASE40-SUPERSEDE>
+    <M-UDP-ORIGDST-CONTRACT NAME="UdpOrigDstContract" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Define the repo-local helper contract for transparently intercepted UDP, original-destination recovery, and governed handoff.</purpose>
+      <path>src/udp_origdst/mod.rs</path>
+      <depends>M-ARBITRARY-UDP-TECH-DECISION, M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-SESSION-MANAGER</depends>
+      <verification-ref>V-M-UDP-ORIGDST-CONTRACT</verification-ref>
+      <annotations>
+        <fn-defineUdpOrigDstContract PURPOSE="Define the repo-local original-destination helper contract." />
+      </annotations>
+    </M-UDP-ORIGDST-CONTRACT>
+    <M-UDP-ORIGDST-LINUX-ADAPTER NAME="UdpOrigDstLinuxAdapter" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Isolate Linux-specific socket and original-destination recovery behavior for the repo-local helper.</purpose>
+      <path>src/udp_origdst/linux.rs</path>
+      <depends>M-UDP-ORIGDST-CONTRACT</depends>
+      <verification-ref>V-M-UDP-ORIGDST-LINUX-ADAPTER</verification-ref>
+      <annotations>
+        <fn-recoverLinuxOrigDst PURPOSE="Recover original UDP destination tuples through Linux-specific socket surfaces." />
+      </annotations>
+    </M-UDP-ORIGDST-LINUX-ADAPTER>
+    <M-UDP-ORIGDST-RUNTIME NAME="UdpOrigDstRuntime" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Implement the repo-local helper runtime that recovers original UDP destinations and forwards normalized tuples into the governed datagram path.</purpose>
+      <path>src/udp_origdst/mod.rs</path>
+      <depends>M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-LINUX-ADAPTER, M-DATAGRAM-SESSION-MANAGER, M-OBS</depends>
+      <verification-ref>V-M-UDP-ORIGDST-RUNTIME</verification-ref>
+      <annotations>
+        <fn-runUdpOrigDstRuntime PURPOSE="Run the repo-local helper runtime for recovered UDP tuples." />
+      </annotations>
+    </M-UDP-ORIGDST-RUNTIME>
+    <M-UDP-ORIGDST-RUNBOOK NAME="UdpOrigDstRunbook" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the exact host-side interception setup and cleanup runbook for the repo-local helper.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-UDP-ORIGDST-CONTRACT, M-ARBITRARY-UDP-RUNBOOK</depends>
+      <verification-ref>V-M-UDP-ORIGDST-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-defineUdpOrigDstRunbook PURPOSE="Define setup and cleanup for the repo-local original-destination helper." />
+      </annotations>
+    </M-UDP-ORIGDST-RUNBOOK>
+    <M-UDP-ORIGDST-SMOKE NAME="UdpOrigDstSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Prove repo-local original-destination recovery and governed handoff for more than one UDP tuple before any Telegram calls packet is spent.</purpose>
+      <path>tests/udp_origdst_smoke.rs</path>
+      <depends>M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, M-UDP-ORIGDST-RUNBOOK</depends>
+      <verification-ref>V-M-UDP-ORIGDST-SMOKE</verification-ref>
+      <annotations>
+        <fn-runUdpOrigDstSmoke PURPOSE="Prove original-destination recovery and governed handoff for multiple UDP tuples." />
+      </annotations>
+    </M-UDP-ORIGDST-SMOKE>
+    <M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE NAME="TelegramCallsOrigDstVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded voice attempt on the ordinary logged-in Desktop window only after repo-local helper smoke is green.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-UDP-ORIGDST-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsOrigDstVoiceWave PURPOSE="Run one bounded voice wave after repo-local helper smoke is green." />
+      </annotations>
+    </M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE>
+    <M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE NAME="TelegramCallsOrigDstVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded video attempt on the same repo-local helper branch without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsOrigDstVideoWave PURPOSE="Run one bounded video wave after the repo-local helper voice wave." />
+      </annotations>
+    </M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE>
+    <M-TELEGRAM-CALLS-ORIGDST-COMPARISON NAME="TelegramCallsOrigDstComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare repo-local helper call packets against the old direct-media and arbitrary-UDP boundary packets.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE, M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramCallsOrigDstPackets PURPOSE="Compare repo-local helper call packets against the old boundary packets." />
+      </annotations>
+    </M-TELEGRAM-CALLS-ORIGDST-COMPARISON>
+    <M-TELEGRAM-CALLS-ORIGDST-DECISION NAME="TelegramCallsOrigDstDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded decision after the repo-local helper arbitrary-UDP calls branch.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-ORIGDST-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsOrigDstDecision PURPOSE="Issue the bounded final decision after the repo-local helper arbitrary-UDP calls branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-ORIGDST-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
