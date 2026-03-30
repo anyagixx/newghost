@@ -1484,6 +1484,40 @@ Phase-34 video attribution packet on 2026-03-30:
 - bounded reading:
   despite the loopback asymmetry, the first positive non-UI evidence again appeared outside the governed SOCKS envelope, so the video packet converges on the same direct-media-outside-SOCKS class as voice rather than on another transport defect inside n0wss
 
+### Phase-35 Telegram Forced Topology Profile
+
+Exact `Phase-35` topology delta:
+
+- preserve the normal operator baseline exactly as it is:
+  Telegram Desktop keeps its already-working `SOCKS5 127.0.0.1:1080` path for ordinary text messages, media files, and large files outside the experiment window
+- change only one variable:
+  run one isolated Telegram Desktop attempt inside a dedicated Linux network namespace whose egress is forced through a transparent local capture-and-forward surface instead of relying only on Telegram's own SOCKS-aware behavior
+- the exact first forced-topology candidate is:
+  Linux `ip netns` isolation for the Telegram process
+  one dedicated `veth` pair between host and namespace
+  one namespace-local default route through that `veth`
+  one host-side transparent forcing surface for the isolated namespace only
+- what stays fixed from Phase-34:
+  same workstation
+  same WSS server
+  same preserved normal Desktop baseline
+  same bounded capture families
+  same server-side correlation contract
+- what changes relative to Phase-34:
+  Telegram call media is no longer allowed to choose ordinary host egress directly from the default workstation network namespace
+  the experiment shifts from app-declared SOCKS use to topology-enforced containment
+
+Bounded interpretation rule:
+
+- this profile does not yet claim success or require a new n0wss protocol
+- it asks only one new question:
+  if Telegram Desktop is forced into an isolated topology class, does call-media attribution remain `direct-media outside SOCKS`, change to a governed-path class, or remain outside the controllable user-space envelope
+
+Safety rule:
+
+- do not repoint or replace the ordinary `127.0.0.1:1080` Desktop path during normal use
+- any namespace, `veth`, firewall, or transparent-forwarding surface created for `Phase-35` must be experiment-local and removable without touching the preserved ordinary baseline
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
