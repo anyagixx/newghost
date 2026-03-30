@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.51">
+<DevelopmentPlan VERSION="0.2.52">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7279,7 +7279,7 @@
       </observability>
       <verification-ref>V-M-UDP-ORIGDST-SMOKE</verification-ref>
     </M-UDP-ORIGDST-SMOKE>
-    <M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE NAME="TelegramCallsOrigDstVoiceWave" TYPE="CORE_LOGIC" LAYER="44" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE NAME="TelegramCallsOrigDstVoiceWave" TYPE="CORE_LOGIC" LAYER="44" ORDER="8" STATUS="superseded">
       <contract>
         <purpose>Run one bounded Telegram voice attempt on the ordinary logged-in Desktop window only after repo-local original-destination smoke is green.</purpose>
         <inputs>
@@ -7301,7 +7301,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE</verification-ref>
     </M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE>
-    <M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE NAME="TelegramCallsOrigDstVideoWave" TYPE="CORE_LOGIC" LAYER="44" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE NAME="TelegramCallsOrigDstVideoWave" TYPE="CORE_LOGIC" LAYER="44" ORDER="9" STATUS="superseded">
       <contract>
         <purpose>Run one bounded Telegram video attempt on the same repo-local helper branch without inheriting the voice result.</purpose>
         <inputs>
@@ -7322,7 +7322,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE</verification-ref>
     </M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE>
-    <M-TELEGRAM-CALLS-ORIGDST-COMPARISON NAME="TelegramCallsOrigDstComparison" TYPE="CORE_LOGIC" LAYER="44" ORDER="10" STATUS="planned">
+    <M-TELEGRAM-CALLS-ORIGDST-COMPARISON NAME="TelegramCallsOrigDstComparison" TYPE="CORE_LOGIC" LAYER="44" ORDER="10" STATUS="superseded">
       <contract>
         <purpose>Compare repo-local helper call packets against the old direct-media and arbitrary-UDP boundary packets.</purpose>
         <inputs>
@@ -7344,7 +7344,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-ORIGDST-COMPARISON>
-    <M-TELEGRAM-CALLS-ORIGDST-DECISION NAME="TelegramCallsOrigDstDecision" TYPE="ENTRY_POINT" LAYER="44" ORDER="11" STATUS="planned">
+    <M-TELEGRAM-CALLS-ORIGDST-DECISION NAME="TelegramCallsOrigDstDecision" TYPE="ENTRY_POINT" LAYER="44" ORDER="11" STATUS="superseded">
       <contract>
         <purpose>Issue the bounded decision after the repo-local helper arbitrary-UDP calls branch.</purpose>
         <inputs>
@@ -7366,6 +7366,251 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ORIGDST-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-ORIGDST-DECISION>
+    <M-ORIGDST-LAUNCH-HYPOTHESIS NAME="OrigDstLaunchHypothesis" TYPE="UTILITY" LAYER="45" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the new truth-boundary that repo-local origdst runtime and smoke are green, but live calls remain blocked by the missing operator-facing launch surface.</purpose>
+        <inputs>
+          <input-1>The green repo-local helper smoke packet.</input-1>
+          <input-2>The blocked repo-local helper voice-wave boundary.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An explicit live-launch blocker packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-UDP-ORIGDST-SMOKE, M-TELEGRAM-CALLS-ORIGDST-DECISION</depends>
+      <observability>
+        <log-prefix>[OrigDstLaunchHypothesis]</log-prefix>
+        <critical-block>BLOCK_ORIGDST_LAUNCH_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-ORIGDST-LAUNCH-HYPOTHESIS</verification-ref>
+    </M-ORIGDST-LAUNCH-HYPOTHESIS>
+    <M-PHASE41-LAUNCH-BOUNDARY NAME="Phase41LaunchBoundary" TYPE="UTILITY" LAYER="45" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Freeze the old Phase-41 voice/video tail as blocked by the missing live helper launch surface so execution does not treat it as already runnable.</purpose>
+        <inputs>
+          <input-1>The explicit launch blocker packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A visible blocked Phase-41 tail boundary.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-ORIGDST-LAUNCH-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase41LaunchBoundary]</log-prefix>
+        <critical-block>BLOCK_PHASE41_LAUNCH_BOUNDARY</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE41-LAUNCH-BOUNDARY</verification-ref>
+    </M-PHASE41-LAUNCH-BOUNDARY>
+    <M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT NAME="OrigDstLiveEntrypointContract" TYPE="ENTRY_POINT" LAYER="45" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define one governed process entrypoint that binds the repo-local helper listener, runs origdst recovery, and stays observable for bounded packet windows.</purpose>
+        <inputs>
+          <input-1>The approved origdst helper contract.</input-1>
+          <input-2>The existing CLI runtime surface.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An approved live helper entrypoint contract.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/cli/mod.rs</file-1>
+        <file-2>src/cli/mod.test.rs</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-UDP-ORIGDST-CONTRACT, M-CLI</depends>
+      <observability>
+        <log-prefix>[OrigDstLiveEntrypoint]</log-prefix>
+        <critical-block>BLOCK_ORIGDST_LIVE_ENTRYPOINT</critical-block>
+      </observability>
+      <verification-ref>V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT</verification-ref>
+    </M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT>
+    <M-ORIGDST-LIVE-CONFIG-SHAPE NAME="OrigDstLiveConfigShape" TYPE="UTILITY" LAYER="45" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Define exact config and runtime arguments for the live helper launch without weakening the preserved Telegram baseline.</purpose>
+        <inputs>
+          <input-1>The live helper entrypoint contract.</input-1>
+          <input-2>The repo-local helper runbook.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An approved live helper config shape.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/config/mod.rs</file-1>
+        <file-2>src/config/mod.test.rs</file-2>
+        <file-3>docs/OPERATORS.md</file-3>
+      </target-files>
+      <depends>M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-UDP-ORIGDST-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[OrigDstLiveConfigShape]</log-prefix>
+        <critical-block>BLOCK_ORIGDST_LIVE_CONFIG_SHAPE</critical-block>
+      </observability>
+      <verification-ref>V-M-ORIGDST-LIVE-CONFIG-SHAPE</verification-ref>
+    </M-ORIGDST-LIVE-CONFIG-SHAPE>
+    <M-ORIGDST-LIVE-LAUNCHER NAME="OrigDstLiveLauncher" TYPE="CORE_LOGIC" LAYER="45" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Implement the governed live launcher that starts the repo-local helper loop, emits stable launch anchors, and stays alive until cancellation.</purpose>
+        <inputs>
+          <input-1>The live helper entrypoint contract.</input-1>
+          <input-2>The repo-local helper runtime.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A runnable live helper launcher.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/cli/mod.rs</file-1>
+        <file-2>src/cli/mod.test.rs</file-2>
+      </target-files>
+      <depends>M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-UDP-ORIGDST-RUNTIME, M-OBS</depends>
+      <observability>
+        <log-prefix>[OrigDstLiveLauncher]</log-prefix>
+        <critical-block>BLOCK_ORIGDST_LIVE_LAUNCHER</critical-block>
+      </observability>
+      <verification-ref>V-M-ORIGDST-LIVE-LAUNCHER</verification-ref>
+    </M-ORIGDST-LIVE-LAUNCHER>
+    <M-ORIGDST-LIVE-RUNBOOK NAME="OrigDstLiveRunbook" TYPE="INTEGRATION" LAYER="45" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Define the operator packet for launching the live helper, applying temporary interception, collecting evidence, and cleaning up without weakening the preserved baseline.</purpose>
+        <inputs>
+          <input-1>The live helper config shape.</input-1>
+          <input-2>The repo-local helper runbook.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An approved live helper operator runbook.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-ORIGDST-LIVE-CONFIG-SHAPE, M-UDP-ORIGDST-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[OrigDstLiveRunbook]</log-prefix>
+        <critical-block>BLOCK_ORIGDST_LIVE_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-ORIGDST-LIVE-RUNBOOK</verification-ref>
+    </M-ORIGDST-LIVE-RUNBOOK>
+    <M-ORIGDST-LIVE-SMOKE NAME="OrigDstLiveSmoke" TYPE="CORE_LOGIC" LAYER="45" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Prove the live helper launch surface outside Telegram UI before any new call packet is spent.</purpose>
+        <inputs>
+          <input-1>The live helper launcher.</input-1>
+          <input-2>The live helper runbook.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A green or blocked live-launch smoke packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/cli/mod.test.rs</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-ORIGDST-LIVE-LAUNCHER, M-ORIGDST-LIVE-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[OrigDstLiveSmoke]</log-prefix>
+        <critical-block>BLOCK_ORIGDST_LIVE_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-ORIGDST-LIVE-SMOKE</verification-ref>
+    </M-ORIGDST-LIVE-SMOKE>
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE NAME="TelegramCallsLiveOrigDstVoice" TYPE="CORE_LOGIC" LAYER="45" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded voice attempt in the ordinary logged-in Telegram window only after live helper launch smoke is green.</purpose>
+        <inputs>
+          <input-1>The green live helper launch smoke packet.</input-1>
+          <input-2>The bounded server-correlation packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded live-launch origdst voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-ORIGDST-LIVE-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsLiveOrigDstVoice]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_LIVE_ORIGDST_VOICE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE</verification-ref>
+    </M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE>
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO NAME="TelegramCallsLiveOrigDstVideo" TYPE="CORE_LOGIC" LAYER="45" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded video attempt on the same live launch branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded live-launch origdst voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded live-launch origdst video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsLiveOrigDstVideo]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_LIVE_ORIGDST_VIDEO</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO</verification-ref>
+    </M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO>
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON NAME="TelegramCallsLiveOrigDstComparison" TYPE="CORE_LOGIC" LAYER="45" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Compare live-launch origdst packets against the old direct-media verdict, fixed-tuple boundary, and test-only repo-local helper smoke boundary.</purpose>
+        <inputs>
+          <input-1>The bounded live-launch origdst voice packet.</input-1>
+          <input-2>The bounded live-launch origdst video packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded live-launch comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE, M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO</depends>
+      <observability>
+        <log-prefix>[TelegramCallsLiveOrigDstComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_LIVE_ORIGDST_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON>
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION NAME="TelegramCallsLiveOrigDstDecision" TYPE="ENTRY_POINT" LAYER="45" ORDER="11" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded decision after the live-launch repo-local helper branch.</purpose>
+        <inputs>
+          <input-1>The bounded live-launch comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded live-launch origdst decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsLiveOrigDstDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_LIVE_ORIGDST_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION>
   </Modules>
 
   <DataFlow>
@@ -8589,17 +8834,37 @@
       <step-5 module="M-UDP-ORIGDST-RUNTIME" status="done" verification="V-M-UDP-ORIGDST-RUNTIME">Implement the repo-local helper runtime for recovered UDP tuples</step-5>
       <step-6 module="M-UDP-ORIGDST-RUNBOOK" status="done" verification="V-M-UDP-ORIGDST-RUNBOOK">Define the exact host-side interception setup and cleanup runbook</step-6>
       <step-7 module="M-UDP-ORIGDST-SMOKE" status="done" verification="V-M-UDP-ORIGDST-SMOKE">Prove repo-local original-destination recovery and governed handoff for more than one tuple</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE">Run one bounded voice attempt only after repo-local helper smoke is green</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-9>
-      <step-10 module="M-TELEGRAM-CALLS-ORIGDST-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON">Compare repo-local helper packets against the old direct-media and arbitrary-UDP boundary packets</step-10>
-      <step-11 module="M-TELEGRAM-CALLS-ORIGDST-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-DECISION">Issue the bounded decision after the repo-local helper arbitrary-UDP calls branch</step-11>
+      <step-8 module="M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE">Run one bounded voice attempt only after repo-local helper smoke is green</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-ORIGDST-COMPARISON" status="superseded" verification="V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON">Compare repo-local helper packets against the old direct-media and arbitrary-UDP boundary packets</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-ORIGDST-DECISION" status="superseded" verification="V-M-TELEGRAM-CALLS-ORIGDST-DECISION">Issue the bounded decision after the repo-local helper arbitrary-UDP calls branch</step-11>
       <note-1>Phase-41 starts only after the preserved ordinary Telegram Desktop baseline, the Phase-34 direct-media verdict, and the blocked-by-missing-helper Phase-40 packet are all visible together.</note-1>
       <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
       <note-3>No Telegram voice or video packet is valid before repo-local helper smoke proves original-destination recovery and governed handoff for at least two distinct tuples.</note-3>
       <note-4>The repo-local helper branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files throughout the wave.</note-4>
       <note-5>Linux-specific destination recovery must remain isolated from generic helper runtime logic so the verification story stays explicit and debuggable.</note-5>
       <note-6>On 2026-03-31 the first implementation packet made the helper boundary visible in operator-facing docs, exported a new `src/udp_origdst` module at the crate root, and froze compile-safe contract and Linux-adapter skeletons before any runtime behavior was added.</note-6>
+      <note-7>Later on the same date the repo-local helper runtime and smoke turned green in tests, but the first attempted live voice wave was blocked before any call packet because no operator-facing launch surface existed to hold the helper listener beside the ordinary logged-in Telegram window during a bounded packet window.</note-7>
     </Phase-41>
+    <Phase-42 name="Repo-Local Helper Live Launch Surface" status="planned">
+      <goal>Implement one governed live launch surface for the repo-local origdst helper so bounded voice and video waves can run beside the ordinary logged-in Telegram baseline without reopening auth or weakening `127.0.0.1:1080`.</goal>
+      <step-1 module="M-ORIGDST-LAUNCH-HYPOTHESIS" status="planned" verification="V-M-ORIGDST-LAUNCH-HYPOTHESIS">Freeze the live-launch blocker above the green repo-local helper smoke packet</step-1>
+      <step-2 module="M-PHASE41-LAUNCH-BOUNDARY" status="planned" verification="V-M-PHASE41-LAUNCH-BOUNDARY">Explicitly freeze the old Phase-41 tail as blocked by the missing live helper launch surface</step-2>
+      <step-3 module="M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT" status="planned" verification="V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT">Define one governed live entrypoint for the repo-local helper process surface</step-3>
+      <step-4 module="M-ORIGDST-LIVE-CONFIG-SHAPE" status="planned" verification="V-M-ORIGDST-LIVE-CONFIG-SHAPE">Define the exact config and runtime arguments for live helper launch</step-4>
+      <step-5 module="M-ORIGDST-LIVE-LAUNCHER" status="planned" verification="V-M-ORIGDST-LIVE-LAUNCHER">Implement the governed live helper launcher and lifecycle anchors</step-5>
+      <step-6 module="M-ORIGDST-LIVE-RUNBOOK" status="planned" verification="V-M-ORIGDST-LIVE-RUNBOOK">Define the operator packet for live helper launch, interception, and cleanup</step-6>
+      <step-7 module="M-ORIGDST-LIVE-SMOKE" status="planned" verification="V-M-ORIGDST-LIVE-SMOKE">Prove the live helper launch surface outside Telegram UI before any call packet is spent</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window after live-launch smoke is green</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON">Compare the live-launch packets against Phase-34, Phase-39, Phase-40, and the test-only Phase-41 boundary</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION">Issue the bounded decision after the live-launch repo-local helper branch</step-11>
+      <note-1>Phase-42 starts only after the preserved ordinary Telegram Desktop baseline, the Phase-34 direct-media verdict, the valid-but-insufficient Phase-39 boundary, the superseded Phase-40 boundary, and the green Phase-41 smoke packet are all visible together.</note-1>
+      <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
+      <note-3>No Telegram voice or video packet is valid before live helper launch smoke proves process launch, listener bind, tuple recovery, governed handoff, and preserved baseline inside the same bounded packet window.</note-3>
+      <note-4>The live launch surface must remain reversible and must not weaken the already-working `127.0.0.1:1080` path for texts, media files, and large files.</note-4>
+      <note-5>The new branch is specifically about the missing operator-facing launch surface; it must not reopen earlier tuple-recovery or auth/bootstrap branches unless new evidence forces it.</note-5>
+    </Phase-42>
   </ImplementationOrder>
 
   <ExecutionPolicy>
