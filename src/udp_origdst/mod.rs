@@ -1,9 +1,9 @@
 // FILE: src/udp_origdst/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Define the repo-local helper contract for transparently intercepted UDP, original-destination recovery, and governed handoff into the existing datagram path.
-//   SCOPE: Helper configuration, recovered-tuple metadata, helper error taxonomy, Linux-adapter export, governed-handoff trait surface, and repo-local runtime contract helpers.
-//   DEPENDS: async-trait, std, thiserror, src/transport/datagram_contract.rs, src/session/datagram_manager.rs, src/udp_origdst/linux.rs
+//   SCOPE: Helper configuration, recovered-tuple metadata, helper error taxonomy, Linux-adapter export, governed-handoff trait surface, recovered-tuple runtime forwarding, and repo-local runtime contract helpers.
+//   DEPENDS: async-trait, std, thiserror, tracing, src/transport/datagram_contract.rs, src/session/datagram_manager.rs, src/udp_origdst/linux.rs
 //   LINKS: M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, V-M-UDP-ORIGDST-CONTRACT, DF-UDP-ORIGDST-RECOVERY, DF-UDP-ORIGDST-GOVERNED-HANDOFF
 // END_MODULE_CONTRACT
 //
@@ -11,22 +11,25 @@
 //   UdpOrigDstHelperConfig - bounded helper listener and baseline-preserve settings
 //   RecoveredUdpTuple - one transparently intercepted UDP packet plus its recovered original destination metadata
 //   UdpOrigDstError - deterministic repo-local helper contract error surface
+//   UdpOrigDstRuntime - bounded runtime that validates one recovered tuple and forwards it into the governed handoff target
 //   UdpOrigDstGovernedHandoff - bounded runtime contract for forwarding one recovered tuple into the governed datagram path
 //   UdpOrigDstRecoverySurface - bounded contract over recovery of one original destination tuple
 //   tupleEvidenceLabel - emit one stable tuple evidence label for logs and smoke packets
+//   forwardRecoveredDatagram - validate one recovered tuple and forward it into the governed handoff target
 //   linux - Linux-specific original-destination recovery surface
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Added the repo-local original-destination helper contract surface so Phase-41 can implement Linux recovery and governed handoff without changing the existing SOCKS5 UDP contract.
+//   LAST_CHANGE: v0.1.1 - Added the bounded repo-local runtime surface so recovered tuples can be validated and forwarded into governed handoff with stable trace anchors.
 // END_CHANGE_SUMMARY
 
 use std::net::SocketAddr;
 
 use async_trait::async_trait;
 use thiserror::Error;
+use tracing::info;
 
-use crate::transport::datagram_contract::DatagramTarget;
+use crate::transport::datagram_contract::{DatagramTarget, MAX_DATAGRAM_PAYLOAD_BYTES};
 
 pub mod linux;
 
@@ -48,6 +51,10 @@ pub struct RecoveredUdpTuple {
     pub payload_len: usize,
 }
 
+pub struct UdpOrigDstRuntime<H> {
+    handoff: H,
+}
+
 #[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum UdpOrigDstError {
     #[error("original-destination tuple recovery failed: {0}")]
@@ -56,6 +63,10 @@ pub enum UdpOrigDstError {
     GovernedHandoffFailed(String),
     #[error("invalid recovered tuple: {0}")]
     InvalidRecoveredTuple(String),
+    #[error("recovered payload length mismatch: expected {expected}, got {actual}")]
+    PayloadLengthMismatch { expected: usize, actual: usize },
+    #[error("recovered payload exceeds maximum supported size")]
+    PayloadTooLarge,
 }
 
 #[async_trait]
@@ -75,6 +86,63 @@ pub trait UdpOrigDstRecoverySurface: Send + Sync + 'static {
         payload_len: usize,
         original_target: DatagramTarget,
     ) -> Result<RecoveredUdpTuple, UdpOrigDstError>;
+}
+
+impl<H> UdpOrigDstRuntime<H>
+where
+    H: UdpOrigDstGovernedHandoff,
+{
+    pub fn new(handoff: H) -> Self {
+        Self { handoff }
+    }
+
+    // START_CONTRACT: forwardRecoveredDatagram
+    //   PURPOSE: Validate one recovered tuple and forward its payload into the governed handoff target with stable tuple-level trace anchors.
+    //   INPUTS: { tuple: RecoveredUdpTuple - recovered tuple metadata from the repo-local helper, payload: Vec<u8> - intercepted UDP payload bytes }
+    //   OUTPUTS: { Result<(), UdpOrigDstError> - ok when the recovered tuple reaches the governed handoff target }
+    //   SIDE_EFFECTS: [emits stable runtime and governed-handoff log anchors]
+    //   LINKS: [M-UDP-ORIGDST-RUNTIME, V-M-UDP-ORIGDST-RUNTIME]
+    // END_CONTRACT: forwardRecoveredDatagram
+    pub async fn forward_recovered_datagram(
+        &self,
+        tuple: RecoveredUdpTuple,
+        payload: Vec<u8>,
+    ) -> Result<(), UdpOrigDstError> {
+        // START_BLOCK_UDP_ORIGDST_RUNTIME
+        if tuple.payload_len != payload.len() {
+            return Err(UdpOrigDstError::PayloadLengthMismatch {
+                expected: tuple.payload_len,
+                actual: payload.len(),
+            });
+        }
+
+        if payload.len() > MAX_DATAGRAM_PAYLOAD_BYTES {
+            return Err(UdpOrigDstError::PayloadTooLarge);
+        }
+
+        let tuple_label = tuple_evidence_label(&tuple);
+        info!(
+            tuple = %tuple_label,
+            target = ?tuple.original_target,
+            payload_len = payload.len(),
+            "[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME] accepted recovered UDP tuple for governed handoff"
+        );
+        // END_BLOCK_UDP_ORIGDST_RUNTIME
+
+        self.handoff
+            .forward_recovered_tuple(tuple.clone(), payload)
+            .await?;
+
+        // START_BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF
+        info!(
+            tuple = %tuple_label,
+            target = ?tuple.original_target,
+            payload_len = tuple.payload_len,
+            "[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF] forwarded recovered UDP tuple into governed handoff"
+        );
+        Ok(())
+        // END_BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF
+    }
 }
 
 // START_CONTRACT: tupleEvidenceLabel
