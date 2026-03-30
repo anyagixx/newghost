@@ -974,6 +974,16 @@ Observed Phase-29 comparison and decision packet on 2026-03-30:
 - bounded decision:
   the tested Telegram Desktop setup remains no-go, and the next justified phase must be Telegram-specific workaround or alternate app-topology work rather than another generic transport repair
 
+### Phase-31 Deeper Workaround Boundary
+
+The completed Phase-30 packet freezes the next question even more narrowly:
+
+1. generic datagram transport remains green baseline evidence and must not be reopened here
+2. topology swaps are no longer the active question because both the SSH-forwarded Desktop route and the truly local `n0wss-client` route already reproduced the same no-go class
+3. the completed Phase-29 and Phase-30 no-go packets remain the historical comparison packet set
+4. Phase-31 may change only one bounded Telegram-specific app variable at a time
+5. the already-green text-message, media-file, and large-file path must stay outside the workaround experiment and must not be regressed by the controller
+
 ### Phase-30 Workaround Hypothesis Boundary
 
 The completed Phase-29 packet freezes the next question narrowly:
