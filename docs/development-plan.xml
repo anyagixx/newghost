@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.37">
+<DevelopmentPlan VERSION="0.2.38">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7632,6 +7632,7 @@
       <note-8>On the same date the helper runtime profile was frozen with an honest boundary: `redsocks` provides generic transparent TCP interception into the preserved host-local SOCKS5 surface at `127.0.0.1:1080`, while `redudp` remains bounded to one fixed synthetic destination tuple per section and therefore cannot yet justify a claim of arbitrary Telegram media UDP interception before helper smoke proves the fixed-destination packet.</note-8>
       <note-9>During the first helper smoke on 2026-03-30 the host-side REDIRECT rule counted the synthetic namespace TCP packet but no helper session reached `redsocks`; the first divergent block was the helper listener bind surface, and the runtime profile was corrected to require helper listeners on the host-side namespace-facing address instead of `127.0.0.1` for redirected namespace packets.</note-9>
       <note-10>After the helper listener-bind fix on 2026-03-30, bounded synthetic helper smoke turned green on both packet classes: transparent TCP reached the governed SOCKS/WSS path, and bounded UDP returned successfully when the helper targeted the deterministic server-side echo tuple `91.99.128.146:55123`; no Telegram UI packet was spent before that smoke turned green.</note-10>
+      <note-11>During the first helper-backed Telegram window on 2026-03-30 the isolated snap launcher still failed before the call packet because the helper-specific `phase37-workdir` had been created as `root:root`; the launcher contract was therefore narrowed to require a user-owned workdir before the `systemd-run --uid=1000` Telegram launch is considered valid.</note-11>
     </Phase-37>
   </ImplementationOrder>
 

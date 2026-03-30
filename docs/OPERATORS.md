@@ -1614,10 +1614,12 @@ Install and safety contract:
    `sudo systemctl disable redsocks`
 4. Preserve the normal Desktop baseline:
    the package install must not repoint or replace the preserved `127.0.0.1:1080` Telegram Desktop path
-5. Remove the helper cleanly if the branch is abandoned:
+5. For snap-backed isolated Telegram waves, any helper-specific `-workdir` must be owned by the unprivileged desktop user before launch:
+   if the directory is created by a root-run setup script, correct it before `systemd-run --uid=1000 ... telegram-desktop -workdir ...`, otherwise Telegram can fail early with `Could not open ... log_startXX.txt`
+6. Remove the helper cleanly if the branch is abandoned:
    `sudo apt-get purge -y redsocks`
    `sudo apt-get autoremove -y`
-6. Cleanup proof for every helper wave:
+7. Cleanup proof for every helper wave:
    `systemctl is-active redsocks || true`
    `systemctl is-enabled redsocks || true`
    any helper-specific config, nftables, iptables, namespace, or temporary files must be removed before the next normal Desktop packet
