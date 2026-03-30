@@ -2261,7 +2261,7 @@
         <fn-freezeTelegramForcedTopologyHypothesis PURPOSE="Freeze the topology-only branch above the Phase-34 attribution verdict." />
       </annotations>
     </M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS>
-    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Freeze one exact forced-routing topology profile for Telegram calls without changing the normal Desktop baseline.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-OPERATOR-CLEANUP, M-TELEGRAM-CAPTURE-TOPOLOGY</depends>

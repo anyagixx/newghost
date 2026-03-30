@@ -5940,7 +5940,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS</verification-ref>
     </M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS>
-    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" LAYER="38" ORDER="2" STATUS="planned">
+    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" LAYER="38" ORDER="2" STATUS="done">
       <contract>
         <purpose>Freeze one exact forced-routing topology variant for Telegram calls without changing the normal Desktop baseline on 127.0.0.1:1080.</purpose>
         <inputs>
@@ -7186,7 +7186,7 @@
     <Phase-35 name="Telegram Forced Media Topology" status="pending">
       <goal>Test one exact forced-routing topology variant for Telegram calls without changing the normal working Desktop baseline and determine whether the direct-media class changes.</goal>
       <step-1 module="M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS">Freeze the new topology-only branch above the Phase-34 attribution verdict</step-1>
-      <step-2 module="M-TELEGRAM-FORCED-TOPOLOGY-PROFILE" status="pending" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE">Freeze one exact forced-routing topology profile without changing the normal Desktop baseline</step-2>
+      <step-2 module="M-TELEGRAM-FORCED-TOPOLOGY-PROFILE" status="done" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE">Freeze one exact forced-routing topology profile without changing the normal Desktop baseline</step-2>
       <step-3 module="M-TELEGRAM-ISOLATED-RUNBOOK" status="pending" verification="V-M-TELEGRAM-ISOLATED-RUNBOOK">Define the isolated Telegram operator runbook for the forced topology wave</step-3>
       <step-4 module="M-TELEGRAM-FORCED-CAPTURE" status="pending" verification="V-M-TELEGRAM-FORCED-CAPTURE">Prepare the bounded forced-topology capture packet</step-4>
       <step-5 module="M-TELEGRAM-FORCED-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-FORCED-VOICE-WAVE">Run one bounded forced-topology Desktop voice wave</step-5>
