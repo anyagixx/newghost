@@ -8083,7 +8083,7 @@
       <step-2 module="M-PHASE38-SUPERSEDE" status="done" verification="V-M-PHASE38-SUPERSEDE">Explicitly supersede the blocked fresh safe-window auth branch from Phase-38</step-2>
       <step-3 module="M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE">Freeze one exact experiment profile that reuses the already logged-in normal Telegram Desktop window</step-3>
       <step-4 module="M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE">Define one exact selective interception surface for direct-media escape traffic only</step-4>
-      <step-5 module="M-TELEGRAM-CALLS-INTERCEPT-SMOKE" status="planned" verification="V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE">Prove selective interception outside Telegram UI before any new call packet is spent</step-5>
+      <step-5 module="M-TELEGRAM-CALLS-INTERCEPT-SMOKE" status="done" verification="V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE">Prove selective interception outside Telegram UI before any new call packet is spent</step-5>
       <step-6 module="M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE">Run one bounded voice attempt in the ordinary logged-in Telegram window while selective interception is active</step-6>
       <step-7 module="M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE">Run one bounded video attempt on the same attached branch without inheriting voice</step-7>
       <step-8 module="M-TELEGRAM-CALLS-ATTACHED-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-COMPARISON">Compare attached-branch packets against Phase-34 and the blocked auth branches from Phase-37 and Phase-38</step-8>
@@ -8093,6 +8093,8 @@
       <note-3>No second Telegram auth/bootstrap window is allowed anywhere in this branch; the experiment attaches only to the already logged-in ordinary Desktop window.</note-3>
       <note-4>No voice or video packet is valid before selective interception smoke proves governed handoff for the targeted direct-egress class outside Telegram UI.</note-4>
       <note-5>Voice and video claims remain split unless the attached comparison packet proves both changed class.</note-5>
+      <note-6>On 2026-03-30 the first Phase-39 selective interception smoke turned green on the ordinary workstation without touching Telegram UI: one host-side `iptables -t nat OUTPUT` redirect for user `1000` and the deterministic UDP tuple `91.99.128.146:55123` fed `redudp`, `redudp` logged `via 127.0.0.1:1080` and `Starting UDP relay`, the synthetic payload `phase39-selective-smoke` returned from `91.99.128.146:55123`, and at the same time `curl --proxy socks5h://127.0.0.1:1080 -I https://example.com` still returned `HTTP/2 200`.</note-6>
+      <note-7>The same smoke packet also narrowed the next blocker honestly: the current `redudp` helper remains fixed-destination-only, so green interception on one deterministic tuple does not yet justify spending a real Telegram voice or video packet that may target arbitrary Telegram media tuples.</note-7>
     </Phase-39>
   </ImplementationOrder>
 
