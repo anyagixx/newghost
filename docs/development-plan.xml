@@ -5227,7 +5227,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS</verification-ref>
     </M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS>
-    <M-TELEGRAM-APP-VARIANT-PROFILE NAME="TelegramAppVariantProfile" TYPE="ENTRY_POINT" LAYER="34" ORDER="2" STATUS="planned">
+    <M-TELEGRAM-APP-VARIANT-PROFILE NAME="TelegramAppVariantProfile" TYPE="ENTRY_POINT" LAYER="34" ORDER="2" STATUS="done">
       <contract>
         <purpose>Freeze one bounded Telegram-specific app variant for the next workaround wave so comparison value is preserved.</purpose>
         <inputs>
@@ -6321,7 +6321,7 @@
     <Phase-31 name="Telegram Deep Workaround Variant" status="pending">
       <goal>Evaluate one bounded Telegram-specific app variant above the preserved green transport baseline and compare it directly against the completed Phase-29 and Phase-30 no-go packets.</goal>
       <step-1 module="M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-DEEP-WORKAROUND-HYPOTHESIS">Freeze the post-Phase-30 deeper-workaround boundary</step-1>
-      <step-2 module="M-TELEGRAM-APP-VARIANT-PROFILE" status="pending" verification="V-M-TELEGRAM-APP-VARIANT-PROFILE">Freeze one bounded Telegram-specific app variant for the next wave</step-2>
+      <step-2 module="M-TELEGRAM-APP-VARIANT-PROFILE" status="done" verification="V-M-TELEGRAM-APP-VARIANT-PROFILE">Freeze one bounded Telegram-specific app variant for the next wave</step-2>
       <step-3 module="M-TELEGRAM-DEEP-CAPTURE" status="pending" verification="V-M-TELEGRAM-DEEP-CAPTURE">Define the bounded capture packet for the app-variant wave</step-3>
       <step-4 module="M-TELEGRAM-VARIANT-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-VARIANT-VOICE-WAVE">Replay one bounded voice attempt on the chosen app variant</step-4>
       <step-5 module="M-TELEGRAM-VARIANT-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-VARIANT-VIDEO-WAVE">Replay one bounded video attempt on the chosen app variant</step-5>
