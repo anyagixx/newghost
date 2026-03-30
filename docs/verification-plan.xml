@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.62">
+<VerificationPlan VERSION="0.2.63">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -112,6 +112,9 @@
     <telegram-helper-smoke-first-rule>Phase-37 must prove the helper with synthetic isolated TCP and UDP smoke before any new Telegram UI packet is spent.</telegram-helper-smoke-first-rule>
     <telegram-helper-destination-proof-rule>Phase-37 synthetic smoke is valid only if destination recovery and governed upstream handoff are both evidenced explicitly; reachability alone is insufficient.</telegram-helper-destination-proof-rule>
     <telegram-helper-package-boundary-rule>If Phase-37 uses an external package, the package name, install command, remove command, and cleanup proof must stay fixed for the whole wave.</telegram-helper-package-boundary-rule>
+    <telegram-calls-safe-baseline-lock-rule>Phase-38 must preserve the already-working ordinary Telegram Desktop baseline at `127.0.0.1:1080` and must not spend calls work by weakening the message or file path.</telegram-calls-safe-baseline-lock-rule>
+    <telegram-calls-safe-auth-rule>Phase-38 must not clone, copy, or reuse the live authenticated Telegram Desktop `tdata` session state after the 2026-03-30 logout incident.</telegram-calls-safe-auth-rule>
+    <telegram-calls-readiness-first-rule>Phase-38 may spend voice or video packets only after a bounded readiness gate proves stable dialogs, no reconnect loop, and no logout prompt in the safe experiment window.</telegram-calls-readiness-first-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5244,6 +5247,158 @@
         <scenario-2>The final decision widens claims beyond the tested helper-backed topology.</scenario-2>
       </failure-scenarios>
     </V-M-TELEGRAM-HELPER-DECISION>
+    <V-M-TELEGRAM-CALLS-SAFE-HYPOTHESIS MODULE="M-TELEGRAM-CALLS-SAFE-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'calls-only|safe branch|ordinary Telegram|127.0.0.1:1080' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The phase stays narrowly scoped to calls work above the already-green ordinary Telegram baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new branch reopens generic transport or ordinary Telegram reachability work.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-SAFE-HYPOTHESIS>
+    <V-M-PHASE37-SAFETY-SUPERSEDE MODULE="M-PHASE37-SAFETY-SUPERSEDE" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/knowledge-graph.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Phase-37|superseded|logout|unsafe' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The old Phase-37 helper bootstrap tail is explicitly non-runnable after the logout incident.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>Unsafe Phase-37 helper work still appears runnable or acceptable after the logout incident.</scenario-1>
+      </failure-scenarios>
+    </V-M-PHASE37-SAFETY-SUPERSEDE>
+    <V-M-TELEGRAM-CALLS-BASELINE-PRESERVE MODULE="M-TELEGRAM-CALLS-BASELINE-PRESERVE" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n '127.0.0.1:1080|baseline|messages|files|preserve' README.md docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The safe calls branch explicitly preserves the already-working ordinary Telegram baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The branch blurs calls work with ordinary Telegram message or file-path changes.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-BASELINE-PRESERVE>
+    <V-M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE MODULE="M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'safe topology|no live-session cloning|calls-only' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The phase names one exact safe calls-only topology and explicitly excludes live-session cloning.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The topology profile still relies on the unsafe copied-session helper path.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE>
+    <V-M-TELEGRAM-CALLS-AUTH-ISOLATION MODULE="M-TELEGRAM-CALLS-AUTH-ISOLATION" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'auth|bootstrap|logout|no cloned tdata|safe window' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The auth/bootstrap contract explicitly prevents touching the live Telegram session state.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The auth/bootstrap contract can still mutate, clone, or invalidate the live session state.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-AUTH-ISOLATION>
+    <V-M-TELEGRAM-CALLS-READINESS-GATE MODULE="M-TELEGRAM-CALLS-READINESS-GATE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'readiness gate|dialogs|reconnect|logout prompt' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>No call packet is allowed before the safe window proves stable dialogs, no reconnect loop, and no logout prompt.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The branch spends voice or video packets before safe readiness is proven.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-READINESS-GATE>
+    <V-M-TELEGRAM-CALLS-VOICE-SAFE-WAVE MODULE="M-TELEGRAM-CALLS-VOICE-SAFE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'voice safe|readiness gate|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The safe voice packet is explicitly downstream of a green readiness gate.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The voice packet is spent before the safe window is stable.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-VOICE-SAFE-WAVE>
+    <V-M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE MODULE="M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'video safe|readiness gate|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The safe video packet stays separate from voice and is explicitly downstream of the same safe readiness contract.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The video packet silently inherits the voice result or bypasses the readiness gate.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE>
+    <V-M-TELEGRAM-CALLS-SAFE-COMPARISON MODULE="M-TELEGRAM-CALLS-SAFE-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Phase-34|Phase-37|safe calls|voice|video' README.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet keeps the old direct-media verdict and the unsafe helper branch visible while evaluating the new safe calls packets.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison forgets either the old direct-media verdict or the unsafe helper branch.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-SAFE-COMPARISON>
+    <V-M-TELEGRAM-CALLS-SAFE-DECISION MODULE="M-TELEGRAM-CALLS-SAFE-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'safe calls-only decision|unsafe Phase-37|127.0.0.1:1080' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision stays bounded to the safe calls-only branch and preserves the already-working baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-SAFE-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -5821,6 +5976,25 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramTransparentHelperWave; expected-evidence=explicit helper lifecycle, green synthetic TCP and UDP smoke, destination recovery plus governed handoff proof, and separate helper-backed voice and video packets; observed-evidence=helper setup output, synthetic smoke evidence, operator summary, workstation captures, and server correlation; first-divergent-block=first missing install, synthetic TCP, synthetic UDP, destination recovery, governed handoff, voice, video, or comparison marker; next-action=repair only that helper layer before another Telegram packet</failure-packet-template>
     </LV-028>
+    <LV-029 NAME="TelegramCallsSafeWave" PRIORITY="high">
+      <scope>Phase-38 safe calls-only branch after the unsafe helper bootstrap path was explicitly superseded.</scope>
+      <commands>
+        <command-1>keep the preserved normal Telegram Desktop baseline at `127.0.0.1:1080` untouched</command-1>
+        <command-2>prove the unsafe Phase-37 helper bootstrap path is explicitly superseded</command-2>
+        <command-3>define one safe calls-only topology and one non-destructive auth/bootstrap contract</command-3>
+        <command-4>prove the readiness gate before any call packet: stable dialogs, no reconnect loop, no logout prompt</command-4>
+        <command-5>run one safe voice packet</command-5>
+        <command-6>run one separate safe video packet</command-6>
+        <command-7>compare the safe calls packets against Phase-34 and unsafe Phase-37 history</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave keeps ordinary Telegram baseline preservation explicit and separate from new calls work.</evidence-1>
+        <evidence-2>The wave never reuses copied live session state from the unsafe helper branch.</evidence-2>
+        <evidence-3>The readiness gate is green before any voice or video packet is spent.</evidence-3>
+        <evidence-4>Voice and video remain separate packets.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsSafeWave; expected-evidence=preserved ordinary baseline, explicit unsafe-branch supersede packet, safe auth/bootstrap contract, green readiness gate, and separate voice/video packets; observed-evidence=phase artifacts, operator evidence, readiness outcome, and safe calls packets; first-divergent-block=first missing safety, readiness, or calls packet; next-action=repair the first unresolved safe-branch layer before spending more calls attempts</failure-packet-template>
+    </LV-029>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -6491,6 +6665,27 @@ PY</command-3>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-37; expected-evidence=execution-ready helper-backed wave with explicit helper lifecycle, green helper smoke, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, helper runbook, verification coverage, and execution packet; first-divergent-block=first missing helper gate requirement; next-action=repair the missing helper artifact before executing the wave</failure-packet-template>
     </Gate-Phase-37>
+    <Gate-Phase-38 PHASE="Phase-38">
+      <goal>The project has an execution-ready safe calls-only branch that preserves the already-working ordinary Telegram baseline and forbids reuse of unsafe helper bootstrap state.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-38|M-TELEGRAM-CALLS-SAFE-HYPOTHESIS|M-TELEGRAM-CALLS-SAFE-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-029|logout|unsafe|127.0.0.1:1080|readiness gate|no cloned tdata' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the already-working ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps unsafe Phase-37 helper bootstrap explicitly superseded.</evidence-2>
+        <evidence-3>The gate requires a non-destructive auth/bootstrap contract plus a green readiness gate before any calls packet.</evidence-3>
+        <evidence-4>The gate requires separate safe voice and video packets plus a bounded final decision.</evidence-4>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-38; expected-evidence=execution-ready safe calls-only wave with preserved ordinary baseline, explicit unsafe-branch supersede packet, green readiness gate, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, operator runbook, verification coverage, and execution packet; first-divergent-block=first missing safe-calls gate requirement; next-action=repair the missing safe-calls artifact before executing the wave</failure-packet-template>
+    </Gate-Phase-38>
   </PhaseGates>
 
   <FailurePackets>

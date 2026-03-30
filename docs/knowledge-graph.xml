@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.37">
+  <Project NAME="n0wss" VERSION="0.2.38">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2450,7 +2450,7 @@
         <fn-runHelperSmokeProof PURPOSE="Run helper smoke proof before spending Telegram UI packets." />
       </annotations>
     </M-HELPER-SMOKE-PROOF>
-    <M-TELEGRAM-HELPER-VOICE-WAVE NAME="TelegramHelperVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-HELPER-VOICE-WAVE NAME="TelegramHelperVoiceWave" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded Telegram Desktop voice attempt through the helper-backed topology and determine whether the media-path class changes.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-HELPER-SMOKE-PROOF, M-TELEGRAM-SERVER-CORRELATION</depends>
@@ -2459,7 +2459,7 @@
         <fn-runTelegramHelperVoiceWave PURPOSE="Run one bounded Telegram voice attempt through the helper-backed transparent interception topology." />
       </annotations>
     </M-TELEGRAM-HELPER-VOICE-WAVE>
-    <M-TELEGRAM-HELPER-VIDEO-WAVE NAME="TelegramHelperVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-HELPER-VIDEO-WAVE NAME="TelegramHelperVideoWave" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded Telegram Desktop video attempt through the same helper-backed topology without inheriting the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-HELPER-VOICE-WAVE</depends>
@@ -2468,7 +2468,7 @@
         <fn-runTelegramHelperVideoWave PURPOSE="Run one bounded Telegram video attempt through the helper-backed transparent interception topology." />
       </annotations>
     </M-TELEGRAM-HELPER-VIDEO-WAVE>
-    <M-TELEGRAM-HELPER-COMPARISON NAME="TelegramHelperComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-HELPER-COMPARISON NAME="TelegramHelperComparison" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Compare helper-backed Telegram packets against the Phase-34 direct-media baseline and the blocked Phase-36 helper-gap packet.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-HELPER-VOICE-WAVE, M-TELEGRAM-HELPER-VIDEO-WAVE</depends>
@@ -2477,7 +2477,7 @@
         <fn-compareTelegramHelperPackets PURPOSE="Compare helper-backed Telegram packets against the old direct-media and helper-gap baselines." />
       </annotations>
     </M-TELEGRAM-HELPER-COMPARISON>
-    <M-TELEGRAM-HELPER-DECISION NAME="TelegramHelperDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-HELPER-DECISION NAME="TelegramHelperDecision" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Issue the bounded helper-backed decision after comparing the new packets with the Phase-34 baseline and the blocked Phase-36 packet.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-HELPER-COMPARISON</depends>
@@ -2486,6 +2486,96 @@
         <fn-issueTelegramHelperDecision PURPOSE="Issue the bounded decision after the helper-backed Telegram wave." />
       </annotations>
     </M-TELEGRAM-HELPER-DECISION>
+    <M-TELEGRAM-CALLS-SAFE-HYPOTHESIS NAME="TelegramCallsSafeHypothesis" TYPE="UTILITY" STATUS="planned">
+      <purpose>Freeze the calls-only safety boundary above the already-green ordinary Telegram traffic path.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-HELPER-DECISION, M-TELEGRAM-FINAL-DECISION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-SAFE-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramCallsSafeHypothesis PURPOSE="Freeze the calls-only safety boundary after the unsafe helper branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-SAFE-HYPOTHESIS>
+    <M-PHASE37-SAFETY-SUPERSEDE NAME="Phase37SafetySupersede" TYPE="UTILITY" STATUS="planned">
+      <purpose>Explicitly supersede the unsafe Phase-37 helper bootstrap tail after the logout incident.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-SAFE-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE37-SAFETY-SUPERSEDE</verification-ref>
+      <annotations>
+        <fn-supersedeUnsafePhase37 PURPOSE="Explicitly mark the unsafe helper branch as non-runnable." />
+      </annotations>
+    </M-PHASE37-SAFETY-SUPERSEDE>
+    <M-TELEGRAM-CALLS-BASELINE-PRESERVE NAME="TelegramCallsBaselinePreserve" TYPE="UTILITY" STATUS="planned">
+      <purpose>Preserve the normal Telegram Desktop baseline at `127.0.0.1:1080` while calls-only work continues on a separate safe branch.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-OPERATOR-CLEANUP</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-BASELINE-PRESERVE</verification-ref>
+      <annotations>
+        <fn-preserveTelegramCallsBaseline PURPOSE="Preserve the already-working ordinary Telegram baseline while calls-only work continues." />
+      </annotations>
+    </M-TELEGRAM-CALLS-BASELINE-PRESERVE>
+    <M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE NAME="TelegramCallsSafeTopologyProfile" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Freeze one exact safe calls-only experiment topology without live-session cloning.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-CALLS-BASELINE-PRESERVE, M-TELEGRAM-ATTRIBUTION-DECISION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTelegramCallsSafeTopology PURPOSE="Freeze one exact safe calls-only topology profile." />
+      </annotations>
+    </M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE>
+    <M-TELEGRAM-CALLS-AUTH-ISOLATION NAME="TelegramCallsAuthIsolation" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define a safe authentication and bootstrap contract for the calls-only experiment window.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-CALLS-SAFE-TOPOLOGY-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-AUTH-ISOLATION</verification-ref>
+      <annotations>
+        <fn-defineTelegramCallsAuthIsolation PURPOSE="Define a non-destructive auth/bootstrap contract for the calls-only branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-AUTH-ISOLATION>
+    <M-TELEGRAM-CALLS-READINESS-GATE NAME="TelegramCallsReadinessGate" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Require stable safe-window readiness before any calls packet is spent.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-AUTH-ISOLATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-READINESS-GATE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsReadinessGate PURPOSE="Require stable dialogs and no logout or reconnect loop before calls." />
+      </annotations>
+    </M-TELEGRAM-CALLS-READINESS-GATE>
+    <M-TELEGRAM-CALLS-VOICE-SAFE-WAVE NAME="TelegramCallsVoiceSafeWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded voice attempt only after the safe readiness gate is green.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-READINESS-GATE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-VOICE-SAFE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsVoiceSafeWave PURPOSE="Run one bounded safe voice wave after readiness is green." />
+      </annotations>
+    </M-TELEGRAM-CALLS-VOICE-SAFE-WAVE>
+    <M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE NAME="TelegramCallsVideoSafeWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded video attempt on the same safe branch without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-VOICE-SAFE-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsVideoSafeWave PURPOSE="Run one bounded safe video wave after the safe voice wave." />
+      </annotations>
+    </M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE>
+    <M-TELEGRAM-CALLS-SAFE-COMPARISON NAME="TelegramCallsSafeComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare safe calls-only packets against the Phase-34 attribution verdict and the unsafe Phase-37 branch.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-VOICE-SAFE-WAVE, M-TELEGRAM-CALLS-VIDEO-SAFE-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-SAFE-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramCallsSafePackets PURPOSE="Compare safe calls-only packets against old direct-media and unsafe-helper baselines." />
+      </annotations>
+    </M-TELEGRAM-CALLS-SAFE-COMPARISON>
+    <M-TELEGRAM-CALLS-SAFE-DECISION NAME="TelegramCallsSafeDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded decision after the safe calls-only branch finishes or blocks.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-SAFE-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-SAFE-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsSafeDecision PURPOSE="Issue the bounded decision after the safe calls-only branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-SAFE-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
