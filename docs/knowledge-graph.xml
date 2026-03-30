@@ -2252,7 +2252,7 @@
         <fn-issueTelegramAttributionDecision PURPOSE="Issue the bounded next-step decision after Telegram media-path attribution." />
       </annotations>
     </M-TELEGRAM-ATTRIBUTION-DECISION>
-    <M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS NAME="TelegramForcedTopologyHypothesis" TYPE="UTILITY" STATUS="done">
+    <M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS NAME="TelegramForcedTopologyHypothesis" TYPE="UTILITY" STATUS="superseded">
       <purpose>Freeze the new topology-only branch after Phase-34 attributed Telegram media to paths outside SOCKS.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-ATTRIBUTION-DECISION, M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</depends>
@@ -2261,7 +2261,7 @@
         <fn-freezeTelegramForcedTopologyHypothesis PURPOSE="Freeze the topology-only branch above the Phase-34 attribution verdict." />
       </annotations>
     </M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS>
-    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" STATUS="done">
+    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Freeze one exact forced-routing topology profile for Telegram calls without changing the normal Desktop baseline.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-OPERATOR-CLEANUP, M-TELEGRAM-CAPTURE-TOPOLOGY</depends>
@@ -2270,7 +2270,7 @@
         <fn-freezeTelegramForcedTopologyProfile PURPOSE="Freeze one exact forced-routing topology profile for Telegram calls." />
       </annotations>
     </M-TELEGRAM-FORCED-TOPOLOGY-PROFILE>
-    <M-TELEGRAM-ISOLATED-RUNBOOK NAME="TelegramIsolatedRunbook" TYPE="INTEGRATION" STATUS="done">
+    <M-TELEGRAM-ISOLATED-RUNBOOK NAME="TelegramIsolatedRunbook" TYPE="INTEGRATION" STATUS="superseded">
       <purpose>Define the isolated operator runbook for the forced-topology Telegram wave, including a snap-safe launcher surface for Telegram Desktop builds.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-FORCED-TOPOLOGY-PROFILE</depends>
@@ -2279,7 +2279,7 @@
         <fn-defineTelegramIsolatedRunbook PURPOSE="Define the isolated Telegram operator runbook for the forced-topology wave." />
       </annotations>
     </M-TELEGRAM-ISOLATED-RUNBOOK>
-    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" STATUS="done">
+    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" STATUS="superseded">
       <purpose>Prepare the capture surface for the forced-topology Telegram media wave, including proof that the tested Telegram process entered the dedicated namespace.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION, M-TELEGRAM-ISOLATED-RUNBOOK</depends>
@@ -2288,7 +2288,7 @@
         <fn-prepareTelegramForcedCapture PURPOSE="Prepare the bounded capture surface for the forced-topology Telegram wave." />
       </annotations>
     </M-TELEGRAM-FORCED-CAPTURE>
-    <M-TELEGRAM-FORCED-VOICE-WAVE NAME="TelegramForcedVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-FORCED-VOICE-WAVE NAME="TelegramForcedVoiceWave" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded forced-topology Desktop voice attempt and determine whether the media-path class changes.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-FORCED-CAPTURE</depends>
@@ -2297,7 +2297,7 @@
         <fn-runTelegramForcedVoiceWave PURPOSE="Run one bounded forced-topology Telegram Desktop voice attempt." />
       </annotations>
     </M-TELEGRAM-FORCED-VOICE-WAVE>
-    <M-TELEGRAM-FORCED-VIDEO-WAVE NAME="TelegramForcedVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-FORCED-VIDEO-WAVE NAME="TelegramForcedVideoWave" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded forced-topology Desktop video attempt without inheriting the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-FORCED-VOICE-WAVE</depends>
@@ -2306,7 +2306,7 @@
         <fn-runTelegramForcedVideoWave PURPOSE="Run one bounded forced-topology Telegram Desktop video attempt." />
       </annotations>
     </M-TELEGRAM-FORCED-VIDEO-WAVE>
-    <M-TELEGRAM-FORCED-COMPARISON NAME="TelegramForcedComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-FORCED-COMPARISON NAME="TelegramForcedComparison" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Compare the forced-topology packets against the Phase-34 attribution verdict and determine whether voice, video, both, or neither changed class.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-FORCED-VOICE-WAVE, M-TELEGRAM-FORCED-VIDEO-WAVE</depends>
@@ -2315,7 +2315,7 @@
         <fn-compareTelegramForcedPackets PURPOSE="Compare forced-topology Telegram packets against the Phase-34 attribution baseline." />
       </annotations>
     </M-TELEGRAM-FORCED-COMPARISON>
-    <M-TELEGRAM-FORCED-DECISION NAME="TelegramForcedDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-FORCED-DECISION NAME="TelegramForcedDecision" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Issue the bounded forced-topology decision after comparing the new packets with the Phase-34 attribution baseline.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-FORCED-COMPARISON</depends>
@@ -2324,6 +2324,87 @@
         <fn-issueTelegramForcedDecision PURPOSE="Issue the bounded decision after the forced-topology Telegram wave." />
       </annotations>
     </M-TELEGRAM-FORCED-DECISION>
+    <M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS NAME="TelegramTransparentTopologyHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the new transparent-routing-only branch after Phase-35 proved to be a contract-mismatched SOCKS-only containment packet.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-FORCED-DECISION, M-TELEGRAM-ATTRIBUTION-DECISION</depends>
+      <verification-ref>V-M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramTransparentTopologyHypothesis PURPOSE="Freeze the transparent-routing-only branch above the Phase-34 attribution verdict and the superseded Phase-35 packet." />
+      </annotations>
+    </M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS>
+    <M-PHASE35-SUPERSEDE NAME="Phase35Supersede" TYPE="UTILITY" STATUS="done">
+      <purpose>Explicitly supersede the old Phase-35 tail as a contract mismatch so execution no longer treats it as runnable forced-topology work.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE35-SUPERSEDE</verification-ref>
+      <annotations>
+        <fn-supersedePhase35 PURPOSE="Mark the old Phase-35 tail as superseded by contract mismatch." />
+      </annotations>
+    </M-PHASE35-SUPERSEDE>
+    <M-TELEGRAM-TPROXY-PROFILE NAME="TelegramTproxyProfile" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Freeze one exact transparent-routing profile that forces isolated Telegram traffic into a governed local surface without relying on Telegram's own SOCKS behavior.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-CAPTURE-TOPOLOGY, M-TELEGRAM-OPERATOR-CLEANUP</depends>
+      <verification-ref>V-M-TELEGRAM-TPROXY-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTelegramTproxyProfile PURPOSE="Freeze one exact transparent-routing profile for Telegram calls." />
+      </annotations>
+    </M-TELEGRAM-TPROXY-PROFILE>
+    <M-TELEGRAM-TPROXY-RUNBOOK NAME="TelegramTproxyRunbook" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Define the exact operator runbook for transparent forced routing, including setup, restore, cleanup, and baseline preservation.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-TPROXY-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-TPROXY-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-defineTelegramTproxyRunbook PURPOSE="Define the transparent-routing Telegram operator runbook." />
+      </annotations>
+    </M-TELEGRAM-TPROXY-RUNBOOK>
+    <M-TELEGRAM-TPROXY-CAPTURE NAME="TelegramTproxyCapture" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Prepare the bounded transparent-routing evidence packet with interception proof, local governed handoff proof, workstation captures, and server correlation.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION, M-TELEGRAM-TPROXY-RUNBOOK</depends>
+      <verification-ref>V-M-TELEGRAM-TPROXY-CAPTURE</verification-ref>
+      <annotations>
+        <fn-prepareTelegramTproxyCapture PURPOSE="Prepare the bounded transparent-routing evidence packet." />
+      </annotations>
+    </M-TELEGRAM-TPROXY-CAPTURE>
+    <M-TELEGRAM-TPROXY-VOICE-WAVE NAME="TelegramTproxyVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded Desktop voice attempt inside true transparent forced routing and determine whether the media-path class changes.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-TPROXY-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-TPROXY-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramTproxyVoiceWave PURPOSE="Run one bounded transparent-routing Telegram Desktop voice attempt." />
+      </annotations>
+    </M-TELEGRAM-TPROXY-VOICE-WAVE>
+    <M-TELEGRAM-TPROXY-VIDEO-WAVE NAME="TelegramTproxyVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded Desktop video attempt inside the same transparent-routing topology without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-TPROXY-VOICE-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-TPROXY-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramTproxyVideoWave PURPOSE="Run one bounded transparent-routing Telegram Desktop video attempt." />
+      </annotations>
+    </M-TELEGRAM-TPROXY-VIDEO-WAVE>
+    <M-TELEGRAM-TPROXY-COMPARISON NAME="TelegramTproxyComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the transparent-routing packets against the Phase-34 attribution baseline and the superseded Phase-35 packet to determine whether voice, video, both, or neither changed class.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-TPROXY-VOICE-WAVE, M-TELEGRAM-TPROXY-VIDEO-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-TPROXY-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramTproxyPackets PURPOSE="Compare transparent-routing Telegram packets against the Phase-34 baseline and the superseded Phase-35 packet." />
+      </annotations>
+    </M-TELEGRAM-TPROXY-COMPARISON>
+    <M-TELEGRAM-TPROXY-DECISION NAME="TelegramTproxyDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded transparent-routing decision after comparing the new packets with the Phase-34 baseline and the superseded Phase-35 packet.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-TPROXY-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-TPROXY-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramTproxyDecision PURPOSE="Issue the bounded decision after the transparent-routing Telegram wave." />
+      </annotations>
+    </M-TELEGRAM-TPROXY-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />

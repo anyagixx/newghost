@@ -1484,87 +1484,98 @@ Phase-34 video attribution packet on 2026-03-30:
 - bounded reading:
   despite the loopback asymmetry, the first positive non-UI evidence again appeared outside the governed SOCKS envelope, so the video packet converges on the same direct-media-outside-SOCKS class as voice rather than on another transport defect inside n0wss
 
-### Phase-35 Telegram Forced Topology Profile
+### Phase-35 Forced Topology Status
 
-Exact `Phase-35` topology delta:
+`Phase-35` is now historical only.
+
+- the bounded packet from `2026-03-30` proved a contract mismatch:
+  the helper surface created an isolated SOCKS-only containment envelope with blocked direct egress, not a true transparent forced-routing surface
+- that means the old `Phase-35` packet must not be treated as valid evidence for transparent interception
+- the only still-valid live result from that wave is narrower:
+  snap-based Telegram Desktop can be launched inside a dedicated netns safely with `systemd-run` plus `NetworkNamespacePath`, while the ordinary Desktop baseline remains untouched outside the experiment
+
+### Phase-36 Telegram Transparent Routing Profile
+
+Exact `Phase-36` topology delta:
 
 - preserve the normal operator baseline exactly as it is:
-  Telegram Desktop keeps its already-working `SOCKS5 127.0.0.1:1080` path for ordinary text messages, media files, and large files outside the experiment window
+  ordinary Telegram Desktop keeps its already-working `SOCKS5 127.0.0.1:1080` path for text messages, media files, and large files outside the experiment window
 - change only one variable:
-  run one isolated Telegram Desktop attempt inside a dedicated Linux network namespace whose egress is forced through a transparent local capture-and-forward surface instead of relying only on Telegram's own SOCKS-aware behavior
-- the exact first forced-topology candidate is:
-  Linux `ip netns` isolation for the Telegram process
-  one dedicated `veth` pair between host and namespace
-  one namespace-local default route through that `veth`
-  one host-side transparent forcing surface for the isolated namespace only
+  run one isolated Telegram Desktop attempt inside a dedicated Linux network namespace whose egress is transparently intercepted on the host side before Telegram can choose its own direct-media path
+- the transparent-routing profile must prove all of these surfaces separately:
+  isolated Telegram process really runs inside the dedicated namespace
+  host-side transparent interception really sees namespace egress
+  intercepted traffic is delivered into one governed local handoff surface
+  workstation and server captures stay comparable with the completed Phase-34 attribution wave
 - what stays fixed from Phase-34:
   same workstation
   same WSS server
   same preserved normal Desktop baseline
-  same bounded capture families
+  same workstation capture families
   same server-side correlation contract
 - what changes relative to Phase-34:
-  Telegram call media is no longer allowed to choose ordinary host egress directly from the default workstation network namespace
-  the experiment shifts from app-declared SOCKS use to topology-enforced containment
+  Telegram media is no longer only observed after it escapes the SOCKS envelope
+  the experiment now asks whether transparent interception can force that traffic into a governed local path before the app can keep using direct host egress
 
 Bounded interpretation rule:
 
-- this profile does not yet claim success or require a new n0wss protocol
+- this profile still does not claim success or require a new n0wss protocol
 - it asks only one new question:
-  if Telegram Desktop is forced into an isolated topology class, does call-media attribution remain `direct-media outside SOCKS`, change to a governed-path class, or remain outside the controllable user-space envelope
+  under a true transparent-routing topology, does Telegram media finally enter the governed envelope, still escape it, or produce no positive media-path evidence at all
 
 Safety rule:
 
 - do not repoint or replace the ordinary `127.0.0.1:1080` Desktop path during normal use
-- any namespace, `veth`, firewall, or transparent-forwarding surface created for `Phase-35` must be experiment-local and removable without touching the preserved ordinary baseline
+- any namespace, `veth`, interception, mark, route, nftables, or cleanup surface created for `Phase-36` must be experiment-local and removable without touching the preserved ordinary baseline
 
-Isolated runbook contract:
+Transparent-routing runbook contract:
 
 1. Baseline preservation before the experiment:
-   verify the normal Telegram Desktop path for ordinary use still points to `SOCKS5 127.0.0.1:1080`
+   verify the ordinary Telegram Desktop path for normal use still points to `SOCKS5 127.0.0.1:1080`
    do not stop or repoint the preserved ordinary listener
 2. Create experiment-local surfaces only:
    one dedicated network namespace for the Telegram experiment
    one dedicated `veth` pair for that namespace
-   one dedicated transparent-forcing surface on the host side for namespace egress only
-   no reuse of the Android mobile listener path and no reuse of old SSH-forward-only topology packets
+   one host-side transparent interception surface for namespace egress only
+   one governed local handoff surface that receives transparently intercepted traffic
+   no reuse of the Android mobile listener path and no reuse of the old SSH-forward-only topology packets
 3. Launch the experiment only inside the isolated topology:
-   the forced-topology wave is valid only if the tested Telegram process runs inside the dedicated namespace
+   the transparent-routing wave is valid only if the tested Telegram process runs inside the dedicated namespace
    for snap-based Telegram Desktop builds, do not start the app with `ip netns exec`, because that launcher can lose the snap tracking-cgroup and runtime-library surface
    for snap-based Telegram Desktop builds, join the dedicated network namespace with a snap-safe launcher that preserves the host mount and cgroup context, for example:
-   `sudo systemd-run --collect --unit=phase35-telegram --uid=1000 -E DISPLAY=:1 -E XAUTHORITY=/run/user/1000/gdm/Xauthority -E DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus -E XDG_RUNTIME_DIR=/run/user/1000/snap.telegram-desktop -E HOME=/home/truffle/snap/telegram-desktop/6908 -p NetworkNamespacePath=/run/netns/<phase35-telegram-ns> /snap/bin/telegram-desktop -workdir /home/truffle/snap/telegram-desktop/current/phase35-workdir`
+   `sudo systemd-run --collect --unit=phase36-telegram --uid=1000 -E DISPLAY=:1 -E XAUTHORITY=/run/user/1000/gdm/Xauthority -E DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus -E XDG_RUNTIME_DIR=/run/user/1000/snap.telegram-desktop -E HOME=/home/truffle/snap/telegram-desktop/6908 -p NetworkNamespacePath=/run/netns/<phase36-telegram-ns> /snap/bin/telegram-desktop -workdir /home/truffle/snap/telegram-desktop/current/phase36-workdir`
    all bounded capture commands must be tied to that same run window
-4. Cleanup after every forced-topology packet:
+4. Cleanup after every transparent-routing packet:
    stop the isolated Telegram process
    if the snap-safe launcher was used, stop the transient systemd unit before deleting the namespace
    delete the namespace
    delete the `veth` pair
-   remove any experiment-only route, firewall, or redirect state
+   remove any experiment-only interception, mark, route, nftables, or redirect state
 5. Restore and prove the normal baseline:
    ordinary Telegram Desktop use outside the experiment must still be the preserved `127.0.0.1:1080` path
-   if cleanup proof is missing, treat the next packet as contaminated rather than as valid `Phase-35` evidence
+   if cleanup proof is missing, treat the next packet as contaminated rather than as valid `Phase-36` evidence
 
-Forced-topology capture contract:
+Transparent-routing capture contract:
 
 - preserve the same evidence families from Phase-34 so comparison stays honest:
   workstation loopback capture
   workstation uplink capture
   broader workstation network capture
   server-side correlation packet
-- add one new forced-topology proof surface:
-  namespace-local process proof that the tested Telegram process really ran inside the isolated topology rather than on the ordinary workstation path
-- recommended bounded file set for one forced-topology packet:
-  `/tmp/n0wss-phase35-loopback.pcap`
-  `/tmp/n0wss-phase35-uplink.pcap`
-  `/tmp/n0wss-phase35-network.pcap`
-  `/tmp/n0wss-phase35-namespace.txt`
-- recommended command families:
-  `sudo timeout 20 tcpdump -i lo -nn '(tcp port 1080) or (udp port 1080)' -c 200 -w /tmp/n0wss-phase35-loopback.pcap`
-  `sudo timeout 20 tcpdump -i any -nn 'host 91.99.128.146 and tcp port 7443' -c 200 -w /tmp/n0wss-phase35-uplink.pcap`
-  `sudo timeout 20 tcpdump -i any -nn '((udp) or (tcp and not port 1080 and not port 7443))' -c 400 -w /tmp/n0wss-phase35-network.pcap`
-  `sudo bash -lc 'pid=$(systemctl show -p MainPID --value phase35-telegram.service); printf "PID=%s\n" "$pid"; stat -Lc "PROC_NETNS_INO=%i" /proc/$pid/ns/net; stat -Lc "TARGET_NETNS_INO=%i" /run/netns/<phase35-telegram-ns>' > /tmp/n0wss-phase35-namespace.txt`
+- add the new transparent-routing proof surfaces that Phase-35 never had:
+  namespace-local process proof
+  host-side interception proof
+  local governed handoff proof
+- recommended bounded file set for one transparent-routing packet:
+  `/tmp/n0wss-phase36-loopback.pcap`
+  `/tmp/n0wss-phase36-uplink.pcap`
+  `/tmp/n0wss-phase36-network.pcap`
+  `/tmp/n0wss-phase36-namespace.txt`
+  `/tmp/n0wss-phase36-intercept.txt`
+  `/tmp/n0wss-phase36-governed.txt`
 - interpretation rule:
-  if direct media still appears outside the governed envelope, the packet stays a no-change topology result
+  if fresh direct media still appears outside the governed envelope and interception proof stays weak, the packet is `insufficient evidence`
+  if direct media still appears outside the governed envelope while interception proof and governed handoff proof are both strong, the packet stays a no-change transparent-routing result
   if fresh governed markers appear on the same bounded window, only then does a new n0wss-side protocol/code branch become justified
 
 ## Quick Runtime Shapes

@@ -5917,7 +5917,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-ATTRIBUTION-DECISION</verification-ref>
     </M-TELEGRAM-ATTRIBUTION-DECISION>
-    <M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS NAME="TelegramForcedTopologyHypothesis" TYPE="UTILITY" LAYER="38" ORDER="1" STATUS="done">
+    <M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS NAME="TelegramForcedTopologyHypothesis" TYPE="UTILITY" LAYER="38" ORDER="1" STATUS="superseded">
       <contract>
         <purpose>Freeze the new bounded truth that Telegram calls now require a topology-class branch because Phase-34 attributed media to paths outside SOCKS.</purpose>
         <inputs>
@@ -5940,7 +5940,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS</verification-ref>
     </M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS>
-    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" LAYER="38" ORDER="2" STATUS="done">
+    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" LAYER="38" ORDER="2" STATUS="superseded">
       <contract>
         <purpose>Freeze one exact forced-routing topology variant for Telegram calls without changing the normal Desktop baseline on 127.0.0.1:1080.</purpose>
         <inputs>
@@ -5962,7 +5962,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE</verification-ref>
     </M-TELEGRAM-FORCED-TOPOLOGY-PROFILE>
-    <M-TELEGRAM-ISOLATED-RUNBOOK NAME="TelegramIsolatedRunbook" TYPE="INTEGRATION" LAYER="38" ORDER="3" STATUS="done">
+    <M-TELEGRAM-ISOLATED-RUNBOOK NAME="TelegramIsolatedRunbook" TYPE="INTEGRATION" LAYER="38" ORDER="3" STATUS="superseded">
       <contract>
         <purpose>Define the bounded operator runbook for isolated Telegram execution under the forced topology.</purpose>
         <inputs>
@@ -5983,7 +5983,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-ISOLATED-RUNBOOK</verification-ref>
     </M-TELEGRAM-ISOLATED-RUNBOOK>
-    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" LAYER="38" ORDER="4" STATUS="done">
+    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" LAYER="38" ORDER="4" STATUS="superseded">
       <contract>
         <purpose>Prepare the bounded capture surface for the forced-topology wave so governed-path and direct-path media can still be separated.</purpose>
         <inputs>
@@ -6006,7 +6006,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-CAPTURE</verification-ref>
     </M-TELEGRAM-FORCED-CAPTURE>
-    <M-TELEGRAM-FORCED-VOICE-WAVE NAME="TelegramForcedVoiceWave" TYPE="CORE_LOGIC" LAYER="38" ORDER="5" STATUS="planned">
+    <M-TELEGRAM-FORCED-VOICE-WAVE NAME="TelegramForcedVoiceWave" TYPE="CORE_LOGIC" LAYER="38" ORDER="5" STATUS="superseded">
       <contract>
         <purpose>Run one bounded Desktop voice attempt inside the forced topology and classify whether the media-path attribution class changes.</purpose>
         <inputs>
@@ -6027,7 +6027,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-VOICE-WAVE</verification-ref>
     </M-TELEGRAM-FORCED-VOICE-WAVE>
-    <M-TELEGRAM-FORCED-VIDEO-WAVE NAME="TelegramForcedVideoWave" TYPE="CORE_LOGIC" LAYER="38" ORDER="6" STATUS="planned">
+    <M-TELEGRAM-FORCED-VIDEO-WAVE NAME="TelegramForcedVideoWave" TYPE="CORE_LOGIC" LAYER="38" ORDER="6" STATUS="superseded">
       <contract>
         <purpose>Run one bounded Desktop video attempt inside the forced topology without inheriting the voice result.</purpose>
         <inputs>
@@ -6048,7 +6048,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-VIDEO-WAVE</verification-ref>
     </M-TELEGRAM-FORCED-VIDEO-WAVE>
-    <M-TELEGRAM-FORCED-COMPARISON NAME="TelegramForcedComparison" TYPE="CORE_LOGIC" LAYER="38" ORDER="7" STATUS="planned">
+    <M-TELEGRAM-FORCED-COMPARISON NAME="TelegramForcedComparison" TYPE="CORE_LOGIC" LAYER="38" ORDER="7" STATUS="superseded">
       <contract>
         <purpose>Compare the forced-topology voice and video packets against Phase-34 and determine whether the attribution class changed for voice, video, both, or neither.</purpose>
         <inputs>
@@ -6070,7 +6070,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-COMPARISON</verification-ref>
     </M-TELEGRAM-FORCED-COMPARISON>
-    <M-TELEGRAM-FORCED-DECISION NAME="TelegramForcedDecision" TYPE="ENTRY_POINT" LAYER="38" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-FORCED-DECISION NAME="TelegramForcedDecision" TYPE="ENTRY_POINT" LAYER="38" ORDER="8" STATUS="superseded">
       <contract>
         <purpose>Issue the bounded forced-topology decision after comparing the new packets with the Phase-34 attribution baseline.</purpose>
         <inputs>
@@ -6092,6 +6092,203 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-FORCED-DECISION</verification-ref>
     </M-TELEGRAM-FORCED-DECISION>
+    <M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS NAME="TelegramTransparentTopologyHypothesis" TYPE="UTILITY" LAYER="39" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the new bounded truth that the old Phase-35 packet was a contract-mismatched SOCKS-only containment branch rather than true transparent forced routing.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-34 attribution decision packet.</input-1>
+          <input-2>The superseded Phase-35 boundary.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing-only hypothesis packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-FORCED-DECISION, M-TELEGRAM-ATTRIBUTION-DECISION</depends>
+      <observability>
+        <log-prefix>[TelegramTransparentTopologyHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TRANSPARENT_TOPOLOGY_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS>
+    <M-PHASE35-SUPERSEDE NAME="Phase35Supersede" TYPE="UTILITY" LAYER="39" ORDER="2" STATUS="done">
+      <contract>
+        <purpose>Explicitly supersede the old Phase-35 tail as a contract mismatch so execution no longer treats it as runnable forced-topology work.</purpose>
+        <inputs>
+          <input-1>The bounded transparent-topology hypothesis packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded supersede packet for the old Phase-35 tail.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase35Supersede]</log-prefix>
+        <critical-block>BLOCK_PHASE35_SUPERSEDE</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE35-SUPERSEDE</verification-ref>
+    </M-PHASE35-SUPERSEDE>
+    <M-TELEGRAM-TPROXY-PROFILE NAME="TelegramTproxyProfile" TYPE="ENTRY_POINT" LAYER="39" ORDER="3" STATUS="done">
+      <contract>
+        <purpose>Freeze one exact transparent-routing topology profile that forces isolated Telegram traffic into a governed local surface without relying on Telegram's own SOCKS behavior.</purpose>
+        <inputs>
+          <input-1>The bounded transparent-topology hypothesis packet.</input-1>
+          <input-2>The operator cleanup packet that preserves the working Desktop baseline.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing profile.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CAPTURE-TOPOLOGY, M-TELEGRAM-OPERATOR-CLEANUP</depends>
+      <observability>
+        <log-prefix>[TelegramTproxyProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TPROXY_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TPROXY-PROFILE</verification-ref>
+    </M-TELEGRAM-TPROXY-PROFILE>
+    <M-TELEGRAM-TPROXY-RUNBOOK NAME="TelegramTproxyRunbook" TYPE="INTEGRATION" LAYER="39" ORDER="4" STATUS="done">
+      <contract>
+        <purpose>Define the exact operator runbook for transparent forced routing, including setup, restore, cleanup, and preservation of the normal Desktop baseline.</purpose>
+        <inputs>
+          <input-1>The bounded transparent-routing profile.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing operator runbook packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-TPROXY-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramTproxyRunbook]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TPROXY_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TPROXY-RUNBOOK</verification-ref>
+    </M-TELEGRAM-TPROXY-RUNBOOK>
+    <M-TELEGRAM-TPROXY-CAPTURE NAME="TelegramTproxyCapture" TYPE="INTEGRATION" LAYER="39" ORDER="5" STATUS="done">
+      <contract>
+        <purpose>Prepare the bounded transparent-routing evidence packet with interception proof, local governed handoff proof, workstation captures, and server correlation.</purpose>
+        <inputs>
+          <input-1>The bounded Desktop network-capture packet.</input-1>
+          <input-2>The bounded server-correlation packet.</input-2>
+          <input-3>The bounded transparent-routing runbook packet.</input-3>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing capture packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION, M-TELEGRAM-TPROXY-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[TelegramTproxyCapture]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TPROXY_CAPTURE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TPROXY-CAPTURE</verification-ref>
+    </M-TELEGRAM-TPROXY-CAPTURE>
+    <M-TELEGRAM-TPROXY-VOICE-WAVE NAME="TelegramTproxyVoiceWave" TYPE="CORE_LOGIC" LAYER="39" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Desktop voice attempt inside true transparent forced routing and classify whether the media-path attribution class changes.</purpose>
+        <inputs>
+          <input-1>The bounded transparent-routing capture packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-TPROXY-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramTproxyVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TPROXY_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TPROXY-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-TPROXY-VOICE-WAVE>
+    <M-TELEGRAM-TPROXY-VIDEO-WAVE NAME="TelegramTproxyVideoWave" TYPE="CORE_LOGIC" LAYER="39" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Desktop video attempt inside the same transparent-routing topology without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded transparent-routing voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-TPROXY-VOICE-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramTproxyVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TPROXY_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TPROXY-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-TPROXY-VIDEO-WAVE>
+    <M-TELEGRAM-TPROXY-COMPARISON NAME="TelegramTproxyComparison" TYPE="CORE_LOGIC" LAYER="39" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Compare the transparent-routing voice and video packets against the Phase-34 attribution baseline and the superseded Phase-35 packet.</purpose>
+        <inputs>
+          <input-1>The bounded transparent-routing voice packet.</input-1>
+          <input-2>The bounded transparent-routing video packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-TPROXY-VOICE-WAVE, M-TELEGRAM-TPROXY-VIDEO-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramTproxyComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TPROXY_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TPROXY-COMPARISON</verification-ref>
+    </M-TELEGRAM-TPROXY-COMPARISON>
+    <M-TELEGRAM-TPROXY-DECISION NAME="TelegramTproxyDecision" TYPE="ENTRY_POINT" LAYER="39" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded transparent-routing decision after comparing the new packets with the Phase-34 baseline and the superseded Phase-35 packet.</purpose>
+        <inputs>
+          <input-1>The bounded transparent-routing comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded transparent-routing decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-TPROXY-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramTproxyDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_TPROXY_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-TPROXY-DECISION</verification-ref>
+    </M-TELEGRAM-TPROXY-DECISION>
   </Modules>
 
   <DataFlow>
@@ -7183,22 +7380,39 @@
       <note-7>The bounded Phase-34 classifier now converges for both voice and video on `direct-media outside SOCKS`.</note-7>
       <note-8>The bounded Phase-34 decision is therefore not another transport repair: the next branch, if any, must be Telegram-specific/app-behavior work around direct media outside the governed SOCKS envelope.</note-8>
     </Phase-34>
-    <Phase-35 name="Telegram Forced Media Topology" status="pending">
+    <Phase-35 name="Telegram Forced Media Topology" status="superseded">
       <goal>Test one exact forced-routing topology variant for Telegram calls without changing the normal working Desktop baseline and determine whether the direct-media class changes.</goal>
       <step-1 module="M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS">Freeze the new topology-only branch above the Phase-34 attribution verdict</step-1>
       <step-2 module="M-TELEGRAM-FORCED-TOPOLOGY-PROFILE" status="done" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE">Freeze one exact forced-routing topology profile without changing the normal Desktop baseline</step-2>
       <step-3 module="M-TELEGRAM-ISOLATED-RUNBOOK" status="done" verification="V-M-TELEGRAM-ISOLATED-RUNBOOK">Define the isolated Telegram operator runbook for the forced topology wave</step-3>
       <step-4 module="M-TELEGRAM-FORCED-CAPTURE" status="done" verification="V-M-TELEGRAM-FORCED-CAPTURE">Prepare the bounded forced-topology capture packet</step-4>
-      <step-5 module="M-TELEGRAM-FORCED-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-FORCED-VOICE-WAVE">Run one bounded forced-topology Desktop voice wave</step-5>
-      <step-6 module="M-TELEGRAM-FORCED-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-FORCED-VIDEO-WAVE">Run one bounded forced-topology Desktop video wave without inheriting voice</step-6>
-      <step-7 module="M-TELEGRAM-FORCED-COMPARISON" status="pending" verification="V-M-TELEGRAM-FORCED-COMPARISON">Compare forced-topology packets against the Phase-34 attribution verdict</step-7>
-      <step-8 module="M-TELEGRAM-FORCED-DECISION" status="pending" verification="V-M-TELEGRAM-FORCED-DECISION">Issue the bounded forced-topology decision</step-8>
+      <step-5 module="M-TELEGRAM-FORCED-VOICE-WAVE" status="superseded" verification="V-M-TELEGRAM-FORCED-VOICE-WAVE">Run one bounded forced-topology Desktop voice wave</step-5>
+      <step-6 module="M-TELEGRAM-FORCED-VIDEO-WAVE" status="superseded" verification="V-M-TELEGRAM-FORCED-VIDEO-WAVE">Run one bounded forced-topology Desktop video wave without inheriting voice</step-6>
+      <step-7 module="M-TELEGRAM-FORCED-COMPARISON" status="superseded" verification="V-M-TELEGRAM-FORCED-COMPARISON">Compare forced-topology packets against the Phase-34 attribution verdict</step-7>
+      <step-8 module="M-TELEGRAM-FORCED-DECISION" status="superseded" verification="V-M-TELEGRAM-FORCED-DECISION">Issue the bounded forced-topology decision</step-8>
       <note-1>Phase-35 starts only after the preserved working Desktop baseline and the Phase-34 `direct-media outside SOCKS` verdict are both visible together.</note-1>
       <note-2>The phase must not reopen generic transport diagnosis or replay any spent SOCKS-only Telegram branch as if it were new work.</note-2>
       <note-3>The only approved new variable is topology class: whether forced routing can keep Telegram media inside the governed envelope.</note-3>
       <note-4>The normal Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched outside the isolated forced-topology runbook.</note-4>
       <note-5>On 2026-03-30 the first forced-topology execution blocker was narrowed to the snap Telegram Desktop launcher boundary: `ip netns exec` broke the snap tracking-cgroup/runtime surface, while `systemd-run` with `NetworkNamespacePath` preserved the host mount and cgroup context and still placed the tested Telegram process inside the dedicated network namespace.</note-5>
     </Phase-35>
+    <Phase-36 name="Telegram Transparent Forced Routing" status="pending">
+      <goal>Test one exact transparent-routing topology that preserves the normal Desktop baseline while proving interception, governed handoff, and changed Telegram media attribution if any.</goal>
+      <step-1 module="M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS">Freeze the transparent-routing-only branch above the Phase-34 verdict and the superseded Phase-35 packet</step-1>
+      <step-2 module="M-PHASE35-SUPERSEDE" status="done" verification="V-M-PHASE35-SUPERSEDE">Explicitly supersede the old Phase-35 tail as a contract mismatch</step-2>
+      <step-3 module="M-TELEGRAM-TPROXY-PROFILE" status="done" verification="V-M-TELEGRAM-TPROXY-PROFILE">Freeze one exact transparent-routing profile without changing the normal Desktop baseline</step-3>
+      <step-4 module="M-TELEGRAM-TPROXY-RUNBOOK" status="done" verification="V-M-TELEGRAM-TPROXY-RUNBOOK">Define the transparent-routing operator runbook</step-4>
+      <step-5 module="M-TELEGRAM-TPROXY-CAPTURE" status="done" verification="V-M-TELEGRAM-TPROXY-CAPTURE">Prepare the bounded transparent-routing capture packet</step-5>
+      <step-6 module="M-TELEGRAM-TPROXY-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-TPROXY-VOICE-WAVE">Run one bounded transparent-routing Desktop voice wave</step-6>
+      <step-7 module="M-TELEGRAM-TPROXY-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-TPROXY-VIDEO-WAVE">Run one bounded transparent-routing Desktop video wave without inheriting voice</step-7>
+      <step-8 module="M-TELEGRAM-TPROXY-COMPARISON" status="pending" verification="V-M-TELEGRAM-TPROXY-COMPARISON">Compare transparent-routing packets against the Phase-34 baseline and the superseded Phase-35 packet</step-8>
+      <step-9 module="M-TELEGRAM-TPROXY-DECISION" status="pending" verification="V-M-TELEGRAM-TPROXY-DECISION">Issue the bounded transparent-routing decision</step-9>
+      <note-1>Phase-36 starts only after the preserved working Desktop baseline, the Phase-34 `direct-media outside SOCKS` verdict, and the superseded Phase-35 contract-mismatch packet are all visible together.</note-1>
+      <note-2>The phase must not reopen generic transport diagnosis and must not reuse the old Phase-35 SOCKS-only containment packet as if it had already proven transparent interception.</note-2>
+      <note-3>The only approved new variable is routing class: whether transparent interception can force Telegram media into a governed local handoff surface before it escapes directly.</note-3>
+      <note-4>The normal Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched outside the isolated transparent-routing runbook.</note-4>
+      <note-5>Transparent-routing evidence is valid only if namespace proof, interception proof, governed handoff proof, workstation captures, and server correlation are all recorded inside the same bounded packet window.</note-5>
+    </Phase-36>
   </ImplementationOrder>
 
   <ExecutionPolicy>

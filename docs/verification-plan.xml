@@ -104,6 +104,10 @@
     <telegram-forced-topology-single-variable-rule>No Phase-35 wave may change more than one topology-class variable at a time; if capture scope, app route, and control surface drift together, the comparison packet is invalid.</telegram-forced-topology-single-variable-rule>
     <telegram-forced-topology-isolation-rule>The forced-topology runbook must prove isolation from the normal working Desktop path, including explicit cleanup and explicit restoration of the standard 127.0.0.1:1080 operator baseline after the wave.</telegram-forced-topology-isolation-rule>
     <telegram-forced-topology-comparison-rule>The final Phase-35 comparison packet must state whether the forced topology changed the attribution class for voice, video, both, or neither, and must not use blended fallback wording.</telegram-forced-topology-comparison-rule>
+    <phase35-contract-mismatch-rule>If a Phase-35 helper surface delivers SOCKS-only containment plus blocked direct egress instead of true transparent forced routing, the packet is a contract mismatch and the phase must be superseded rather than executed further.</phase35-contract-mismatch-rule>
+    <telegram-transparent-routing-single-variable-rule>Phase-36 may change routing class only; if interception method, app topology, and proxy settings drift together, the comparison packet is invalid.</telegram-transparent-routing-single-variable-rule>
+    <telegram-transparent-routing-proof-rule>Phase-36 must prove transparent interception and local governed handoff separately; a mere SOCKS listener or blocked-direct-egress packet is not valid transparent-routing evidence.</telegram-transparent-routing-proof-rule>
+    <telegram-transparent-routing-baseline-lock-rule>Any Phase-36 wave must preserve the normal Desktop baseline at 127.0.0.1:1080 outside the experiment and keep the Phase-34 direct-media verdict plus the superseded Phase-35 packet visible together.</telegram-transparent-routing-baseline-lock-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -4934,6 +4938,149 @@
         <assertion-2>The final decision must choose only one bounded result: helps, still no-go, or outside controllable user-space envelope.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-FORCED-DECISION>
+    <V-M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS MODULE="M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'transparent-routing|contract-mismatch|Phase-35|Phase-34' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The hypothesis keeps the Phase-34 direct-media verdict and the Phase-35 contract-mismatch visible together.</scenario-1>
+        <scenario-2>The hypothesis asks only whether transparent routing changes the attribution class and does not reopen generic transport work.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The hypothesis silently treats the broken Phase-35 SOCKS-only packet as if it were already transparent routing.</scenario-1>
+        <scenario-2>The hypothesis widens into another topology experiment without naming transparent interception as the only new variable.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS>
+    <V-M-PHASE35-SUPERSEDE MODULE="M-PHASE35-SUPERSEDE" PRIORITY="high">
+      <test-files>
+        <file>docs/development-plan.xml</file>
+        <file>docs/knowledge-graph.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'Phase-35|superseded|contract mismatch|M-PHASE35-SUPERSEDE' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The old Phase-35 tail can no longer appear as runnable work in the execution queue.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The old Phase-35 tail still appears pending and can be mistaken for a valid forced-topology wave.</scenario-1>
+      </failure-scenarios>
+    </V-M-PHASE35-SUPERSEDE>
+    <V-M-TELEGRAM-TPROXY-PROFILE MODULE="M-TELEGRAM-TPROXY-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'transparent|interception|TPROXY|routing class|127.0.0.1:1080' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The profile names one exact transparent interception method and one exact governed local surface.</scenario-1>
+        <scenario-2>The profile preserves the normal Desktop baseline outside the experiment.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The profile is still only SOCKS-only containment or blocked direct egress under a different name.</scenario-1>
+        <scenario-2>The profile changes more than one topology variable at once.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TPROXY-PROFILE>
+    <V-M-TELEGRAM-TPROXY-RUNBOOK MODULE="M-TELEGRAM-TPROXY-RUNBOOK" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'transparent-routing|cleanup|restore|baseline|temporary surface' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The runbook defines setup, restore, and cleanup for transparent interception without contaminating the normal Desktop baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The runbook lacks interception-specific cleanup or restoration proof and therefore can leave stale experiment surfaces behind.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TPROXY-RUNBOOK>
+    <V-M-TELEGRAM-TPROXY-CAPTURE MODULE="M-TELEGRAM-TPROXY-CAPTURE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'interception proof|governed handoff|loopback|uplink|network capture|server correlation' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The capture packet separately proves transparent interception, local governed handoff, workstation capture surfaces, and server correlation.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The capture packet proves only a SOCKS listener or only blocked egress but not transparent interception.</scenario-1>
+        <scenario-2>The capture packet collapses back into a UI-only transcript.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TPROXY-CAPTURE>
+    <V-M-TELEGRAM-TPROXY-VOICE-WAVE MODULE="M-TELEGRAM-TPROXY-VOICE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'transparent-routing voice|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The transparent-routing voice packet says whether the first positive evidence appeared on the governed path, outside it, or nowhere.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The voice packet silently reuses the Phase-34 direct-media result without transparent interception proof.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TPROXY-VOICE-WAVE>
+    <V-M-TELEGRAM-TPROXY-VIDEO-WAVE MODULE="M-TELEGRAM-TPROXY-VIDEO-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'transparent-routing video|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The transparent-routing video packet stays separate from voice and says whether the first positive evidence appeared on the governed path, outside it, or nowhere.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The video packet silently inherits the voice result.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TPROXY-VIDEO-WAVE>
+    <V-M-TELEGRAM-TPROXY-COMPARISON MODULE="M-TELEGRAM-TPROXY-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'voice|video|both|neither|Phase-34|Phase-35|transparent-routing' README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet explicitly says whether transparent routing changed the class for voice, video, both, or neither.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison packet is too vague to separate transparent-routing value from the old Phase-35 contract-mismatch.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TPROXY-COMPARISON>
+    <V-M-TELEGRAM-TPROXY-DECISION MODULE="M-TELEGRAM-TPROXY-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'transparent-routing decision|helps|still no-go|outside controllable user-space envelope' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision names one bounded outcome only.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision reopens generic transport work or treats the old Phase-35 packet as valid transparent-routing evidence.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-TPROXY-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -5468,6 +5615,29 @@ PY</command-6>
       </required-evidence>
       <failure-packet-template>scenario=TelegramForcedMediaTopologyWave; expected-evidence=isolated forced-topology handoff plus separate voice/video comparison packet; observed-evidence=topology handoff and forced-topology packet set; first-divergent-block=first missing forced-topology evidence layer above the Phase-34 attribution verdict; next-action=repair only the forced-topology evidence surface or classify the wave as topology no-change before any new branch planning</failure-packet-template>
     </LV-026>
+    <LV-027 NAME="TelegramTransparentForcedRoutingWave" PRIORITY="high">
+      <goal>Run one true transparent-routing Telegram media wave that preserves the normal Desktop baseline while checking whether direct media can be forced into the governed envelope.</goal>
+      <commands>
+        <command-1>cargo test udp_relay</command-1>
+        <command-2>cargo test wss_gateway</command-2>
+        <command-3>cargo test cli</command-3>
+        <command-4>rg -n 'Phase-36|transparent-routing|interception|superseded|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-4>
+        <command-5>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave preserves the normal Desktop baseline untouched outside the transparent-routing runbook.</evidence-1>
+        <evidence-2>The wave proves transparent interception separately from any SOCKS listener or blocked-direct-egress surface.</evidence-2>
+        <evidence-3>The wave proves local governed handoff separately from workstation loopback, uplink, broader network capture, and server correlation.</evidence-3>
+        <evidence-4>The wave yields separate transparent-routing voice and video packets.</evidence-4>
+        <evidence-5>The comparison packet says whether transparent routing changed the class for voice, video, both, or neither against the Phase-34 baseline and the superseded Phase-35 packet.</evidence-5>
+        <evidence-6>The final decision remains bounded to the exact tested transparent-routing topology only.</evidence-6>
+      </required-evidence>
+    </LV-027>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -6096,6 +6266,27 @@ PY</command-7>
         <evidence-7>For snap-based Telegram Desktop builds, the gate requires a snap-safe launcher proof that still places the tested process inside the dedicated network namespace.</evidence-7>
       </required-evidence>
     </Gate-Phase-35>
+    <Gate-Phase-36 PHASE="Phase-36">
+      <goal>The project has an execution-ready transparent-routing Telegram wave that preserves the normal Desktop baseline while proving transparent interception rather than SOCKS-only containment.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-36|M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS|M-TELEGRAM-TPROXY-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-027|transparent-routing|interception|superseded|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the Phase-34 direct-media verdict, the superseded Phase-35 packet, and the normal Desktop baseline visible together.</evidence-1>
+        <evidence-2>The gate requires proof of transparent interception and local governed handoff as separate surfaces.</evidence-2>
+        <evidence-3>The gate requires separate transparent-routing voice and video packets.</evidence-3>
+        <evidence-4>The gate requires a comparison packet that explicitly says `voice`, `video`, `both`, or `neither`.</evidence-4>
+        <evidence-5>The final decision must stay routing-only and must not reopen generic transport work.</evidence-5>
+      </required-evidence>
+    </Gate-Phase-36>
   </PhaseGates>
 
   <FailurePackets>

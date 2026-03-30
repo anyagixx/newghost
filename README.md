@@ -263,8 +263,10 @@ Current calls-profile status:
   both voice and video packets point to `direct-media outside SOCKS`, not to `governed-media attempt`, not to `signaling-only stall`, and not to generic n0wss transport failure on the preserved Desktop baseline
 - the bounded Phase-34 attribution decision is therefore narrower than a new repair phase:
   the next justified branch is only a Telegram-specific/app-behavior branch that explains or works around direct media outside the governed SOCKS envelope; no generic transport repair and no replay of the spent Desktop or Android workaround branches is justified by the current evidence
-- the bounded Phase-35 forced-topology hypothesis now narrows that next branch one step further:
-  because the current classifier already points to `direct-media outside SOCKS`, the next justified experiment is topology-only rather than protocol-only, must preserve the normal `127.0.0.1:1080` Desktop baseline for text messages and files, and may ask only whether one isolated forced-routing topology can keep Telegram call media inside the governed envelope
+- the old Phase-35 forced-topology packet is now explicitly superseded as a contract mismatch:
+  the isolated namespace helper proved only SOCKS-only containment with blocked direct egress, not true transparent forced routing, so that packet must not be reused as if it had already tested transparent interception of Telegram media
+- the bounded Phase-36 transparent-routing branch is now the only justified topology follow-up:
+  because the current classifier still points to `direct-media outside SOCKS`, the next valid experiment must preserve the normal `127.0.0.1:1080` Desktop baseline for text messages and files while proving transparent interception, local governed handoff, and fresh attribution evidence inside an isolated Telegram-specific routing surface
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
