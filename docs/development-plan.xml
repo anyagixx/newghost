@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.32">
+<DevelopmentPlan VERSION="0.2.33">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -5917,6 +5917,181 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-ATTRIBUTION-DECISION</verification-ref>
     </M-TELEGRAM-ATTRIBUTION-DECISION>
+    <M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS NAME="TelegramForcedTopologyHypothesis" TYPE="UTILITY" LAYER="38" ORDER="1" STATUS="done">
+      <contract>
+        <purpose>Freeze the new bounded truth that Telegram calls now require a topology-class branch because Phase-34 attributed media to paths outside SOCKS.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-34 attribution decision packet.</input-1>
+          <input-2>The bounded Telegram media-attribution classifier packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded forced-topology hypothesis packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-ATTRIBUTION-DECISION, M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</depends>
+      <observability>
+        <log-prefix>[TelegramForcedTopologyHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FORCED_TOPOLOGY_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS>
+    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" LAYER="38" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Freeze one exact forced-routing topology variant for Telegram calls without changing the normal Desktop baseline on 127.0.0.1:1080.</purpose>
+        <inputs>
+          <input-1>The bounded forced-topology hypothesis packet.</input-1>
+          <input-2>The operator cleanup packet that preserves the working Desktop baseline.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded forced-topology profile.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-OPERATOR-CLEANUP, M-TELEGRAM-CAPTURE-TOPOLOGY</depends>
+      <observability>
+        <log-prefix>[TelegramForcedTopologyProfile]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FORCED_TOPOLOGY_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE</verification-ref>
+    </M-TELEGRAM-FORCED-TOPOLOGY-PROFILE>
+    <M-TELEGRAM-ISOLATED-RUNBOOK NAME="TelegramIsolatedRunbook" TYPE="INTEGRATION" LAYER="38" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Define the bounded operator runbook for isolated Telegram execution under the forced topology.</purpose>
+        <inputs>
+          <input-1>The bounded forced-topology profile.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded isolated Telegram runbook packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-FORCED-TOPOLOGY-PROFILE</depends>
+      <observability>
+        <log-prefix>[TelegramIsolatedRunbook]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_ISOLATED_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-ISOLATED-RUNBOOK</verification-ref>
+    </M-TELEGRAM-ISOLATED-RUNBOOK>
+    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" LAYER="38" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Prepare the bounded capture surface for the forced-topology wave so governed-path and direct-path media can still be separated.</purpose>
+        <inputs>
+          <input-1>The bounded Desktop network-capture packet.</input-1>
+          <input-2>The bounded server-correlation packet.</input-2>
+          <input-3>The bounded isolated Telegram runbook packet.</input-3>
+        </inputs>
+        <outputs>
+          <output-1>A bounded forced-topology capture packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION, M-TELEGRAM-ISOLATED-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[TelegramForcedCapture]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FORCED_CAPTURE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FORCED-CAPTURE</verification-ref>
+    </M-TELEGRAM-FORCED-CAPTURE>
+    <M-TELEGRAM-FORCED-VOICE-WAVE NAME="TelegramForcedVoiceWave" TYPE="CORE_LOGIC" LAYER="38" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Desktop voice attempt inside the forced topology and classify whether the media-path attribution class changes.</purpose>
+        <inputs>
+          <input-1>The bounded forced-topology capture packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded forced-topology voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-FORCED-CAPTURE</depends>
+      <observability>
+        <log-prefix>[TelegramForcedVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FORCED_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FORCED-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-FORCED-VOICE-WAVE>
+    <M-TELEGRAM-FORCED-VIDEO-WAVE NAME="TelegramForcedVideoWave" TYPE="CORE_LOGIC" LAYER="38" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Desktop video attempt inside the forced topology without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded forced-topology voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded forced-topology video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-FORCED-VOICE-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramForcedVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FORCED_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FORCED-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-FORCED-VIDEO-WAVE>
+    <M-TELEGRAM-FORCED-COMPARISON NAME="TelegramForcedComparison" TYPE="CORE_LOGIC" LAYER="38" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Compare the forced-topology voice and video packets against Phase-34 and determine whether the attribution class changed for voice, video, both, or neither.</purpose>
+        <inputs>
+          <input-1>The bounded forced-topology voice packet.</input-1>
+          <input-2>The bounded forced-topology video packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded forced-topology comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-FORCED-VOICE-WAVE, M-TELEGRAM-FORCED-VIDEO-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramForcedComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FORCED_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FORCED-COMPARISON</verification-ref>
+    </M-TELEGRAM-FORCED-COMPARISON>
+    <M-TELEGRAM-FORCED-DECISION NAME="TelegramForcedDecision" TYPE="ENTRY_POINT" LAYER="38" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded forced-topology decision after comparing the new packets with the Phase-34 attribution baseline.</purpose>
+        <inputs>
+          <input-1>The bounded forced-topology comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded forced-topology decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-FORCED-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramForcedDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_FORCED_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-FORCED-DECISION</verification-ref>
+    </M-TELEGRAM-FORCED-DECISION>
   </Modules>
 
   <DataFlow>
@@ -7008,6 +7183,21 @@
       <note-7>The bounded Phase-34 classifier now converges for both voice and video on `direct-media outside SOCKS`.</note-7>
       <note-8>The bounded Phase-34 decision is therefore not another transport repair: the next branch, if any, must be Telegram-specific/app-behavior work around direct media outside the governed SOCKS envelope.</note-8>
     </Phase-34>
+    <Phase-35 name="Telegram Forced Media Topology" status="pending">
+      <goal>Test one exact forced-routing topology variant for Telegram calls without changing the normal working Desktop baseline and determine whether the direct-media class changes.</goal>
+      <step-1 module="M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS">Freeze the new topology-only branch above the Phase-34 attribution verdict</step-1>
+      <step-2 module="M-TELEGRAM-FORCED-TOPOLOGY-PROFILE" status="pending" verification="V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE">Freeze one exact forced-routing topology profile without changing the normal Desktop baseline</step-2>
+      <step-3 module="M-TELEGRAM-ISOLATED-RUNBOOK" status="pending" verification="V-M-TELEGRAM-ISOLATED-RUNBOOK">Define the isolated Telegram operator runbook for the forced topology wave</step-3>
+      <step-4 module="M-TELEGRAM-FORCED-CAPTURE" status="pending" verification="V-M-TELEGRAM-FORCED-CAPTURE">Prepare the bounded forced-topology capture packet</step-4>
+      <step-5 module="M-TELEGRAM-FORCED-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-FORCED-VOICE-WAVE">Run one bounded forced-topology Desktop voice wave</step-5>
+      <step-6 module="M-TELEGRAM-FORCED-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-FORCED-VIDEO-WAVE">Run one bounded forced-topology Desktop video wave without inheriting voice</step-6>
+      <step-7 module="M-TELEGRAM-FORCED-COMPARISON" status="pending" verification="V-M-TELEGRAM-FORCED-COMPARISON">Compare forced-topology packets against the Phase-34 attribution verdict</step-7>
+      <step-8 module="M-TELEGRAM-FORCED-DECISION" status="pending" verification="V-M-TELEGRAM-FORCED-DECISION">Issue the bounded forced-topology decision</step-8>
+      <note-1>Phase-35 starts only after the preserved working Desktop baseline and the Phase-34 `direct-media outside SOCKS` verdict are both visible together.</note-1>
+      <note-2>The phase must not reopen generic transport diagnosis or replay any spent SOCKS-only Telegram branch as if it were new work.</note-2>
+      <note-3>The only approved new variable is topology class: whether forced routing can keep Telegram media inside the governed envelope.</note-3>
+      <note-4>The normal Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched outside the isolated forced-topology runbook.</note-4>
+    </Phase-35>
   </ImplementationOrder>
 
   <ExecutionPolicy>

@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.56">
+<VerificationPlan VERSION="0.2.58">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -100,6 +100,10 @@
     <telegram-attribution-baseline-preservation-rule>Phase-34 may not alter the preserved working Desktop baseline at 127.0.0.1:1080 while gathering attribution evidence.</telegram-attribution-baseline-preservation-rule>
     <telegram-attribution-classifier-bounds-rule>Phase-34 classifier output must be one of governed-media attempt, direct-media outside SOCKS, signaling-only stall, or insufficient evidence; no blended fallback wording is allowed.</telegram-attribution-classifier-bounds-rule>
     <telegram-attribution-same-window-rule>Phase-34 attribution packets must remain tied to the same preserved Desktop baseline window and may not mix evidence from a different operator topology or temporary listener state.</telegram-attribution-same-window-rule>
+    <telegram-forced-topology-baseline-lock-rule>Any Phase-35 forced-topology wave must preserve the completed Phase-34 direct-media outside SOCKS verdict and the normal Desktop baseline at 127.0.0.1:1080 as simultaneous evidence rather than replacing either one.</telegram-forced-topology-baseline-lock-rule>
+    <telegram-forced-topology-single-variable-rule>No Phase-35 wave may change more than one topology-class variable at a time; if capture scope, app route, and control surface drift together, the comparison packet is invalid.</telegram-forced-topology-single-variable-rule>
+    <telegram-forced-topology-isolation-rule>The forced-topology runbook must prove isolation from the normal working Desktop path, including explicit cleanup and explicit restoration of the standard 127.0.0.1:1080 operator baseline after the wave.</telegram-forced-topology-isolation-rule>
+    <telegram-forced-topology-comparison-rule>The final Phase-35 comparison packet must state whether the forced topology changed the attribution class for voice, video, both, or neither, and must not use blended fallback wording.</telegram-forced-topology-comparison-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -4757,6 +4761,177 @@
       </required-trace-assertions>
       <evidence-note-1>On 2026-03-30 the bounded attribution decision rejected another generic transport repair and narrowed the remaining branch space to Telegram-specific handling of direct media outside the governed SOCKS envelope.</evidence-note-1>
     </V-M-TELEGRAM-ATTRIBUTION-DECISION>
+    <V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS MODULE="M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'forced-topology|topology class|direct-media outside SOCKS|127.0.0.1:1080' README.md docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The new hypothesis stays strictly above the Phase-34 attribution verdict and asks only whether forced topology changes the media-path class.</scenario-1>
+        <scenario-2>The hypothesis keeps the preserved 127.0.0.1:1080 Desktop baseline visible while introducing one topology-only branch.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new hypothesis silently reopens generic transport work or another spent SOCKS-only workaround branch.</scenario-1>
+        <scenario-2>The hypothesis treats forced topology as a replacement for the normal Desktop baseline instead of an isolated experiment.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The hypothesis must preserve the Phase-34 `direct-media outside SOCKS` verdict and the normal Desktop baseline together.</assertion-1>
+        <assertion-2>The hypothesis must state that Phase-35 changes topology class only and does not claim SOCKS-only call support.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS>
+    <V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE MODULE="M-TELEGRAM-FORCED-TOPOLOGY-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'forced topology|isolated|normal Desktop baseline|127.0.0.1:1080' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'what changed|what stayed fixed|single topology variable|isolated runbook' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The profile changes only topology class and keeps the normal Desktop baseline untouched outside the isolated runbook.</scenario-1>
+        <scenario-2>The profile names exactly one topology delta and explicitly states what remains fixed from the Phase-34 Desktop baseline.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The profile changes multiple variables at once or risks breaking the normal working Desktop path.</scenario-1>
+        <scenario-2>The profile does not say whether Telegram is isolated by route, namespace, firewall, or another exact forced-routing mechanism.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The profile must state exactly what changes and what stays fixed.</assertion-1>
+        <assertion-2>The profile must stay directly comparable with Phase-34 by keeping capture scope and operator baseline semantics explicit.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE>
+    <V-M-TELEGRAM-ISOLATED-RUNBOOK MODULE="M-TELEGRAM-ISOLATED-RUNBOOK" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'isolated Telegram|cleanup|forced topology|capture' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'restore|127.0.0.1:1080|temporary surface|cleanup proof' docs/OPERATORS.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The runbook defines an isolated operator path that does not contaminate the normal Desktop baseline.</scenario-1>
+        <scenario-2>The runbook makes setup, teardown, and restoration steps explicit enough that later waves cannot leave stale forced-topology surfaces behind.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The runbook leaves the experiment topology ambiguous or allows it to overlap with the normal baseline.</scenario-1>
+        <scenario-2>The runbook omits cleanup or baseline restoration and therefore risks contaminating later packets.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The isolated runbook must include explicit cleanup and baseline restoration requirements.</assertion-1>
+        <assertion-2>The isolated runbook must make clear that any temporary surface is wave-local and not part of the normal operator baseline.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-ISOLATED-RUNBOOK>
+    <V-M-TELEGRAM-FORCED-CAPTURE MODULE="M-TELEGRAM-FORCED-CAPTURE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'forced capture|loopback|uplink|network capture|server correlation' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'Phase-34 attribution packet|same capture families|bounded capture' docs/OPERATORS.md docs/verification-plan.xml README.md</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The forced-topology capture packet preserves separate workstation and server evidence surfaces.</scenario-1>
+        <scenario-2>The forced-topology capture surface remains directly comparable with the Phase-34 attribution packet rather than inventing a new evidence family.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The forced-topology packet collapses back into a UI-only transcript.</scenario-1>
+        <scenario-2>The capture surface is too different from Phase-34 to say whether topology changed the attribution class.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The forced-topology capture must remain directly comparable with the Phase-34 attribution packet.</assertion-1>
+        <assertion-2>The forced-topology capture must preserve loopback, uplink, broader network, and server-correlation evidence as separate surfaces.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORCED-CAPTURE>
+    <V-M-TELEGRAM-FORCED-VOICE-WAVE MODULE="M-TELEGRAM-FORCED-VOICE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'forced voice|direct-media|governed-media|forced-topology' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The forced-topology voice packet says whether the attribution class changed.</scenario-1>
+        <scenario-2>The packet says whether the first positive evidence appeared on the governed path, outside it, or nowhere.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The forced-topology voice packet silently reuses the Phase-34 result without proving it.</scenario-1>
+        <scenario-2>The packet does not distinguish between direct traffic escaping again and a total absence of fresh media-path evidence.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The forced-topology voice packet must stay separate from video and must say whether the first positive evidence appeared on the governed path, outside it, or nowhere.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORCED-VOICE-WAVE>
+    <V-M-TELEGRAM-FORCED-VIDEO-WAVE MODULE="M-TELEGRAM-FORCED-VIDEO-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'forced video|direct-media|governed-media|forced-topology' docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The forced-topology video packet stays separate and says whether the attribution class changed.</scenario-1>
+        <scenario-2>The packet says whether the first positive evidence appeared on the governed path, outside it, or nowhere for video specifically.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The forced-topology video packet silently inherits the voice result.</scenario-1>
+        <scenario-2>The packet does not distinguish a repeated direct-media escape from a signaling-only or no-evidence video failure.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The forced-topology video packet must preserve its own capture and correlation evidence.</assertion-1>
+        <assertion-2>The forced-topology video packet must classify where the first positive evidence appeared instead of relying on UI summary alone.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORCED-VIDEO-WAVE>
+    <V-M-TELEGRAM-FORCED-COMPARISON MODULE="M-TELEGRAM-FORCED-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'voice|video|both|neither|forced-topology|Phase-34' README.md docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet explicitly says whether the forced topology changed the class for voice, video, both, or neither.</scenario-1>
+        <scenario-2>The comparison packet names the exact delta against the Phase-34 direct-media baseline rather than saying only that calls are still broken.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison packet is too vague to say whether the forced topology had any value.</scenario-1>
+        <scenario-2>The comparison packet blends topology effect with transport speculation or with the normal Desktop baseline.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The forced-topology comparison must stay explicitly anchored to the Phase-34 attribution baseline.</assertion-1>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORCED-COMPARISON>
+    <V-M-TELEGRAM-FORCED-DECISION MODULE="M-TELEGRAM-FORCED-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'forced-topology decision|helps|still no-go|outside controllable user-space envelope' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final forced-topology decision names one bounded outcome only.</scenario-1>
+        <scenario-2>The decision translates the packet into one exact next-step type rather than another generic Telegram rerun.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The forced-topology decision reopens generic transport work or overclaims beyond the tested topology.</scenario-1>
+        <scenario-2>The decision does not say whether Telegram calls remain outside the controllable user-space envelope after topology forcing.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must stay above the Phase-34 attribution verdict and translate the new packets into one exact next-step type.</assertion-1>
+        <assertion-2>The final decision must choose only one bounded result: helps, still no-go, or outside controllable user-space envelope.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-FORCED-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -5265,6 +5440,31 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramMediaPathAttributionWave; expected-evidence=separate workstation and server attribution evidence plus one bounded classifier; observed-evidence=capture packet set and attribution classification; first-divergent-block=first missing attribution evidence layer above the preserved working Desktop baseline; next-action=repair only the attribution surface or classify the packet as insufficient evidence before any further branch planning</failure-packet-template>
     </LV-025>
+    <LV-026 NAME="TelegramForcedMediaTopologyWave" PRIORITY="high">
+      <goal>Run one topology-only Telegram media wave that preserves the normal Desktop baseline outside an isolated runbook while checking whether forced routing changes the direct-media attribution class.</goal>
+      <commands>
+        <command-1>cargo test udp_relay</command-1>
+        <command-2>cargo test wss_gateway</command-2>
+        <command-3>cargo test cli</command-3>
+        <command-4>rg -n 'forced-topology|isolated Telegram|voice|video|both|neither|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-4>
+        <command-5>rg -n 'what changed|what stayed fixed|outside controllable user-space envelope|Phase-34' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-5>
+        <command-6>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave keeps the normal Desktop baseline untouched outside the isolated forced-topology runbook.</evidence-1>
+        <evidence-2>The wave yields separate forced-topology voice and video packets.</evidence-2>
+        <evidence-3>The comparison packet says whether the topology changed the class for voice, video, both, or neither.</evidence-3>
+        <evidence-4>The final decision remains bounded to the exact tested forced topology only.</evidence-4>
+        <evidence-5>The wave states one exact isolated topology delta and one exact list of preserved baseline fields from Phase-34.</evidence-5>
+        <evidence-6>The wave separately classifies whether first positive evidence appeared on the governed path, outside it, or nowhere for both voice and video.</evidence-6>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramForcedMediaTopologyWave; expected-evidence=isolated forced-topology handoff plus separate voice/video comparison packet; observed-evidence=topology handoff and forced-topology packet set; first-divergent-block=first missing forced-topology evidence layer above the Phase-34 attribution verdict; next-action=repair only the forced-topology evidence surface or classify the wave as topology no-change before any new branch planning</failure-packet-template>
+    </LV-026>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -5865,6 +6065,32 @@ PY</command-6>
         <evidence-5>The gate requires the classifier to use one bounded attribution class only and forbids blended fallback wording.</evidence-5>
       </required-evidence>
     </Gate-Phase-34>
+    <Gate-Phase-35 PHASE="Phase-35">
+      <goal>The project has an execution-ready forced-topology Telegram wave that stays above the Phase-34 attribution verdict and does not contaminate the normal Desktop baseline.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-35|M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS|M-TELEGRAM-FORCED-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-026|forced-topology|isolated Telegram|voice|video|both|neither|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>rg -n 'outside controllable user-space envelope|what changed|what stayed fixed|Phase-34 attribution verdict' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-3>
+        <command-4>cargo test udp_relay</command-4>
+        <command-5>cargo test wss_gateway</command-5>
+        <command-6>cargo test cli</command-6>
+        <command-7>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-7>
+        <command-8>git diff --check</command-8>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate preserves the normal Desktop path at `127.0.0.1:1080` outside the isolated forced-topology runbook.</evidence-1>
+        <evidence-2>The gate requires separate forced-topology voice and video packets.</evidence-2>
+        <evidence-3>The gate requires a comparison packet that explicitly says `voice`, `video`, `both`, or `neither`.</evidence-3>
+        <evidence-4>The final decision must stay topology-only and must not reopen generic transport work.</evidence-4>
+        <evidence-5>The gate requires an explicit delta against the Phase-34 direct-media attribution verdict.</evidence-5>
+        <evidence-6>The gate requires proof that any isolated surface is cleaned up and the normal Desktop baseline remains the only ordinary operator path.</evidence-6>
+      </required-evidence>
+    </Gate-Phase-35>
   </PhaseGates>
 
   <FailurePackets>

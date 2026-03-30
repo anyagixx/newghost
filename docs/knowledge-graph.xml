@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.32">
+  <Project NAME="n0wss" VERSION="0.2.33">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2252,6 +2252,78 @@
         <fn-issueTelegramAttributionDecision PURPOSE="Issue the bounded next-step decision after Telegram media-path attribution." />
       </annotations>
     </M-TELEGRAM-ATTRIBUTION-DECISION>
+    <M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS NAME="TelegramForcedTopologyHypothesis" TYPE="UTILITY" STATUS="done">
+      <purpose>Freeze the new topology-only branch after Phase-34 attributed Telegram media to paths outside SOCKS.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-ATTRIBUTION-DECISION, M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</depends>
+      <verification-ref>V-M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTelegramForcedTopologyHypothesis PURPOSE="Freeze the topology-only branch above the Phase-34 attribution verdict." />
+      </annotations>
+    </M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS>
+    <M-TELEGRAM-FORCED-TOPOLOGY-PROFILE NAME="TelegramForcedTopologyProfile" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Freeze one exact forced-routing topology profile for Telegram calls without changing the normal Desktop baseline.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-OPERATOR-CLEANUP, M-TELEGRAM-CAPTURE-TOPOLOGY</depends>
+      <verification-ref>V-M-TELEGRAM-FORCED-TOPOLOGY-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTelegramForcedTopologyProfile PURPOSE="Freeze one exact forced-routing topology profile for Telegram calls." />
+      </annotations>
+    </M-TELEGRAM-FORCED-TOPOLOGY-PROFILE>
+    <M-TELEGRAM-ISOLATED-RUNBOOK NAME="TelegramIsolatedRunbook" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the isolated operator runbook for the forced-topology Telegram wave.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-FORCED-TOPOLOGY-PROFILE</depends>
+      <verification-ref>V-M-TELEGRAM-ISOLATED-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-defineTelegramIsolatedRunbook PURPOSE="Define the isolated Telegram operator runbook for the forced-topology wave." />
+      </annotations>
+    </M-TELEGRAM-ISOLATED-RUNBOOK>
+    <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Prepare the capture surface for the forced-topology Telegram media wave.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION, M-TELEGRAM-ISOLATED-RUNBOOK</depends>
+      <verification-ref>V-M-TELEGRAM-FORCED-CAPTURE</verification-ref>
+      <annotations>
+        <fn-prepareTelegramForcedCapture PURPOSE="Prepare the bounded capture surface for the forced-topology Telegram wave." />
+      </annotations>
+    </M-TELEGRAM-FORCED-CAPTURE>
+    <M-TELEGRAM-FORCED-VOICE-WAVE NAME="TelegramForcedVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded forced-topology Desktop voice attempt and determine whether the media-path class changes.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-FORCED-CAPTURE</depends>
+      <verification-ref>V-M-TELEGRAM-FORCED-VOICE-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramForcedVoiceWave PURPOSE="Run one bounded forced-topology Telegram Desktop voice attempt." />
+      </annotations>
+    </M-TELEGRAM-FORCED-VOICE-WAVE>
+    <M-TELEGRAM-FORCED-VIDEO-WAVE NAME="TelegramForcedVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded forced-topology Desktop video attempt without inheriting the voice result.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-TELEGRAM-FORCED-VOICE-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-FORCED-VIDEO-WAVE</verification-ref>
+      <annotations>
+        <fn-runTelegramForcedVideoWave PURPOSE="Run one bounded forced-topology Telegram Desktop video attempt." />
+      </annotations>
+    </M-TELEGRAM-FORCED-VIDEO-WAVE>
+    <M-TELEGRAM-FORCED-COMPARISON NAME="TelegramForcedComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the forced-topology packets against the Phase-34 attribution verdict and determine whether voice, video, both, or neither changed class.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-FORCED-VOICE-WAVE, M-TELEGRAM-FORCED-VIDEO-WAVE</depends>
+      <verification-ref>V-M-TELEGRAM-FORCED-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramForcedPackets PURPOSE="Compare forced-topology Telegram packets against the Phase-34 attribution baseline." />
+      </annotations>
+    </M-TELEGRAM-FORCED-COMPARISON>
+    <M-TELEGRAM-FORCED-DECISION NAME="TelegramForcedDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded forced-topology decision after comparing the new packets with the Phase-34 attribution baseline.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-FORCED-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-FORCED-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramForcedDecision PURPOSE="Issue the bounded decision after the forced-topology Telegram wave." />
+      </annotations>
+    </M-TELEGRAM-FORCED-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
