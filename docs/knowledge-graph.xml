@@ -2801,7 +2801,7 @@
         <fn-defineUdpOrigDstRunbook PURPOSE="Define setup and cleanup for the repo-local original-destination helper." />
       </annotations>
     </M-UDP-ORIGDST-RUNBOOK>
-    <M-UDP-ORIGDST-SMOKE NAME="UdpOrigDstSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-UDP-ORIGDST-SMOKE NAME="UdpOrigDstSmoke" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Prove repo-local original-destination recovery and governed handoff for more than one UDP tuple before any Telegram calls packet is spent.</purpose>
       <path>tests/udp_origdst_smoke.rs</path>
       <depends>M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, M-UDP-ORIGDST-RUNBOOK</depends>

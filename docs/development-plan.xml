@@ -7256,7 +7256,7 @@
       </observability>
       <verification-ref>V-M-UDP-ORIGDST-RUNBOOK</verification-ref>
     </M-UDP-ORIGDST-RUNBOOK>
-    <M-UDP-ORIGDST-SMOKE NAME="UdpOrigDstSmoke" TYPE="CORE_LOGIC" LAYER="44" ORDER="7" STATUS="planned">
+    <M-UDP-ORIGDST-SMOKE NAME="UdpOrigDstSmoke" TYPE="CORE_LOGIC" LAYER="44" ORDER="7" STATUS="done">
       <contract>
         <purpose>Prove repo-local original-destination recovery and governed handoff for more than one UDP tuple before any Telegram calls packet is spent.</purpose>
         <inputs>
@@ -8588,7 +8588,7 @@
       <step-4 module="M-UDP-ORIGDST-LINUX-ADAPTER" status="done" verification="V-M-UDP-ORIGDST-LINUX-ADAPTER">Isolate Linux-specific socket and original-destination recovery behavior</step-4>
       <step-5 module="M-UDP-ORIGDST-RUNTIME" status="done" verification="V-M-UDP-ORIGDST-RUNTIME">Implement the repo-local helper runtime for recovered UDP tuples</step-5>
       <step-6 module="M-UDP-ORIGDST-RUNBOOK" status="done" verification="V-M-UDP-ORIGDST-RUNBOOK">Define the exact host-side interception setup and cleanup runbook</step-6>
-      <step-7 module="M-UDP-ORIGDST-SMOKE" status="planned" verification="V-M-UDP-ORIGDST-SMOKE">Prove repo-local original-destination recovery and governed handoff for more than one tuple</step-7>
+      <step-7 module="M-UDP-ORIGDST-SMOKE" status="done" verification="V-M-UDP-ORIGDST-SMOKE">Prove repo-local original-destination recovery and governed handoff for more than one tuple</step-7>
       <step-8 module="M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE">Run one bounded voice attempt only after repo-local helper smoke is green</step-8>
       <step-9 module="M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-9>
       <step-10 module="M-TELEGRAM-CALLS-ORIGDST-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ORIGDST-COMPARISON">Compare repo-local helper packets against the old direct-media and arbitrary-UDP boundary packets</step-10>
