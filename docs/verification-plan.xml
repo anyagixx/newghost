@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.67">
+<VerificationPlan VERSION="0.2.68">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -121,6 +121,8 @@
     <telegram-calls-attached-baseline-lock-rule>Phase-39 must preserve the already-working ordinary Telegram Desktop baseline at `127.0.0.1:1080` while targeting only the direct-media escape branch.</telegram-calls-attached-baseline-lock-rule>
     <telegram-calls-attached-no-second-auth-rule>Phase-39 may not require a second Telegram auth/bootstrap window and must attach only to the already logged-in ordinary Desktop window.</telegram-calls-attached-no-second-auth-rule>
     <telegram-calls-attached-smoke-first-rule>Phase-39 may spend voice or video packets only after selective interception smoke proves governed handoff for the targeted direct-egress class outside Telegram UI.</telegram-calls-attached-smoke-first-rule>
+    <telegram-calls-attached-ordinary-path-preserve-rule>Phase-39 evidence is invalid if selective interception degrades or reroutes the already-working ordinary message or file path instead of isolating only the direct-media escape branch.</telegram-calls-attached-ordinary-path-preserve-rule>
+    <telegram-calls-attached-ui-separation-rule>Phase-39 must keep ordinary Telegram UI behavior and attached calls evidence separate: no second auth prompt, no proxy-mode flip in the ordinary window, and no blended recovery wording.</telegram-calls-attached-ui-separation-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5484,9 +5486,11 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The interception profile targets only the direct-media escape branch and leaves ordinary SOCKS-governed message/file traffic untouched.</scenario-1>
+        <scenario-2>The interception profile names one bounded host-side delta that can be applied and removed without mutating the ordinary Telegram UI configuration.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The interception profile is broad enough to risk the already-working ordinary baseline.</scenario-1>
+        <scenario-2>The interception profile depends on changing proxy mode or login state in the ordinary Telegram window.</scenario-2>
       </failure-scenarios>
     </V-M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE>
     <V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE MODULE="M-TELEGRAM-CALLS-INTERCEPT-SMOKE" PRIORITY="high">
@@ -5499,9 +5503,11 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The branch proves selective interception and governed handoff outside Telegram UI before any new call packet is spent.</scenario-1>
+        <scenario-2>The smoke packet separately proves the ordinary message/file path stays intact while the selective interception surface is active.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The branch spends voice or video before selective interception smoke is green.</scenario-1>
+        <scenario-2>The smoke packet goes green only by degrading or rerouting the already-working ordinary Telegram baseline.</scenario-2>
       </failure-scenarios>
     </V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE>
     <V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE MODULE="M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE" PRIORITY="high">
@@ -5514,9 +5520,11 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The attached voice packet is explicitly downstream of green selective interception smoke and the ordinary logged-in baseline.</scenario-1>
+        <scenario-2>The attached voice packet states whether the ordinary message/file path stayed intact during the same packet window.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The attached voice packet is spent before smoke is green or in a second auth window.</scenario-1>
+        <scenario-2>The attached voice packet is accepted even though the ordinary Telegram baseline regressed during the same wave.</scenario-2>
       </failure-scenarios>
     </V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE>
     <V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE MODULE="M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE" PRIORITY="high">
@@ -5529,9 +5537,11 @@
       </module-checks>
       <success-scenarios>
         <scenario-1>The attached video packet stays separate from voice and remains downstream of the same selective interception proof.</scenario-1>
+        <scenario-2>The attached video packet states whether the ordinary message/file path stayed intact during the same packet window.</scenario-2>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The attached video packet silently inherits voice or bypasses smoke-first policy.</scenario-1>
+        <scenario-2>The attached video packet is accepted even though the ordinary Telegram baseline regressed during the same wave.</scenario-2>
       </failure-scenarios>
     </V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE>
     <V-M-TELEGRAM-CALLS-ATTACHED-COMPARISON MODULE="M-TELEGRAM-CALLS-ATTACHED-COMPARISON" PRIORITY="high">
@@ -6183,8 +6193,9 @@ PY</command-5>
         <evidence-3>Selective interception smoke is green before any new voice or video packet is spent.</evidence-3>
         <evidence-4>Voice and video remain separate packets.</evidence-4>
         <evidence-5>The comparison packet says whether positive evidence first appeared on governed path, still outside it, or nowhere.</evidence-5>
+        <evidence-6>The same wave explicitly records whether ordinary messages/files remained healthy while selective interception was active.</evidence-6>
       </required-evidence>
-      <failure-packet-template>scenario=TelegramCallsBaselineAttachedWave; expected-evidence=preserved ordinary baseline, explicit blocked-auth supersede packet, baseline-attached profile, green selective interception smoke, and separate attached voice/video packets; observed-evidence=phase artifacts, operator evidence, smoke outcome, and attached calls packets; first-divergent-block=first missing attach-profile, supersede, smoke, voice, video, or comparison marker; next-action=repair that exact layer before spending more calls attempts</failure-packet-template>
+      <failure-packet-template>scenario=TelegramCallsBaselineAttachedWave; expected-evidence=preserved ordinary baseline, explicit blocked-auth supersede packet, baseline-attached profile, green selective interception smoke, ordinary-path-preserve proof, and separate attached voice/video packets; observed-evidence=phase artifacts, operator evidence, smoke outcome, ordinary-path health packet, and attached calls packets; first-divergent-block=first missing attach-profile, supersede, smoke, ordinary-path-preserve, voice, video, or comparison marker; next-action=repair that exact layer before spending more calls attempts</failure-packet-template>
     </LV-030>
   </LiveEnvironmentVerification>
 
@@ -6897,9 +6908,10 @@ PY</command-3>
         <evidence-2>The gate keeps blocked Phase-38 auth/bootstrap work explicitly superseded.</evidence-2>
         <evidence-3>The gate requires a baseline-attached profile with no second auth/bootstrap window.</evidence-3>
         <evidence-4>The gate requires green selective interception smoke before any new calls packet.</evidence-4>
-        <evidence-5>The gate requires separate attached voice and video packets plus a bounded final decision.</evidence-5>
+        <evidence-5>The gate requires explicit proof that the ordinary message/file path stayed intact while the selective interception surface was active.</evidence-5>
+        <evidence-6>The gate requires separate attached voice and video packets plus a bounded final decision.</evidence-6>
       </required-evidence>
-      <failure-packet-template>scenario=Gate-Phase-39; expected-evidence=execution-ready baseline-attached calls wave with preserved ordinary baseline, explicit blocked-auth supersede packet, no second auth dependency, green selective interception smoke, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, operator runbook, verification coverage, and execution packet; first-divergent-block=first missing baseline-attached gate requirement; next-action=repair the missing Phase-39 artifact before executing the wave</failure-packet-template>
+      <failure-packet-template>scenario=Gate-Phase-39; expected-evidence=execution-ready baseline-attached calls wave with preserved ordinary baseline, explicit blocked-auth supersede packet, no second auth dependency, green selective interception smoke, ordinary-path-preserve proof, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, operator runbook, verification coverage, ordinary-path health packet, and execution packet; first-divergent-block=first missing baseline-attached gate requirement; next-action=repair the missing Phase-39 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-39>
   </PhaseGates>
 
