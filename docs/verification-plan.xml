@@ -4712,6 +4712,7 @@
         <assertion-2>The packet must remain separate from the voice result even if the final class matches.</assertion-2>
         <assertion-3>The video packet must say whether the first positive evidence appeared on the SOCKS-governed path, outside it, or nowhere.</assertion-3>
       </required-trace-assertions>
+      <evidence-note-1>On 2026-03-30 the first bounded Phase-34 Desktop video packet again showed fresh direct traffic to Telegram infrastructure while the same bounded server-correlation window stayed silent on fresh governed datagram markers.</evidence-note-1>
     </V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE>
     <V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER MODULE="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" PRIORITY="high">
       <test-files>
@@ -4732,6 +4733,7 @@
         <assertion-2>The classifier must name whether media appears governed, direct, signaling-only, or still unproven.</assertion-2>
         <assertion-3>The classifier must not use blended wording that hides whether the evidence came from the governed SOCKS path or from outside it.</assertion-3>
       </required-trace-assertions>
+      <evidence-note-1>On 2026-03-30 both bounded Desktop attribution packets converged on `direct-media outside SOCKS` because workstation evidence first turned positive outside the governed envelope while fresh server-side datagram markers remained absent.</evidence-note-1>
     </V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER>
     <V-M-TELEGRAM-ATTRIBUTION-DECISION MODULE="M-TELEGRAM-ATTRIBUTION-DECISION" PRIORITY="high">
       <test-files>
@@ -4753,6 +4755,7 @@
         <assertion-2>The decision must translate the attribution class into one exact next-step type.</assertion-2>
         <assertion-3>The decision must explicitly reject another blind Desktop rerun if the attribution packet still lacks a new class beyond the spent matrix.</assertion-3>
       </required-trace-assertions>
+      <evidence-note-1>On 2026-03-30 the bounded attribution decision rejected another generic transport repair and narrowed the remaining branch space to Telegram-specific handling of direct media outside the governed SOCKS envelope.</evidence-note-1>
     </V-M-TELEGRAM-ATTRIBUTION-DECISION>
   </ModuleVerification>
 

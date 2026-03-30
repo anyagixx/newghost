@@ -1467,6 +1467,23 @@ Phase-34 voice attribution packet on 2026-03-30:
 - bounded reading:
   the voice packet currently points to candidate direct-media behavior outside the governed SOCKS envelope, not to another generic transport failure on the preserved Desktop baseline
 
+Phase-34 video attribution packet on 2026-03-30:
+
+- preserved Desktop baseline stayed unchanged:
+  `SOCKS5 127.0.0.1:1080`, username/password empty
+- one bounded Desktop video attempt progressed through:
+  `Запрос` -> `Вызов` -> `Обмен ключами шифрования` -> `Ошибка соединения` -> drop
+- workstation capture surfaces completed with one asymmetry:
+  `/tmp/n0wss-phase34-video-uplink.pcap`
+  `/tmp/n0wss-phase34-video-network.pcap`
+  `/tmp/n0wss-phase34-video-loopback.pcap` timed out with zero packets in the bounded window
+- bounded evidence split:
+  uplink still showed fresh WSS traffic to `91.99.128.146:7443`
+  broader workstation capture showed fresh direct traffic to Telegram infrastructure including `91.108.56.136`, `91.108.56.188`, `149.154.167.41`, `149.154.167.51`, and `149.154.167.92`
+  the same bounded server-side correlation packet still showed only fresh WSS handshakes and no fresh governed datagram markers like `SERVER_DATAGRAM_RECEIVED`, `BLOCK_RELAY_UDP_OUTBOUND`, `SERVER_DATAGRAM_INBOUND_RECEIVED`, or `SERVER_DATAGRAM_RETURN_EMITTED`
+- bounded reading:
+  despite the loopback asymmetry, the first positive non-UI evidence again appeared outside the governed SOCKS envelope, so the video packet converges on the same direct-media-outside-SOCKS class as voice rather than on another transport defect inside n0wss
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.

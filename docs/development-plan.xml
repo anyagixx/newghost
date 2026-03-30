@@ -5851,7 +5851,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE</verification-ref>
     </M-TELEGRAM-VOICE-ATTRIBUTION-WAVE>
-    <M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE NAME="TelegramVideoAttributionWave" TYPE="CORE_LOGIC" LAYER="37" ORDER="6" STATUS="planned">
+    <M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE NAME="TelegramVideoAttributionWave" TYPE="CORE_LOGIC" LAYER="37" ORDER="6" STATUS="done">
       <contract>
         <purpose>Run one bounded Desktop video attribution wave under the same capture contract without inheriting the voice result.</purpose>
         <inputs>
@@ -5873,7 +5873,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE</verification-ref>
     </M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE>
-    <M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER NAME="TelegramMediaAttributionClassifier" TYPE="CORE_LOGIC" LAYER="37" ORDER="7" STATUS="planned">
+    <M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER NAME="TelegramMediaAttributionClassifier" TYPE="CORE_LOGIC" LAYER="37" ORDER="7" STATUS="done">
       <contract>
         <purpose>Classify Telegram media behavior as governed-media attempt, direct-media attempt outside SOCKS, signaling-only stall, or insufficient evidence.</purpose>
         <inputs>
@@ -5895,7 +5895,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER</verification-ref>
     </M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER>
-    <M-TELEGRAM-ATTRIBUTION-DECISION NAME="TelegramAttributionDecision" TYPE="ENTRY_POINT" LAYER="37" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-ATTRIBUTION-DECISION NAME="TelegramAttributionDecision" TYPE="ENTRY_POINT" LAYER="37" ORDER="8" STATUS="done">
       <contract>
         <purpose>Issue the bounded next-step decision after Telegram media-path attribution without reopening spent workaround branches.</purpose>
         <inputs>
@@ -6989,21 +6989,24 @@
       <note-7>The bounded final decision for Phase-33 is to stop workaround exploration as no-go for the tested Telegram Desktop and tested Android variants while keeping the green transport baseline intact and without widening the claim beyond those tested variants.</note-7>
       <note-8>The operator cleanup end-state preserves only the working Desktop listener at `127.0.0.1:1080`, removes temporary Telegram-only mobile listener surfaces from the baseline, and preserves the already-working Desktop path for text messages, media files, and large files.</note-8>
     </Phase-33>
-    <Phase-34 name="Telegram Media Path Attribution" status="pending">
+    <Phase-34 name="Telegram Media Path Attribution" status="done">
       <goal>Attribute Telegram voice and video media behavior after key exchange on the already-working Desktop baseline without reopening spent workaround branches.</goal>
       <step-1 module="M-TELEGRAM-ATTRIBUTION-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-ATTRIBUTION-HYPOTHESIS">Freeze the bounded Telegram media-path attribution question above the preserved green baseline</step-1>
       <step-2 module="M-TELEGRAM-CAPTURE-TOPOLOGY" status="done" verification="V-M-TELEGRAM-CAPTURE-TOPOLOGY">Freeze one exact Desktop attribution capture topology without changing the working baseline</step-2>
       <step-3 module="M-TELEGRAM-DESKTOP-NET-CAPTURE" status="done" verification="V-M-TELEGRAM-DESKTOP-NET-CAPTURE">Define the bounded Desktop network-capture surface for media attribution</step-3>
       <step-4 module="M-TELEGRAM-SERVER-CORRELATION" status="done" verification="V-M-TELEGRAM-SERVER-CORRELATION">Freeze the governed server-side correlation contract for attribution waves</step-4>
       <step-5 module="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" status="done" verification="V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE">Replay one bounded Desktop voice attribution wave</step-5>
-      <step-6 module="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" status="pending" verification="V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE">Replay one bounded Desktop video attribution wave without inheriting voice</step-6>
-      <step-7 module="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER">Classify voice and video packets as governed-media, direct-media, signaling-only, or insufficient evidence</step-7>
-      <step-8 module="M-TELEGRAM-ATTRIBUTION-DECISION" status="pending" verification="V-M-TELEGRAM-ATTRIBUTION-DECISION">Issue the bounded next-step decision after media-path attribution</step-8>
+      <step-6 module="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" status="done" verification="V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE">Replay one bounded Desktop video attribution wave without inheriting voice</step-6>
+      <step-7 module="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" status="done" verification="V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER">Classify voice and video packets as governed-media, direct-media, signaling-only, or insufficient evidence</step-7>
+      <step-8 module="M-TELEGRAM-ATTRIBUTION-DECISION" status="done" verification="V-M-TELEGRAM-ATTRIBUTION-DECISION">Issue the bounded next-step decision after media-path attribution</step-8>
       <note-1>Phase-34 starts only after the preserved working Desktop baseline, the green transport baseline, and the completed terminal Telegram no-go matrix are all visible together.</note-1>
       <note-2>The phase must not reopen generic transport diagnosis or any already-spent Desktop or Android workaround branch.</note-2>
       <note-3>The only approved new question is attribution: whether Telegram media attempts the governed SOCKS path, a direct path outside SOCKS, or no real media path at all after key exchange.</note-3>
       <note-4>The already-working Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched during this attribution wave.</note-4>
       <note-5>On 2026-03-30 the bounded Desktop voice-attribution packet progressed through request, ringing, and key exchange before dropping; loopback and uplink captures stayed active on the preserved SOCKS and WSS surfaces, but broader workstation capture also recorded fresh UDP egress to Telegram-owned `91.108.*` addresses on ports `598`, `599`, and `1400` while the same bounded server-side correlation packet stayed limited to fresh WSS handshakes without fresh datagram relay markers.</note-5>
+      <note-6>On the same date the bounded Desktop video-attribution packet progressed through request, ringing, key exchange, connection error, and drop; broader workstation capture again recorded fresh direct traffic to Telegram infrastructure while the same bounded server-side correlation packet again stayed limited to fresh WSS handshakes without fresh datagram relay markers.</note-6>
+      <note-7>The bounded Phase-34 classifier now converges for both voice and video on `direct-media outside SOCKS`.</note-7>
+      <note-8>The bounded Phase-34 decision is therefore not another transport repair: the next branch, if any, must be Telegram-specific/app-behavior work around direct media outside the governed SOCKS envelope.</note-8>
     </Phase-34>
   </ImplementationOrder>
 
