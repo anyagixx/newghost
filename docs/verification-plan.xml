@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.68">
+<VerificationPlan VERSION="0.2.69">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -123,6 +123,9 @@
     <telegram-calls-attached-smoke-first-rule>Phase-39 may spend voice or video packets only after selective interception smoke proves governed handoff for the targeted direct-egress class outside Telegram UI.</telegram-calls-attached-smoke-first-rule>
     <telegram-calls-attached-ordinary-path-preserve-rule>Phase-39 evidence is invalid if selective interception degrades or reroutes the already-working ordinary message or file path instead of isolating only the direct-media escape branch.</telegram-calls-attached-ordinary-path-preserve-rule>
     <telegram-calls-attached-ui-separation-rule>Phase-39 must keep ordinary Telegram UI behavior and attached calls evidence separate: no second auth prompt, no proxy-mode flip in the ordinary window, and no blended recovery wording.</telegram-calls-attached-ui-separation-rule>
+    <telegram-arbitrary-udp-baseline-lock-rule>Phase-40 must preserve the already-working ordinary Telegram Desktop baseline at `127.0.0.1:1080` while expanding only the UDP interception class.</telegram-arbitrary-udp-baseline-lock-rule>
+    <telegram-arbitrary-udp-no-second-auth-rule>Phase-40 may not require a second Telegram auth/bootstrap window and must remain attached to the already logged-in ordinary Desktop window.</telegram-arbitrary-udp-no-second-auth-rule>
+    <telegram-arbitrary-udp-smoke-first-rule>Phase-40 may spend voice or video packets only after arbitrary-destination UDP smoke proves original-destination recovery and governed handoff for more than one tuple outside Telegram UI.</telegram-arbitrary-udp-smoke-first-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5575,6 +5578,108 @@
         <scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1>
       </failure-scenarios>
     </V-M-TELEGRAM-CALLS-ATTACHED-DECISION>
+    <V-M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS MODULE="M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-40|arbitrary UDP|fixed-tuple smoke|Phase-39|direct-media attribution' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The new branch explicitly starts from the fixed-tuple smoke boundary and not from a fake green calls packet.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new branch treats one fixed-tuple smoke packet as if it already proved arbitrary Telegram media control.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS>
+    <V-M-PHASE39-SMOKE-BOUNDARY MODULE="M-PHASE39-SMOKE-BOUNDARY" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/knowledge-graph.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-39|fixed-destination-only|deterministic tuple|insufficient for real calls' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The fixed-tuple smoke packet remains visible as valid but insufficient history.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The Phase-39 smoke packet is lost or widened into a fake calls-success claim.</scenario-1>
+      </failure-scenarios>
+    </V-M-PHASE39-SMOKE-BOUNDARY>
+    <V-M-ARBITRARY-UDP-TECH-DECISION MODULE="M-ARBITRARY-UDP-TECH-DECISION" PRIORITY="high">
+      <test-files><file>docs/technology.xml</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'arbitrary-destination UDP interception class|repo-local helper|installable helper|kernel-assisted' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The branch chooses one exact arbitrary-UDP interception class only.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The branch mixes multiple helper classes or stays vague about the interception method.</scenario-1>
+      </failure-scenarios>
+    </V-M-ARBITRARY-UDP-TECH-DECISION>
+    <V-M-ARBITRARY-UDP-RUNBOOK MODULE="M-ARBITRARY-UDP-RUNBOOK" PRIORITY="high">
+      <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'arbitrary UDP|install|remove|cleanup|ordinary baseline untouched' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The runbook defines explicit setup and cleanup without mutating the ordinary Telegram baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The runbook leaves cleanup ambiguous or risks persistent host-side drift.</scenario-1>
+      </failure-scenarios>
+    </V-M-ARBITRARY-UDP-RUNBOOK>
+    <V-M-ARBITRARY-UDP-RUNTIME-PROFILE MODULE="M-ARBITRARY-UDP-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file><file>docs/technology.xml</file></test-files>
+      <module-checks><check-1>rg -n 'original-destination recovery|arbitrary tuple|ordinary baseline|governed local surface' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml docs/technology.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The runtime profile explicitly requires arbitrary destination recovery rather than a fixed tuple.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The runtime profile still depends on fixed `dest_ip` and `dest_port` only.</scenario-1>
+      </failure-scenarios>
+    </V-M-ARBITRARY-UDP-RUNTIME-PROFILE>
+    <V-M-ARBITRARY-UDP-SMOKE MODULE="M-ARBITRARY-UDP-SMOKE" PRIORITY="high">
+      <test-files><file>docs/verification-plan.xml</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'more than one tuple|original-destination recovery|arbitrary UDP smoke|ordinary-path-preserve' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The smoke packet proves original-destination recovery and governed handoff for more than one UDP tuple outside Telegram UI.</scenario-1>
+        <scenario-2>The smoke packet separately proves the ordinary message/file path stays intact while the arbitrary-UDP surface is active.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The smoke packet is green only for one fixed tuple.</scenario-1>
+        <scenario-2>The smoke packet is green only because the ordinary Telegram baseline regressed.</scenario-2>
+      </failure-scenarios>
+    </V-M-ARBITRARY-UDP-SMOKE>
+    <V-M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE MODULE="M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE" PRIORITY="high">
+      <test-files><file>docs/verification-plan.xml</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'arbitrary voice|already logged-in|arbitrary-UDP smoke|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The arbitrary-UDP voice packet is explicitly downstream of green arbitrary-UDP smoke and the ordinary logged-in baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The arbitrary-UDP voice packet is spent before smoke is green or in a second auth window.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE>
+    <V-M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE MODULE="M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE" PRIORITY="high">
+      <test-files><file>docs/verification-plan.xml</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'arbitrary video|already logged-in|arbitrary-UDP smoke|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The arbitrary-UDP video packet stays separate from voice and remains downstream of the same arbitrary-UDP smoke proof.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The arbitrary-UDP video packet silently inherits voice or bypasses smoke-first policy.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE>
+    <V-M-TELEGRAM-CALLS-ARBITRARY-COMPARISON MODULE="M-TELEGRAM-CALLS-ARBITRARY-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-34|Phase-39|arbitrary voice|arbitrary video' README.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison keeps the old direct-media verdict and the fixed-tuple smoke boundary visible while evaluating the arbitrary-UDP packets.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison forgets either the old direct-media verdict or the fixed-tuple smoke boundary.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ARBITRARY-COMPARISON>
+    <V-M-TELEGRAM-CALLS-ARBITRARY-DECISION MODULE="M-TELEGRAM-CALLS-ARBITRARY-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'arbitrary UDP decision|127.0.0.1:1080|Phase-39|Phase-34' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision stays bounded to the arbitrary-destination UDP branch and preserves the already-working ordinary baseline.</scenario-1>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1>
+      </failure-scenarios>
+    </V-M-TELEGRAM-CALLS-ARBITRARY-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -6197,6 +6302,27 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsBaselineAttachedWave; expected-evidence=preserved ordinary baseline, explicit blocked-auth supersede packet, baseline-attached profile, green selective interception smoke, ordinary-path-preserve proof, and separate attached voice/video packets; observed-evidence=phase artifacts, operator evidence, smoke outcome, ordinary-path health packet, and attached calls packets; first-divergent-block=first missing attach-profile, supersede, smoke, ordinary-path-preserve, voice, video, or comparison marker; next-action=repair that exact layer before spending more calls attempts</failure-packet-template>
     </LV-030>
+    <LV-031 NAME="TelegramCallsArbitraryUdpWave" PRIORITY="high">
+      <scope>Phase-40 arbitrary-destination UDP interception branch after the Phase-39 fixed-tuple smoke boundary was frozen.</scope>
+      <commands>
+        <command-1>keep the preserved normal Telegram Desktop baseline at `127.0.0.1:1080` untouched</command-1>
+        <command-2>prove the Phase-39 fixed-tuple smoke boundary is explicitly visible</command-2>
+        <command-3>choose one arbitrary-destination UDP interception class only</command-3>
+        <command-4>define one bounded arbitrary-UDP runbook and runtime profile</command-4>
+        <command-5>prove arbitrary-UDP smoke with original-destination recovery and more than one tuple before any new call packet</command-5>
+        <command-6>run one arbitrary-UDP voice packet</command-6>
+        <command-7>run one separate arbitrary-UDP video packet</command-7>
+        <command-8>compare the arbitrary-UDP packets against Phase-34 and the Phase-39 smoke boundary</command-8>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave never requires a second Telegram auth/bootstrap window.</evidence-1>
+        <evidence-2>The wave keeps ordinary Telegram baseline preservation explicit and separate from new calls work.</evidence-2>
+        <evidence-3>Arbitrary-UDP smoke proves original-destination recovery and governed handoff for more than one tuple.</evidence-3>
+        <evidence-4>Voice and video remain separate packets.</evidence-4>
+        <evidence-5>The comparison packet says whether positive evidence first appeared on governed path, still outside it, or nowhere.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsArbitraryUdpWave; expected-evidence=preserved ordinary baseline, explicit fixed-tuple smoke boundary, one exact arbitrary-UDP tech choice, green multi-tuple arbitrary-UDP smoke, and separate arbitrary voice/video packets; observed-evidence=phase artifacts, operator evidence, smoke outcome, and arbitrary-UDP calls packets; first-divergent-block=first missing arbitrary-UDP tech, runbook, smoke, voice, video, or comparison marker; next-action=repair that exact arbitrary-UDP layer before spending more calls attempts</failure-packet-template>
+    </LV-031>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -6913,6 +7039,28 @@ PY</command-3>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-39; expected-evidence=execution-ready baseline-attached calls wave with preserved ordinary baseline, explicit blocked-auth supersede packet, no second auth dependency, green selective interception smoke, ordinary-path-preserve proof, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, operator runbook, verification coverage, ordinary-path health packet, and execution packet; first-divergent-block=first missing baseline-attached gate requirement; next-action=repair the missing Phase-39 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-39>
+    <Gate-Phase-40 PHASE="Phase-40">
+      <goal>The project has an execution-ready arbitrary-destination UDP branch that preserves the already-working ordinary Telegram baseline and proves multi-tuple destination recovery before any calls packet.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-40|M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS|M-TELEGRAM-CALLS-ARBITRARY-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-031|127.0.0.1:1080|more than one tuple|original-destination recovery|Phase-39|Phase-34|no second auth' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the already-working ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the Phase-39 fixed-tuple smoke boundary explicit.</evidence-2>
+        <evidence-3>The gate requires one exact arbitrary-UDP tech choice with bounded runbook and runtime profile.</evidence-3>
+        <evidence-4>The gate requires green multi-tuple arbitrary-UDP smoke before any new calls packet.</evidence-4>
+        <evidence-5>The gate requires separate arbitrary voice and video packets plus a bounded final decision.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-40; expected-evidence=execution-ready arbitrary-UDP calls wave with preserved ordinary baseline, explicit fixed-tuple smoke boundary, one exact arbitrary-UDP tech choice, green multi-tuple arbitrary-UDP smoke, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, operator runbook, verification coverage, and execution packet; first-divergent-block=first missing arbitrary-UDP gate requirement; next-action=repair the missing Phase-40 artifact before executing the wave</failure-packet-template>
+    </Gate-Phase-40>
   </PhaseGates>
 
   <FailurePackets>

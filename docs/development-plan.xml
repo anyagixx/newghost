@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.47">
+<DevelopmentPlan VERSION="0.2.48">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -6902,6 +6902,227 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-ATTACHED-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-ATTACHED-DECISION>
+    <M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS NAME="TelegramArbitraryUdpHypothesis" TYPE="UTILITY" LAYER="43" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the new calls branch above the fixed-tuple smoke boundary and the direct-media attribution verdict.</purpose>
+        <inputs>
+          <input-1>The bounded attached-branch smoke packet.</input-1>
+          <input-2>The bounded direct-media attribution decision.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An arbitrary-destination UDP branch boundary packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ATTACHED-DECISION, M-TELEGRAM-CALLS-INTERCEPT-SMOKE</depends>
+      <observability>
+        <log-prefix>[TelegramArbitraryUdpHypothesis]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_ARBITRARY_UDP_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS</verification-ref>
+    </M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS>
+    <M-PHASE39-SMOKE-BOUNDARY NAME="Phase39SmokeBoundary" TYPE="UTILITY" LAYER="43" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Explicitly freeze the Phase-39 smoke packet as valid but insufficient for real calls because the helper is fixed-destination-only.</purpose>
+        <inputs>
+          <input-1>The arbitrary-destination UDP branch boundary packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A fixed-tuple smoke boundary packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase39SmokeBoundary]</log-prefix>
+        <critical-block>BLOCK_PHASE39_SMOKE_BOUNDARY</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE39-SMOKE-BOUNDARY</verification-ref>
+    </M-PHASE39-SMOKE-BOUNDARY>
+    <M-ARBITRARY-UDP-TECH-DECISION NAME="ArbitraryUdpTechDecision" TYPE="ENTRY_POINT" LAYER="43" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Choose one exact arbitrary-destination UDP interception class for the next calls branch.</purpose>
+        <inputs>
+          <input-1>The arbitrary-destination UDP branch boundary packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>An approved arbitrary-UDP helper or runtime class.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/technology.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[ArbitraryUdpTechDecision]</log-prefix>
+        <critical-block>BLOCK_ARBITRARY_UDP_TECH_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-ARBITRARY-UDP-TECH-DECISION</verification-ref>
+    </M-ARBITRARY-UDP-TECH-DECISION>
+    <M-ARBITRARY-UDP-RUNBOOK NAME="ArbitraryUdpRunbook" TYPE="INTEGRATION" LAYER="43" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Define bounded install, setup, remove, and cleanup surfaces for arbitrary-destination UDP interception.</purpose>
+        <inputs>
+          <input-1>The arbitrary-UDP tech decision.</input-1>
+          <input-2>The baseline-attached calls profile.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An arbitrary-UDP operator runbook.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-ARBITRARY-UDP-TECH-DECISION, M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE</depends>
+      <observability>
+        <log-prefix>[ArbitraryUdpRunbook]</log-prefix>
+        <critical-block>BLOCK_ARBITRARY_UDP_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-ARBITRARY-UDP-RUNBOOK</verification-ref>
+    </M-ARBITRARY-UDP-RUNBOOK>
+    <M-ARBITRARY-UDP-RUNTIME-PROFILE NAME="ArbitraryUdpRuntimeProfile" TYPE="INTEGRATION" LAYER="43" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Freeze one exact arbitrary-destination UDP interception and destination-recovery surface while preserving the ordinary baseline.</purpose>
+        <inputs>
+          <input-1>The arbitrary-UDP tech decision.</input-1>
+          <input-2>The selective interception profile from Phase-39.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>An arbitrary-UDP runtime profile.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/technology.xml</file-3>
+      </target-files>
+      <depends>M-ARBITRARY-UDP-TECH-DECISION, M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE</depends>
+      <observability>
+        <log-prefix>[ArbitraryUdpRuntimeProfile]</log-prefix>
+        <critical-block>BLOCK_ARBITRARY_UDP_RUNTIME_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-ARBITRARY-UDP-RUNTIME-PROFILE</verification-ref>
+    </M-ARBITRARY-UDP-RUNTIME-PROFILE>
+    <M-ARBITRARY-UDP-SMOKE NAME="ArbitraryUdpSmoke" TYPE="CORE_LOGIC" LAYER="43" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Prove arbitrary-destination UDP interception outside Telegram UI before any real calls packet is spent.</purpose>
+        <inputs>
+          <input-1>The arbitrary-UDP runtime profile.</input-1>
+          <input-2>The arbitrary-UDP runbook.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A green or blocked arbitrary-UDP smoke packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-ARBITRARY-UDP-RUNTIME-PROFILE, M-ARBITRARY-UDP-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[ArbitraryUdpSmoke]</log-prefix>
+        <critical-block>BLOCK_ARBITRARY_UDP_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-ARBITRARY-UDP-SMOKE</verification-ref>
+    </M-ARBITRARY-UDP-SMOKE>
+    <M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE NAME="TelegramCallsArbitraryVoiceWave" TYPE="CORE_LOGIC" LAYER="43" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after arbitrary-UDP smoke is green.</purpose>
+        <inputs>
+          <input-1>The green arbitrary-UDP smoke packet.</input-1>
+          <input-2>The bounded server-correlation packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded arbitrary-UDP voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-ARBITRARY-UDP-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsArbitraryVoiceWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ARBITRARY_VOICE_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE</verification-ref>
+    </M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE>
+    <M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE NAME="TelegramCallsArbitraryVideoWave" TYPE="CORE_LOGIC" LAYER="43" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded video attempt on the same arbitrary-UDP branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded arbitrary-UDP voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded arbitrary-UDP video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/verification-plan.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsArbitraryVideoWave]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ARBITRARY_VIDEO_WAVE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE</verification-ref>
+    </M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE>
+    <M-TELEGRAM-CALLS-ARBITRARY-COMPARISON NAME="TelegramCallsArbitraryComparison" TYPE="CORE_LOGIC" LAYER="43" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Compare arbitrary-UDP packets against Phase-34 and the Phase-39 fixed-tuple smoke boundary.</purpose>
+        <inputs>
+          <input-1>The bounded arbitrary-UDP voice packet.</input-1>
+          <input-2>The bounded arbitrary-UDP video packet.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded arbitrary-UDP comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE, M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsArbitraryComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ARBITRARY_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-ARBITRARY-COMPARISON>
+    <M-TELEGRAM-CALLS-ARBITRARY-DECISION NAME="TelegramCallsArbitraryDecision" TYPE="ENTRY_POINT" LAYER="43" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded decision after the arbitrary-destination UDP calls branch.</purpose>
+        <inputs>
+          <input-1>The bounded arbitrary-UDP comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded arbitrary-UDP calls decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-ARBITRARY-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsArbitraryDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_ARBITRARY_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-ARBITRARY-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-ARBITRARY-DECISION>
   </Modules>
 
   <DataFlow>
@@ -8096,6 +8317,24 @@
       <note-6>On 2026-03-30 the first Phase-39 selective interception smoke turned green on the ordinary workstation without touching Telegram UI: one host-side `iptables -t nat OUTPUT` redirect for user `1000` and the deterministic UDP tuple `91.99.128.146:55123` fed `redudp`, `redudp` logged `via 127.0.0.1:1080` and `Starting UDP relay`, the synthetic payload `phase39-selective-smoke` returned from `91.99.128.146:55123`, and at the same time `curl --proxy socks5h://127.0.0.1:1080 -I https://example.com` still returned `HTTP/2 200`.</note-6>
       <note-7>The same smoke packet also narrowed the next blocker honestly: the current `redudp` helper remains fixed-destination-only, so green interception on one deterministic tuple does not yet justify spending a real Telegram voice or video packet that may target arbitrary Telegram media tuples.</note-7>
     </Phase-39>
+    <Phase-40 name="Telegram Arbitrary UDP Interception Surface" status="planned">
+      <goal>Continue Telegram calls work only after arbitrary-destination UDP interception and destination recovery become explicit and verifiable above the preserved ordinary Desktop baseline.</goal>
+      <step-1 module="M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS" status="planned" verification="V-M-TELEGRAM-ARBITRARY-UDP-HYPOTHESIS">Freeze the new calls branch above the fixed-tuple smoke boundary and the direct-media attribution verdict</step-1>
+      <step-2 module="M-PHASE39-SMOKE-BOUNDARY" status="planned" verification="V-M-PHASE39-SMOKE-BOUNDARY">Explicitly freeze the Phase-39 smoke packet as valid but insufficient for real calls</step-2>
+      <step-3 module="M-ARBITRARY-UDP-TECH-DECISION" status="planned" verification="V-M-ARBITRARY-UDP-TECH-DECISION">Choose one exact arbitrary-destination UDP interception class</step-3>
+      <step-4 module="M-ARBITRARY-UDP-RUNBOOK" status="planned" verification="V-M-ARBITRARY-UDP-RUNBOOK">Define the bounded install, setup, remove, and cleanup path for the arbitrary-UDP surface</step-4>
+      <step-5 module="M-ARBITRARY-UDP-RUNTIME-PROFILE" status="planned" verification="V-M-ARBITRARY-UDP-RUNTIME-PROFILE">Freeze one exact arbitrary-destination UDP interception and destination-recovery profile</step-5>
+      <step-6 module="M-ARBITRARY-UDP-SMOKE" status="planned" verification="V-M-ARBITRARY-UDP-SMOKE">Prove arbitrary-destination UDP interception outside Telegram UI before any real calls packet is spent</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-VOICE-WAVE">Run one bounded voice attempt only after arbitrary-UDP smoke is green</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-VIDEO-WAVE">Run one bounded video attempt on the same branch without inheriting voice</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-ARBITRARY-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-COMPARISON">Compare arbitrary-UDP packets against Phase-34 and the Phase-39 fixed-tuple smoke boundary</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-ARBITRARY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-ARBITRARY-DECISION">Issue the bounded decision after the arbitrary-destination UDP calls branch</step-10>
+      <note-1>Phase-40 starts only after the preserved ordinary Telegram Desktop baseline and the bounded fixed-tuple smoke boundary from Phase-39 are both visible together.</note-1>
+      <note-2>The phase must not weaken the working `127.0.0.1:1080` message and file path while it expands only the UDP interception class.</note-2>
+      <note-3>No second Telegram auth/bootstrap window is allowed anywhere in this branch; the experiment remains attached to the already logged-in ordinary Desktop window.</note-3>
+      <note-4>No voice or video packet is valid before arbitrary-destination UDP smoke proves original-destination recovery and governed handoff for more than one tuple outside Telegram UI.</note-4>
+      <note-5>Voice and video claims remain split unless the arbitrary-UDP comparison packet proves both changed class.</note-5>
+    </Phase-40>
   </ImplementationOrder>
 
   <ExecutionPolicy>
