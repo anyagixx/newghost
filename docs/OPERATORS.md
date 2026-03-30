@@ -1628,21 +1628,22 @@ The exact helper-backed runtime profile is now fixed as:
 
 - one isolated Telegram network namespace connected to the host by one dedicated `veth` pair
 - one host-side transparent TCP interception rule on the namespace-facing interface only
-- one local `redsocks` TCP listener, for example `127.0.0.1:12345`
+- one local `redsocks` TCP listener bound on the host-side namespace-facing address, for example `10.203.37.1:12345`, not on `127.0.0.1`
 - one governed upstream SOCKS5 surface:
   host-local `n0wss-client` on the preserved `127.0.0.1:1080`
-- one bounded UDP helper surface through `redudp`, for example `127.0.0.1:10053`
+- one bounded UDP helper surface through `redudp` bound on the same host-side namespace-facing address, for example `10.203.37.1:10053`
 
 Exact routing split:
 
 1. TCP helper path:
-   namespace TCP egress -> host-side REDIRECT on the namespace-facing interface -> local `redsocks` TCP listener -> upstream `SOCKS5 127.0.0.1:1080` -> governed `n0wss` WSS path
+   namespace TCP egress -> host-side REDIRECT on the namespace-facing interface -> local `redsocks` TCP listener on the host-side namespace-facing address -> upstream `SOCKS5 127.0.0.1:1080` -> governed `n0wss` WSS path
 2. UDP helper path:
-   namespace UDP egress for one fixed synthetic destination tuple only -> host-side redirect rule -> local `redudp` listener -> upstream `SOCKS5 127.0.0.1:1080`
+   namespace UDP egress for one fixed synthetic destination tuple only -> host-side redirect rule -> local `redudp` listener on the same host-side namespace-facing address -> upstream `SOCKS5 127.0.0.1:1080`
 
 Important bounded limitation:
 
 - the shipped `redudp` surface requires an explicit `dest_ip` and `dest_port` in config
+- for redirected packets arriving from the namespace-facing interface, the helper listener must not stay on `127.0.0.1`; it must bind to the host-side namespace-facing address or the redirected packet never reaches the helper surface
 - therefore this helper profile is honest only for:
   generic transparent TCP interception
   one bounded synthetic UDP destination per `redudp` section

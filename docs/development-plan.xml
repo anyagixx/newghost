@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.35">
+<DevelopmentPlan VERSION="0.2.36">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7630,6 +7630,7 @@
       <note-6>On 2026-03-30 the helper technology decision fixed one exact helper class for the current host: Ubuntu package `redsocks` candidate `0.5-2build4`, chosen because it is already available on the workstation package archive, supports transparent TCP redirection plus UDP packets via upstream SOCKS5, and can remain experiment-local without changing the existing n0wss transport contract before synthetic helper smoke begins.</note-6>
       <note-7>On the same date the bounded helper install runbook was proven on the workstation: `apt-get install -y redsocks` installed the helper and its `libevent` dependency, the package exposed `/usr/sbin/redsocks` and `/etc/redsocks.conf`, and the distro service was immediately stopped and disabled so no ambient helper daemon remained in the preserved Desktop baseline.</note-7>
       <note-8>On the same date the helper runtime profile was frozen with an honest boundary: `redsocks` provides generic transparent TCP interception into the preserved host-local SOCKS5 surface at `127.0.0.1:1080`, while `redudp` remains bounded to one fixed synthetic destination tuple per section and therefore cannot yet justify a claim of arbitrary Telegram media UDP interception before helper smoke proves the fixed-destination packet.</note-8>
+      <note-9>During the first helper smoke on 2026-03-30 the host-side REDIRECT rule counted the synthetic namespace TCP packet but no helper session reached `redsocks`; the first divergent block was the helper listener bind surface, and the runtime profile was corrected to require helper listeners on the host-side namespace-facing address instead of `127.0.0.1` for redirected namespace packets.</note-9>
     </Phase-37>
   </ImplementationOrder>
 
