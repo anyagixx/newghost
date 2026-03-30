@@ -1915,7 +1915,7 @@
       </annotations>
     </M-TELEGRAM-WORKAROUND-CAPTURE>
 
-    <M-ALTERNATE-VOICE-WAVE NAME="AlternateVoiceWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-ALTERNATE-VOICE-WAVE NAME="AlternateVoiceWave" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Replay one bounded Telegram voice-call attempt on the alternate topology and classify whether the no-go class changes.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-ALTERNATE-TOPOLOGY-PROFILE, M-TELEGRAM-WORKAROUND-CAPTURE</depends>
@@ -1925,7 +1925,7 @@
       </annotations>
     </M-ALTERNATE-VOICE-WAVE>
 
-    <M-ALTERNATE-VIDEO-WAVE NAME="AlternateVideoWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-ALTERNATE-VIDEO-WAVE NAME="AlternateVideoWave" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Replay one bounded Telegram video-call attempt on the alternate topology without inheriting the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-ALTERNATE-VOICE-WAVE, M-TELEGRAM-WORKAROUND-CAPTURE</depends>
@@ -1935,7 +1935,7 @@
       </annotations>
     </M-ALTERNATE-VIDEO-WAVE>
 
-    <M-WORKAROUND-BEHAVIOR-COMPARISON NAME="WorkaroundBehaviorComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-WORKAROUND-BEHAVIOR-COMPARISON NAME="WorkaroundBehaviorComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare alternate-topology media packets against the completed Phase-29 packet and determine whether topology changes the Telegram no-go class.</purpose>
       <path>README.md</path>
       <depends>M-ALTERNATE-VOICE-WAVE, M-ALTERNATE-VIDEO-WAVE, M-TELEGRAM-MEDIA-EVIDENCE</depends>
@@ -1945,7 +1945,7 @@
       </annotations>
     </M-WORKAROUND-BEHAVIOR-COMPARISON>
 
-    <M-WORKAROUND-EVIDENCE NAME="WorkaroundEvidence" TYPE="UTILITY" STATUS="planned">
+    <M-WORKAROUND-EVIDENCE NAME="WorkaroundEvidence" TYPE="UTILITY" STATUS="done">
       <purpose>Assemble the bounded alternate-topology handoff, capture, voice, video, and comparison packets for the workaround wave.</purpose>
       <path>README.md</path>
       <depends>M-WORKAROUND-BEHAVIOR-COMPARISON</depends>
@@ -1955,7 +1955,7 @@
       </annotations>
     </M-WORKAROUND-EVIDENCE>
 
-    <M-WORKAROUND-DECISION NAME="WorkaroundDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-WORKAROUND-DECISION NAME="WorkaroundDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded workaround decision for the tested Telegram setup after the alternate-topology wave.</purpose>
       <path>README.md</path>
       <depends>M-WORKAROUND-EVIDENCE</depends>

@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.45">
+<VerificationPlan VERSION="0.2.47">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -78,6 +78,10 @@
     <desktop-handoff-before-media-rule>No Telegram-specific media-behavior packet may be interpreted until the same wave preserves one exact Desktop proxy handoff packet and one same-window green `phase27-probe` packet.</desktop-handoff-before-media-rule>
     <media-classifier-split-rule>Phase-29 must keep Desktop handoff, bounded capture, voice-media classification, video-media classification, comparison, and final decision as separate evidence classes; one app symptom must not stand in for the whole media story.</media-classifier-split-rule>
     <telegram-media-no-transport-reopen-rule>After Phase-28, Telegram-specific media verification must not reopen generic datagram transport diagnosis unless the same wave explicitly disproves the preserved green `phase27-probe` baseline first.</telegram-media-no-transport-reopen-rule>
+    <phase29-workaround-baseline-lock-rule>Any Phase-30 workaround wave must preserve the completed Phase-29 media packet as the historical baseline and must state explicitly whether the alternate topology changed the no-go class or reproduced it unchanged.</phase29-workaround-baseline-lock-rule>
+    <alternate-topology-proof-rule>No alternate-topology media packet may be interpreted unless the handoff packet states exactly what changed relative to the completed Phase-29 Desktop route and what stayed fixed, including the same-window green `phase27-probe` precondition.</alternate-topology-proof-rule>
+    <workaround-packet-split-rule>Phase-30 must keep workaround hypothesis, alternate-topology handoff, capture, voice packet, video packet, comparison packet, evidence packet, and decision packet separate so a future agent can isolate topology impact without rereading blended transcripts.</workaround-packet-split-rule>
+    <telegram-workaround-no-transport-reopen-rule>After Phase-29, workaround verification must stay above the already-green transport baseline and may not reopen generic datagram diagnosis unless the same wave first disproves the preserved controlled round-trip packet.</telegram-workaround-no-transport-reopen-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -3900,6 +3904,174 @@
         <assertion-2>The final decision must preserve the green transport baseline while explaining why the completed media packet still remains no-go.</assertion-2>
       </required-trace-assertions>
     </V-M-TELEGRAM-MEDIA-DECISION>
+
+    <V-M-TELEGRAM-WORKAROUND-HYPOTHESIS MODULE="M-TELEGRAM-WORKAROUND-HYPOTHESIS" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'workaround-only|alternate app topology|Phase-29|green transport baseline' README.md docs/OPERATORS.md docs/development-plan.xml</check-1>
+        <check-2>rg -n 'tested Telegram Desktop setup|no-go class|Telegram-specific workaround' README.md docs/OPERATORS.md docs/development-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The hypothesis packet freezes future work inside Telegram-specific workaround space without reopening generic transport diagnosis.</scenario-1>
+        <scenario-2>The hypothesis packet keeps the completed Phase-29 no-go media packet alive as the only historical baseline for workaround comparison.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The new workaround phase silently reuses Phase-29 as if it were a generic transport rerun.</scenario-1>
+        <scenario-2>The hypothesis widens claims beyond the tested Telegram Desktop setup before any alternate-topology packet exists.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The hypothesis wording must explicitly preserve the green transport baseline and forbid reopening generic datagram repair in Phase-30.</assertion-1>
+        <assertion-2>The hypothesis wording must say that the next question is whether topology changes the Telegram no-go class, not whether transport is still green.</assertion-2>
+      </required-trace-assertions>
+    </V-M-TELEGRAM-WORKAROUND-HYPOTHESIS>
+
+    <V-M-ALTERNATE-TOPOLOGY-PROFILE MODULE="M-ALTERNATE-TOPOLOGY-PROFILE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'alternate topology|bounded alternate|Phase-29 Desktop handoff|phase27-probe' docs/OPERATORS.md docs/development-plan.xml</check-1>
+        <check-2>rg -n 'what changed|what stayed fixed|same-window green' docs/OPERATORS.md docs/development-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The alternate topology packet stays explicitly separate from the exact Phase-29 Desktop handoff route.</scenario-1>
+        <scenario-2>The packet names exactly which handoff element changed and which transport preconditions remain unchanged.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The workaround wave silently reuses the exact Phase-29 Desktop route and therefore cannot classify topology impact.</scenario-1>
+        <scenario-2>The alternate-topology packet changes more than one uncontrolled variable and destroys comparison value.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The handoff profile must preserve the same green `phase27-probe` precondition while changing one bounded app-topology dimension.</assertion-1>
+      </required-trace-assertions>
+    </V-M-ALTERNATE-TOPOLOGY-PROFILE>
+
+    <V-M-TELEGRAM-WORKAROUND-CAPTURE MODULE="M-TELEGRAM-WORKAROUND-CAPTURE" PRIORITY="high">
+      <test-files>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'workaround capture|alternate topology|voice|video|comparison' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'loopback|uplink|same-window|Phase-29 media packet' docs/OPERATORS.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The workaround capture packet stays comparable with the completed Phase-29 media packet.</scenario-1>
+        <scenario-2>The capture packet makes it possible to separate alternate-topology handoff proof from voice and video outcomes.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The workaround capture packet cannot be compared directly against Phase-29.</scenario-1>
+        <scenario-2>The capture packet collapses handoff proof and media outcome into one blended transcript.</scenario-2>
+      </failure-scenarios>
+    </V-M-TELEGRAM-WORKAROUND-CAPTURE>
+
+    <V-M-ALTERNATE-VOICE-WAVE MODULE="M-ALTERNATE-VOICE-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'alternate voice|voice attempt|same no-go class|Phase-29' docs/verification-plan.xml docs/development-plan.xml</check-1>
+        <check-2>rg -n 'separate voice packet|changed the no-go class|reproduced it' docs/verification-plan.xml docs/development-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The alternate-topology voice packet states whether the no-go class changed relative to Phase-29.</scenario-1>
+        <scenario-2>The voice packet stays bounded to one alternate-topology attempt and one media classification outcome.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The alternate voice packet is missing or collapses into the old Phase-29 voice packet.</scenario-1>
+        <scenario-2>The voice packet reopens transport diagnosis instead of staying app-facing above the green baseline.</scenario-2>
+      </failure-scenarios>
+    </V-M-ALTERNATE-VOICE-WAVE>
+
+    <V-M-ALTERNATE-VIDEO-WAVE MODULE="M-ALTERNATE-VIDEO-WAVE" PRIORITY="high">
+      <test-files>
+        <file>docs/verification-plan.xml</file>
+        <file>docs/development-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'alternate video|video attempt|separate from voice|Phase-29' docs/verification-plan.xml docs/development-plan.xml</check-1>
+        <check-2>rg -n 'video packet|no-go class changed|separate from alternate voice' docs/verification-plan.xml docs/development-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The alternate-topology video packet stays separate from the alternate voice packet and states whether the no-go class changed.</scenario-1>
+        <scenario-2>The video packet proves whether video diverges earlier, later, or at the same layer as alternate voice.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The alternate video packet silently inherits the alternate voice result.</scenario-1>
+        <scenario-2>The video packet cannot be compared against the completed Phase-29 video packet.</scenario-2>
+      </failure-scenarios>
+    </V-M-ALTERNATE-VIDEO-WAVE>
+
+    <V-M-WORKAROUND-BEHAVIOR-COMPARISON MODULE="M-WORKAROUND-BEHAVIOR-COMPARISON" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'workaround comparison|alternate topology|Phase-29|same no-go class' README.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'changed the no-go class|reproduced the no-go class|voice|video' README.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The comparison packet explicitly says whether alternate topology changed the Telegram no-go class or preserved it.</scenario-1>
+        <scenario-2>The comparison packet keeps separate voice and video deltas against the completed Phase-29 media packet.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The comparison packet cannot distinguish Phase-30 from the completed Phase-29 packet.</scenario-1>
+        <scenario-2>The comparison packet silently treats one improved media profile as universal success for the tested setup.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The comparison packet must state whether the alternate topology changed the no-go class for voice, video, both, or neither.</assertion-1>
+      </required-trace-assertions>
+    </V-M-WORKAROUND-BEHAVIOR-COMPARISON>
+
+    <V-M-WORKAROUND-EVIDENCE MODULE="M-WORKAROUND-EVIDENCE" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/OPERATORS.md</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'workaround evidence|alternate topology|voice|video|comparison' README.md docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'handoff|capture|voice|video|comparison|decision' README.md docs/OPERATORS.md docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The workaround evidence packet keeps alternate handoff, capture, voice, video, and comparison sections separate.</scenario-1>
+        <scenario-2>The evidence packet stays directly comparable with the completed Phase-29 packet rather than replacing it.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The workaround packet cannot be distinguished from the completed Phase-29 media packet.</scenario-1>
+        <scenario-2>The evidence packet omits either the alternate-topology handoff packet or the comparison packet and therefore cannot support a bounded decision.</scenario-2>
+      </failure-scenarios>
+    </V-M-WORKAROUND-EVIDENCE>
+
+    <V-M-WORKAROUND-DECISION MODULE="M-WORKAROUND-DECISION" PRIORITY="high">
+      <test-files>
+        <file>README.md</file>
+        <file>docs/development-plan.xml</file>
+        <file>docs/verification-plan.xml</file>
+      </test-files>
+      <module-checks>
+        <check-1>rg -n 'workaround decision|alternate topology helps|still no-go|another Telegram-specific branch' README.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-2>rg -n 'tested Telegram setup|bounded decision|Phase-29|alternate topology only' README.md docs/development-plan.xml docs/verification-plan.xml</check-2>
+      </module-checks>
+      <success-scenarios>
+        <scenario-1>The final decision says whether alternate topology helps, still stays no-go, or points to another Telegram-specific branch.</scenario-1>
+        <scenario-2>The final decision explicitly limits any improvement claim to the tested Telegram setup and the exact alternate topology.</scenario-2>
+      </success-scenarios>
+      <failure-scenarios>
+        <scenario-1>The final decision widens claims beyond the tested Telegram setup or reopens generic transport diagnosis.</scenario-1>
+        <scenario-2>The final decision fails to say whether the alternate topology changed the no-go class relative to Phase-29.</scenario-2>
+      </failure-scenarios>
+      <required-trace-assertions>
+        <assertion-1>The final decision must choose one bounded outcome: alternate topology helps, alternate topology still no-go, or another Telegram-specific branch is needed.</assertion-1>
+      </required-trace-assertions>
+    </V-M-WORKAROUND-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -4305,6 +4477,26 @@
       </required-evidence>
       <failure-packet-template>scenario=TelegramMediaBehaviorWave; expected-evidence=same-window green controlled probe plus separate handoff, capture, voice, video, and comparison packets; observed-evidence=module-local checks, bounded Desktop media attempts, packet captures, and bounded comparison evidence; first-divergent-block=first missing Telegram-specific media-behavior layer after the green transport baseline; next-action=repair only the first unresolved Telegram-specific layer without reopening generic transport work</failure-packet-template>
     </LV-020>
+    <LV-021 NAME="TelegramWorkaroundWave" PRIORITY="high">
+      <goal>Replay one bounded Telegram workaround or alternate-topology wave only after the same live window still preserves the green controlled datagram baseline and the completed Phase-29 media packet.</goal>
+      <commands>
+        <command-1>cargo test udp_relay</command-1>
+        <command-2>cargo test wss_gateway</command-2>
+        <command-3>cargo test cli</command-3>
+        <command-4>replay one bounded `phase27-probe` in the same live window before any alternate-topology packet is interpreted</command-4>
+        <command-5>capture one bounded alternate-topology handoff packet that names exactly what changed from the completed Phase-29 Desktop route and what stayed fixed</command-5>
+        <command-6>capture one bounded alternate voice packet and one bounded alternate video packet with the workaround capture packet kept separate</command-6>
+        <command-7>compare the new alternate-topology media packet against the completed Phase-29 media packet before issuing a new decision</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave starts only on the same transport-green baseline already preserved by Phase-27 and Phase-29.</evidence-1>
+        <evidence-2>The wave keeps alternate-topology handoff, capture, voice, video, comparison, and final decision packets separate.</evidence-2>
+        <evidence-3>The wave states explicitly whether the alternate topology changed the Telegram no-go class for voice, video, both, or neither.</evidence-3>
+        <evidence-4>The wave preserves the completed Phase-29 media packet as the historical baseline rather than replacing it.</evidence-4>
+        <evidence-5>The final decision remains bounded to the tested Telegram setup and the alternate topology only.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramWorkaroundWave; expected-evidence=same-window green controlled probe plus separate alternate-topology handoff, capture, voice, video, and comparison packets; observed-evidence=module-local checks, bounded alternate-topology attempts, packet captures, and bounded comparison evidence; first-divergent-block=first missing workaround-specific layer after the preserved transport-green baseline; next-action=repair only the first unresolved workaround or alternate-topology layer without reopening generic transport work</failure-packet-template>
+    </LV-021>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -4806,6 +4998,24 @@
         <evidence-5>The gate preserves the completed Phase-28 no-go packet as the historical app-facing baseline for any new Telegram-specific media interpretation.</evidence-5>
       </required-evidence>
     </Gate-Phase-29>
+    <Gate-Phase-30 PHASE="Phase-30">
+      <goal>The project has an execution-ready Telegram workaround or alternate-topology wave that stays above the green transport baseline and compares itself directly against the completed Phase-29 media packet.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-30|M-TELEGRAM-WORKAROUND-HYPOTHESIS|M-WORKAROUND-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-021|phase27-probe|alternate topology|voice|video|comparison|tested Telegram setup' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>cargo test udp_relay</command-3>
+        <command-4>cargo test wss_gateway</command-4>
+        <command-5>cargo test cli</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The phase preserves the completed Phase-29 truth that media remains app-facing no-go above a green transport baseline.</evidence-1>
+        <evidence-2>The phase defines separate alternate-topology handoff, capture, voice, video, comparison, evidence, and final decision packets.</evidence-2>
+        <evidence-3>The gate requires the same-window green `phase27-probe` packet before any alternate-topology media interpretation.</evidence-3>
+        <evidence-4>The gate requires the alternate-topology handoff packet to say exactly what changed relative to the completed Phase-29 Desktop route.</evidence-4>
+        <evidence-5>The gate requires the comparison packet to say whether the alternate topology changed the no-go class for voice, video, both, or neither.</evidence-5>
+        <evidence-6>The final decision remains bounded to the tested Telegram setup and the alternate topology only.</evidence-6>
+      </required-evidence>
+    </Gate-Phase-30>
   </PhaseGates>
 
   <FailurePackets>
