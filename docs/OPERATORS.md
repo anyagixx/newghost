@@ -1430,6 +1430,25 @@ Exact Phase-34 capture topology:
    uplink proves whether the governed WSS path stayed alive during the same call window
    broader network capture proves whether the workstation emitted non-SOCKS traffic that could represent direct media attempts
 
+Server-side correlation contract for Phase-34:
+
+- positive governed-path evidence in the same attribution window may include:
+  `BLOCK_HANDLE_UDP_ASSOCIATE`
+  `BLOCK_PARSE_UDP_DATAGRAM`
+  `BLOCK_FORWARD_OUTBOUND_DATAGRAM`
+  `BLOCK_SEND_WSS_DATAGRAM`
+  `SERVER_DATAGRAM_RECEIVED`
+  `BLOCK_RELAY_UDP_OUTBOUND`
+  `SERVER_DATAGRAM_INBOUND_RECEIVED`
+  `SERVER_DATAGRAM_RETURN_EMITTED`
+  `BLOCK_DELIVER_INBOUND_DATAGRAM`
+- negative governed-path evidence:
+  workstation call symptoms advance, but no fresh server-side markers appear in the same bounded window
+- correlation rule:
+  do not count old datagram success from `phase27-probe` as positive call-media evidence for the new attribution packet
+- attribution consequence:
+  if workstation broader-network capture shows probable media traffic while the governed server-side packet stays silent, classify that as candidate direct-media behavior outside the preserved SOCKS envelope rather than another generic transport defect
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
