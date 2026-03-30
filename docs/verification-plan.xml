@@ -5304,13 +5304,14 @@
         <file>docs/development-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'safe topology|no live-session cloning|calls-only|-many|phase38-safe-workdir' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-1>rg -n 'safe topology|no live-session cloning|calls-only|-many|phase38-safe-workdir|GSETTINGS_BACKEND=memory|host proxy env vars' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The phase names one exact safe calls-only topology and explicitly excludes live-session cloning.</scenario-1>
         <scenario-2>The topology profile does not silently depend on temporary recovery proxies used only to restore the normal Telegram account.</scenario-2>
         <scenario-3>The first launcher candidate uses a fresh empty safe workdir plus Telegram Desktop `-many -workdir ...` so the experiment window starts process-isolated from the ordinary Desktop window.</scenario-3>
         <scenario-4>If provider blocking requires temporary MTProto to reach QR or first auth bootstrap in the fresh safe window, that proxy remains bootstrap-only and does not become the calls topology itself.</scenario-4>
+        <scenario-5>The safe launcher explicitly scrubs inherited host proxy env vars and forces `GSETTINGS_BACKEND=memory` so the experiment window does not silently reopen in the host's global system-proxy mode.</scenario-5>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The topology profile still relies on the unsafe copied-session helper path.</scenario-1>
@@ -5323,13 +5324,14 @@
         <file>docs/verification-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'auth|bootstrap|logout|no cloned tdata|safe window|-many|phase38-safe-workdir' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
+        <check-1>rg -n 'auth|bootstrap|logout|no cloned tdata|safe window|-many|phase38-safe-workdir|system proxy|GSETTINGS_BACKEND=memory' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The auth/bootstrap contract explicitly prevents touching the live Telegram session state.</scenario-1>
         <scenario-2>The auth/bootstrap contract separates safe-window bootstrap from any out-of-band restoration of the ordinary Telegram account.</scenario-2>
         <scenario-3>The first acceptable bootstrap candidate is a fresh multi-instance safe window, not a copied live session snapshot.</scenario-3>
         <scenario-4>If temporary MTProto is needed to reach QR or first auth bootstrap in that fresh safe window, the contract explicitly requires turning it off again before readiness evidence begins.</scenario-4>
+        <scenario-5>The auth/bootstrap contract explicitly prevents inherited host system-proxy state from masquerading as valid safe-window network policy.</scenario-5>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The auth/bootstrap contract can still mutate, clone, or invalidate the live session state.</scenario-1>

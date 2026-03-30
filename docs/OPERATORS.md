@@ -1693,6 +1693,7 @@ Bounded operator rules:
    the ordinary Desktop window stays on the preserved working path
    any future calls experiment window must use a separate safe workdir and a non-destructive auth/bootstrap method that does not mutate or invalidate the ordinary live session
    on this workstation the first approved launcher shape is: fresh empty `phase38-safe-workdir` plus Telegram Desktop `-many -workdir ...`, so the experiment window is process-isolated from the ordinary Desktop window before any auth step begins
+   that safe launcher must also scrub inherited host proxy env vars and force `GSETTINGS_BACKEND=memory`, otherwise the experiment window can silently inherit the host's global system proxy mode instead of showing the intended safe bootstrap surface
 5. The exact auth isolation contract is now frozen:
    no cloned live session state
    no copied authenticated `tdata`
