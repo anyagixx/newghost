@@ -1518,6 +1518,28 @@ Safety rule:
 - do not repoint or replace the ordinary `127.0.0.1:1080` Desktop path during normal use
 - any namespace, `veth`, firewall, or transparent-forwarding surface created for `Phase-35` must be experiment-local and removable without touching the preserved ordinary baseline
 
+Isolated runbook contract:
+
+1. Baseline preservation before the experiment:
+   verify the normal Telegram Desktop path for ordinary use still points to `SOCKS5 127.0.0.1:1080`
+   do not stop or repoint the preserved ordinary listener
+2. Create experiment-local surfaces only:
+   one dedicated network namespace for the Telegram experiment
+   one dedicated `veth` pair for that namespace
+   one dedicated transparent-forcing surface on the host side for namespace egress only
+   no reuse of the Android mobile listener path and no reuse of old SSH-forward-only topology packets
+3. Launch the experiment only inside the isolated topology:
+   the forced-topology wave is valid only if the tested Telegram process runs inside the dedicated namespace
+   all bounded capture commands must be tied to that same run window
+4. Cleanup after every forced-topology packet:
+   stop the isolated Telegram process
+   delete the namespace
+   delete the `veth` pair
+   remove any experiment-only route, firewall, or redirect state
+5. Restore and prove the normal baseline:
+   ordinary Telegram Desktop use outside the experiment must still be the preserved `127.0.0.1:1080` path
+   if cleanup proof is missing, treat the next packet as contaminated rather than as valid `Phase-35` evidence
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
