@@ -247,6 +247,12 @@ Current calls-profile status:
   stop workaround exploration as no-go for the tested Telegram Desktop and tested Android variants, keep the green transport baseline as already proven, and do not reopen generic transport diagnosis
 - the safe operator end-state is also frozen:
   keep only the preserved Desktop listener on `127.0.0.1:1080`, do not leave any temporary LAN-facing mobile listener running, and treat future Telegram work as a fresh branch only if it starts from a genuinely new bounded variant rather than another rerun of the spent variants
+- the bounded Phase-34 attribution hypothesis now narrows the next question again without reopening any spent workaround branch:
+  on the preserved Desktop baseline, Telegram voice and video still reach key exchange but the evidence set still does not say whether media next attempts the governed SOCKS path, a direct path outside SOCKS, or no real media path at all
+- the attribution phase therefore stays strictly above the green transport baseline:
+  it does not repair generic datagram transport, does not retry the old Desktop or Android workaround variants, and does not change the already-working `127.0.0.1:1080` path for text messages, media files, or large files
+- the only approved new deliverable is attribution evidence:
+  separate workstation and server packets must explain where the first positive media-path evidence appears, or honestly classify the result as `insufficient evidence`
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

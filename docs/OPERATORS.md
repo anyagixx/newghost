@@ -1382,6 +1382,23 @@ Safe operator end-state after Telegram exploration:
 - preserve the already-working Desktop path for text messages, media files, and large files
 - classify any future Telegram experiment as a fresh branch only after its exact new variable is frozen up front
 
+### Phase-34 Telegram Media Attribution Boundary
+
+Attribution-only question:
+
+- keep the preserved Desktop baseline exactly as it is:
+  `127.0.0.1:1080`
+- do not reopen the spent Desktop or Android workaround variants
+- do not reopen generic transport repair
+- ask only one new bounded question:
+  after Telegram reaches key exchange, does media next attempt the governed SOCKS path, a direct path outside SOCKS, or no real media path at all
+
+Attribution evidence rule:
+
+- the next wave is valid only if it produces separate workstation and server evidence for that question
+- if the evidence still cannot say where the first positive media-path attempt appears, classify the packet as `insufficient evidence`
+- do not convert another UI-only symptom into a new workaround claim
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
