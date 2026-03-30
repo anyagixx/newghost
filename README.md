@@ -231,6 +231,12 @@ Current calls-profile status:
   the tested Desktop build exposes no separate calls-proxy toggle, so that app variant is unavailable rather than transport-broken
 - the next justified branch is now mobile-only:
   future workaround work may move to a Telegram Mobile build with an explicit `Use proxy for calls` toggle, but any result there must stay separate from Desktop claims
+- the bounded Phase-32 mobile packet is now also no-go:
+  on the tested Android setup with a dedicated LAN-facing listener at `192.168.31.241:11080` and `Use proxy for calls = enabled`, Telegram Mobile connected to SOCKS5 but text messages became high-latency, media files no longer sent or received, and both voice and video stalled at key exchange without a green media path
+- the mobile comparison stays strict:
+  the chosen mobile variant changed the no-go class for neither voice nor video, and it degraded the ordinary app path relative to the preserved Desktop envelope instead of improving it
+- the next decision therefore stays narrow:
+  the tested mobile calls-proxy variant is still no-go and must not widen into any support claim for Desktop, Android generally, or generic proxy compatibility
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

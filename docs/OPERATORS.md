@@ -1064,6 +1064,27 @@ The mobile wave must keep its evidence directly comparable with the completed De
 - mobile handoff failure packet:
   if the phone cannot even establish the dedicated LAN-facing SOCKS5 route, classify the wave as `mobile handoff blocked` before interpreting any call UI
 
+### Observed Phase-32 Mobile Packet
+
+The bounded Phase-32 mobile wave is now closed with one exact Android packet:
+
+- tested device:
+  Android on the same Wi-Fi segment as the laptop
+- exact mobile handoff packet:
+  Telegram Mobile -> `SOCKS5 192.168.31.241:11080` with username and password empty
+- exact calls toggle state:
+  `Use proxy for calls = enabled`
+- bounded ordinary app packet:
+  Telegram Mobile connected to the SOCKS5 proxy and text messages still moved, but with high delay; media files no longer sent or received under that same handoff
+- bounded voice packet:
+  the call stalled at `Обмен ключами шифрования` and never reached a green media path
+- bounded video packet:
+  the call repeated the same `Обмен ключами шифрования` stall and never reached a green media path
+- bounded comparison packet:
+  compared with the completed Desktop packets, the mobile variant changed the no-go class for neither voice nor video and degraded the ordinary app path instead of helping it
+- bounded final decision:
+  this tested Android `Use proxy for calls = enabled` variant is still no-go and must remain separate from the preserved Desktop envelope
+
 ### Exact Phase-31 App Variant Profile
 
 The bounded Phase-31 app variant keeps the completed Phase-30 handoff fixed and changes one Telegram-specific dimension only:
