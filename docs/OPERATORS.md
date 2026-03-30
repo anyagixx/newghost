@@ -1399,6 +1399,29 @@ Attribution evidence rule:
 - if the evidence still cannot say where the first positive media-path attempt appears, classify the packet as `insufficient evidence`
 - do not convert another UI-only symptom into a new workaround claim
 
+Exact Phase-34 capture topology:
+
+1. Preserve the normal Desktop proxy path exactly:
+   host `127.0.0.1`
+   port `1080`
+   type `SOCKS5`
+   username empty
+   password empty
+2. Keep the already-working Desktop baseline untouched:
+   do not start a temporary LAN-facing mobile listener
+   do not switch to another local port
+   do not mix an old `ssh -L` packet if the preserved baseline is currently local-only
+3. Capture surfaces must remain separate for the same attribution packet:
+   workstation loopback capture
+   workstation uplink capture
+   broader workstation network capture
+   server-side correlation packet
+4. If one capture surface is missing, keep that as an evidence gap:
+   do not silently infer governed-media or direct-media behavior from the remaining captures
+5. Voice and video must run as separate attribution packets:
+   do not blend them into one operator transcript
+6. Any deviation from this topology is a handoff defect, not a media-path conclusion
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
