@@ -215,6 +215,12 @@ Current calls-profile status:
   Telegram Desktop will return to a truly local `n0wss-client` listener on the same workstation instead of the exact Phase-29 SSH-forwarded Desktop route, while the same-window `phase27-probe` precondition stays mandatory
 - the comparison rule remains explicit:
   if that alternate topology still reproduces the same media no-go class, the result strengthens the Telegram-specific boundary rather than reopening transport work
+- the completed Phase-30 workaround packet on 2026-03-30 now answers that exact question:
+  the alternate topology was real, the same-window controlled baseline stayed green, but both alternate voice and alternate video still stalled at `Обмен ключами шифрования`
+- the bounded Phase-30 decision therefore stays narrow and non-green:
+  switching from the Phase-29 SSH-forwarded Desktop route to a truly local `n0wss-client` listener did not change the Telegram no-go class for the tested Desktop setup
+- the next justified branch is now narrower than alternate topology:
+  future work must target a more Telegram-specific workaround above the preserved green transport baseline, not another generic transport repair and not a repeat of the same topology swap
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

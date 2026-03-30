@@ -5089,7 +5089,7 @@
       <verification-ref>V-M-TELEGRAM-WORKAROUND-CAPTURE</verification-ref>
     </M-TELEGRAM-WORKAROUND-CAPTURE>
 
-    <M-ALTERNATE-VOICE-WAVE NAME="AlternateVoiceWave" TYPE="CORE_LOGIC" LAYER="33" ORDER="4" STATUS="planned">
+    <M-ALTERNATE-VOICE-WAVE NAME="AlternateVoiceWave" TYPE="CORE_LOGIC" LAYER="33" ORDER="4" STATUS="done">
       <contract>
         <purpose>Replay one bounded Telegram voice-call attempt on the alternate topology and classify whether the no-go class changes.</purpose>
         <inputs>
@@ -5112,7 +5112,7 @@
       <verification-ref>V-M-ALTERNATE-VOICE-WAVE</verification-ref>
     </M-ALTERNATE-VOICE-WAVE>
 
-    <M-ALTERNATE-VIDEO-WAVE NAME="AlternateVideoWave" TYPE="CORE_LOGIC" LAYER="33" ORDER="5" STATUS="planned">
+    <M-ALTERNATE-VIDEO-WAVE NAME="AlternateVideoWave" TYPE="CORE_LOGIC" LAYER="33" ORDER="5" STATUS="done">
       <contract>
         <purpose>Replay one bounded Telegram video-call attempt on the alternate topology without inheriting the voice result.</purpose>
         <inputs>
@@ -5135,7 +5135,7 @@
       <verification-ref>V-M-ALTERNATE-VIDEO-WAVE</verification-ref>
     </M-ALTERNATE-VIDEO-WAVE>
 
-    <M-WORKAROUND-BEHAVIOR-COMPARISON NAME="WorkaroundBehaviorComparison" TYPE="CORE_LOGIC" LAYER="33" ORDER="6" STATUS="planned">
+    <M-WORKAROUND-BEHAVIOR-COMPARISON NAME="WorkaroundBehaviorComparison" TYPE="CORE_LOGIC" LAYER="33" ORDER="6" STATUS="done">
       <contract>
         <purpose>Compare alternate-topology media packets against the completed Phase-29 packets and determine whether topology changes the Telegram no-go class.</purpose>
         <inputs>
@@ -5158,7 +5158,7 @@
       <verification-ref>V-M-WORKAROUND-BEHAVIOR-COMPARISON</verification-ref>
     </M-WORKAROUND-BEHAVIOR-COMPARISON>
 
-    <M-WORKAROUND-EVIDENCE NAME="WorkaroundEvidence" TYPE="UTILITY" LAYER="33" ORDER="7" STATUS="planned">
+    <M-WORKAROUND-EVIDENCE NAME="WorkaroundEvidence" TYPE="UTILITY" LAYER="33" ORDER="7" STATUS="done">
       <contract>
         <purpose>Assemble the bounded alternate-topology handoff, capture, voice, video, and comparison packets for the workaround wave.</purpose>
         <inputs>
@@ -5182,7 +5182,7 @@
       <verification-ref>V-M-WORKAROUND-EVIDENCE</verification-ref>
     </M-WORKAROUND-EVIDENCE>
 
-    <M-WORKAROUND-DECISION NAME="WorkaroundDecision" TYPE="ENTRY_POINT" LAYER="33" ORDER="8" STATUS="planned">
+    <M-WORKAROUND-DECISION NAME="WorkaroundDecision" TYPE="ENTRY_POINT" LAYER="33" ORDER="8" STATUS="done">
       <contract>
         <purpose>Issue the bounded workaround decision for the tested Telegram setup after the alternate-topology wave.</purpose>
         <inputs>
@@ -6095,20 +6095,25 @@
       <note-8>The completed Phase-29 comparison packet keeps the exact Desktop handoff, bounded capture, and separate voice/video media packets intact while showing that both media profiles converge on the same `signaling-only stall` class above the preserved green transport baseline.</note-8>
       <note-9>The bounded Phase-29 decision on 2026-03-30 remains no-go for the tested Telegram Desktop setup and points the next justified phase toward Telegram-specific workaround or alternate app-topology work rather than any renewed generic transport repair.</note-9>
     </Phase-29>
-    <Phase-30 name="Telegram Workaround And Alternate Topology" status="pending">
+    <Phase-30 name="Telegram Workaround And Alternate Topology" status="done">
       <goal>Evaluate one bounded Telegram-specific workaround or alternate app topology above the green transport baseline and compare it directly against the completed Phase-29 media packet.</goal>
       <step-1 module="M-TELEGRAM-WORKAROUND-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-WORKAROUND-HYPOTHESIS">Freeze the post-Phase-29 workaround-only boundary</step-1>
       <step-2 module="M-ALTERNATE-TOPOLOGY-PROFILE" status="done" verification="V-M-ALTERNATE-TOPOLOGY-PROFILE">Freeze one bounded alternate app topology for the workaround wave</step-2>
       <step-3 module="M-TELEGRAM-WORKAROUND-CAPTURE" status="done" verification="V-M-TELEGRAM-WORKAROUND-CAPTURE">Define the bounded capture packet for the workaround wave</step-3>
-      <step-4 module="M-ALTERNATE-VOICE-WAVE" status="pending" verification="V-M-ALTERNATE-VOICE-WAVE">Replay one bounded voice attempt on the alternate topology</step-4>
-      <step-5 module="M-ALTERNATE-VIDEO-WAVE" status="pending" verification="V-M-ALTERNATE-VIDEO-WAVE">Replay one bounded video attempt on the alternate topology</step-5>
-      <step-6 module="M-WORKAROUND-BEHAVIOR-COMPARISON" status="pending" verification="V-M-WORKAROUND-BEHAVIOR-COMPARISON">Compare alternate-topology media packets against the completed Phase-29 packet</step-6>
-      <step-7 module="M-WORKAROUND-EVIDENCE" status="pending" verification="V-M-WORKAROUND-EVIDENCE">Assemble the bounded workaround handoff, capture, media, and comparison packets</step-7>
-      <step-8 module="M-WORKAROUND-DECISION" status="pending" verification="V-M-WORKAROUND-DECISION">Issue the bounded workaround decision for the tested Telegram setup</step-8>
+      <step-4 module="M-ALTERNATE-VOICE-WAVE" status="done" verification="V-M-ALTERNATE-VOICE-WAVE">Replay one bounded voice attempt on the alternate topology</step-4>
+      <step-5 module="M-ALTERNATE-VIDEO-WAVE" status="done" verification="V-M-ALTERNATE-VIDEO-WAVE">Replay one bounded video attempt on the alternate topology</step-5>
+      <step-6 module="M-WORKAROUND-BEHAVIOR-COMPARISON" status="done" verification="V-M-WORKAROUND-BEHAVIOR-COMPARISON">Compare alternate-topology media packets against the completed Phase-29 packet</step-6>
+      <step-7 module="M-WORKAROUND-EVIDENCE" status="done" verification="V-M-WORKAROUND-EVIDENCE">Assemble the bounded workaround handoff, capture, media, and comparison packets</step-7>
+      <step-8 module="M-WORKAROUND-DECISION" status="done" verification="V-M-WORKAROUND-DECISION">Issue the bounded workaround decision for the tested Telegram setup</step-8>
       <note-1>Phase-30 starts only after the completed Phase-29 no-go media packet, which already preserved the green transport baseline and therefore forbids reopening generic datagram repair.</note-1>
       <note-2>The new phase must keep alternate-topology or workaround work distinct from the exact Phase-29 Desktop handoff packet so a later comparison can say whether topology changed the no-go class.</note-2>
       <note-3>The chosen alternate topology for Phase-30 reuses the older truly local `n0wss-client` workstation shape as a new bounded comparison packet, but now under the completed Phase-27 green round-trip baseline and the completed Phase-29 no-go media baseline.</note-3>
       <note-4>The only intended topology delta in Phase-30 is `local SSH-forwarded remote listener` versus `truly local n0wss-client listener`; if other setup variables drift, the packet must be classified as handoff ambiguity rather than workaround progress.</note-4>
+      <note-5>On 2026-03-30 the alternate-topology handoff became real: one local `n0wss-client` owned `127.0.0.1:1080`, local TCP smoke returned HTTP 200 from example.com, and the same-window `phase30-probe` returned `reply-received` against the deterministic server-local echo target.</note-5>
+      <note-6>The first Telegram proxy-save packet on the same date remained a bounded handoff ambiguity rather than media evidence: loopback capture showed repeated SYN packets toward `127.0.0.0:1080` with immediate RST replies, after which the SOCKS5 entry was recreated with exact host `127.0.0.1` and the app connected to the local proxy.</note-6>
+      <note-7>After the corrected alternate-topology handoff, the bounded voice packet and the bounded video packet each kept their own capture surfaces but both again stalled at `Обмен ключами шифрования` without a green media packet.</note-7>
+      <note-8>The bounded Phase-30 comparison packet therefore shows that switching from the Phase-29 SSH-forwarded route to a truly local `n0wss-client` listener did not change the Telegram no-go class for either voice or video on the tested Desktop setup.</note-8>
+      <note-9>The bounded Phase-30 decision on 2026-03-30 remains no-go for the tested Telegram Desktop setup and points the next justified branch toward a more Telegram-specific workaround above the preserved green transport baseline rather than another topology swap or any generic transport repair.</note-9>
     </Phase-30>
   </ImplementationOrder>
 

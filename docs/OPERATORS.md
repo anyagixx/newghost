@@ -1032,6 +1032,50 @@ The workaround wave must keep its capture packet directly comparable with Phase-
 - comparison rule:
   Phase-30 may compare itself directly against Phase-29 only if the alternate-topology handoff packet says exactly what changed and what stayed fixed
 
+Observed Phase-30 alternate-topology handoff packet on 2026-03-30:
+
+- local workaround bootstrap:
+  one local `n0wss-client` was launched directly on the Telegram Desktop workstation and owned `127.0.0.1:1080`
+- preserved baseline:
+  local TCP smoke through `curl --proxy socks5h://127.0.0.1:1080 -I https://example.com` returned `HTTP/2 200`
+- same-window green transport proof:
+  `scripts/udp_probe.sh --socks5 127.0.0.1:1080 --target 127.0.0.1:55123 --payload phase30-probe --timeout 5` returned `probe_status=reply-received`
+- server-local echo proof:
+  `/tmp/phase30-echo.log` on `ghost-srv` recorded `received=b'phase30-probe'` and `replied_to=...`
+- bounded handoff failure note:
+  one first Telegram proxy save attempt stayed at `Соединение...`, and bounded loopback capture showed SYN packets sent toward `127.0.0.0:1080` with immediate RST responses; that packet is retained as operator-side handoff ambiguity rather than media evidence
+- corrected handoff packet:
+  after recreating the Telegram SOCKS5 entry with exact host `127.0.0.1` and port `1080`, the app connected to the local proxy and the alternate-topology media wave was allowed to continue
+
+Observed Phase-30 alternate voice packet on 2026-03-30:
+
+- capture packet:
+  both `/tmp/n0wss-phase30-voice-loopback.pcap` and `/tmp/n0wss-phase30-voice-uplink.pcap` were collected
+- observed app symptom:
+  the voice call again stalled at `Обмен ключами шифрования`
+- bounded classifier:
+  alternate topology did not widen the media envelope beyond the completed Phase-29 voice packet
+
+Observed Phase-30 alternate video packet on 2026-03-30:
+
+- capture packet:
+  both `/tmp/n0wss-phase30-video-loopback.pcap` and `/tmp/n0wss-phase30-video-uplink.pcap` were collected
+- observed app symptom:
+  the video call again stalled at `Обмен ключами шифрования`
+- bounded classifier:
+  the alternate video packet stayed separate from voice, but converged on the same no-go class as the completed Phase-29 video packet
+
+Observed Phase-30 comparison and decision packet on 2026-03-30:
+
+- comparison packet:
+  the only intended topology delta was real: the old SSH-forwarded remote listener was removed and replaced with one truly local `n0wss-client` listener on the workstation
+- preserved baseline:
+  same-window green transport evidence remained intact through the local `phase30-probe`
+- outcome:
+  neither alternate voice nor alternate video changed the Telegram no-go class relative to Phase-29; both still stalled at `Обмен ключами шифрования`
+- bounded decision:
+  the tested Telegram Desktop setup remains no-go even on this alternate topology, so the next justified branch must be a more Telegram-specific workaround above the green transport baseline rather than another topology swap or transport repair
+
 Remote server-host bounded capture:
 
 ```bash
