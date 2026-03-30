@@ -2783,7 +2783,7 @@
         <fn-recoverLinuxOrigDst PURPOSE="Recover original UDP destination tuples through Linux-specific socket surfaces." />
       </annotations>
     </M-UDP-ORIGDST-LINUX-ADAPTER>
-    <M-UDP-ORIGDST-RUNTIME NAME="UdpOrigDstRuntime" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-UDP-ORIGDST-RUNTIME NAME="UdpOrigDstRuntime" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Implement the repo-local helper runtime that recovers original UDP destinations and forwards normalized tuples into the governed datagram path.</purpose>
       <path>src/udp_origdst/mod.rs</path>
       <depends>M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-LINUX-ADAPTER, M-DATAGRAM-SESSION-MANAGER, M-OBS</depends>
