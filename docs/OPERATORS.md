@@ -1530,9 +1530,13 @@ Isolated runbook contract:
    no reuse of the Android mobile listener path and no reuse of old SSH-forward-only topology packets
 3. Launch the experiment only inside the isolated topology:
    the forced-topology wave is valid only if the tested Telegram process runs inside the dedicated namespace
+   for snap-based Telegram Desktop builds, do not start the app with `ip netns exec`, because that launcher can lose the snap tracking-cgroup and runtime-library surface
+   for snap-based Telegram Desktop builds, join the dedicated network namespace with a snap-safe launcher that preserves the host mount and cgroup context, for example:
+   `sudo systemd-run --collect --unit=phase35-telegram --uid=1000 -E DISPLAY=:1 -E XAUTHORITY=/run/user/1000/gdm/Xauthority -E DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus -E XDG_RUNTIME_DIR=/run/user/1000/snap.telegram-desktop -E HOME=/home/truffle/snap/telegram-desktop/6908 -p NetworkNamespacePath=/run/netns/<phase35-telegram-ns> /snap/bin/telegram-desktop -workdir /home/truffle/snap/telegram-desktop/current/phase35-workdir`
    all bounded capture commands must be tied to that same run window
 4. Cleanup after every forced-topology packet:
    stop the isolated Telegram process
+   if the snap-safe launcher was used, stop the transient systemd unit before deleting the namespace
    delete the namespace
    delete the `veth` pair
    remove any experiment-only route, firewall, or redirect state
@@ -1558,7 +1562,7 @@ Forced-topology capture contract:
   `sudo timeout 20 tcpdump -i lo -nn '(tcp port 1080) or (udp port 1080)' -c 200 -w /tmp/n0wss-phase35-loopback.pcap`
   `sudo timeout 20 tcpdump -i any -nn 'host 91.99.128.146 and tcp port 7443' -c 200 -w /tmp/n0wss-phase35-uplink.pcap`
   `sudo timeout 20 tcpdump -i any -nn '((udp) or (tcp and not port 1080 and not port 7443))' -c 400 -w /tmp/n0wss-phase35-network.pcap`
-  `sudo ip netns exec <phase35-telegram-ns> ss -tunp > /tmp/n0wss-phase35-namespace.txt`
+  `sudo bash -lc 'pid=$(systemctl show -p MainPID --value phase35-telegram.service); printf "PID=%s\n" "$pid"; stat -Lc "PROC_NETNS_INO=%i" /proc/$pid/ns/net; stat -Lc "TARGET_NETNS_INO=%i" /run/netns/<phase35-telegram-ns>' > /tmp/n0wss-phase35-namespace.txt`
 - interpretation rule:
   if direct media still appears outside the governed envelope, the packet stays a no-change topology result
   if fresh governed markers appear on the same bounded window, only then does a new n0wss-side protocol/code branch become justified

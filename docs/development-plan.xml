@@ -7197,6 +7197,7 @@
       <note-2>The phase must not reopen generic transport diagnosis or replay any spent SOCKS-only Telegram branch as if it were new work.</note-2>
       <note-3>The only approved new variable is topology class: whether forced routing can keep Telegram media inside the governed envelope.</note-3>
       <note-4>The normal Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched outside the isolated forced-topology runbook.</note-4>
+      <note-5>On 2026-03-30 the first forced-topology execution blocker was narrowed to the snap Telegram Desktop launcher boundary: `ip netns exec` broke the snap tracking-cgroup/runtime surface, while `systemd-run` with `NetworkNamespacePath` preserved the host mount and cgroup context and still placed the tested Telegram process inside the dedicated network namespace.</note-5>
     </Phase-35>
   </ImplementationOrder>
 

@@ -2271,7 +2271,7 @@
       </annotations>
     </M-TELEGRAM-FORCED-TOPOLOGY-PROFILE>
     <M-TELEGRAM-ISOLATED-RUNBOOK NAME="TelegramIsolatedRunbook" TYPE="INTEGRATION" STATUS="done">
-      <purpose>Define the isolated operator runbook for the forced-topology Telegram wave.</purpose>
+      <purpose>Define the isolated operator runbook for the forced-topology Telegram wave, including a snap-safe launcher surface for Telegram Desktop builds.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-FORCED-TOPOLOGY-PROFILE</depends>
       <verification-ref>V-M-TELEGRAM-ISOLATED-RUNBOOK</verification-ref>
@@ -2280,7 +2280,7 @@
       </annotations>
     </M-TELEGRAM-ISOLATED-RUNBOOK>
     <M-TELEGRAM-FORCED-CAPTURE NAME="TelegramForcedCapture" TYPE="INTEGRATION" STATUS="done">
-      <purpose>Prepare the capture surface for the forced-topology Telegram media wave.</purpose>
+      <purpose>Prepare the capture surface for the forced-topology Telegram media wave, including proof that the tested Telegram process entered the dedicated namespace.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION, M-TELEGRAM-ISOLATED-RUNBOOK</depends>
       <verification-ref>V-M-TELEGRAM-FORCED-CAPTURE</verification-ref>

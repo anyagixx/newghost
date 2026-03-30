@@ -4825,6 +4825,7 @@
       <required-trace-assertions>
         <assertion-1>The isolated runbook must include explicit cleanup and baseline restoration requirements.</assertion-1>
         <assertion-2>The isolated runbook must make clear that any temporary surface is wave-local and not part of the normal operator baseline.</assertion-2>
+        <assertion-3>For snap-based Telegram Desktop builds, the runbook must require a launcher that preserves snap mount and cgroup context while entering the dedicated network namespace.</assertion-3>
       </required-trace-assertions>
     </V-M-TELEGRAM-ISOLATED-RUNBOOK>
     <V-M-TELEGRAM-FORCED-CAPTURE MODULE="M-TELEGRAM-FORCED-CAPTURE" PRIORITY="high">
@@ -4847,6 +4848,7 @@
       <required-trace-assertions>
         <assertion-1>The forced-topology capture must remain directly comparable with the Phase-34 attribution packet.</assertion-1>
         <assertion-2>The forced-topology capture must preserve loopback, uplink, broader network, and server-correlation evidence as separate surfaces.</assertion-2>
+        <assertion-3>The namespace proof surface may use PID-to-netns evidence from a snap-safe launcher, but it must still prove that the tested Telegram process ran inside the dedicated namespace.</assertion-3>
       </required-trace-assertions>
     </V-M-TELEGRAM-FORCED-CAPTURE>
     <V-M-TELEGRAM-FORCED-VOICE-WAVE MODULE="M-TELEGRAM-FORCED-VOICE-WAVE" PRIORITY="high">
@@ -5462,6 +5464,7 @@ PY</command-6>
         <evidence-4>The final decision remains bounded to the exact tested forced topology only.</evidence-4>
         <evidence-5>The wave states one exact isolated topology delta and one exact list of preserved baseline fields from Phase-34.</evidence-5>
         <evidence-6>The wave separately classifies whether first positive evidence appeared on the governed path, outside it, or nowhere for both voice and video.</evidence-6>
+        <evidence-7>For snap-based Telegram Desktop builds, the wave proves that the tested process entered the dedicated network namespace through a snap-safe launcher surface instead of `ip netns exec`.</evidence-7>
       </required-evidence>
       <failure-packet-template>scenario=TelegramForcedMediaTopologyWave; expected-evidence=isolated forced-topology handoff plus separate voice/video comparison packet; observed-evidence=topology handoff and forced-topology packet set; first-divergent-block=first missing forced-topology evidence layer above the Phase-34 attribution verdict; next-action=repair only the forced-topology evidence surface or classify the wave as topology no-change before any new branch planning</failure-packet-template>
     </LV-026>
@@ -6071,6 +6074,7 @@ PY</command-6>
         <command-1>rg -n 'Phase-35|M-TELEGRAM-FORCED-TOPOLOGY-HYPOTHESIS|M-TELEGRAM-FORCED-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
         <command-2>rg -n 'LV-026|forced-topology|isolated Telegram|voice|video|both|neither|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
         <command-3>rg -n 'outside controllable user-space envelope|what changed|what stayed fixed|Phase-34 attribution verdict' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-3>
+        <command-3b>rg -n 'systemd-run|NetworkNamespacePath|snap-based Telegram Desktop|phase35-telegram' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</command-3b>
         <command-4>cargo test udp_relay</command-4>
         <command-5>cargo test wss_gateway</command-5>
         <command-6>cargo test cli</command-6>
@@ -6089,6 +6093,7 @@ PY</command-7>
         <evidence-4>The final decision must stay topology-only and must not reopen generic transport work.</evidence-4>
         <evidence-5>The gate requires an explicit delta against the Phase-34 direct-media attribution verdict.</evidence-5>
         <evidence-6>The gate requires proof that any isolated surface is cleaned up and the normal Desktop baseline remains the only ordinary operator path.</evidence-6>
+        <evidence-7>For snap-based Telegram Desktop builds, the gate requires a snap-safe launcher proof that still places the tested process inside the dedicated network namespace.</evidence-7>
       </required-evidence>
     </Gate-Phase-35>
   </PhaseGates>
