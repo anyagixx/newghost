@@ -1810,6 +1810,23 @@ Bounded operator rules for the new branch:
    stop the branch there
    do not spend a new Telegram voice or video packet
 
+Exact setup and cleanup shape for the repo-local helper wave:
+
+1. Start one dedicated repo-local helper listener only for the experiment packet:
+   bind the helper on `127.0.0.1:10073`
+   do not repoint the ordinary Telegram Desktop UI away from `SOCKS5 127.0.0.1:1080`
+2. Add one temporary host-side UDP interception rule only for the packet window:
+   use one temporary `iptables -t nat OUTPUT` redirect for outbound UDP owned by the Telegram Desktop operator user
+   exclude loopback and the preserved baseline surfaces so the helper does not eat its own traffic or the normal `127.0.0.1:1080` path
+3. Keep tuple evidence explicit:
+   the repo-local helper must emit one recovery anchor and one governed-handoff anchor per recovered tuple
+   if the packet cannot say which tuple reached which governed handoff, the smoke is invalid
+4. Cleanup is mandatory after every packet:
+   delete the temporary `iptables` rule
+   stop the repo-local helper listener
+   prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup
+5. No Telegram voice or video packet is allowed until that exact setup has already produced green multi-tuple smoke
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
