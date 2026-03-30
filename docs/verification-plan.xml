@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.60">
+<VerificationPlan VERSION="0.2.61">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -5125,11 +5125,12 @@
         <file>docs/verification-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'install|remove|cleanup|restore|explicit package|baseline' docs/OPERATORS.md docs/verification-plan.xml</check-1>
+        <check-1>rg -n 'install|remove|cleanup|restore|explicit package|baseline|dnsmasq|resolver|resolv.conf' docs/OPERATORS.md docs/verification-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The runbook defines explicit install, remove, cleanup, and restore steps for the helper without contaminating the normal Desktop baseline.</scenario-1>
         <scenario-2>The runbook explicitly says what host-side experiment surfaces must not survive after cleanup.</scenario-2>
+        <scenario-3>The runbook names one bounded namespace DNS surface for helper-backed readiness instead of assuming the host stub resolver or unnamed public DNS behavior.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The runbook assumes a helper binary exists without an explicit install or bootstrap path.</scenario-1>
@@ -5142,11 +5143,12 @@
         <file>docs/development-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'destination recovery|governed upstream handoff|isolated namespace|transparent interception' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-1>rg -n 'destination recovery|governed upstream handoff|isolated namespace|transparent interception|dns bridge|dnsmasq|10.203.37.1:53' docs/OPERATORS.md docs/development-plan.xml docs/verification-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The runtime profile names one exact interception method, one destination-recovery surface, and one governed upstream handoff surface.</scenario-1>
         <scenario-2>The runtime profile keeps the preserved normal Desktop baseline and the helper-backed experiment on disjoint surfaces.</scenario-2>
+        <scenario-3>The runtime profile names one bounded DNS bridge for the isolated namespace so Telegram readiness is not left to implicit resolver behavior.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The profile still lacks destination recovery or governed handoff detail and therefore cannot prove transparent interception value.</scenario-1>
@@ -5159,11 +5161,12 @@
         <file>docs/development-plan.xml</file>
       </test-files>
       <module-checks>
-        <check-1>rg -n 'synthetic|TCP|UDP|destination proof|governed handoff proof|helper smoke' docs/development-plan.xml docs/verification-plan.xml</check-1>
+        <check-1>rg -n 'synthetic|TCP|UDP|destination proof|governed handoff proof|helper smoke|getent ahostsv4 api.telegram.org|dns bridge' docs/development-plan.xml docs/verification-plan.xml</check-1>
       </module-checks>
       <success-scenarios>
         <scenario-1>The smoke packet proves helper interception and governed handoff on both synthetic TCP and UDP attempts before Telegram is used.</scenario-1>
         <scenario-2>The smoke packet separates synthetic TCP evidence from synthetic UDP evidence rather than reporting one blended helper result.</scenario-2>
+        <scenario-3>Before Telegram UI is reused, the helper-backed namespace can resolve Telegram bootstrap names through its bounded DNS surface, for example `getent ahostsv4 api.telegram.org` inside `phase37tg`.</scenario-3>
       </success-scenarios>
       <failure-scenarios>
         <scenario-1>The helper reaches Telegram UI without a successful synthetic smoke packet first.</scenario-1>

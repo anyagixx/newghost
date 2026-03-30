@@ -1619,10 +1619,14 @@ Install and safety contract:
 6. For helper-backed Telegram call waves, do not spend the isolated window on fresh account bootstrap if the normal workstation Telegram session is already authenticated:
    seed the helper-specific `-workdir` from a bounded copy of the normal snap profile `~/.local/share/TelegramDesktop/tdata`, then launch the isolated window from that copied profile snapshot
    this keeps the helper-backed voice or video packet downstream of green helper smoke instead of collapsing it into unrelated QR or login bootstrap behavior
-7. Remove the helper cleanly if the branch is abandoned:
+7. For isolated helper-backed Telegram readiness, do not reuse the host stub resolver address inside the network namespace:
+   if `/etc/resolv.conf` inside the namespace still points to `127.0.0.53`, create one namespace-specific `resolv.conf` under `/etc/netns/<phase37-telegram-ns>/resolv.conf` that points to one host-side DNS bridge on the namespace-facing address, for example `10.203.37.1`
+   on this workstation the bounded bridge is a helper-local `dnsmasq` instance bound to `10.203.37.1:53` and forwarding upstream to the real uplink DNS servers `77.88.8.8` and `8.8.8.8`
+   direct public resolvers inside the namespace were not sufficient for stable readiness on this host; without the host-side DNS bridge the isolated window can show degraded sync with partial dialogs or no dialogs even while helper-backed TCP to known Telegram IPs is already working
+8. Remove the helper cleanly if the branch is abandoned:
    `sudo apt-get purge -y redsocks`
    `sudo apt-get autoremove -y`
-8. Cleanup proof for every helper wave:
+9. Cleanup proof for every helper wave:
    `systemctl is-active redsocks || true`
    `systemctl is-enabled redsocks || true`
    any helper-specific config, nftables, iptables, namespace, or temporary files must be removed before the next normal Desktop packet
@@ -1637,6 +1641,7 @@ The exact helper-backed runtime profile is now fixed as:
 - one governed upstream SOCKS5 surface:
   host-local `n0wss-client` on the preserved `127.0.0.1:1080`
 - one bounded UDP helper surface through `redudp` bound on the same host-side namespace-facing address, for example `10.203.37.1:10053`
+- one host-side DNS bridge on the same namespace-facing address, for example `dnsmasq` on `10.203.37.1:53`, with the isolated namespace configured to use that address as its resolver
 
 Exact routing split:
 
