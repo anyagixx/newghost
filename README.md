@@ -253,6 +253,10 @@ Current calls-profile status:
   it does not repair generic datagram transport, does not retry the old Desktop or Android workaround variants, and does not change the already-working `127.0.0.1:1080` path for text messages, media files, or large files
 - the only approved new deliverable is attribution evidence:
   separate workstation and server packets must explain where the first positive media-path evidence appears, or honestly classify the result as `insufficient evidence`
+- the bounded Phase-34 Desktop voice-attribution packet on 2026-03-30 is now recorded:
+  during one preserved-baseline Desktop voice call the UI progressed through `Запрос` -> `Вызов` -> `Обмен ключами шифрования` and then dropped, workstation loopback and uplink captures both stayed busy on the governed `127.0.0.1:1080` and WSS `91.99.128.146:7443` surfaces, but the broader workstation capture also showed fresh direct UDP attempts to Telegram-owned `91.108.*` addresses on ports `598`, `599`, and `1400` while the server-side correlation packet stayed limited to new WSS handshakes without fresh datagram markers such as `SERVER_DATAGRAM_RECEIVED` or `SERVER_DATAGRAM_INBOUND_RECEIVED`
+- the current best bounded reading for that voice packet is therefore attribution, not repair:
+  first positive non-UI evidence appeared outside the governed SOCKS envelope, so the packet currently points to candidate direct-media behavior outside SOCKS rather than another generic transport defect on the already-working Desktop baseline
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

@@ -1449,6 +1449,24 @@ Server-side correlation contract for Phase-34:
 - attribution consequence:
   if workstation broader-network capture shows probable media traffic while the governed server-side packet stays silent, classify that as candidate direct-media behavior outside the preserved SOCKS envelope rather than another generic transport defect
 
+Phase-34 voice attribution packet on 2026-03-30:
+
+- preserved Desktop baseline stayed unchanged:
+  `SOCKS5 127.0.0.1:1080`, username/password empty
+- one bounded Desktop voice attempt progressed through:
+  `Запрос` -> `Вызов` -> `Обмен ключами шифрования` -> drop
+- workstation capture surfaces all completed:
+  `/tmp/n0wss-phase34-loopback-b.pcap`
+  `/tmp/n0wss-phase34-uplink-b.pcap`
+  `/tmp/n0wss-phase34-network-b.pcap`
+- bounded evidence split:
+  loopback showed repeated traffic to the preserved local SOCKS listener on `127.0.0.1:1080`
+  uplink showed fresh WSS traffic to `91.99.128.146:7443`
+  broader workstation capture also showed fresh direct UDP egress to Telegram-owned `91.108.17.49:599`, `91.108.13.4:599`, `91.108.9.71:598`, `91.108.17.56:1400`, `91.108.13.20:1400`, and `91.108.9.73:1400`
+  server-side correlation for the same bounded window showed fresh WSS handshakes but no fresh governed datagram markers like `SERVER_DATAGRAM_RECEIVED`, `BLOCK_RELAY_UDP_OUTBOUND`, `SERVER_DATAGRAM_INBOUND_RECEIVED`, or `SERVER_DATAGRAM_RETURN_EMITTED`
+- bounded reading:
+  the voice packet currently points to candidate direct-media behavior outside the governed SOCKS envelope, not to another generic transport failure on the preserved Desktop baseline
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.

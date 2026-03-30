@@ -5829,7 +5829,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-SERVER-CORRELATION</verification-ref>
     </M-TELEGRAM-SERVER-CORRELATION>
-    <M-TELEGRAM-VOICE-ATTRIBUTION-WAVE NAME="TelegramVoiceAttributionWave" TYPE="CORE_LOGIC" LAYER="37" ORDER="5" STATUS="planned">
+    <M-TELEGRAM-VOICE-ATTRIBUTION-WAVE NAME="TelegramVoiceAttributionWave" TYPE="CORE_LOGIC" LAYER="37" ORDER="5" STATUS="done">
       <contract>
         <purpose>Run one bounded Desktop voice attribution wave and classify whether media stays inside the governed SOCKS envelope or escapes it.</purpose>
         <inputs>
@@ -6995,7 +6995,7 @@
       <step-2 module="M-TELEGRAM-CAPTURE-TOPOLOGY" status="done" verification="V-M-TELEGRAM-CAPTURE-TOPOLOGY">Freeze one exact Desktop attribution capture topology without changing the working baseline</step-2>
       <step-3 module="M-TELEGRAM-DESKTOP-NET-CAPTURE" status="done" verification="V-M-TELEGRAM-DESKTOP-NET-CAPTURE">Define the bounded Desktop network-capture surface for media attribution</step-3>
       <step-4 module="M-TELEGRAM-SERVER-CORRELATION" status="done" verification="V-M-TELEGRAM-SERVER-CORRELATION">Freeze the governed server-side correlation contract for attribution waves</step-4>
-      <step-5 module="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" status="pending" verification="V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE">Replay one bounded Desktop voice attribution wave</step-5>
+      <step-5 module="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" status="done" verification="V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE">Replay one bounded Desktop voice attribution wave</step-5>
       <step-6 module="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" status="pending" verification="V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE">Replay one bounded Desktop video attribution wave without inheriting voice</step-6>
       <step-7 module="M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER" status="pending" verification="V-M-TELEGRAM-MEDIA-ATTRIBUTION-CLASSIFIER">Classify voice and video packets as governed-media, direct-media, signaling-only, or insufficient evidence</step-7>
       <step-8 module="M-TELEGRAM-ATTRIBUTION-DECISION" status="pending" verification="V-M-TELEGRAM-ATTRIBUTION-DECISION">Issue the bounded next-step decision after media-path attribution</step-8>
@@ -7003,6 +7003,7 @@
       <note-2>The phase must not reopen generic transport diagnosis or any already-spent Desktop or Android workaround branch.</note-2>
       <note-3>The only approved new question is attribution: whether Telegram media attempts the governed SOCKS path, a direct path outside SOCKS, or no real media path at all after key exchange.</note-3>
       <note-4>The already-working Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched during this attribution wave.</note-4>
+      <note-5>On 2026-03-30 the bounded Desktop voice-attribution packet progressed through request, ringing, and key exchange before dropping; loopback and uplink captures stayed active on the preserved SOCKS and WSS surfaces, but broader workstation capture also recorded fresh UDP egress to Telegram-owned `91.108.*` addresses on ports `598`, `599`, and `1400` while the same bounded server-side correlation packet stayed limited to fresh WSS handshakes without fresh datagram relay markers.</note-5>
     </Phase-34>
   </ImplementationOrder>
 

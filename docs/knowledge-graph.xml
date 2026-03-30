@@ -2216,7 +2216,7 @@
         <fn-freezeTelegramServerCorrelation PURPOSE="Freeze what server-side evidence would prove governed Telegram media attempts during attribution waves." />
       </annotations>
     </M-TELEGRAM-SERVER-CORRELATION>
-    <M-TELEGRAM-VOICE-ATTRIBUTION-WAVE NAME="TelegramVoiceAttributionWave" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-VOICE-ATTRIBUTION-WAVE NAME="TelegramVoiceAttributionWave" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Run one bounded Desktop voice attribution wave and classify whether media stays inside the governed SOCKS envelope or escapes it.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-DESKTOP-NET-CAPTURE, M-TELEGRAM-SERVER-CORRELATION</depends>

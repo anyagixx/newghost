@@ -4691,6 +4691,7 @@
         <assertion-2>The voice packet must correlate workstation and server evidence before any classification is accepted.</assertion-2>
         <assertion-3>The voice packet must say whether the first positive evidence appeared on the SOCKS-governed path, outside it, or nowhere.</assertion-3>
       </required-trace-assertions>
+      <evidence-note-1>On 2026-03-30 the first bounded Phase-34 Desktop voice packet satisfied the capture split and showed fresh direct UDP attempts to Telegram-owned `91.108.*` addresses while the same bounded server-correlation window stayed silent on fresh governed datagram markers.</evidence-note-1>
     </V-M-TELEGRAM-VOICE-ATTRIBUTION-WAVE>
     <V-M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE MODULE="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" PRIORITY="high">
       <test-files>
