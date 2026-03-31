@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.63">
+<DevelopmentPlan VERSION="0.2.64">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -8473,7 +8473,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE</verification-ref>
     </M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
-    <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" LAYER="49" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" LAYER="49" ORDER="8" STATUS="done">
       <contract>
         <purpose>Run one bounded video attempt only after the preserved audio-first voice packet on the same post-recovery branch without inheriting the voice result.</purpose>
         <inputs>
@@ -9893,7 +9893,7 @@
       <step-5 module="M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT" status="done" verification="V-M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT">Define one exact evidence contract that separates tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome</step-5>
       <step-6 module="M-POSTRECOVERY-SMOKE" status="done" verification="V-M-POSTRECOVERY-SMOKE">Prove outside Telegram UI that the post-recovery evidence surface can distinguish tuple recovery from downstream establishment behavior</step-6>
       <step-7 module="M-TELEGRAM-CALLS-POSTRECOVERY-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE">Run one bounded voice attempt only after green post-recovery smoke</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-8>
+      <step-8 module="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-8>
       <step-9 module="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON">Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45</step-9>
       <step-10 module="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION">Issue the bounded final decision after the post-recovery establishment branch</step-10>
       <note-1>Phase-46 starts only after the preserved ordinary Telegram baseline, the Phase-42 redirect-boundary packet, the Phase-43 privilege-boundary packet, the Phase-44 output-boundary packet, and the completed Phase-45 real-tuple but key-exchange-stall packet are all visible together.</note-1>
@@ -9902,7 +9902,7 @@
       <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files, and it must preserve the exact Phase-45 interception topology unless a later branch proves that this boundary was wrong.</note-4>
       <note-5>The only approved new variable is the post-recovery evidence class itself; interception topology, helper launch shape, and no-second-auth rule stay fixed.</note-5>
       <note-6>On 2026-03-31 the first Phase-46 execution packet closed the boundary, decision, and smoke-contract tail above Phase-45: the branch now freezes one exact ordered evidence class on the unchanged Phase-45 topology, keeps Phase-45 explicit as the first real-media-tuple-success branch, and turns green test-level post-recovery smoke in `src/cli/mod.test.rs` plus `tests/udp_origdst_smoke.rs` without spending a new Telegram UI packet.</note-6>
-      <note-7>Execution of the remaining Phase-46 work is now explicitly audio-first: one bounded post-recovery voice packet is the next active calls step, while video, comparison, and final decision stay downstream until that preserved voice packet exists.</note-7>
+      <note-7>Execution of the remaining Phase-46 work is now explicitly audio-first: the bounded post-recovery voice packet is preserved, and video, comparison, and final decision stay downstream of that packet.</note-7>
       <note-8>Once the preserved voice packet exists, the bounded post-recovery video packet must stay on the same topology, preserve the same proof order, and classify only video establishment without inheriting voice evidence.</note-8>
     </Phase-46>
   </ImplementationOrder>

@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.54">
+  <Project NAME="n0wss" VERSION="0.2.55">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3308,13 +3308,13 @@
         <fn-runTelegramCallsPostRecoveryVoice PURPOSE="Spend one bounded audio-first voice packet on the post-recovery branch." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
-    <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" STATUS="planned">
-      <purpose>Run one bounded video attempt on the same post-recovery branch without inheriting the voice result.</purpose>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Run one bounded video attempt only after the preserved audio-first voice packet on the same post-recovery branch without inheriting the voice result.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-POSTRECOVERY-VOICE</depends>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO</verification-ref>
       <annotations>
-        <fn-runTelegramCallsPostRecoveryVideo PURPOSE="Spend one bounded video packet on the post-recovery branch." />
+        <fn-runTelegramCallsPostRecoveryVideo PURPOSE="Spend one bounded video packet only after the preserved voice packet on the post-recovery branch." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
     <M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON NAME="TelegramCallsPostRecoveryComparison" TYPE="CORE_LOGIC" STATUS="planned">
