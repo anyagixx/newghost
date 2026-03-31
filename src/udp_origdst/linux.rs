@@ -1,10 +1,10 @@
 // FILE: src/udp_origdst/linux.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Isolate Linux-specific socket, transparent-socket, and original-destination recovery surfaces for the repo-local UDP helper.
-//   SCOPE: Recovery marker definitions, listener-plan metadata, Linux socket-option enablement, Linux transparent-socket enablement, Linux recvmsg-based original-destination parsing, and Linux-specific recovery strategy descriptions for intercepted UDP tuples.
+//   PURPOSE: Isolate Linux-specific socket, transparent-socket, original-destination recovery, and bounded non-OUTPUT TPROXY planning surfaces for the repo-local UDP helper.
+//   SCOPE: Recovery marker definitions, listener-plan metadata, non-OUTPUT TPROXY topology markers, Linux socket-option enablement, Linux transparent-socket enablement, Linux recvmsg-based original-destination parsing, and Linux-specific recovery strategy descriptions for intercepted UDP tuples.
 //   DEPENDS: libc, std, src/transport/datagram_contract.rs, src/udp_origdst/mod.rs
-//   LINKS: M-UDP-ORIGDST-LINUX-ADAPTER, M-TPROXY-PRIV-LAUNCH-DELTA, V-M-UDP-ORIGDST-LINUX-ADAPTER, V-M-TPROXY-PRIV-LAUNCH-DELTA, DF-UDP-ORIGDST-RECOVERY
+//   LINKS: M-UDP-ORIGDST-LINUX-ADAPTER, M-TPROXY-PRIV-LAUNCH-DELTA, M-TPROXY-NONOUTPUT-LINUX-DELTA, V-M-UDP-ORIGDST-LINUX-ADAPTER, V-M-TPROXY-PRIV-LAUNCH-DELTA, V-M-TPROXY-NONOUTPUT-LINUX-DELTA, DF-UDP-ORIGDST-RECOVERY
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -12,17 +12,23 @@
 //   IPV4_RECV_ORIGINAL_DST_MARKER - Linux IPv4 recvmsg control-message marker
 //   IPV6_RECV_ORIGINAL_DST_MARKER - Linux IPv6 recvmsg control-message marker
 //   IPV4_TRANSPARENT_SOCKET_MARKER - Linux IPv4 transparent-socket marker
+//   TPROXY_OUTPUT_OWNER_MARK_ONLY_MARKER - host-side OUTPUT owner-mark-only steering marker for the non-OUTPUT branch
+//   TPROXY_POLICY_ROUTE_MARKER - host-side fwmark and policy-route proof marker for the non-OUTPUT branch
+//   TPROXY_VETH_NETNS_INGRESS_MARKER - isolated veth/netns ingress proof marker for the non-OUTPUT branch
+//   TPROXY_PREROUTING_CHAIN_MARKER - namespace PREROUTING TPROXY proof marker for the non-OUTPUT branch
 //   LinuxRecoveredDatagram - one recvmsg packet plus recovered original destination metadata
 //   LinuxOrigDstSocketPlan - one bounded socket-plan description for tuple recovery
+//   LinuxNonOutputTproxyPlan - one bounded non-OUTPUT TPROXY topology plan for the live helper branch
 //   LinuxOrigDstRecoveryStrategy - one explicit Linux recovery strategy class
 //   planLinuxOrigDstSocket - build one bounded Linux recovery plan for a helper listener address
+//   planLinuxNonOutputTproxy - build one bounded non-OUTPUT TPROXY plan for the live helper listener
 //   enableIpv4TransparentSocket - enable Linux IPv4 transparent-socket mode on one UDP socket
 //   enableIpv4RecvOriginalDst - enable Linux IPv4 original-destination ancillary data on one UDP socket
 //   recvRecoveredIpv4Datagram - receive one UDP packet with Linux ancillary data and recover the original IPv4 destination
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added Linux transparent-socket enablement so the privileged TPROXY branch can separate privilege proof from recvmsg-based original-destination recovery.
+//   LAST_CHANGE: v0.1.3 - Added explicit non-OUTPUT TPROXY planning markers so Phase-45 can freeze one exact veth/netns PREROUTING topology before smoke.
 // END_CHANGE_SUMMARY
 
 use std::io;
@@ -40,6 +46,10 @@ pub const IPV4_TRANSPARENT_SOCKET_MARKER: &str = "IP_TRANSPARENT";
 pub const RECVMSG_API_MARKER: &str = "recvmsg";
 pub const CONTROL_MESSAGE_API_MARKER: &str = "cmsg";
 pub const DEFAULT_ORIGDST_CONTROL_LEN: usize = 128;
+pub const TPROXY_OUTPUT_OWNER_MARK_ONLY_MARKER: &str = "output-owner-mark-only";
+pub const TPROXY_POLICY_ROUTE_MARKER: &str = "policy-routing-fwmark";
+pub const TPROXY_VETH_NETNS_INGRESS_MARKER: &str = "veth-netns-ingress";
+pub const TPROXY_PREROUTING_CHAIN_MARKER: &str = "prerouting-tproxy";
 
 #[cfg(test)]
 #[path = "linux.test.rs"]
@@ -57,6 +67,16 @@ pub struct LinuxOrigDstSocketPlan {
     pub listener_addr: SocketAddr,
     pub strategy: LinuxOrigDstRecoveryStrategy,
     pub requires_recvmsg: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LinuxNonOutputTproxyPlan {
+    pub listener_addr: SocketAddr,
+    pub host_output_marker: &'static str,
+    pub route_marker: &'static str,
+    pub ingress_marker: &'static str,
+    pub interception_chain_marker: &'static str,
+    pub requires_transparent_socket: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -86,6 +106,26 @@ pub fn plan_linux_origdst_socket(
         listener_addr,
         requires_recvmsg: true,
         strategy,
+    }
+    // END_BLOCK_UDP_ORIGDST_LINUX_ADAPTER
+}
+
+// START_CONTRACT: planLinuxNonOutputTproxy
+//   PURPOSE: Build one bounded non-OUTPUT TPROXY topology plan so the live helper branch can freeze its route and interception anchors before smoke.
+//   INPUTS: { listener_addr: SocketAddr - repo-local helper listener address }
+//   OUTPUTS: { LinuxNonOutputTproxyPlan - explicit non-OUTPUT TPROXY topology markers for the bounded live branch }
+//   SIDE_EFFECTS: [none]
+//   LINKS: [M-TPROXY-NONOUTPUT-LINUX-DELTA, V-M-TPROXY-NONOUTPUT-LINUX-DELTA]
+// END_CONTRACT: planLinuxNonOutputTproxy
+pub fn plan_linux_nonoutput_tproxy(listener_addr: SocketAddr) -> LinuxNonOutputTproxyPlan {
+    // START_BLOCK_UDP_ORIGDST_LINUX_ADAPTER
+    LinuxNonOutputTproxyPlan {
+        listener_addr,
+        host_output_marker: TPROXY_OUTPUT_OWNER_MARK_ONLY_MARKER,
+        route_marker: TPROXY_POLICY_ROUTE_MARKER,
+        ingress_marker: TPROXY_VETH_NETNS_INGRESS_MARKER,
+        interception_chain_marker: TPROXY_PREROUTING_CHAIN_MARKER,
+        requires_transparent_socket: true,
     }
     // END_BLOCK_UDP_ORIGDST_LINUX_ADAPTER
 }

@@ -322,6 +322,12 @@ Current calls-profile status:
   it keeps the same ordinary logged-in Telegram window, the same governed `origdst-live` helper shape, and the same preserved `127.0.0.1:1080` baseline, but replaces only the interception topology class so recovered tuples can stop collapsing to the helper listener
 - the current Phase-43 technology decision is now fixed to one exact class on this host:
   Linux `TPROXY` is the only approved non-REDIRECT interception class for the next live branch; `REDIRECT`, blended helper stacks, or vague “transparent routing” wording are no longer honest next work
+- the bounded Phase-44 packet is now explicitly frozen as privilege-green but output-bound:
+  on 2026-03-31 root-run `origdst-live`, `--transparent-socket-mode required`, and the preserved `127.0.0.1:1080` baseline were all green, but host `OUTPUT`-class `TPROXY` itself failed on this workstation with `Invalid argument` and `Operation not supported`
+- the new Phase-45 branch is therefore privileged-non-`OUTPUT`-only:
+  the same ordinary logged-in Telegram window, the same root-run `origdst-live` helper, and the same preserved `127.0.0.1:1080` baseline remain fixed, while only the interception hook moves away from host `OUTPUT`
+- the current Phase-45 technology decision is now fixed to one exact class on this host:
+  host `OUTPUT` may set only the operator-UID steering mark, while policy routing sends that traffic into an isolated `veth/netns` ingress where Linux `TPROXY` is installed only on namespace `PREROUTING`; no blended `OUTPUT TPROXY`, `REDIRECT`, or `NFQUEUE` packet counts as honest next work
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

@@ -1971,3 +1971,48 @@ Exact bounded operator packet for the first privileged smoke wave:
 6. Remove the temporary `TPROXY` rules.
 7. Stop the root-run `origdst-live` helper process.
 8. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.
+
+### Phase-45 Privileged Non-Output TPROXY Topology
+
+Phase-45 starts only after the blocked Phase-44 packet is frozen as an `OUTPUT`-topology boundary instead of as a missing-privilege packet. The helper launch class stays the same root-run `origdst-live` process; the only approved new variable is the interception hook shape.
+
+Bounded operator rules for the privileged non-`OUTPUT` TPROXY branch:
+
+1. Choose one exact non-`OUTPUT` topology class only:
+   keep host `OUTPUT` limited to operator-UID steering mark only
+   move the real `TPROXY` hook to namespace `PREROUTING` on an isolated `veth/netns` ingress
+   do not blend host `OUTPUT TPROXY`, `REDIRECT`, `NFQUEUE`, or a different helper stack into the same wave
+2. Keep the helper runtime shape fixed:
+   keep the helper launch class as root-run repo-local `origdst-live`
+   keep the helper listener on `127.0.0.1:10073`
+   keep the preserved ordinary baseline proof on `127.0.0.1:1080`
+   keep `--transparent-socket-mode required` explicit in the helper launch command
+3. Keep routing evidence split:
+   prove host owner-mark install separately
+   prove host policy-route or equivalent mark-steering separately
+   prove isolated `veth/netns` ingress setup separately
+   prove namespace `PREROUTING TPROXY` install separately
+   prove real non-helper destination recovery separately
+4. Keep Telegram UI shape fixed:
+   stay attached to the already logged-in ordinary Telegram Desktop window
+   do not open a second auth or bootstrap window
+5. Cleanup stays mandatory:
+   remove namespace `PREROUTING TPROXY` rules and namespace routing state immediately after the bounded packet window
+   remove host owner-mark and steering state immediately after the bounded packet window
+   stop the root-run helper
+   prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy after cleanup
+
+Exact bounded operator packet for the first privileged non-`OUTPUT` smoke wave:
+
+1. Start the repo-local helper as root with the explicit transparent-socket requirement:
+   `sudo --preserve-env=RUST_LOG n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080 --transparent-socket-mode required`
+2. Capture a bounded helper log window and keep the privilege-launch anchor separate from later route and tuple evidence.
+3. Add one temporary host owner-mark rule for outbound UDP traffic owned by the Telegram Desktop operator UID; do not install host `OUTPUT` `TPROXY`.
+4. Add one bounded policy-route path that steers the marked UDP traffic into an isolated `veth/netns` ingress surface.
+5. Inside that namespace, install one bounded `PREROUTING TPROXY` packet that targets `127.0.0.1:10073` together with the matching mark and route state required by the chosen topology.
+6. Keep loopback and the preserved baseline surfaces excluded so the helper does not eat its own traffic or the normal `127.0.0.1:1080` path.
+7. Collect bounded root-launch proof, supported rule-install proof, route-mark proof, real-target recovery proof, and governed-handoff proof.
+8. Remove namespace `PREROUTING TPROXY` rules and namespace routing state.
+9. Remove the host steering mark and policy-route state.
+10. Stop the root-run `origdst-live` helper process.
+11. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.
