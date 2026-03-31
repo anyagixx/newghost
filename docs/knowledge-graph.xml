@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.55">
+  <Project NAME="n0wss" VERSION="0.2.56">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3317,13 +3317,13 @@
         <fn-runTelegramCallsPostRecoveryVideo PURPOSE="Spend one bounded video packet only after the preserved voice packet on the post-recovery branch." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
-    <M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON NAME="TelegramCallsPostRecoveryComparison" TYPE="CORE_LOGIC" STATUS="planned">
-      <purpose>Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45.</purpose>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON NAME="TelegramCallsPostRecoveryComparison" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Compare the preserved post-recovery voice and video packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45 while preserving Phase-45 as the first real-tuple-success boundary.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-POSTRECOVERY-VOICE, M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO</depends>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON</verification-ref>
       <annotations>
-        <fn-compareTelegramCallsPostRecovery PURPOSE="Compare the post-recovery packets against preserved earlier boundaries." />
+        <fn-compareTelegramCallsPostRecovery PURPOSE="Compare the preserved post-recovery packets against preserved earlier boundaries without collapsing proof order." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
     <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" STATUS="planned">

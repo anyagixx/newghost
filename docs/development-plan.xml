@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.65">
+<DevelopmentPlan VERSION="0.2.66">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -8494,7 +8494,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO</verification-ref>
     </M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
-    <M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON NAME="TelegramCallsPostRecoveryComparison" TYPE="CORE_LOGIC" LAYER="49" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON NAME="TelegramCallsPostRecoveryComparison" TYPE="CORE_LOGIC" LAYER="49" ORDER="9" STATUS="done">
       <contract>
         <purpose>Compare the preserved post-recovery voice and video packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45 while preserving Phase-45 as the first real-tuple-success boundary.</purpose>
         <inputs>
@@ -9895,7 +9895,7 @@
       <step-6 module="M-POSTRECOVERY-SMOKE" status="done" verification="V-M-POSTRECOVERY-SMOKE">Prove outside Telegram UI that the post-recovery evidence surface can distinguish tuple recovery from downstream establishment behavior</step-6>
       <step-7 module="M-TELEGRAM-CALLS-POSTRECOVERY-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE">Run one bounded voice attempt only after green post-recovery smoke</step-7>
       <step-8 module="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON">Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45</step-9>
+      <step-9 module="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON">Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45</step-9>
       <step-10 module="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION">Issue the bounded final decision after the post-recovery establishment branch</step-10>
       <note-1>Phase-46 starts only after the preserved ordinary Telegram baseline, the Phase-42 redirect-boundary packet, the Phase-43 privilege-boundary packet, the Phase-44 output-boundary packet, and the completed Phase-45 real-tuple but key-exchange-stall packet are all visible together.</note-1>
       <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
