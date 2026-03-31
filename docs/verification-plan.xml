@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.75">
+<VerificationPlan VERSION="0.2.76">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -136,6 +136,8 @@
     <telegram-origdst-no-second-auth-rule>Phase-42 is invalid if it reopens a second Telegram auth or bootstrap window instead of staying attached to the ordinary logged-in Desktop baseline.</telegram-origdst-no-second-auth-rule>
     <telegram-origdst-live-launch-anchor-rule>Phase-42 live-launch evidence is invalid unless process launch and listener-bind surfaces are each proven by their own stable anchor instead of one blended helper-success summary.</telegram-origdst-live-launch-anchor-rule>
     <telegram-origdst-live-config-single-shape-rule>Phase-42 must freeze one exact live helper config shape; mixed launch flags, ad hoc shell state, or silent env inheritance invalidate the packet.</telegram-origdst-live-config-single-shape-rule>
+    <telegram-nonredirect-single-tech-rule>Phase-43 must choose one exact non-REDIRECT interception class; blended topology classes invalidate the branch.</telegram-nonredirect-single-tech-rule>
+    <telegram-nonredirect-real-target-rule>Phase-43 smoke is invalid if recovered targets still collapse to the helper listener instead of proving at least one real non-helper destination tuple.</telegram-nonredirect-real-target-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5920,6 +5922,72 @@
       <success-scenarios><scenario-1>The final decision stays bounded to the live-launch repo-local helper branch and preserves the ordinary baseline.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1></failure-scenarios>
     </V-M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION>
+    <V-M-NONREDIRECT-ORIGDST-HYPOTHESIS MODULE="M-NONREDIRECT-ORIGDST-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-42|redirect|127.0.0.1:10073|live UDP|non-REDIRECT' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The new hypothesis preserves the valid Phase-42 live voice packet while naming redirect-topology collapse as the next blocker.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The hypothesis reclassifies the blocker as missing UDP activity or hides the helper-listener collapse evidence.</scenario-1></failure-scenarios>
+    </V-M-NONREDIRECT-ORIGDST-HYPOTHESIS>
+    <V-M-PHASE42-TOPOLOGY-BOUNDARY MODULE="M-PHASE42-TOPOLOGY-BOUNDARY" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/knowledge-graph.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-42|redirect-boundary|blocked by redirect|127.0.0.1:10073' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The old Phase-42 tail no longer looks runnable after the new topology boundary is introduced.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The old Phase-42 tail still looks like the honest next execution branch.</scenario-1></failure-scenarios>
+    </V-M-PHASE42-TOPOLOGY-BOUNDARY>
+    <V-M-NONREDIRECT-TECH-DECISION MODULE="M-NONREDIRECT-TECH-DECISION" PRIORITY="high">
+      <test-files><file>docs/technology.xml</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT|TPROXY|NFQUEUE|single topology class|real destination' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The branch chooses one exact non-REDIRECT interception class only.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The branch mixes multiple topology classes or leaves the interception class vague.</scenario-1></failure-scenarios>
+    </V-M-NONREDIRECT-TECH-DECISION>
+    <V-M-NONREDIRECT-RUNTIME-PROFILE MODULE="M-NONREDIRECT-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT|ordinary baseline|127.0.0.1:1080|helper listener|live topology' docs/OPERATORS.md docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The runtime profile replaces REDIRECT only and keeps the ordinary baseline plus live helper process shape fixed.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The runtime profile silently changes the ordinary baseline, second-auth rule, or helper process shape together with topology.</scenario-1></failure-scenarios>
+    </V-M-NONREDIRECT-RUNTIME-PROFILE>
+    <V-M-NONREDIRECT-LINUX-ADAPTER-DELTA MODULE="M-NONREDIRECT-LINUX-ADAPTER-DELTA" PRIORITY="high">
+      <test-files><file>src/udp_origdst/linux.rs</file><file>src/udp_origdst/linux.test.rs</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT|original destination|helper listener|127.0.0.1:10073|real target' src/udp_origdst/linux.rs src/udp_origdst/linux.test.rs</check-1></module-checks>
+      <success-scenarios><scenario-1>The Linux-adapter delta stays isolated and explicitly targets real destination recovery under the chosen non-REDIRECT topology.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The Linux-adapter delta falls back to helper-listener recovery or mixes generic runtime changes into the adapter layer.</scenario-1></failure-scenarios>
+    </V-M-NONREDIRECT-LINUX-ADAPTER-DELTA>
+    <V-M-NONREDIRECT-LIVE-RUNBOOK MODULE="M-NONREDIRECT-LIVE-RUNBOOK" PRIORITY="high">
+      <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT|cleanup|127.0.0.1:1080|no second auth|real target' docs/OPERATORS.md docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The runbook defines explicit non-REDIRECT setup, cleanup, and preserved-baseline proof for the live packet window.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The runbook leaves interception ownership, cleanup, or preserved-baseline proof ambiguous.</scenario-1></failure-scenarios>
+    </V-M-NONREDIRECT-LIVE-RUNBOOK>
+    <V-M-NONREDIRECT-LIVE-SMOKE MODULE="M-NONREDIRECT-LIVE-SMOKE" PRIORITY="high">
+      <test-files><file>src/cli/mod.test.rs</file><file>tests/udp_origdst_smoke.rs</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT|real target|not helper listener|127.0.0.1:10073|preserved baseline' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The non-REDIRECT live smoke packet proves at least one real non-helper destination tuple plus governed handoff and preserved baseline.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The smoke packet still recovers the helper listener or looks green only because the ordinary baseline regressed.</scenario-1></failure-scenarios>
+    </V-M-NONREDIRECT-LIVE-SMOKE>
+    <V-M-TELEGRAM-CALLS-NONREDIRECT-VOICE MODULE="M-TELEGRAM-CALLS-NONREDIRECT-VOICE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT voice|already logged-in|real target|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The non-REDIRECT voice packet is explicitly downstream of green non-REDIRECT smoke and the ordinary logged-in baseline.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The non-REDIRECT voice packet is spent before green non-REDIRECT smoke or reopens a second auth window.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-NONREDIRECT-VOICE>
+    <V-M-TELEGRAM-CALLS-NONREDIRECT-VIDEO MODULE="M-TELEGRAM-CALLS-NONREDIRECT-VIDEO" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT video|already logged-in|real target|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The non-REDIRECT video packet stays separate from voice and remains downstream of the same green non-REDIRECT smoke proof.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The non-REDIRECT video packet silently inherits voice or bypasses smoke-first policy.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-NONREDIRECT-VIDEO>
+    <V-M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON MODULE="M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-34|Phase-39|Phase-41|Phase-42|non-REDIRECT voice|non-REDIRECT video' README.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The comparison keeps the old direct-media verdict, fixed-tuple boundary, test-only Phase-41 boundary, and redirect-boundary Phase-42 packet visible while evaluating the non-REDIRECT packets.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The comparison forgets one of the earlier boundaries or hides the Phase-42 redirect-boundary packet.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON>
+    <V-M-TELEGRAM-CALLS-NONREDIRECT-DECISION MODULE="M-TELEGRAM-CALLS-NONREDIRECT-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'non-REDIRECT decision|127.0.0.1:1080|Phase-42|Phase-41|Phase-34' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The final decision stays bounded to the non-REDIRECT live branch and preserves the ordinary baseline.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-NONREDIRECT-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -6602,6 +6670,22 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsLiveOrigDstLaunchWave; expected-evidence=preserved ordinary baseline, explicit blocked Phase-41 launch boundary, one exact live helper entrypoint and config shape, green live-launch smoke, and separate voice and video packets; observed-evidence=phase artifacts, live-launch evidence, and execution packet; first-divergent-block=first missing live-launch gate requirement; next-action=repair that exact live-launch layer before spending more call attempts</failure-packet-template>
     </LV-033>
+    <LV-034 NAME="TelegramCallsNonRedirectOrigDstWave" PRIORITY="high">
+      <scope>Phase-43 non-REDIRECT live topology for the repo-local origdst helper after the Phase-42 redirect-boundary packet was frozen.</scope>
+      <commands>
+        <command-1>rg -n 'Phase-43|non-REDIRECT|Phase-42|127.0.0.1:10073|real target' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-1>
+        <command-2>rg -n 'LV-034|Gate-Phase-43|127.0.0.1:1080|no second auth|real non-helper destination' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave keeps the ordinary logged-in Telegram baseline explicit and preserved.</evidence-1>
+        <evidence-2>The wave keeps the Phase-42 redirect-boundary packet explicit.</evidence-2>
+        <evidence-3>The wave chooses one exact non-REDIRECT topology class.</evidence-3>
+        <evidence-4>The wave requires green non-REDIRECT live smoke before any new calls packet.</evidence-4>
+        <evidence-5>The wave requires proof that recovered targets no longer collapse to the helper listener.</evidence-5>
+        <evidence-6>The wave keeps voice and video as separate downstream packets.</evidence-6>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsNonRedirectOrigDstWave; expected-evidence=preserved ordinary baseline, explicit Phase-42 redirect boundary, one exact non-REDIRECT topology class, green non-REDIRECT live smoke with real destination recovery, and separate voice and video packets; observed-evidence=phase artifacts, topology packet, smoke packet, and execution packet; first-divergent-block=first missing non-REDIRECT gate requirement; next-action=repair that exact non-REDIRECT layer before spending more call attempts</failure-packet-template>
+    </LV-034>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -7389,6 +7473,30 @@ PY</command-3>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-42; expected-evidence=execution-ready live-launch repo-local helper wave with preserved ordinary baseline, explicit blocked Phase-41 launch boundary, one exact live helper entrypoint and config shape, green live-launch smoke, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, live-launch contract, verification coverage, and execution packet; first-divergent-block=first missing live-launch gate requirement; next-action=repair the missing Phase-42 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-42>
+    <Gate-Phase-43 PHASE="Phase-43">
+      <goal>The project has an execution-ready non-REDIRECT live topology for the repo-local origdst helper before any new Telegram calls packet is spent.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-43|M-NONREDIRECT-ORIGDST-HYPOTHESIS|M-TELEGRAM-CALLS-NONREDIRECT-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-034|127.0.0.1:1080|127.0.0.1:10073|non-REDIRECT|Phase-42|Phase-41|Phase-34' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the already-working ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the Phase-42 redirect-boundary packet explicit.</evidence-2>
+        <evidence-3>The gate requires one exact non-REDIRECT topology class and one exact runtime profile.</evidence-3>
+        <evidence-4>The gate requires green non-REDIRECT live smoke before any new calls packet.</evidence-4>
+        <evidence-5>The gate requires proof that recovered targets are real non-helper tuples.</evidence-5>
+        <evidence-6>The gate requires no second auth/bootstrap window anywhere in the branch.</evidence-6>
+        <evidence-7>The gate requires separate voice and video packets plus a bounded final decision.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-43; expected-evidence=execution-ready non-REDIRECT live calls wave with preserved ordinary baseline, explicit Phase-42 redirect boundary, one exact topology choice and runtime profile, green non-REDIRECT smoke proving real destination recovery, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, topology packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-43 gate requirement; next-action=repair the missing Phase-43 artifact before executing the wave</failure-packet-template>
+    </Gate-Phase-43>
   </PhaseGates>
 
   <FailurePackets>

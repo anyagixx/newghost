@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.54">
+<DevelopmentPlan VERSION="0.2.55">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7611,6 +7611,242 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION>
+    <M-NONREDIRECT-ORIGDST-HYPOTHESIS NAME="NonRedirectOrigDstHypothesis" TYPE="UTILITY" LAYER="46" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the new truth-boundary that Phase-42 observed live UDP during the call wave but OUTPUT REDIRECT collapsed original-destination recovery to the helper listener itself.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-42 live voice packet and the green live-launch smoke packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>An explicit non-REDIRECT topology boundary above the blocked Phase-42 tail.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION, M-ORIGDST-LIVE-SMOKE</depends>
+      <observability>
+        <log-prefix>[NonRedirectOrigDstHypothesis]</log-prefix>
+        <critical-block>BLOCK_NONREDIRECT_ORIGDST_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-NONREDIRECT-ORIGDST-HYPOTHESIS</verification-ref>
+    </M-NONREDIRECT-ORIGDST-HYPOTHESIS>
+    <M-PHASE42-TOPOLOGY-BOUNDARY NAME="Phase42TopologyBoundary" TYPE="UTILITY" LAYER="46" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Explicitly preserve the Phase-42 voice packet as valid live evidence while freezing the blocked tail as a redirect-topology boundary rather than a missing-UDP boundary.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-42 live voice packet and the non-REDIRECT topology hypothesis.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A superseded-by-topology-boundary tail for the old Phase-42 call steps.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-NONREDIRECT-ORIGDST-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase42TopologyBoundary]</log-prefix>
+        <critical-block>BLOCK_PHASE42_TOPOLOGY_BOUNDARY</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE42-TOPOLOGY-BOUNDARY</verification-ref>
+    </M-PHASE42-TOPOLOGY-BOUNDARY>
+    <M-NONREDIRECT-TECH-DECISION NAME="NonRedirectTechDecision" TYPE="ENTRY_POINT" LAYER="46" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Choose one exact non-REDIRECT interception class for the next live UDP calls branch so real destination semantics remain recoverable.</purpose>
+        <inputs>
+          <input-1>The blocked Phase-42 redirect-boundary packet and the existing Linux origdst helper surfaces.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One exact approved non-REDIRECT topology class.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/technology.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-UDP-ORIGDST-LINUX-ADAPTER, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT</depends>
+      <observability>
+        <log-prefix>[NonRedirectTechDecision]</log-prefix>
+        <critical-block>BLOCK_NONREDIRECT_TECH_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-NONREDIRECT-TECH-DECISION</verification-ref>
+    </M-NONREDIRECT-TECH-DECISION>
+    <M-NONREDIRECT-RUNTIME-PROFILE NAME="NonRedirectRuntimeProfile" TYPE="INTEGRATION" LAYER="46" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Freeze the exact live topology that keeps the ordinary Telegram baseline unchanged while replacing REDIRECT with one non-REDIRECT interception method.</purpose>
+        <inputs>
+          <input-1>The chosen non-REDIRECT topology class and the existing live helper runbook.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One exact non-REDIRECT runtime profile for the next live wave.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-NONREDIRECT-TECH-DECISION, M-ORIGDST-LIVE-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[NonRedirectRuntimeProfile]</log-prefix>
+        <critical-block>BLOCK_NONREDIRECT_RUNTIME_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-NONREDIRECT-RUNTIME-PROFILE</verification-ref>
+    </M-NONREDIRECT-RUNTIME-PROFILE>
+    <M-NONREDIRECT-LINUX-ADAPTER-DELTA NAME="NonRedirectLinuxAdapterDelta" TYPE="CORE_LOGIC" LAYER="46" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Define the minimal Linux recovery-surface delta required by the chosen non-REDIRECT topology while keeping generic helper runtime logic unchanged.</purpose>
+        <inputs>
+          <input-1>The chosen non-REDIRECT topology class and the current Linux origdst adapter.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One isolated Linux-adapter delta surface for real destination recovery.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/udp_origdst/linux.rs</file-1>
+        <file-2>src/udp_origdst/linux.test.rs</file-2>
+      </target-files>
+      <depends>M-NONREDIRECT-TECH-DECISION, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
+      <observability>
+        <log-prefix>[NonRedirectLinuxAdapterDelta]</log-prefix>
+        <critical-block>BLOCK_NONREDIRECT_LINUX_ADAPTER_DELTA</critical-block>
+      </observability>
+      <verification-ref>V-M-NONREDIRECT-LINUX-ADAPTER-DELTA</verification-ref>
+    </M-NONREDIRECT-LINUX-ADAPTER-DELTA>
+    <M-NONREDIRECT-LIVE-RUNBOOK NAME="NonRedirectLiveRunbook" TYPE="INTEGRATION" LAYER="46" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Define the exact operator packet for live helper launch, non-REDIRECT interception, evidence capture, cleanup, and baseline preservation.</purpose>
+        <inputs>
+          <input-1>The exact non-REDIRECT runtime profile and the existing live helper runbook.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One bounded non-REDIRECT live operator runbook.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-NONREDIRECT-RUNTIME-PROFILE, M-ORIGDST-LIVE-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[NonRedirectLiveRunbook]</log-prefix>
+        <critical-block>BLOCK_NONREDIRECT_LIVE_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-NONREDIRECT-LIVE-RUNBOOK</verification-ref>
+    </M-NONREDIRECT-LIVE-RUNBOOK>
+    <M-NONREDIRECT-LIVE-SMOKE NAME="NonRedirectLiveSmoke" TYPE="CORE_LOGIC" LAYER="46" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Prove outside Telegram UI that the new non-REDIRECT live topology recovers real destination tuples instead of the helper listener while the baseline remains green.</purpose>
+        <inputs>
+          <input-1>The implemented Linux-adapter delta and the exact non-REDIRECT live runbook.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-REDIRECT live smoke packet with real destination recovery.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/cli/mod.test.rs</file-1>
+        <file-2>tests/udp_origdst_smoke.rs</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-NONREDIRECT-LINUX-ADAPTER-DELTA, M-NONREDIRECT-LIVE-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[NonRedirectLiveSmoke]</log-prefix>
+        <critical-block>BLOCK_NONREDIRECT_LIVE_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-NONREDIRECT-LIVE-SMOKE</verification-ref>
+    </M-NONREDIRECT-LIVE-SMOKE>
+    <M-TELEGRAM-CALLS-NONREDIRECT-VOICE NAME="TelegramCallsNonRedirectVoice" TYPE="CORE_LOGIC" LAYER="46" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-REDIRECT live smoke proves real destination recovery.</purpose>
+        <inputs>
+          <input-1>The bounded non-REDIRECT live smoke packet and server-correlation surface.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-REDIRECT voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-NONREDIRECT-LIVE-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsNonRedirectVoice]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_NONREDIRECT_VOICE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-VOICE</verification-ref>
+    </M-TELEGRAM-CALLS-NONREDIRECT-VOICE>
+    <M-TELEGRAM-CALLS-NONREDIRECT-VIDEO NAME="TelegramCallsNonRedirectVideo" TYPE="CORE_LOGIC" LAYER="46" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded video attempt on the same non-REDIRECT branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded non-REDIRECT voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-REDIRECT video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-NONREDIRECT-VOICE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsNonRedirectVideo]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_NONREDIRECT_VIDEO</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-VIDEO</verification-ref>
+    </M-TELEGRAM-CALLS-NONREDIRECT-VIDEO>
+    <M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON NAME="TelegramCallsNonRedirectComparison" TYPE="CORE_LOGIC" LAYER="46" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Compare the non-REDIRECT live packets against the older direct-media verdict and the fixed-tuple, test-only, and redirect-boundary packets.</purpose>
+        <inputs>
+          <input-1>The bounded non-REDIRECT voice and video packets.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded comparison packet for the non-REDIRECT branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-NONREDIRECT-VOICE, M-TELEGRAM-CALLS-NONREDIRECT-VIDEO</depends>
+      <observability>
+        <log-prefix>[TelegramCallsNonRedirectComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_NONREDIRECT_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON>
+    <M-TELEGRAM-CALLS-NONREDIRECT-DECISION NAME="TelegramCallsNonRedirectDecision" TYPE="ENTRY_POINT" LAYER="46" ORDER="11" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded final decision after the non-REDIRECT live calls branch.</purpose>
+        <inputs>
+          <input-1>The bounded non-REDIRECT comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-REDIRECT final decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsNonRedirectDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_NONREDIRECT_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-NONREDIRECT-DECISION>
   </Modules>
 
   <DataFlow>
@@ -8866,7 +9102,28 @@
       <note-5>The new branch is specifically about the missing operator-facing launch surface; it must not reopen earlier tuple-recovery or auth/bootstrap branches unless new evidence forces it.</note-5>
       <note-6>On 2026-03-31 the first execution packet added one governed `origdst-live` CLI mode, one exact config shape, one cancellation-controlled live launcher with separate launch and listener-bind anchors, and one explicit operator runbook before any live smoke or Telegram call packet was spent.</note-6>
       <note-7>Later on the same date the bounded live-smoke packet turned green in `src/cli/mod.test.rs`: the same test window now proves origdst-live startup, listener bind, one recovered tuple, one governed handoff, and one preserved-baseline probe without spending any Telegram UI packet or reopening a second auth surface.</note-7>
+      <note-8>Later on the same date one bounded live voice packet was spent on the ordinary logged-in Telegram window with the preserved `127.0.0.1:1080` baseline restored through the historical SSH-forward shape, the governed `origdst-live` helper running on `127.0.0.1:10073`, and one temporary host-side `iptables -t nat OUTPUT` redirect for UDP owned by user `1000`; the operator observed fast signaling followed by `Обмен ключами шифрования` and an abort about ten seconds later, while the helper logs proved live UDP traffic but recovered `original_target=Ip(127.0.0.1:10073)` instead of a real media tuple.</note-8>
+      <note-9>That bounded packet changes the honest blocker: Phase-42 no longer sits at missing live helper launch or missing UDP activity, but at a redirect-class topology boundary where `OUTPUT REDIRECT` collapses destination recovery to the helper listener itself.</note-9>
     </Phase-42>
+    <Phase-43 name="Telegram Live Non-Redirect OrigDst Topology" status="planned">
+      <goal>Replace the Phase-42 REDIRECT-based live interception shape with one exact non-REDIRECT topology so the live helper can recover real media tuples without weakening the ordinary `127.0.0.1:1080` baseline.</goal>
+      <step-1 module="M-NONREDIRECT-ORIGDST-HYPOTHESIS" status="planned" verification="V-M-NONREDIRECT-ORIGDST-HYPOTHESIS">Freeze the non-REDIRECT topology boundary above the valid Phase-42 live voice packet</step-1>
+      <step-2 module="M-PHASE42-TOPOLOGY-BOUNDARY" status="planned" verification="V-M-PHASE42-TOPOLOGY-BOUNDARY">Explicitly freeze the old Phase-42 tail as blocked by redirect-class topology collapse rather than missing UDP activity</step-2>
+      <step-3 module="M-NONREDIRECT-TECH-DECISION" status="planned" verification="V-M-NONREDIRECT-TECH-DECISION">Choose one exact non-REDIRECT interception class for the next live UDP calls branch</step-3>
+      <step-4 module="M-NONREDIRECT-RUNTIME-PROFILE" status="planned" verification="V-M-NONREDIRECT-RUNTIME-PROFILE">Freeze one exact live runtime profile that keeps the ordinary baseline unchanged while replacing REDIRECT</step-4>
+      <step-5 module="M-NONREDIRECT-LINUX-ADAPTER-DELTA" status="planned" verification="V-M-NONREDIRECT-LINUX-ADAPTER-DELTA">Define the minimal Linux-adapter delta required by the chosen non-REDIRECT topology</step-5>
+      <step-6 module="M-NONREDIRECT-LIVE-RUNBOOK" status="planned" verification="V-M-NONREDIRECT-LIVE-RUNBOOK">Define the exact operator packet for live helper launch, non-REDIRECT interception, and cleanup</step-6>
+      <step-7 module="M-NONREDIRECT-LIVE-SMOKE" status="planned" verification="V-M-NONREDIRECT-LIVE-SMOKE">Prove outside Telegram UI that the non-REDIRECT live topology recovers real destination tuples instead of the helper listener</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-NONREDIRECT-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-NONREDIRECT-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-REDIRECT smoke</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-NONREDIRECT-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-NONREDIRECT-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON">Compare the non-REDIRECT packets against Phase-34, Phase-39, Phase-41, and the redirect-boundary Phase-42 packet</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-NONREDIRECT-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-NONREDIRECT-DECISION">Issue the bounded decision after the non-REDIRECT live calls branch</step-11>
+      <note-1>Phase-43 starts only after the preserved ordinary Telegram baseline, the Phase-34 direct-media verdict, the valid-but-insufficient Phase-39 boundary, the green test-only Phase-41 smoke boundary, and the Phase-42 redirect-boundary live voice packet are all visible together.</note-1>
+      <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
+      <note-3>No Telegram voice or video packet is valid before non-REDIRECT live smoke proves that recovered destinations no longer collapse to the helper listener.</note-3>
+      <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files.</note-4>
+      <note-5>The only approved new variable is the interception topology class itself; live helper process shape, ordinary baseline, and no-second-auth rule stay fixed.</note-5>
+    </Phase-43>
   </ImplementationOrder>
 
   <ExecutionPolicy>

@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.47">
+  <Project NAME="n0wss" VERSION="0.2.48">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2948,6 +2948,105 @@
         <fn-issueTelegramCallsLiveOrigDstDecision PURPOSE="Issue the bounded final decision after the live-launch repo-local helper branch." />
       </annotations>
     </M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION>
+    <M-NONREDIRECT-ORIGDST-HYPOTHESIS NAME="NonRedirectOrigDstHypothesis" TYPE="UTILITY" STATUS="planned">
+      <purpose>Freeze the new truth-boundary that Phase-42 observed live UDP during the call wave but OUTPUT REDIRECT collapsed original-destination recovery to the helper listener itself.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION, M-ORIGDST-LIVE-SMOKE</depends>
+      <verification-ref>V-M-NONREDIRECT-ORIGDST-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeNonRedirectOrigDstHypothesis PURPOSE="Freeze the redirect-collapse boundary above the valid Phase-42 live voice packet." />
+      </annotations>
+    </M-NONREDIRECT-ORIGDST-HYPOTHESIS>
+    <M-PHASE42-TOPOLOGY-BOUNDARY NAME="Phase42TopologyBoundary" TYPE="UTILITY" STATUS="planned">
+      <purpose>Explicitly preserve the Phase-42 voice packet as valid live evidence while freezing the blocked tail as a redirect-topology boundary.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-NONREDIRECT-ORIGDST-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE42-TOPOLOGY-BOUNDARY</verification-ref>
+      <annotations>
+        <fn-freezePhase42TopologyBoundary PURPOSE="Keep the Phase-42 redirect-boundary packet explicit and non-runnable." />
+      </annotations>
+    </M-PHASE42-TOPOLOGY-BOUNDARY>
+    <M-NONREDIRECT-TECH-DECISION NAME="NonRedirectTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Choose one exact non-REDIRECT interception class for the next live UDP calls branch so real destination semantics remain recoverable.</purpose>
+      <path>docs/technology.xml</path>
+      <depends>M-UDP-ORIGDST-LINUX-ADAPTER, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT</depends>
+      <verification-ref>V-M-NONREDIRECT-TECH-DECISION</verification-ref>
+      <annotations>
+        <fn-chooseNonRedirectTechDecision PURPOSE="Choose one exact non-REDIRECT live interception topology class." />
+      </annotations>
+    </M-NONREDIRECT-TECH-DECISION>
+    <M-NONREDIRECT-RUNTIME-PROFILE NAME="NonRedirectRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze the exact live topology that keeps the ordinary Telegram baseline unchanged while replacing REDIRECT with one non-REDIRECT interception method.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-NONREDIRECT-TECH-DECISION, M-ORIGDST-LIVE-RUNBOOK</depends>
+      <verification-ref>V-M-NONREDIRECT-RUNTIME-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeNonRedirectRuntimeProfile PURPOSE="Freeze the exact non-REDIRECT runtime and operator-facing topology." />
+      </annotations>
+    </M-NONREDIRECT-RUNTIME-PROFILE>
+    <M-NONREDIRECT-LINUX-ADAPTER-DELTA NAME="NonRedirectLinuxAdapterDelta" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define the minimal Linux recovery-surface delta required by the chosen non-REDIRECT topology while keeping generic helper runtime logic unchanged.</purpose>
+      <path>src/udp_origdst/linux.rs</path>
+      <depends>M-NONREDIRECT-TECH-DECISION, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
+      <verification-ref>V-M-NONREDIRECT-LINUX-ADAPTER-DELTA</verification-ref>
+      <annotations>
+        <fn-applyNonRedirectLinuxAdapterDelta PURPOSE="Apply the isolated Linux-adapter changes required for non-REDIRECT recovery semantics." />
+      </annotations>
+    </M-NONREDIRECT-LINUX-ADAPTER-DELTA>
+    <M-NONREDIRECT-LIVE-RUNBOOK NAME="NonRedirectLiveRunbook" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the exact operator packet for live helper launch, non-REDIRECT interception, evidence capture, cleanup, and baseline preservation.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-NONREDIRECT-RUNTIME-PROFILE, M-ORIGDST-LIVE-RUNBOOK</depends>
+      <verification-ref>V-M-NONREDIRECT-LIVE-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-freezeNonRedirectLiveRunbook PURPOSE="Freeze the exact operator packet for the non-REDIRECT live branch." />
+      </annotations>
+    </M-NONREDIRECT-LIVE-RUNBOOK>
+    <M-NONREDIRECT-LIVE-SMOKE NAME="NonRedirectLiveSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Prove outside Telegram UI that the new non-REDIRECT live topology recovers real destination tuples instead of the helper listener while the baseline remains green.</purpose>
+      <path>src/cli/mod.test.rs</path>
+      <depends>M-NONREDIRECT-LINUX-ADAPTER-DELTA, M-NONREDIRECT-LIVE-RUNBOOK</depends>
+      <verification-ref>V-M-NONREDIRECT-LIVE-SMOKE</verification-ref>
+      <annotations>
+        <fn-proveNonRedirectLiveSmoke PURPOSE="Prove real destination recovery under the new live topology before any new call packet." />
+      </annotations>
+    </M-NONREDIRECT-LIVE-SMOKE>
+    <M-TELEGRAM-CALLS-NONREDIRECT-VOICE NAME="TelegramCallsNonRedirectVoice" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-REDIRECT live smoke proves real destination recovery.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-NONREDIRECT-LIVE-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-VOICE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsNonRedirectVoice PURPOSE="Spend one bounded voice packet on the ordinary logged-in Telegram window after green non-REDIRECT smoke." />
+      </annotations>
+    </M-TELEGRAM-CALLS-NONREDIRECT-VOICE>
+    <M-TELEGRAM-CALLS-NONREDIRECT-VIDEO NAME="TelegramCallsNonRedirectVideo" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded video attempt on the same non-REDIRECT branch without inheriting the voice result.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-NONREDIRECT-VOICE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-VIDEO</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsNonRedirectVideo PURPOSE="Spend one bounded video packet on the non-REDIRECT branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-NONREDIRECT-VIDEO>
+    <M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON NAME="TelegramCallsNonRedirectComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the non-REDIRECT live packets against the older direct-media verdict and the fixed-tuple, test-only, and redirect-boundary packets.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-NONREDIRECT-VOICE, M-TELEGRAM-CALLS-NONREDIRECT-VIDEO</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramCallsNonRedirect PURPOSE="Compare the non-REDIRECT live packets against the preserved older boundaries." />
+      </annotations>
+    </M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON>
+    <M-TELEGRAM-CALLS-NONREDIRECT-DECISION NAME="TelegramCallsNonRedirectDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded final decision after the non-REDIRECT live calls branch.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-NONREDIRECT-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsNonRedirectDecision PURPOSE="Issue the bounded final decision after the non-REDIRECT live calls branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-NONREDIRECT-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
