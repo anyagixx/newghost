@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.83">
+<VerificationPlan VERSION="0.2.89">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -152,6 +152,7 @@
     <telegram-tproxy-nonoutput-baseline-lock-rule>Phase-45 evidence is invalid if the chosen non-OUTPUT topology weakens the preserved ordinary Telegram Desktop baseline at `127.0.0.1:1080` during smoke or calls packets.</telegram-tproxy-nonoutput-baseline-lock-rule>
     <telegram-postrecovery-phase45-boundary-rule>Phase-46 must keep the completed Phase-45 packet explicit as the first real-tuple-success branch; that packet may not be erased or repackaged as call-establishment success evidence.</telegram-postrecovery-phase45-boundary-rule>
     <telegram-postrecovery-smoke-first-rule>Phase-46 may spend voice or video packets only after post-recovery smoke proves that tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome can be kept as separate evidence classes.</telegram-postrecovery-smoke-first-rule>
+    <telegram-postrecovery-audio-first-rule>Phase-46 should execute the bounded voice packet first on the preserved Phase-45 topology; video, comparison, and final decision remain downstream until one preserved post-recovery voice packet exists.</telegram-postrecovery-audio-first-rule>
     <telegram-postrecovery-topology-lock-rule>Phase-46 may not silently change the preserved Phase-45 interception topology, helper launch shape, or ordinary Telegram baseline while it studies call establishment above recovery.</telegram-postrecovery-topology-lock-rule>
     <telegram-postrecovery-proof-separation-rule>Phase-46 is invalid if it blends tuple recovery, governed handoff, downstream establishment behavior, and user-visible key-exchange outcome into one vague success claim.</telegram-postrecovery-proof-separation-rule>
     <telegram-postrecovery-phase45-positive-evidence-rule>Phase-46 must preserve the statement that Phase-45 was the first branch with real Telegram media-tuple recovery and governed handoff during bounded calls packets; that first-positive-evidence boundary may not move earlier or later without new bounded proof.</telegram-postrecovery-phase45-positive-evidence-rule>
@@ -187,9 +188,9 @@
       <expected-outcome>The fallback succeeds cleanly, only one active transport owner remains, and ProxyBridge still receives a generic ResolvedStream.</expected-outcome>
       <required-signals>
         <log-marker>[SessionManager][resolveStream][BLOCK_SELECT_TRANSPORT]</log-marker>
-        <log-marker>[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
-        <log-marker>[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
-        <trace-sequence>BLOCK_SELECT_TRANSPORT -&gt; BLOCK_ADAPTER_CLEANUP_CONTRACT -&gt; WSS_FALLBACK -&gt; BLOCK_ADAPTER_CLEANUP_CONTRACT</trace-sequence>
+        <log-marker>[IrohAdapter][openStream][BLOCK_OPEN_IROH_STREAM]</log-marker>
+        <log-marker>[WssGateway][openStream][BLOCK_OPEN_WSS_STREAM]</log-marker>
+        <trace-sequence>BLOCK_SELECT_TRANSPORT -&gt; BLOCK_OPEN_IROH_STREAM -&gt; WSS_FALLBACK -&gt; BLOCK_OPEN_WSS_STREAM</trace-sequence>
       </required-signals>
     </VF-003>
 
@@ -234,8 +235,8 @@
       <scenario>A transport adapter is cancelled, dropped, or forced through an error path while opening a stream.</scenario>
       <expected-outcome>The adapter returns Err after cancel, leaks no tracked tasks or streams, and violations are surfaced as contract failures.</expected-outcome>
       <required-signals>
-        <log-marker>[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
-        <log-marker>[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</log-marker>
+        <log-marker>[IrohAdapter][openStream][BLOCK_OPEN_IROH_STREAM]</log-marker>
+        <log-marker>[WssGateway][openStream][BLOCK_OPEN_WSS_STREAM]</log-marker>
         <trace-sequence>CANCELLED -&gt; ERR_RETURNED -&gt; NO_LEAKED_TASKS</trace-sequence>
       </required-signals>
     </VF-008>
@@ -403,6 +404,7 @@
       <required-trace-assertions>
         <assertion-1>Once shutdown begins, no new accepts or registrations are allowed.</assertion-1>
         <assertion-2>Client and server runtime launch paths must stay alive until an explicit cancellation boundary is triggered.</assertion-2>
+        <assertion-3>The module-local CLI test surface must assert both the startup and coordinated-shutdown log anchors directly so later agents can trust trajectory evidence without rereading raw logs.</assertion-3>
       </required-trace-assertions>
       <wave-follow-up>Use CLI orchestration in client and server integration tests.</wave-follow-up>
       <phase-follow-up>Run end-to-end startup and shutdown checks with representative configs.</phase-follow-up>
@@ -533,7 +535,7 @@
         <scenario-2 kind="failure">Cancel, drop, and timeout paths satisfy the adapter cleanup contract without leaked tracked tasks.</scenario-2>
       </scenarios>
       <required-log-markers>
-        <marker-1>[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</marker-1>
+        <marker-1>[WssGateway][openStream][BLOCK_OPEN_WSS_STREAM]</marker-1>
       </required-log-markers>
       <required-trace-assertions>
         <assertion-1>Gateway must not embed transport-selection logic.</assertion-1>
@@ -557,7 +559,7 @@
         <scenario-2 kind="failure">Cancel, drop, timeout, or transport failure surfaces as a deterministic error and leaks no tracked tasks or partial state.</scenario-2>
       </scenarios>
       <required-log-markers>
-        <marker-1>[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT]</marker-1>
+        <marker-1>[IrohAdapter][openStream][BLOCK_OPEN_IROH_STREAM]</marker-1>
       </required-log-markers>
       <required-trace-assertions>
         <assertion-1>Transport failure must not leave leaked partial state after cancel or timeout.</assertion-1>
@@ -2062,6 +2064,7 @@
       <required-trace-assertions>
         <assertion-1>Outbound and inbound datagram handling must remain associated with the correct UDP session identity.</assertion-1>
         <assertion-2>The manager must preserve a clean separation between association-open, outbound-dispatch, inbound-dispatch, and cleanup trajectories.</assertion-2>
+        <assertion-3>The module-local datagram-manager tests must assert the exact open, outbound-dispatch, inbound-dispatch, and local-handoff log anchors directly, including ordered evidence that association-open precedes accept-outbound and manager dispatch.</assertion-3>
       </required-trace-assertions>
     </V-M-DATAGRAM-SESSION-MANAGER>
 
@@ -3397,9 +3400,12 @@
         <scenario-2>The client receives a returned datagram but cannot map it to the correct relay socket or local address tuple.</scenario-2>
       </failure-scenarios>
       <required-signals>
-        <log-marker>[DatagramSessionManager][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
+        <log-marker>[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
         <trace-sequence>BLOCK_SEND_WSS_DATAGRAM -&gt; CLIENT_DATAGRAM_RETURN_RECEIVED -&gt; BLOCK_DELIVER_INBOUND_DATAGRAM</trace-sequence>
       </required-signals>
+      <required-trace-assertions>
+        <assertion-1>The module-local CLI test surface must assert the exact inbound-delivery marker directly while also proving the owning UDP client socket receives the encoded datagram.</assertion-1>
+      </required-trace-assertions>
     </V-M-CLIENT-DATAGRAM-INBOUND-BRIDGE>
 
     <V-M-DATAGRAM-INBOUND-RERUN MODULE="M-DATAGRAM-INBOUND-RERUN" PRIORITY="high">
@@ -3421,7 +3427,7 @@
       </failure-scenarios>
       <required-signals>
         <log-marker>[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND]</log-marker>
-        <log-marker>[DatagramSessionManager][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
+        <log-marker>[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
       </required-signals>
       <required-trace-assertions>
         <assertion-1>The rerun must preserve the Phase-25 baseline if `reply-received` is still absent.</assertion-1>
@@ -3595,7 +3601,7 @@
         <scenario-1>The rerun packet still cannot distinguish server receive, return emit, client delivery, or final reply receipt.</scenario-1>
       </failure-scenarios>
       <required-signals>
-        <log-marker>[DatagramSessionManager][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
+        <log-marker>[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</log-marker>
       </required-signals>
       <required-trace-assertions>
         <assertion-1>The rerun must classify whether the deepest proven layer is server receive, validated return emit, client local delivery, or full `reply-received`.</assertion-1>
@@ -5767,7 +5773,7 @@
       </failure-scenarios>
     </V-M-UDP-ORIGDST-LINUX-ADAPTER>
     <V-M-UDP-ORIGDST-RUNTIME MODULE="M-UDP-ORIGDST-RUNTIME" PRIORITY="high">
-      <test-files><file>src/udp_origdst/mod.rs</file><file>src/udp_origdst.test.rs</file></test-files>
+      <test-files><file>src/udp_origdst/mod.rs</file><file>src/udp_origdst/udp_origdst.test.rs</file></test-files>
       <module-checks>
         <check-1>cargo test udp_origdst</check-1>
         <check-2>rg -n 'BLOCK_UDP_ORIGDST_RUNTIME|BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF|tuple|association_id' src/udp_origdst/mod.rs src/udp_origdst.test.rs</check-2>
@@ -6176,15 +6182,19 @@
     </V-M-POSTRECOVERY-SMOKE>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-VOICE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery voice|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
-      <success-scenarios><scenario-1>The post-recovery voice packet is downstream of green post-recovery smoke and preserves the ordinary logged-in baseline.</scenario-1><scenario-2>The voice packet records tuple recovery, governed handoff, establishment behavior, and UI outcome in the required order without changing topology.</scenario-2></success-scenarios>
-      <failure-scenarios><scenario-1>The post-recovery voice packet is spent before green smoke or collapses recovery and establishment into one claim.</scenario-1><scenario-2>The voice packet silently changes topology or skips one proof class.</scenario-2></failure-scenarios>
+      <module-checks><check-1>rg -n 'post-recovery voice|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged|127.0.0.1:1080|no second auth' docs/development-plan.xml docs/verification-plan.xml</check-2><check-3>rg -n 'audio-first|bounded voice packet first|video, comparison, and final decision remain downstream' docs/verification-plan.xml</check-3><check-4>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_RELAY_UDP_OUTBOUND|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_DELIVER_INBOUND_DATAGRAM' docs/verification-plan.xml</check-4></module-checks>
+      <success-scenarios><scenario-1>The post-recovery voice packet is the first bounded execution packet downstream of green post-recovery smoke and preserves the ordinary logged-in baseline.</scenario-1><scenario-2>The voice packet records tuple recovery, governed handoff, downstream establishment behavior, and user-visible key-exchange outcome in the required order without changing topology.</scenario-2><scenario-3>The voice packet states whether audio establishment became green, remained signaling-only, or failed at a narrower downstream layer instead of collapsing all evidence into one vague outcome.</scenario-3></success-scenarios>
+      <failure-scenarios><scenario-1>The post-recovery voice packet is spent before green smoke, or video/comparison work is treated as a prerequisite for the first bounded voice packet.</scenario-1><scenario-2>The voice packet silently changes topology, skips one proof class, or treats ringing or key exchange alone as proof of green audio establishment.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The preserved voice packet must keep Phase-45 explicit as the first real-media-tuple-success boundary instead of reclassifying transport green as call-establishment green.</assertion-1><assertion-2>The preserved voice packet must state which governed datagram markers were observed or absent in the same bounded window, using the existing UDP ASSOCIATE, datagram transport, outbound relay, server inbound, server return, and client inbound-delivery anchors.</assertion-2><assertion-3>The preserved voice packet must classify key-exchange progress as user-visible outcome evidence only; it may not treat key exchange alone as proof of successful audio establishment.</assertion-3></required-trace-assertions>
+      <wave-follow-up>Use the preserved voice packet to decide whether the same topology deserves a separate bounded video packet or a narrower establishment-focused repair wave.</wave-follow-up>
+      <phase-follow-up>Do not mark Phase-46 done until video, comparison, and bounded final decision remain explicitly classified against the preserved voice packet.</phase-follow-up>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
+      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2><check-3>rg -n 'voice packet first|video packet stays downstream|without inheriting the voice result' docs/development-plan.xml docs/verification-plan.xml</check-3></module-checks>
       <success-scenarios><scenario-1>The post-recovery video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1><scenario-2>The video packet records the same ordered proof classes without inheriting the voice evidence.</scenario-2></success-scenarios>
       <failure-scenarios><scenario-1>The post-recovery video packet silently inherits voice or bypasses smoke-first policy.</scenario-1><scenario-2>The video packet collapses proof classes or changes topology under the same branch label.</scenario-2></failure-scenarios>
+      <wave-follow-up>Spend the bounded video packet only after the preserved voice packet exists and its classifier says video is still worth isolating on the same topology.</wave-follow-up>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
@@ -7841,10 +7851,11 @@ PY</command-3>
         <evidence-4>The gate requires green post-recovery smoke before any new calls packet.</evidence-4>
         <evidence-5>The gate requires separate proof for tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome.</evidence-5>
         <evidence-6>The gate requires no second auth/bootstrap window anywhere in the branch.</evidence-6>
-        <evidence-7>The gate requires separate voice and video packets plus a bounded final decision.</evidence-7>
-        <evidence-8>The gate preserves proof order and the statement that Phase-45 was the first positive-evidence boundary.</evidence-8>
+        <evidence-7>The gate requires one execution-ready bounded voice packet as the first active Phase-46 calls step.</evidence-7>
+        <evidence-8>The gate keeps video, comparison, and final decision explicit as downstream work rather than hidden prerequisites for the first bounded voice packet.</evidence-8>
+        <evidence-9>The gate preserves proof order and the statement that Phase-45 was the first positive-evidence boundary.</evidence-9>
       </required-evidence>
-      <failure-packet-template>scenario=Gate-Phase-46; expected-evidence=execution-ready post-recovery calls wave with preserved ordinary baseline, explicit Phase-45 establishment boundary, one exact post-recovery evidence class and preserved runtime profile, green post-recovery smoke proving separate evidence classes above tuple recovery, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, post-recovery packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-46 gate requirement; next-action=repair the missing Phase-46 artifact before executing the wave</failure-packet-template>
+      <failure-packet-template>scenario=Gate-Phase-46; expected-evidence=execution-ready post-recovery audio-first wave with preserved ordinary baseline, explicit Phase-45 establishment boundary, one exact post-recovery evidence class and preserved runtime profile, green post-recovery smoke proving separate evidence classes above tuple recovery, one bounded voice packet as the first active calls step, and explicit downstream video/comparison/decision modules; observed-evidence=phase artifacts, post-recovery packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-46 gate requirement; next-action=repair the missing Phase-46 artifact before executing the bounded voice wave</failure-packet-template>
     </Gate-Phase-46>
   </PhaseGates>
 

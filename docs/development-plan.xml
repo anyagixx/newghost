@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.59">
+<DevelopmentPlan VERSION="0.2.61">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -237,7 +237,7 @@
       </target>
       <observability>
         <log-prefix>[WssGateway]</log-prefix>
-        <critical-block>BLOCK_ADAPTER_CLEANUP_CONTRACT</critical-block>
+        <critical-block>BLOCK_OPEN_WSS_STREAM</critical-block>
       </observability>
       <verification-ref>V-M-WSS-GATEWAY</verification-ref>
       <notes>
@@ -272,7 +272,7 @@
       </target>
       <observability>
         <log-prefix>[IrohAdapter]</log-prefix>
-        <critical-block>BLOCK_ADAPTER_CLEANUP_CONTRACT</critical-block>
+        <critical-block>BLOCK_OPEN_IROH_STREAM</critical-block>
       </observability>
       <verification-ref>V-M-IROH-ADAPTER</verification-ref>
       <notes>
@@ -482,7 +482,7 @@
       </target>
       <observability>
         <log-prefix>[SessionTransportSelector]</log-prefix>
-        <critical-block>BLOCK_SELECT_TRANSPORT</critical-block>
+        <critical-block>BLOCK_SELECT_TRANSPORT_FALLBACK</critical-block>
       </observability>
       <verification-ref>V-M-SESSION</verification-ref>
       <notes>
@@ -8231,7 +8231,8 @@
       <depends>M-TPROXY-NONOUTPUT-LINUX-DELTA, M-TPROXY-NONOUTPUT-RUNBOOK</depends>
       <observability>
         <log-prefix>[TproxyNonOutputSmoke]</log-prefix>
-        <critical-block>BLOCK_TPROXY_NONOUTPUT_SMOKE</critical-block>
+        <critical-block>BLOCK_CLI_TPROXY_NONOUTPUT_SMOKE</critical-block>
+        <critical-block>BLOCK_UDP_ORIGDST_TPROXY_NONOUTPUT_SMOKE</critical-block>
       </observability>
       <verification-ref>V-M-TPROXY-NONOUTPUT-SMOKE</verification-ref>
     </M-TPROXY-NONOUTPUT-SMOKE>
@@ -8445,18 +8446,20 @@
       <depends>M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT, M-POSTRECOVERY-RUNTIME-PROFILE</depends>
       <observability>
         <log-prefix>[PostRecoverySmoke]</log-prefix>
-        <critical-block>BLOCK_POSTRECOVERY_SMOKE</critical-block>
+        <critical-block>BLOCK_CLI_POSTRECOVERY_SMOKE</critical-block>
+        <critical-block>BLOCK_UDP_ORIGDST_POSTRECOVERY_SMOKE</critical-block>
       </observability>
       <verification-ref>V-M-POSTRECOVERY-SMOKE</verification-ref>
     </M-POSTRECOVERY-SMOKE>
     <M-TELEGRAM-CALLS-POSTRECOVERY-VOICE NAME="TelegramCallsPostRecoveryVoice" TYPE="CORE_LOGIC" LAYER="49" ORDER="7" STATUS="planned">
       <contract>
-        <purpose>Run one bounded voice attempt only after green post-recovery smoke so tuple recovery, downstream establishment evidence, and key-exchange outcome stay explicitly separated.</purpose>
+        <purpose>Run one bounded audio-first voice attempt only after green post-recovery smoke so tuple recovery, governed handoff, downstream establishment evidence, and key-exchange outcome stay explicitly separated on the preserved Phase-45 topology.</purpose>
         <inputs>
           <input-1>The bounded post-recovery smoke packet and server-correlation surface.</input-1>
+          <input-2>The preserved Phase-45 establishment-boundary packet.</input-2>
         </inputs>
         <outputs>
-          <output-1>A bounded post-recovery voice packet.</output-1>
+          <output-1>A bounded post-recovery voice packet that classifies the audio attempt as green audio, signaling-only stall, or a narrower downstream blocker.</output-1>
         </outputs>
       </contract>
       <target-files>
@@ -9233,6 +9236,7 @@
     <DF-TELEGRAM-CALLS-POSTRECOVERY-VOICE NAME="TelegramCallsPostRecoveryVoice" TRIGGER="Green post-recovery smoke exists and one bounded voice packet is approved on the preserved Phase-45 topology.">
       <step-1>The ordinary logged-in Telegram Desktop window runs one bounded voice packet on the unchanged baseline.</step-1>
       <step-2>The packet records real tuple recovery, governed handoff, downstream establishment evidence, and the user-visible key-exchange outcome as separate evidence classes.</step-2>
+      <step-3>The packet classifies the audio result before any separate video packet is approved, and keeps video/comparison work downstream of the preserved voice packet.</step-3>
       <evidence>A bounded post-recovery voice packet.</evidence>
     </DF-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <DF-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TRIGGER="The bounded post-recovery voice packet is preserved and one separate video packet is approved.">
@@ -9897,6 +9901,7 @@
       <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files, and it must preserve the exact Phase-45 interception topology unless a later branch proves that this boundary was wrong.</note-4>
       <note-5>The only approved new variable is the post-recovery evidence class itself; interception topology, helper launch shape, and no-second-auth rule stay fixed.</note-5>
       <note-6>On 2026-03-31 the first Phase-46 execution packet closed the boundary, decision, and smoke-contract tail above Phase-45: the branch now freezes one exact ordered evidence class on the unchanged Phase-45 topology, keeps Phase-45 explicit as the first real-media-tuple-success branch, and turns green test-level post-recovery smoke in `src/cli/mod.test.rs` plus `tests/udp_origdst_smoke.rs` without spending a new Telegram UI packet.</note-6>
+      <note-7>Execution of the remaining Phase-46 work is now explicitly audio-first: one bounded post-recovery voice packet is the next active calls step, while video, comparison, and final decision stay downstream until that preserved voice packet exists.</note-7>
     </Phase-46>
   </ImplementationOrder>
 
