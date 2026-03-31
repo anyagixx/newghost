@@ -1,5 +1,5 @@
 // FILE: src/udp_origdst/udp_origdst.test.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify the repo-local original-destination helper contract and runtime surfaces leave stable tuple-level evidence, deterministic forwarding behavior, and one cancellable live listener loop.
 //   SCOPE: Helper contract tuple-evidence labeling, runtime forwarding, and Linux-listener loop checks.
@@ -15,7 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added a bounded live-listener runtime check so Phase-41 can prove the repo-local helper is runnable beyond one-shot tuple forwarding.
+//   LAST_CHANGE: v0.1.3 - Kept the live-listener runtime check while making transparent-socket enablement an explicit opt-in surface for the privileged TPROXY branch.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
@@ -141,7 +141,7 @@ async fn runtime_runs_linux_ipv4_listener_until_cancelled() {
         let cancel = cancel.clone();
         async move {
             runtime
-                .run_linux_ipv4_listener_until_cancelled(helper_socket, 64, cancel)
+                .run_linux_ipv4_listener_until_cancelled(helper_socket, 64, false, cancel)
                 .await
         }
     });

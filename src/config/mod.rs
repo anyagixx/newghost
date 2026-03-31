@@ -1,10 +1,10 @@
 // FILE: src/config/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Load and validate runtime configuration for client, server, and live origdst-helper modes.
-//   SCOPE: CLI parsing, typed configuration assembly, deterministic validation, explicit live-helper launch shape, and stable log markers.
+//   PURPOSE: Load and validate runtime configuration for client, server, and live origdst-helper modes, including the privileged transparent-socket launch boundary.
+//   SCOPE: CLI parsing, typed configuration assembly, deterministic validation, explicit live-helper launch shape, privileged transparent-socket requirement flags, and stable log markers.
 //   DEPENDS: clap, thiserror, tracing, url
-//   LINKS: M-CONFIG, M-ORIGDST-LIVE-CONFIG-SHAPE, V-M-CONFIG, V-M-ORIGDST-LIVE-CONFIG-SHAPE, DF-CLIENT-BOOT, VF-001
+//   LINKS: M-CONFIG, M-ORIGDST-LIVE-CONFIG-SHAPE, M-TPROXY-PRIV-LAUNCH-DELTA, V-M-CONFIG, V-M-ORIGDST-LIVE-CONFIG-SHAPE, V-M-TPROXY-PRIV-LAUNCH-DELTA, DF-CLIENT-BOOT, VF-001
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -12,6 +12,7 @@
 //   RuntimeMode - client, server, or live origdst-helper configuration branch
 //   ClientTlsConfig - client-side trust-anchor and optional endpoint-identity override
 //   OrigDstLiveConfig - explicit live helper listener and preserved-baseline launch shape
+//   OrigDstTransparentSocketMode - whether origdst-live must require the privileged transparent-socket surface
 //   LimitsConfig - concurrency and queue limits
 //   TimeoutConfig - transport and shutdown timing knobs
 //   BurstDetectionConfig - observability thresholds for burst detection
@@ -19,7 +20,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added explicit origdst-live launch config so Phase-42 can run one governed helper process without hidden shell or desktop state.
+//   LAST_CHANGE: v0.1.3 - Added an explicit transparent-socket requirement flag to origdst-live config so Phase-44 can keep privileged launch proof separate from ordinary helper startup.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -78,6 +79,13 @@ pub struct OrigDstLiveConfig {
     pub payload_capacity_bytes: usize,
     pub operator_uid: u32,
     pub preserve_baseline_proxy_addr: SocketAddr,
+    pub transparent_socket_mode: OrigDstTransparentSocketMode,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, clap::ValueEnum)]
+pub enum OrigDstTransparentSocketMode {
+    Disabled,
+    Required,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -191,6 +199,8 @@ enum ModeArgs {
         operator_uid: u32,
         #[arg(long, default_value = "127.0.0.1:1080")]
         preserve_baseline_proxy_addr: SocketAddr,
+        #[arg(long, value_enum, default_value_t = OrigDstTransparentSocketMode::Disabled)]
+        transparent_socket_mode: OrigDstTransparentSocketMode,
     },
 }
 
@@ -305,6 +315,7 @@ impl TryFrom<CliArgs> for AppConfig {
                 payload_capacity_bytes,
                 operator_uid,
                 preserve_baseline_proxy_addr,
+                transparent_socket_mode,
             } => {
                 validate_positive("payload_capacity_bytes", payload_capacity_bytes)?;
                 validate_positive_u32("operator_uid", operator_uid)?;
@@ -314,6 +325,7 @@ impl TryFrom<CliArgs> for AppConfig {
                     payload_capacity_bytes,
                     operator_uid,
                     preserve_baseline_proxy_addr,
+                    transparent_socket_mode,
                 })
             }
         };

@@ -1,5 +1,5 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.6
+// VERSION: 0.1.7
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, live-launch smoke, and shutdown sequencing for governed startup paths.
 //   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, live tuple-recovery smoke, and shutdown ordering.
@@ -22,7 +22,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.6 - Added a bounded live-launch smoke packet proving entrypoint, listener bind, tuple recovery, governed handoff, and preserved baseline outside Telegram UI.
+//   LAST_CHANGE: v0.1.7 - Kept live-launch smoke coverage while making the privileged transparent-socket requirement an explicit origdst-live config surface.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -50,7 +50,7 @@ use crate::session::{DatagramDispatchTarget, UdpAssociationRegistry};
 use crate::socks5::udp_associate::{encode_udp_datagram, UdpRelaySocketRegistry};
 use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
 use crate::udp_origdst::{RecoveredUdpTuple, UdpOrigDstError, UdpOrigDstGovernedHandoff};
-use crate::config::OrigDstLiveConfig;
+use crate::config::{OrigDstLiveConfig, OrigDstTransparentSocketMode};
 
 #[derive(Clone, Default)]
 struct RecordingOrigDstLiveHandoff {
@@ -394,6 +394,7 @@ async fn origdst_live_smoke_proves_launch_listener_tuple_handoff_and_preserved_b
         payload_capacity_bytes: 128,
         operator_uid: 1000,
         preserve_baseline_proxy_addr: baseline_addr,
+        transparent_socket_mode: OrigDstTransparentSocketMode::Disabled,
     };
     let handoff = RecordingOrigDstLiveHandoff::default();
     let cancel = CancellationToken::new();

@@ -1,10 +1,10 @@
 // FILE: src/udp_origdst/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Define the repo-local helper contract for transparently intercepted UDP, original-destination recovery, governed handoff into the existing datagram path, and one cancellable live helper listener loop.
+//   PURPOSE: Define the repo-local helper contract for transparently intercepted UDP, transparent-socket enablement, original-destination recovery, governed handoff into the existing datagram path, and one cancellable live helper listener loop.
 //   SCOPE: Helper configuration, recovered-tuple metadata, helper error taxonomy, Linux-adapter export, governed-handoff trait surface, recovered-tuple runtime forwarding, cancellable Linux listener execution, and repo-local runtime contract helpers.
 //   DEPENDS: async-trait, std, thiserror, tokio, tokio-util, tracing, src/transport/datagram_contract.rs, src/session/datagram_manager.rs, src/udp_origdst/linux.rs
-//   LINKS: M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, V-M-UDP-ORIGDST-CONTRACT, DF-UDP-ORIGDST-RECOVERY, DF-UDP-ORIGDST-GOVERNED-HANDOFF
+//   LINKS: M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, M-TPROXY-PRIV-LAUNCH-DELTA, V-M-UDP-ORIGDST-CONTRACT, V-M-TPROXY-PRIV-LAUNCH-DELTA, DF-UDP-ORIGDST-RECOVERY, DF-UDP-ORIGDST-GOVERNED-HANDOFF
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -21,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added one cancellable Linux listener loop so the repo-local helper can run as a live execution surface instead of only one-shot tuple forwarding.
+//   LAST_CHANGE: v0.1.3 - Added an explicit transparent-socket requirement path so the privileged TPROXY branch can prove privilege and recovery as separate layers.
 // END_CHANGE_SUMMARY
 
 use std::net::{SocketAddr, UdpSocket};
@@ -34,7 +34,7 @@ use tracing::info;
 
 use crate::transport::datagram_contract::{DatagramTarget, MAX_DATAGRAM_PAYLOAD_BYTES};
 use crate::udp_origdst::linux::{
-    enable_ipv4_recv_original_dst, recv_recovered_ipv4_datagram,
+    enable_ipv4_recv_original_dst, enable_ipv4_transparent_socket, recv_recovered_ipv4_datagram,
 };
 
 pub mod linux;
@@ -155,19 +155,28 @@ where
     }
 
     // START_CONTRACT: runLinuxIpv4ListenerUntilCancelled
-    //   PURPOSE: Enable Linux original-destination recovery on one helper socket and keep forwarding recovered datagrams until cancellation.
-    //   INPUTS: { socket: UdpSocket - bound repo-local helper listener socket, payload_capacity: usize - maximum payload bytes to receive per packet, cancel: CancellationToken - shutdown boundary for the bounded helper loop }
+    //   PURPOSE: Enable the required Linux transparent-socket and original-destination recovery surfaces on one helper socket and keep forwarding recovered datagrams until cancellation.
+    //   INPUTS: { socket: UdpSocket - bound repo-local helper listener socket, payload_capacity: usize - maximum payload bytes to receive per packet, transparent_socket_required: bool - whether the helper must prove Linux transparent-socket enablement for the current packet window, cancel: CancellationToken - shutdown boundary for the bounded helper loop }
     //   OUTPUTS: { Result<(), UdpOrigDstError> - ok when cancellation stops the helper loop cleanly }
-    //   SIDE_EFFECTS: [enables Linux socket ancillary-data recovery, reads live UDP packets, emits tuple-level runtime logs, forwards recovered payloads into governed handoff]
-    //   LINKS: [M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, V-M-UDP-ORIGDST-RUNTIME]
+    //   SIDE_EFFECTS: [enables Linux transparent-socket and ancillary-data recovery when requested, reads live UDP packets, emits tuple-level runtime logs, forwards recovered payloads into governed handoff]
+    //   LINKS: [M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-LINUX-ADAPTER, M-TPROXY-PRIV-LAUNCH-DELTA, V-M-UDP-ORIGDST-RUNTIME, V-M-TPROXY-PRIV-LAUNCH-DELTA]
     // END_CONTRACT: runLinuxIpv4ListenerUntilCancelled
     pub async fn run_linux_ipv4_listener_until_cancelled(
         &self,
         socket: UdpSocket,
         payload_capacity: usize,
+        transparent_socket_required: bool,
         cancel: CancellationToken,
     ) -> Result<(), UdpOrigDstError> {
         // START_BLOCK_UDP_ORIGDST_RUNTIME
+        if transparent_socket_required {
+            // START_BLOCK_UDP_ORIGDST_TRANSPARENT_SOCKET
+            enable_ipv4_transparent_socket(&socket)?;
+            info!(
+                "[UdpOrigDstRuntime][runLinuxIpv4ListenerUntilCancelled][BLOCK_UDP_ORIGDST_TRANSPARENT_SOCKET] enabled Linux transparent socket surface"
+            );
+            // END_BLOCK_UDP_ORIGDST_TRANSPARENT_SOCKET
+        }
         enable_ipv4_recv_original_dst(&socket)?;
         socket
             .set_read_timeout(Some(LINUX_RECV_POLL_TIMEOUT))

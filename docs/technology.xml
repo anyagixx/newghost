@@ -1,4 +1,4 @@
-<TechnologyStack VERSION="0.2.5">
+<TechnologyStack VERSION="0.2.6">
   <Runtime>Tokio 1.48.0</Runtime>
   <Language>Rust 1.94 (edition 2021)</Language>
   <Framework>iroh + WSS transport stack 0.97/0.28</Framework>
@@ -52,6 +52,11 @@
       <decision>`Phase-43` freezes one exact non-REDIRECT live interception class for the current workstation: host-side Linux `TPROXY` for UDP plus the existing repo-local `origdst-live` helper.</decision>
       <reason>The bounded Phase-42 live voice packet already proved live UDP activity, but the `iptables -t nat OUTPUT ... REDIRECT --to-ports 10073` topology collapsed recovered destination evidence to the helper listener itself. On this workstation the already-present kernel surfaces include `xt_TPROXY`, `xt_socket`, `nf_tproxy_ipv4`, and `nf_tproxy_ipv6`, so `TPROXY` is the narrowest honest next topology class that can preserve real destination semantics without introducing an external helper stack or reopening second-window auth branches.</reason>
       <boundary>The non-REDIRECT live topology may change interception class only; the ordinary logged-in Telegram Desktop window, the governed `origdst-live` process shape, the preserved `127.0.0.1:1080` baseline, and the no-second-auth rule must remain fixed for the whole branch.</boundary>
+    </surface>
+    <surface name="telegram-tproxy-privileged-launch" class="root-run-repo-local-helper">
+      <decision>`Phase-44` freezes one exact privileged launch class for the current workstation: a root-run repo-local `origdst-live` helper process with `--transparent-socket-mode required`.</decision>
+      <reason>On 2026-03-31 the unprivileged workstation helper proved the exact blocker with `IP_TRANSPARENT_ERR 1 Operation not permitted`. The helper is already a separate governed CLI surface, so a root-run launch is the narrowest honest next privilege model: it enables transparent sockets without introducing file capabilities, a new installed unit surface, or a blended systemd capability model before the first privileged smoke packet exists.</reason>
+      <boundary>The privileged branch may change launch privilege only; the non-REDIRECT topology class remains Linux `TPROXY`, the helper listener remains `127.0.0.1:10073`, the preserved ordinary baseline remains `127.0.0.1:1080`, and no second Telegram auth window may appear.</boundary>
     </surface>
   </ExperimentSurfaces>
 

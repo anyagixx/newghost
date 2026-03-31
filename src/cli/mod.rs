@@ -1,10 +1,10 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.7
+// VERSION: 0.1.8
 // START_MODULE_CONTRACT
-//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery, WSS return-handler wiring, and one governed live origdst-helper launch surface.
-//   SCOPE: Startup bootstrap, client or server mode selection, live origdst-helper entrypoint and launcher wiring, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, WSS inbound-handler registration, and local shutdown-state coordination.
+//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery, WSS return-handler wiring, and one governed live origdst-helper launch surface with an explicit transparent-socket requirement boundary.
+//   SCOPE: Startup bootstrap, client or server mode selection, live origdst-helper entrypoint and launcher wiring, transparent-socket requirement logging, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, WSS inbound-handler registration, and local shutdown-state coordination.
 //   DEPENDS: std, async-trait, http, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/proxy_bridge/mod.rs, src/session/mod.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs, src/udp_origdst/mod.rs
-//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-ORIGDST-LIVE-LAUNCHER, V-M-CLI, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER, DF-CLIENT-BOOT, DF-SHUTDOWN
+//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-ORIGDST-LIVE-LAUNCHER, M-TPROXY-PRIV-LAUNCH-DELTA, V-M-CLI, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER, V-M-TPROXY-PRIV-LAUNCH-DELTA, DF-CLIENT-BOOT, DF-SHUTDOWN
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -23,7 +23,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.7 - Added the governed origdst-live entrypoint and launcher so Phase-42 can run one repo-local helper process with explicit launch and listener-bind anchors.
+//   LAST_CHANGE: v0.1.8 - Added an explicit transparent-socket requirement surface to origdst-live so Phase-44 can separate privileged launch proof from ordinary helper startup.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -476,6 +476,7 @@ where
         payload_capacity_bytes = config.payload_capacity_bytes,
         operator_uid = config.operator_uid,
         preserve_baseline_proxy_addr = %config.preserve_baseline_proxy_addr,
+        transparent_socket_required = config.transparent_socket_mode == crate::config::OrigDstTransparentSocketMode::Required,
         "[OrigDstLiveEntrypoint][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_ENTRYPOINT] origdst live entrypoint starting"
     );
     // END_BLOCK_ORIGDST_LIVE_ENTRYPOINT
@@ -490,12 +491,18 @@ where
     info!(
         listener_addr = %listener_addr,
         payload_capacity_bytes = config.payload_capacity_bytes,
+        transparent_socket_required = config.transparent_socket_mode == crate::config::OrigDstTransparentSocketMode::Required,
         "[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live listener bound"
     );
 
     let runtime = UdpOrigDstRuntime::new(handoff);
     runtime
-        .run_linux_ipv4_listener_until_cancelled(socket, config.payload_capacity_bytes, cancel)
+        .run_linux_ipv4_listener_until_cancelled(
+            socket,
+            config.payload_capacity_bytes,
+            config.transparent_socket_mode == crate::config::OrigDstTransparentSocketMode::Required,
+            cancel,
+        )
         .await
         .map_err(|error| CliRuntimeError::OrigDstLiveRuntime(error.to_string()))?;
 

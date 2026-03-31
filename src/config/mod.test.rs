@@ -1,10 +1,10 @@
 // FILE: src/config/mod.test.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify deterministic configuration parsing and validation for the config module, including the live origdst-helper launch shape.
+//   PURPOSE: Verify deterministic configuration parsing and validation for the config module, including the live origdst-helper and privileged transparent-socket launch shape.
 //   SCOPE: Success and failure cases for client, server, and origdst-live configuration.
 //   DEPENDS: src/config/mod.rs
-//   LINKS: V-M-CONFIG, V-M-ORIGDST-LIVE-CONFIG-SHAPE, VF-001
+//   LINKS: V-M-CONFIG, V-M-ORIGDST-LIVE-CONFIG-SHAPE, V-M-TPROXY-PRIV-LAUNCH-DELTA, VF-001
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -12,6 +12,7 @@
 //   parses_valid_server_config - validates a complete server configuration
 //   parses_valid_client_tls_config - validates client trust-anchor and endpoint-identity overrides
 //   parses_valid_origdst_live_config - validates the explicit live helper launch shape
+//   parses_valid_origdst_live_transparent_socket_requirement - validates the explicit privileged transparent-socket requirement flag
 //   rejects_zero_limits - validates non-zero limits
 //   rejects_zero_origdst_live_operator_uid - validates explicit operator-user targeting
 //   rejects_empty_auth_token - validates token requirements
@@ -19,7 +20,11 @@
 //   rejects_invalid_shutdown_ordering - validates graceful vs force timeouts
 // END_MODULE_MAP
 
-use super::{load_config_from, ConfigError, RuntimeMode};
+// START_CHANGE_SUMMARY
+//   LAST_CHANGE: v0.1.3 - Added deterministic coverage for the origdst-live transparent-socket requirement flag used by the privileged TPROXY branch.
+// END_CHANGE_SUMMARY
+
+use super::{load_config_from, ConfigError, OrigDstTransparentSocketMode, RuntimeMode};
 
 fn base_args() -> Vec<&'static str> {
     vec!["n0wss", "--auth-token", "secret-token"]
@@ -132,6 +137,26 @@ fn parses_valid_origdst_live_config() {
                 live.preserve_baseline_proxy_addr.to_string(),
                 "127.0.0.1:1080"
             );
+            assert_eq!(live.transparent_socket_mode, OrigDstTransparentSocketMode::Disabled);
+        }
+        RuntimeMode::Client(_) | RuntimeMode::Server(_) => panic!("expected origdst-live mode"),
+    }
+}
+
+#[test]
+fn parses_valid_origdst_live_transparent_socket_requirement() {
+    let mut args = base_args();
+    args.extend([
+        "origdst-live",
+        "--transparent-socket-mode",
+        "required",
+    ]);
+
+    let config = load_config_from(args).expect("origdst live transparent-socket config must parse");
+
+    match config.runtime_mode {
+        RuntimeMode::OrigDstLive(live) => {
+            assert_eq!(live.transparent_socket_mode, OrigDstTransparentSocketMode::Required);
         }
         RuntimeMode::Client(_) | RuntimeMode::Server(_) => panic!("expected origdst-live mode"),
     }

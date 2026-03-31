@@ -1891,6 +1891,12 @@ Origdst-live mode:
 n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080
 ```
 
+Privileged TPROXY origdst-live mode:
+
+```text
+sudo --preserve-env=RUST_LOG n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080 --transparent-socket-mode required
+```
+
 Do not publish examples with a non-`wss` remote URL or with missing TLS paths for server mode.
 
 ### Phase-43 Telegram Live Non-Redirect OrigDst Topology
@@ -1927,3 +1933,41 @@ Exact bounded operator packet for the next smoke wave:
 5. Remove the temporary `TPROXY`-class interception rules.
 6. Stop the `origdst-live` helper process.
 7. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.
+
+### Phase-44 Privileged TPROXY Helper Launch Surface
+
+Phase-44 starts only after the blocked Phase-43 packet is frozen as a privilege boundary instead of as a topology-choice ambiguity. The non-REDIRECT topology class stays Linux `TPROXY`; the only approved new variable is the helper launch privilege surface itself.
+
+Bounded operator rules for the privileged TPROXY branch:
+
+1. Choose one exact privileged launch class only:
+   use a root-run repo-local `origdst-live` helper only
+   do not blend file capabilities, ambient capabilities, or a transient capability-confined systemd unit into the same wave
+2. Keep the helper runtime shape fixed:
+   keep the helper listener on `127.0.0.1:10073`
+   keep the preserved ordinary baseline proof on `127.0.0.1:1080`
+   use `--transparent-socket-mode required` explicitly in the helper launch command
+3. Keep evidence split:
+   prove root-run launch separately
+   prove transparent-socket enablement separately
+   prove real non-helper destination recovery separately
+   if the packet still stops at `Operation not permitted`, preserve it as a pure privilege-boundary packet
+4. Keep Telegram UI shape fixed:
+   stay attached to the already logged-in ordinary Telegram Desktop window
+   do not open a second auth or bootstrap window
+5. Cleanup stays mandatory:
+   remove temporary `TPROXY` rules immediately after the bounded packet window
+   stop the root-run helper
+   prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy after cleanup
+
+Exact bounded operator packet for the first privileged smoke wave:
+
+1. Start the repo-local helper as root with the explicit transparent-socket requirement:
+   `sudo --preserve-env=RUST_LOG n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080 --transparent-socket-mode required`
+2. Capture a bounded helper log window and keep the privilege-launch anchor separate from later socket and tuple evidence.
+3. Add one temporary host-side UDP interception packet using Linux `TPROXY` for outbound traffic owned by the Telegram Desktop operator UID.
+4. Keep loopback and the preserved baseline surfaces excluded so the helper does not eat its own traffic or the normal `127.0.0.1:1080` path.
+5. Collect bounded root-launch proof, transparent-socket proof, real-target recovery proof, and governed-handoff proof.
+6. Remove the temporary `TPROXY` rules.
+7. Stop the root-run `origdst-live` helper process.
+8. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.

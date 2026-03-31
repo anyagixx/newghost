@@ -73,6 +73,12 @@ Origdst-live mode:
 n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080
 ```
 
+Privileged origdst-live mode for the `TPROXY` branch:
+
+```text
+sudo --preserve-env=RUST_LOG n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080 --transparent-socket-mode required
+```
+
 Important validated options:
 
 - `--max-pending-intents`
@@ -94,6 +100,7 @@ Important validated options:
 - `--burst-ring-capacity`
 
 `client` mode requires a `wss://` remote URL and may pin trust with `--tls-trust-anchor-path`. `server` mode requires both TLS paths.
+`origdst-live` stays unprivileged by default; the privileged `TPROXY` branch must opt into `--transparent-socket-mode required` and run the helper as root rather than relying on hidden shell state.
 
 ## Managed Deployment Surface
 

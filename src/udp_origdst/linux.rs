@@ -1,26 +1,28 @@
 // FILE: src/udp_origdst/linux.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Isolate Linux-specific socket and original-destination recovery surfaces for the repo-local UDP helper.
-//   SCOPE: Recovery marker definitions, listener-plan metadata, Linux socket-option enablement, Linux recvmsg-based original-destination parsing, and Linux-specific recovery strategy descriptions for intercepted UDP tuples.
+//   PURPOSE: Isolate Linux-specific socket, transparent-socket, and original-destination recovery surfaces for the repo-local UDP helper.
+//   SCOPE: Recovery marker definitions, listener-plan metadata, Linux socket-option enablement, Linux transparent-socket enablement, Linux recvmsg-based original-destination parsing, and Linux-specific recovery strategy descriptions for intercepted UDP tuples.
 //   DEPENDS: libc, std, src/transport/datagram_contract.rs, src/udp_origdst/mod.rs
-//   LINKS: M-UDP-ORIGDST-LINUX-ADAPTER, V-M-UDP-ORIGDST-LINUX-ADAPTER, DF-UDP-ORIGDST-RECOVERY
+//   LINKS: M-UDP-ORIGDST-LINUX-ADAPTER, M-TPROXY-PRIV-LAUNCH-DELTA, V-M-UDP-ORIGDST-LINUX-ADAPTER, V-M-TPROXY-PRIV-LAUNCH-DELTA, DF-UDP-ORIGDST-RECOVERY
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   IPV4_ORIGINAL_DST_MARKER - Linux IPv4 original-destination recovery marker
 //   IPV4_RECV_ORIGINAL_DST_MARKER - Linux IPv4 recvmsg control-message marker
 //   IPV6_RECV_ORIGINAL_DST_MARKER - Linux IPv6 recvmsg control-message marker
+//   IPV4_TRANSPARENT_SOCKET_MARKER - Linux IPv4 transparent-socket marker
 //   LinuxRecoveredDatagram - one recvmsg packet plus recovered original destination metadata
 //   LinuxOrigDstSocketPlan - one bounded socket-plan description for tuple recovery
 //   LinuxOrigDstRecoveryStrategy - one explicit Linux recovery strategy class
 //   planLinuxOrigDstSocket - build one bounded Linux recovery plan for a helper listener address
+//   enableIpv4TransparentSocket - enable Linux IPv4 transparent-socket mode on one UDP socket
 //   enableIpv4RecvOriginalDst - enable Linux IPv4 original-destination ancillary data on one UDP socket
 //   recvRecoveredIpv4Datagram - receive one UDP packet with Linux ancillary data and recover the original IPv4 destination
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added Linux socket-option enablement, recvmsg-based packet capture, and original-destination parsing so Phase-41 can hook real tuple recovery into smoke execution.
+//   LAST_CHANGE: v0.1.2 - Added Linux transparent-socket enablement so the privileged TPROXY branch can separate privilege proof from recvmsg-based original-destination recovery.
 // END_CHANGE_SUMMARY
 
 use std::io;
@@ -34,6 +36,7 @@ use crate::udp_origdst::{RecoveredUdpTuple, UdpOrigDstError};
 pub const IPV4_ORIGINAL_DST_MARKER: &str = "SO_ORIGINAL_DST";
 pub const IPV4_RECV_ORIGINAL_DST_MARKER: &str = "IP_RECVORIGDSTADDR";
 pub const IPV6_RECV_ORIGINAL_DST_MARKER: &str = "IPV6_RECVORIGDSTADDR";
+pub const IPV4_TRANSPARENT_SOCKET_MARKER: &str = "IP_TRANSPARENT";
 pub const RECVMSG_API_MARKER: &str = "recvmsg";
 pub const CONTROL_MESSAGE_API_MARKER: &str = "cmsg";
 pub const DEFAULT_ORIGDST_CONTROL_LEN: usize = 128;
@@ -102,6 +105,32 @@ pub fn enable_ipv4_recv_original_dst(socket: &UdpSocket) -> Result<(), UdpOrigDs
             socket.as_raw_fd(),
             libc::IPPROTO_IP,
             libc::IP_RECVORIGDSTADDR,
+            &enable as *const _ as *const libc::c_void,
+            size_of::<libc::c_int>() as libc::socklen_t,
+        )
+    };
+    if result != 0 {
+        return Err(UdpOrigDstError::RecoveryFailed(io::Error::last_os_error().to_string()));
+    }
+    Ok(())
+    // END_BLOCK_UDP_ORIGDST_LINUX_ADAPTER
+}
+
+// START_CONTRACT: enableIpv4TransparentSocket
+//   PURPOSE: Enable Linux IPv4 transparent-socket mode on one UDP socket before TPROXY-backed live interception begins.
+//   INPUTS: { socket: &UdpSocket - bound UDP socket owned by the repo-local helper }
+//   OUTPUTS: { Result<(), UdpOrigDstError> - ok when the socket is configured for Linux transparent-socket semantics }
+//   SIDE_EFFECTS: [mutates Linux socket options on the provided file descriptor]
+//   LINKS: [M-TPROXY-PRIV-LAUNCH-DELTA, V-M-TPROXY-PRIV-LAUNCH-DELTA]
+// END_CONTRACT: enableIpv4TransparentSocket
+pub fn enable_ipv4_transparent_socket(socket: &UdpSocket) -> Result<(), UdpOrigDstError> {
+    // START_BLOCK_UDP_ORIGDST_LINUX_ADAPTER
+    let enable: libc::c_int = 1;
+    let result = unsafe {
+        libc::setsockopt(
+            socket.as_raw_fd(),
+            libc::IPPROTO_IP,
+            libc::IP_TRANSPARENT,
             &enable as *const _ as *const libc::c_void,
             size_of::<libc::c_int>() as libc::socklen_t,
         )

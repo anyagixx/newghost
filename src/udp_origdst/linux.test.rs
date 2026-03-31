@@ -1,20 +1,21 @@
 // FILE: src/udp_origdst/linux.test.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify the Linux original-destination adapter keeps explicit recovery-plan markers visible and parses recovered IPv4 tuples deterministically.
-//   SCOPE: Linux recovery-plan strategy, marker, and control-message parsing checks.
+//   PURPOSE: Verify the Linux original-destination adapter keeps explicit recovery-plan, transparent-socket, and control-message markers visible and parses recovered IPv4 tuples deterministically.
+//   SCOPE: Linux recovery-plan strategy, transparent-socket enablement boundary, marker, and control-message parsing checks.
 //   DEPENDS: libc, src/udp_origdst/linux.rs
-//   LINKS: V-M-UDP-ORIGDST-LINUX-ADAPTER
+//   LINKS: V-M-UDP-ORIGDST-LINUX-ADAPTER, V-M-TPROXY-PRIV-LAUNCH-DELTA
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   udp_origdst_linux_plan_socket_prefers_ipv6_recvmsg_strategy - proves IPv6 planning stays on an explicit recvmsg control-message surface
+//   udp_origdst_linux_transparent_socket_enablement_is_explicit - proves Linux transparent-socket enablement is observable as either success or a bounded privilege failure
 //   udp_origdst_linux_enables_ipv4_original_dst_option - proves Linux socket setup can enable original-destination ancillary data on a UDP socket
 //   udp_origdst_linux_recovers_ipv4_original_destination_from_control_message - proves ancillary control parsing yields the expected original IPv4 destination tuple
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added deterministic Linux adapter checks for enabling original-destination ancillary data and parsing recovered IPv4 tuples from control messages.
+//   LAST_CHANGE: v0.1.2 - Added a bounded Linux transparent-socket check so the privileged TPROXY branch can distinguish success from the expected privilege boundary deterministically.
 // END_CHANGE_SUMMARY
 
 use std::mem::size_of;
@@ -24,9 +25,11 @@ use std::os::fd::AsRawFd;
 use crate::transport::datagram_contract::DatagramTarget;
 
 use super::{
-    enable_ipv4_recv_original_dst, plan_linux_origdst_socket, recv_recovered_ipv4_datagram,
+    enable_ipv4_recv_original_dst, enable_ipv4_transparent_socket, plan_linux_origdst_socket,
+    recv_recovered_ipv4_datagram,
     LinuxOrigDstRecoveryStrategy, CONTROL_MESSAGE_API_MARKER, IPV4_ORIGINAL_DST_MARKER,
-    IPV4_RECV_ORIGINAL_DST_MARKER, IPV6_RECV_ORIGINAL_DST_MARKER, RECVMSG_API_MARKER,
+    IPV4_RECV_ORIGINAL_DST_MARKER, IPV4_TRANSPARENT_SOCKET_MARKER, IPV6_RECV_ORIGINAL_DST_MARKER,
+    RECVMSG_API_MARKER,
 };
 
 #[test]
@@ -46,6 +49,40 @@ fn udp_origdst_linux_plan_socket_prefers_ipv6_recvmsg_strategy() {
     assert_eq!(IPV6_RECV_ORIGINAL_DST_MARKER, "IPV6_RECVORIGDSTADDR");
     assert_eq!(RECVMSG_API_MARKER, "recvmsg");
     assert_eq!(CONTROL_MESSAGE_API_MARKER, "cmsg");
+}
+
+#[test]
+fn udp_origdst_linux_transparent_socket_enablement_is_explicit() {
+    let socket = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind udp socket");
+
+    match enable_ipv4_transparent_socket(&socket) {
+        Ok(()) => {
+            let mut enabled: libc::c_int = 0;
+            let mut enabled_len = size_of::<libc::c_int>() as libc::socklen_t;
+            let rc = unsafe {
+                libc::getsockopt(
+                    socket.as_raw_fd(),
+                    libc::IPPROTO_IP,
+                    libc::IP_TRANSPARENT,
+                    &mut enabled as *mut _ as *mut libc::c_void,
+                    &mut enabled_len as *mut libc::socklen_t,
+                )
+            };
+
+            assert_eq!(rc, 0);
+            assert_eq!(enabled, 1);
+        }
+        Err(error) => {
+            let message = error.to_string();
+            assert!(
+                message.contains("Operation not permitted")
+                    || message.contains("Permission denied")
+                    || message.contains(IPV4_TRANSPARENT_SOCKET_MARKER),
+                "unexpected transparent-socket failure: {message}"
+            );
+        }
+    }
 }
 
 #[test]
