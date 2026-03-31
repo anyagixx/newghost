@@ -1,12 +1,12 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.52">
+  <Project NAME="n0wss" VERSION="0.2.54">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
     <M-CLI NAME="CliApp" TYPE="ENTRY_POINT" STATUS="implemented">
       <purpose>Bootstrap the process, choose runtime mode, and coordinate graceful shutdown phases.</purpose>
       <path>src/cli/mod.rs</path>
-      <depends>M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION</depends>
+      <depends>M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-SOCKS5-UDP-ASSOCIATE, M-PROXY-BRIDGE, M-SESSION, M-TRANSPORT-ADAPTER-CONTRACT, M-DATAGRAM-CONTRACT, M-TRANSPORT-STREAM, M-TRANSPORT-TASK-TRACKER, M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-RUNTIME</depends>
       <verification-ref>V-M-CLI</verification-ref>
       <annotations>
         <fn-run PURPOSE="Parse startup arguments and bootstrap the selected mode." />
@@ -87,7 +87,7 @@
     <M-WSS-GATEWAY NAME="WssGateway" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Compose TCP, TLS, websocket upgrade, and auth validation into WSS-backed transport streams under a shared adapter contract.</purpose>
       <path>src/wss_gateway/mod.rs</path>
-      <depends>M-TLS, M-AUTH, M-OBS</depends>
+      <depends>M-TLS, M-AUTH, M-OBS, M-UDP-EGRESS-RELAY, M-DATAGRAM-TRANSPORT-SELECTOR, M-DATAGRAM-CONTRACT, M-TRANSPORT-ADAPTER-CONTRACT, M-TRANSPORT-STREAM, M-TRANSPORT-TASK-TRACKER</depends>
       <verification-ref>V-M-WSS-GATEWAY</verification-ref>
       <annotations>
         <fn-runServer PURPOSE="Start the WSS listener and wrap accepted sessions into transport streams." />
@@ -100,7 +100,7 @@
     <M-IROH-ADAPTER NAME="IrohAdapter" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Integrate with iroh/sendme transport primitives for direct or relay-backed stream creation under a shared adapter contract.</purpose>
       <path>src/iroh_adapter/mod.rs</path>
-      <depends>M-CONFIG, M-OBS</depends>
+      <depends>M-OBS, M-TRANSPORT-ADAPTER-CONTRACT, M-TRANSPORT-STREAM, M-TRANSPORT-TASK-TRACKER</depends>
       <verification-ref>V-M-IROH-ADAPTER</verification-ref>
       <annotations>
         <fn-openStream PURPOSE="Open a direct or relay-backed transport stream to the remote peer." />
@@ -961,7 +961,7 @@
     <M-WSS-DATAGRAM-GATEWAY NAME="WssDatagramGateway" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Encapsulate governed datagrams in WSS frames without changing the existing stream tunnel contract.</purpose>
       <path>src/wss_gateway/datagram.rs</path>
-      <depends>M-WSS-GATEWAY, M-DATAGRAM-CONTRACT, M-AUTH, M-TLS</depends>
+      <depends>M-DATAGRAM-CONTRACT</depends>
       <verification-ref>V-M-WSS-DATAGRAM-GATEWAY</verification-ref>
       <annotations>
         <fn-sendDatagram PURPOSE="Carry one datagram over the WSS control path." />
@@ -971,7 +971,7 @@
     <M-UDP-EGRESS-RELAY NAME="UdpEgressRelay" TYPE="INTEGRATION" STATUS="implemented">
       <purpose>Relay real UDP traffic on the server side and return inbound packets to the owning association.</purpose>
       <path>src/proxy_bridge/udp_relay.rs</path>
-      <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-OBS</depends>
+      <depends>M-DATAGRAM-CONTRACT</depends>
       <verification-ref>V-M-UDP-EGRESS-RELAY</verification-ref>
       <annotations>
         <fn-relayOutboundDatagram PURPOSE="Send one outbound UDP datagram to the remote target." />
@@ -981,7 +981,7 @@
     <M-DATAGRAM-TRANSPORT-SELECTOR NAME="DatagramTransportSelector" TYPE="CORE_LOGIC" STATUS="implemented">
       <purpose>Select the governed UDP-capable transport path for datagrams, initially with the WSS-backed datagram route.</purpose>
       <path>src/session/datagram_transport_selector.rs</path>
-      <depends>M-DATAGRAM-CONTRACT, M-WSS-DATAGRAM-GATEWAY, M-SESSION-TRANSPORT-SELECTOR</depends>
+      <depends>M-DATAGRAM-CONTRACT</depends>
       <verification-ref>V-M-DATAGRAM-TRANSPORT-SELECTOR</verification-ref>
       <annotations>
         <fn-selectTransport PURPOSE="Resolve one datagram transport path for a governed UDP association." />
@@ -2771,7 +2771,7 @@
     <M-UDP-ORIGDST-CONTRACT NAME="UdpOrigDstContract" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Define the repo-local helper contract for transparently intercepted UDP, original-destination recovery, and governed handoff.</purpose>
       <path>src/udp_origdst/mod.rs</path>
-      <depends>M-ARBITRARY-UDP-TECH-DECISION, M-SOCKS5-UDP-ASSOCIATE, M-DATAGRAM-SESSION-MANAGER</depends>
+      <depends>M-DATAGRAM-CONTRACT, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
       <verification-ref>V-M-UDP-ORIGDST-CONTRACT</verification-ref>
       <annotations>
         <fn-defineUdpOrigDstContract PURPOSE="Define the repo-local original-destination helper contract." />
@@ -2789,7 +2789,7 @@
     <M-UDP-ORIGDST-RUNTIME NAME="UdpOrigDstRuntime" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Implement the repo-local helper runtime that recovers original UDP destinations and forwards normalized tuples into the governed datagram path.</purpose>
       <path>src/udp_origdst/mod.rs</path>
-      <depends>M-UDP-ORIGDST-CONTRACT, M-UDP-ORIGDST-LINUX-ADAPTER, M-DATAGRAM-SESSION-MANAGER, M-OBS</depends>
+      <depends>M-DATAGRAM-CONTRACT, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
       <verification-ref>V-M-UDP-ORIGDST-RUNTIME</verification-ref>
       <annotations>
         <fn-runUdpOrigDstRuntime PURPOSE="Run the repo-local helper runtime for recovered UDP tuples." />
@@ -3299,13 +3299,13 @@
         <fn-provePostRecoverySmoke PURPOSE="Prove the evidence surface above Phase-45 before new calls packets are spent." />
       </annotations>
     </M-POSTRECOVERY-SMOKE>
-    <M-TELEGRAM-CALLS-POSTRECOVERY-VOICE NAME="TelegramCallsPostRecoveryVoice" TYPE="CORE_LOGIC" STATUS="planned">
-      <purpose>Run one bounded voice attempt only after green post-recovery smoke.</purpose>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-VOICE NAME="TelegramCallsPostRecoveryVoice" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Run one bounded audio-first voice attempt only after green post-recovery smoke and preserve that voice packet as the first active Phase-46 calls step.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-POSTRECOVERY-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE</verification-ref>
       <annotations>
-        <fn-runTelegramCallsPostRecoveryVoice PURPOSE="Spend one bounded voice packet on the post-recovery branch." />
+        <fn-runTelegramCallsPostRecoveryVoice PURPOSE="Spend one bounded audio-first voice packet on the post-recovery branch." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" STATUS="planned">
