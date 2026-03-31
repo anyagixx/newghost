@@ -3245,7 +3245,7 @@
         <fn-issueTelegramCallsTproxyNonOutputDecision PURPOSE="Issue the bounded final decision after the non-OUTPUT privileged TPROXY branch." />
       </annotations>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION>
-    <M-POSTRECOVERY-HYPOTHESIS NAME="PostRecoveryHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-POSTRECOVERY-HYPOTHESIS NAME="PostRecoveryHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the new truth-boundary above Phase-45: real Telegram media-tuple recovery is green while call establishment remains blocked at key exchange.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION</depends>
@@ -3254,7 +3254,7 @@
         <fn-freezePostRecoveryHypothesis PURPOSE="Freeze the post-recovery establishment boundary above Phase-45." />
       </annotations>
     </M-POSTRECOVERY-HYPOTHESIS>
-    <M-PHASE45-ESTABLISHMENT-BOUNDARY NAME="Phase45EstablishmentBoundary" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE45-ESTABLISHMENT-BOUNDARY NAME="Phase45EstablishmentBoundary" TYPE="UTILITY" STATUS="done">
       <purpose>Explicitly preserve Phase-45 as the first real-media-tuple branch while freezing its tail as a key-exchange establishment boundary.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-POSTRECOVERY-HYPOTHESIS</depends>
@@ -3263,8 +3263,8 @@
         <fn-freezePhase45EstablishmentBoundary PURPOSE="Keep the Phase-45 establishment boundary explicit and non-blended." />
       </annotations>
     </M-PHASE45-ESTABLISHMENT-BOUNDARY>
-    <M-POSTRECOVERY-TECH-DECISION NAME="PostRecoveryTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
-      <purpose>Choose one exact post-recovery evidence class for the next branch so tuple recovery, establishment behavior, and key-exchange failure remain separable.</purpose>
+    <M-POSTRECOVERY-TECH-DECISION NAME="PostRecoveryTechDecision" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Choose one exact post-recovery evidence class for the next branch: an ordered bounded evidence packet that records tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome on the unchanged Phase-45 topology.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-PHASE45-ESTABLISHMENT-BOUNDARY, M-TELEGRAM-SERVER-CORRELATION</depends>
       <verification-ref>V-M-POSTRECOVERY-TECH-DECISION</verification-ref>
@@ -3272,7 +3272,7 @@
         <fn-choosePostRecoveryTechDecision PURPOSE="Choose one exact post-recovery evidence class." />
       </annotations>
     </M-POSTRECOVERY-TECH-DECISION>
-    <M-POSTRECOVERY-RUNTIME-PROFILE NAME="PostRecoveryRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-POSTRECOVERY-RUNTIME-PROFILE NAME="PostRecoveryRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze one exact runtime profile for the post-recovery branch while preserving the Phase-45 topology unchanged.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-POSTRECOVERY-TECH-DECISION, M-TPROXY-NONOUTPUT-RUNTIME-PROFILE</depends>
@@ -3281,7 +3281,7 @@
         <fn-freezePostRecoveryRuntimeProfile PURPOSE="Freeze the post-recovery runtime profile above the preserved Phase-45 topology." />
       </annotations>
     </M-POSTRECOVERY-RUNTIME-PROFILE>
-    <M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT NAME="CallEstablishmentEvidenceContract" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT NAME="CallEstablishmentEvidenceContract" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define one exact evidence contract that keeps tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome separate.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-PHASE45-ESTABLISHMENT-BOUNDARY, M-POSTRECOVERY-TECH-DECISION</depends>
@@ -3290,7 +3290,7 @@
         <fn-defineCallEstablishmentEvidenceContract PURPOSE="Define the post-recovery evidence packet for establishment behavior." />
       </annotations>
     </M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT>
-    <M-POSTRECOVERY-SMOKE NAME="PostRecoverySmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-POSTRECOVERY-SMOKE NAME="PostRecoverySmoke" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Prove outside Telegram UI that the post-recovery evidence surface can distinguish outbound tuple recovery from downstream establishment behavior.</purpose>
       <path>src/cli/mod.test.rs</path>
       <depends>M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT, M-POSTRECOVERY-RUNTIME-PROFILE</depends>
