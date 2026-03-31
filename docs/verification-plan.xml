@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.90">
+<VerificationPlan VERSION="0.2.91">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -6200,9 +6200,11 @@
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'Phase-34|Phase-42|Phase-43|Phase-44|Phase-45|post-recovery voice|post-recovery video|establishment boundary' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <module-checks><check-1>rg -n 'Phase-34|Phase-42|Phase-43|Phase-44|Phase-45|post-recovery voice|post-recovery video|establishment boundary' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'first real-tuple-success boundary|first real-media-tuple-success boundary|beyond tuple recovery|without collapsing proof order' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-2><check-3>rg -n 'tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome' docs/development-plan.xml docs/verification-plan.xml</check-3></module-checks>
       <success-scenarios><scenario-1>The comparison keeps all earlier boundaries visible while classifying whether any positive evidence first appears beyond Phase-45 tuple recovery.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The comparison erases Phase-45 or treats tuple recovery itself as already-solved establishment.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The comparison packet must keep Phase-45 explicit as the first real-media-tuple-success boundary even if preserved voice or video packets expose narrower establishment evidence beyond it.</assertion-1><assertion-2>The comparison packet must preserve proof order across earlier boundaries and the preserved post-recovery packets instead of collapsing tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome into one blended claim.</assertion-2></required-trace-assertions>
+      <wave-follow-up>The bounded final decision may execute only after the comparison packet keeps the earlier boundaries, preserved voice packet, and preserved video packet visible in one bounded classification surface.</wave-follow-up>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
