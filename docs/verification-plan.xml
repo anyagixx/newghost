@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.89">
+<VerificationPlan VERSION="0.2.90">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -6191,10 +6191,12 @@
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2><check-3>rg -n 'voice packet first|video packet stays downstream|without inheriting the voice result' docs/development-plan.xml docs/verification-plan.xml</check-3></module-checks>
+      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged|topology, helper launch shape, or ordinary Telegram baseline' docs/development-plan.xml docs/verification-plan.xml</check-2><check-3>rg -n 'voice packet first|video packet stays downstream|without inheriting the voice result|without inheriting the voice result and keeps comparison/decision downstream' docs/development-plan.xml docs/verification-plan.xml</check-3><check-4>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_RELAY_UDP_OUTBOUND|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_DELIVER_INBOUND_DATAGRAM' docs/verification-plan.xml</check-4></module-checks>
       <success-scenarios><scenario-1>The post-recovery video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1><scenario-2>The video packet records the same ordered proof classes without inheriting the voice evidence.</scenario-2></success-scenarios>
       <failure-scenarios><scenario-1>The post-recovery video packet silently inherits voice or bypasses smoke-first policy.</scenario-1><scenario-2>The video packet collapses proof classes or changes topology under the same branch label.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The preserved video packet must keep the preserved voice packet explicit as the first active Phase-46 calls step instead of inheriting voice success or failure as video evidence.</assertion-1><assertion-2>The preserved video packet must state which governed datagram markers were observed or absent in the same bounded window, using the existing UDP ASSOCIATE, datagram transport, outbound relay, server inbound, server return, and client inbound-delivery anchors.</assertion-2><assertion-3>The preserved video packet must classify key-exchange progress as user-visible outcome evidence only; it may not treat key exchange alone as proof of successful video establishment.</assertion-3></required-trace-assertions>
       <wave-follow-up>Spend the bounded video packet only after the preserved voice packet exists and its classifier says video is still worth isolating on the same topology.</wave-follow-up>
+      <phase-follow-up>Do not mark Phase-46 done until comparison and bounded final decision classify the preserved voice and video packets against the earlier boundaries without collapsing proof order.</phase-follow-up>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>

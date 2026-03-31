@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.62">
+<DevelopmentPlan VERSION="0.2.63">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -8475,12 +8475,12 @@
     </M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" LAYER="49" ORDER="8" STATUS="planned">
       <contract>
-        <purpose>Run one bounded video attempt on the same post-recovery branch without inheriting the voice result.</purpose>
+        <purpose>Run one bounded video attempt only after the preserved audio-first voice packet on the same post-recovery branch without inheriting the voice result.</purpose>
         <inputs>
-          <input-1>The bounded post-recovery voice packet.</input-1>
+          <input-1>The bounded post-recovery voice packet and its explicit audio classification.</input-1>
         </inputs>
         <outputs>
-          <output-1>A bounded post-recovery video packet.</output-1>
+          <output-1>A bounded post-recovery video packet classified as green video, signaling-only stall, or a narrower downstream blocker without reusing the voice evidence.</output-1>
         </outputs>
       </contract>
       <target-files>
@@ -9240,8 +9240,9 @@
       <evidence>A bounded post-recovery voice packet.</evidence>
     </DF-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <DF-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TRIGGER="The bounded post-recovery voice packet is preserved and one separate video packet is approved.">
-      <step-1>The ordinary logged-in Telegram Desktop window runs one bounded video packet on the same preserved topology.</step-1>
-      <step-2>The video packet stays separate from voice while recording the same evidence classes.</step-2>
+      <step-1>The already logged-in Telegram Desktop window runs one bounded video packet on the same preserved Phase-45 topology unchanged.</step-1>
+      <step-2>The video packet records tuple recovery, governed handoff, downstream establishment behavior, and the user-visible key-exchange outcome as separate evidence classes.</step-2>
+      <step-3>The packet classifies the video result without inheriting the voice result and keeps comparison/decision downstream of the preserved voice and video packets.</step-3>
       <evidence>A bounded post-recovery video packet.</evidence>
     </DF-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
     <DF-POSTRECOVERY-DECISION NAME="PostRecoveryDecision" TRIGGER="The bounded post-recovery voice and video packets plus preserved earlier boundaries are all available.">
@@ -9902,6 +9903,7 @@
       <note-5>The only approved new variable is the post-recovery evidence class itself; interception topology, helper launch shape, and no-second-auth rule stay fixed.</note-5>
       <note-6>On 2026-03-31 the first Phase-46 execution packet closed the boundary, decision, and smoke-contract tail above Phase-45: the branch now freezes one exact ordered evidence class on the unchanged Phase-45 topology, keeps Phase-45 explicit as the first real-media-tuple-success branch, and turns green test-level post-recovery smoke in `src/cli/mod.test.rs` plus `tests/udp_origdst_smoke.rs` without spending a new Telegram UI packet.</note-6>
       <note-7>Execution of the remaining Phase-46 work is now explicitly audio-first: one bounded post-recovery voice packet is the next active calls step, while video, comparison, and final decision stay downstream until that preserved voice packet exists.</note-7>
+      <note-8>Once the preserved voice packet exists, the bounded post-recovery video packet must stay on the same topology, preserve the same proof order, and classify only video establishment without inheriting voice evidence.</note-8>
     </Phase-46>
   </ImplementationOrder>
 
