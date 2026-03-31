@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.80">
+<VerificationPlan VERSION="0.2.81">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -148,6 +148,8 @@
     <telegram-tproxy-nonoutput-smoke-first-rule>Phase-45 may spend voice or video packets only after non-OUTPUT privileged smoke proves supported rule install, real non-helper destination recovery, and preserved ordinary baseline.</telegram-tproxy-nonoutput-smoke-first-rule>
     <telegram-tproxy-nonoutput-phase44-boundary-rule>Phase-45 must keep the old Phase-44 packet explicit as an OUTPUT-topology boundary; that packet may not be reused as partial non-OUTPUT success evidence.</telegram-tproxy-nonoutput-phase44-boundary-rule>
     <telegram-tproxy-nonoutput-supported-rule-proof-rule>Phase-45 smoke is invalid unless the chosen non-OUTPUT topology proves that interception rules were installed on a kernel-supported path before any tuple-recovery claim is accepted.</telegram-tproxy-nonoutput-supported-rule-proof-rule>
+    <telegram-tproxy-nonoutput-route-proof-rule>Phase-45 smoke is invalid unless route-mark or equivalent topology-routing proof is recorded separately from helper launch and tuple recovery.</telegram-tproxy-nonoutput-route-proof-rule>
+    <telegram-tproxy-nonoutput-baseline-lock-rule>Phase-45 evidence is invalid if the chosen non-OUTPUT topology weakens the preserved ordinary Telegram Desktop baseline at `127.0.0.1:1080` during smoke or calls packets.</telegram-tproxy-nonoutput-baseline-lock-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -6054,9 +6056,9 @@
     </V-M-PHASE44-OUTPUT-BOUNDARY>
     <V-M-TPROXY-NONOUTPUT-TECH-DECISION MODULE="M-TPROXY-NONOUTPUT-TECH-DECISION" PRIORITY="high">
       <test-files><file>docs/technology.xml</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT|TPROXY|single topology class|Phase-44|OUTPUT' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The branch chooses one exact privileged non-OUTPUT interception class and keeps the old host OUTPUT shape visible as blocked history only.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The branch mixes OUTPUT and non-OUTPUT topology evidence or leaves the replacement topology vague.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'non-OUTPUT|TPROXY|single topology class|Phase-44|OUTPUT' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'supported rule install|route proof|mark proof|kernel-supported path' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
+      <success-scenarios><scenario-1>The branch chooses one exact privileged non-OUTPUT interception class and keeps the old host OUTPUT shape visible as blocked history only.</scenario-1><scenario-2>The chosen topology names where supported rule-install proof and route-mark proof must appear before smoke can go green.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The branch mixes OUTPUT and non-OUTPUT topology evidence or leaves the replacement topology vague.</scenario-1><scenario-2>The branch chooses a topology class but leaves supported rule-install proof or route proof implicit.</scenario-2></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-TECH-DECISION>
     <V-M-TPROXY-NONOUTPUT-RUNTIME-PROFILE MODULE="M-TPROXY-NONOUTPUT-RUNTIME-PROFILE" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file></test-files>
@@ -6072,15 +6074,15 @@
     </V-M-TPROXY-NONOUTPUT-LINUX-DELTA>
     <V-M-TPROXY-NONOUTPUT-RUNBOOK MODULE="M-TPROXY-NONOUTPUT-RUNBOOK" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT|supported rule install|cleanup|127.0.0.1:1080|no second auth' docs/OPERATORS.md docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The runbook defines one exact non-OUTPUT privileged operator packet with supported rule-install proof, cleanup, and preserved baseline proof.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The runbook leaves supported rule install or cleanup ownership ambiguous, or blends old host OUTPUT evidence into the new packet.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'non-OUTPUT|supported rule install|cleanup|127.0.0.1:1080|no second auth' docs/OPERATORS.md docs/verification-plan.xml</check-1><check-2>rg -n 'route proof|mark proof|helper launch|transparent-socket proof|real-target proof' docs/OPERATORS.md docs/verification-plan.xml</check-2></module-checks>
+      <success-scenarios><scenario-1>The runbook defines one exact non-OUTPUT privileged operator packet with supported rule-install proof, cleanup, and preserved baseline proof.</scenario-1><scenario-2>The runbook keeps helper launch proof, supported rule-install proof, route-mark proof, and tuple-recovery proof as separate evidence classes.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The runbook leaves supported rule install or cleanup ownership ambiguous, or blends old host OUTPUT evidence into the new packet.</scenario-1><scenario-2>The runbook hides route or mark setup inside one opaque shell packet.</scenario-2></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-RUNBOOK>
     <V-M-TPROXY-NONOUTPUT-SMOKE MODULE="M-TPROXY-NONOUTPUT-SMOKE" PRIORITY="high">
       <test-files><file>src/cli/mod.test.rs</file><file>tests/udp_origdst_smoke.rs</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'Phase-45|non-OUTPUT|supported rule install|real target|non-helper|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-44|OUTPUT TPROXY|Operation not supported|Invalid argument' docs/development-plan.xml docs/verification-plan.xml README.md</check-2></module-checks>
-      <success-scenarios><scenario-1>The non-OUTPUT smoke packet proves supported rule install, real non-helper destination recovery, governed handoff, and preserved baseline.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The smoke packet still fails at unsupported rule install, still recovers only the helper listener, or looks green only because the ordinary baseline regressed.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'Phase-45|non-OUTPUT|supported rule install|real target|non-helper|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-44|OUTPUT TPROXY|Operation not supported|Invalid argument' docs/development-plan.xml docs/verification-plan.xml README.md</check-2><check-3>rg -n 'route proof|mark proof|governed handoff|baseline preserve' docs/verification-plan.xml docs/development-plan.xml</check-3></module-checks>
+      <success-scenarios><scenario-1>The non-OUTPUT smoke packet proves supported rule install, real non-helper destination recovery, governed handoff, and preserved baseline.</scenario-1><scenario-2>The smoke packet keeps helper launch proof, supported rule-install proof, route-mark proof, and tuple-recovery proof separate enough to isolate the first failing layer.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The smoke packet still fails at unsupported rule install, still recovers only the helper listener, or looks green only because the ordinary baseline regressed.</scenario-1><scenario-2>The smoke packet installs rules but leaves routing or mark application implicit, so tuple-recovery success cannot be trusted.</scenario-2></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-SMOKE>
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
@@ -6097,8 +6099,8 @@
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON" PRIORITY="high">
       <test-files><file>README.md</file><file>docs/verification-plan.xml</file></test-files>
       <module-checks><check-1>rg -n 'Phase-34|Phase-42|Phase-43|Phase-44|non-OUTPUT voice|non-OUTPUT video' README.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The comparison keeps the old direct-media, redirect-boundary, privilege-boundary, and output-boundary packets visible while evaluating the non-OUTPUT branch.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The comparison hides one of the earlier boundaries or treats the Phase-44 output-boundary packet as if it were already a non-OUTPUT success packet.</scenario-1></failure-scenarios>
+      <success-scenarios><scenario-1>The comparison keeps the old direct-media, redirect-boundary, privilege-boundary, and output-boundary packets visible while evaluating the non-OUTPUT branch.</scenario-1><scenario-2>The comparison states whether positive evidence first appeared at supported rule install, at real-target recovery, during calls, or nowhere.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The comparison hides one of the earlier boundaries or treats the Phase-44 output-boundary packet as if it were already a non-OUTPUT success packet.</scenario-1><scenario-2>The comparison collapses rule-install proof and tuple-recovery proof into one vague success claim.</scenario-2></failure-scenarios>
     </V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON>
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION" PRIORITY="high">
       <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
@@ -6865,6 +6867,7 @@ PY</command-5>
         <evidence-5>The wave requires supported rule-install proof and at least one real non-helper destination tuple.</evidence-5>
         <evidence-6>The wave keeps voice and video as separate downstream packets.</evidence-6>
         <evidence-7>The wave rejects any blended packet that still treats the blocked Phase-44 host OUTPUT packet as if it were already a non-OUTPUT success surface.</evidence-7>
+        <evidence-8>The wave requires separate route-mark or equivalent topology-routing proof instead of inferring it from tuple recovery alone.</evidence-8>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsPrivilegedNonOutputTproxyWave; expected-evidence=preserved ordinary baseline, explicit Phase-44 output boundary, one exact privileged non-OUTPUT topology class, green non-OUTPUT smoke with supported rule install and real destination recovery, and separate voice and video packets; observed-evidence=phase artifacts, topology packet, smoke packet, and execution packet; first-divergent-block=first missing non-OUTPUT privileged gate requirement; next-action=repair that exact topology or rule-install layer before spending more call attempts</failure-packet-template>
     </LV-036>
@@ -7728,6 +7731,7 @@ PY</command-3>
         <evidence-6>The gate requires no second auth/bootstrap window anywhere in the branch.</evidence-6>
         <evidence-7>The gate requires separate voice and video packets plus a bounded final decision.</evidence-7>
         <evidence-8>The gate rejects blended evidence where the old Phase-44 OUTPUT packet is treated as if it were already a non-OUTPUT success packet.</evidence-8>
+        <evidence-9>The gate requires separate route or mark proof for the chosen non-OUTPUT topology before tuple-recovery evidence can count.</evidence-9>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-45; expected-evidence=execution-ready privileged non-OUTPUT TPROXY calls wave with preserved ordinary baseline, explicit Phase-44 output boundary, one exact non-OUTPUT topology class and runtime profile, green non-OUTPUT smoke proving supported rule install plus real destination recovery, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, topology packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-45 gate requirement; next-action=repair the missing Phase-45 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-45>
