@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.76">
+<VerificationPlan VERSION="0.2.77">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -140,6 +140,8 @@
     <telegram-nonredirect-real-target-rule>Phase-43 smoke is invalid if recovered targets still collapse to the helper listener instead of proving at least one real non-helper destination tuple.</telegram-nonredirect-real-target-rule>
     <telegram-nonredirect-no-redirect-blend-rule>Phase-43 may not treat Phase-42 REDIRECT evidence as if it were already non-REDIRECT smoke or calls evidence; the redirect-boundary packet must stay separate and visible.</telegram-nonredirect-no-redirect-blend-rule>
     <telegram-nonredirect-operator-shape-lock-rule>Phase-43 may change interception topology only; ordinary Telegram UI shape, preserved `127.0.0.1:1080` baseline, and governed live helper launch shape must stay fixed.</telegram-nonredirect-operator-shape-lock-rule>
+    <telegram-tproxy-priv-single-launch-rule>Phase-44 must choose one exact privileged launch class for TPROXY and may not blend root-run, file-capability, and systemd capability-confined helper surfaces into one wave.</telegram-tproxy-priv-single-launch-rule>
+    <telegram-tproxy-priv-smoke-first-rule>Phase-44 may spend voice or video packets only after privileged TPROXY smoke proves transparent-socket enablement, real non-helper destination recovery, and preserved ordinary baseline.</telegram-tproxy-priv-smoke-first-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -5990,6 +5992,72 @@
       <success-scenarios><scenario-1>The final decision stays bounded to the non-REDIRECT live branch and preserves the ordinary baseline.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1></failure-scenarios>
     </V-M-TELEGRAM-CALLS-NONREDIRECT-DECISION>
+    <V-M-TPROXY-PRIV-HYPOTHESIS MODULE="M-TPROXY-PRIV-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-43|Operation not permitted|IP_TRANSPARENT|privileged transparent-socket|TPROXY' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The new hypothesis preserves the blocked Phase-43 branch while naming privileged transparent-socket launch as the exact next blocker.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The hypothesis hides the privilege boundary or reclassifies the blocker as a generic topology-choice issue.</scenario-1></failure-scenarios>
+    </V-M-TPROXY-PRIV-HYPOTHESIS>
+    <V-M-PHASE43-PRIV-BOUNDARY MODULE="M-PHASE43-PRIV-BOUNDARY" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/knowledge-graph.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-43|privileged-launch|Operation not permitted|IP_TRANSPARENT|blocked-by-privileged' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The old Phase-43 tail no longer looks runnable after the privileged launch boundary is introduced.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The old Phase-43 tail still looks like the honest next execution branch without a privileged launch surface.</scenario-1></failure-scenarios>
+    </V-M-PHASE43-PRIV-BOUNDARY>
+    <V-M-TPROXY-PRIV-TECH-DECISION MODULE="M-TPROXY-PRIV-TECH-DECISION" PRIORITY="high">
+      <test-files><file>docs/technology.xml</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'TPROXY|privileged launch|root-run|capability|single launch class' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The branch chooses one exact privileged launch class for TPROXY transparent-socket enablement.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The branch mixes multiple privilege models or leaves the launch class vague.</scenario-1></failure-scenarios>
+    </V-M-TPROXY-PRIV-TECH-DECISION>
+    <V-M-TPROXY-PRIV-RUNTIME-PROFILE MODULE="M-TPROXY-PRIV-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'TPROXY|privileged|127.0.0.1:1080|helper owner|capabilities|ordinary baseline' docs/OPERATORS.md docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The runtime profile fixes helper ownership, required capabilities, and preserved-baseline boundaries for the privileged TPROXY branch.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The runtime profile weakens the ordinary baseline guarantee or leaves helper ownership and capability scope ambiguous.</scenario-1></failure-scenarios>
+    </V-M-TPROXY-PRIV-RUNTIME-PROFILE>
+    <V-M-TPROXY-PRIV-LAUNCH-DELTA MODULE="M-TPROXY-PRIV-LAUNCH-DELTA" PRIORITY="high">
+      <test-files><file>src/cli/mod.rs</file><file>src/config/mod.rs</file><file>src/udp_origdst/linux.rs</file></test-files>
+      <module-checks><check-1>rg -n 'IP_TRANSPARENT|privileged|TPROXY|origdst-live|capability' src/cli/mod.rs src/config/mod.rs src/udp_origdst/linux.rs</check-1></module-checks>
+      <success-scenarios><scenario-1>The launch delta stays minimal and targets privileged transparent-socket launch without widening the generic helper contract.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The launch delta silently broadens generic helper behavior or hides the privileged boundary inside unrelated runtime changes.</scenario-1></failure-scenarios>
+    </V-M-TPROXY-PRIV-LAUNCH-DELTA>
+    <V-M-TPROXY-PRIV-RUNBOOK MODULE="M-TPROXY-PRIV-RUNBOOK" PRIORITY="high">
+      <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'TPROXY|privileged launch|transparent socket|cleanup|127.0.0.1:1080|no second auth' docs/OPERATORS.md docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The runbook defines explicit privileged helper launch, capability proof, TPROXY setup, cleanup, and preserved-baseline proof.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The runbook leaves privilege acquisition, cleanup ownership, or baseline-preserve proof ambiguous.</scenario-1></failure-scenarios>
+    </V-M-TPROXY-PRIV-RUNBOOK>
+    <V-M-TPROXY-PRIV-SMOKE MODULE="M-TPROXY-PRIV-SMOKE" PRIORITY="high">
+      <test-files><file>src/cli/mod.test.rs</file><file>src/udp_origdst/linux.test.rs</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'TPROXY|privileged|transparent socket|real target|non-helper|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-43|Operation not permitted|IP_TRANSPARENT' docs/development-plan.xml docs/verification-plan.xml README.md</check-2></module-checks>
+      <success-scenarios><scenario-1>The privileged TPROXY smoke packet proves transparent-socket enablement, at least one real non-helper destination tuple, governed handoff, and preserved baseline.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The smoke packet still fails at privilege acquisition, still recovers only the helper listener, or looks green only because the ordinary baseline regressed.</scenario-1></failure-scenarios>
+    </V-M-TPROXY-PRIV-SMOKE>
+    <V-M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE MODULE="M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'TPROXY voice|already logged-in|privileged smoke|real target|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The privileged TPROXY voice packet is explicitly downstream of green privileged smoke and the ordinary logged-in baseline.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The privileged TPROXY voice packet is spent before green privileged smoke or reopens a second auth window.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE>
+    <V-M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO MODULE="M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'TPROXY video|already logged-in|privileged smoke|real target|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The privileged TPROXY video packet stays separate from voice and remains downstream of the same green privileged smoke proof.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The privileged TPROXY video packet silently inherits voice or bypasses smoke-first policy.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO>
+    <V-M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON MODULE="M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-34|Phase-42|Phase-43|TPROXY voice|TPROXY video|privileged' README.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The comparison keeps the old direct-media, redirect-boundary, and privilege-boundary packets visible while evaluating the privileged TPROXY packets.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The comparison hides one of the earlier boundaries or treats a privilege-failure packet as if it were already a privileged TPROXY success packet.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON>
+    <V-M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION MODULE="M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'TPROXY decision|127.0.0.1:1080|Phase-43|Phase-42|Phase-34' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The final decision stays bounded to the privileged TPROXY branch and preserves the ordinary baseline.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The final decision overclaims calls support or weakens the ordinary Telegram baseline guarantee.</scenario-1></failure-scenarios>
+    </V-M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -6690,6 +6758,24 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsNonRedirectOrigDstWave; expected-evidence=preserved ordinary baseline, explicit Phase-42 redirect boundary, one exact non-REDIRECT topology class, green non-REDIRECT live smoke with real destination recovery, and separate voice and video packets; observed-evidence=phase artifacts, topology packet, smoke packet, and execution packet; first-divergent-block=first missing non-REDIRECT gate requirement; next-action=repair that exact non-REDIRECT layer before spending more call attempts</failure-packet-template>
     </LV-034>
+    <LV-035 NAME="TelegramCallsPrivilegedTproxyWave" PRIORITY="high">
+      <scope>Phase-44 privileged TPROXY helper branch after the blocked Phase-43 privilege boundary was frozen.</scope>
+      <commands>
+        <command-1>rg -n 'Phase-44|TPROXY|privileged|Operation not permitted|IP_TRANSPARENT' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-1>
+        <command-2>rg -n 'LV-035|Gate-Phase-44|127.0.0.1:1080|no second auth|transparent socket' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>rg -n 'privileged launch|real non-helper destination|Phase-43|Phase-42|Phase-34' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md README.md</command-3>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave keeps the ordinary logged-in Telegram baseline explicit and preserved.</evidence-1>
+        <evidence-2>The wave keeps the blocked Phase-43 privilege-boundary packet explicit.</evidence-2>
+        <evidence-3>The wave chooses one exact privileged launch class for TPROXY.</evidence-3>
+        <evidence-4>The wave requires green privileged TPROXY smoke before any new calls packet.</evidence-4>
+        <evidence-5>The wave requires proof of transparent-socket enablement plus at least one real non-helper destination tuple.</evidence-5>
+        <evidence-6>The wave keeps voice and video as separate downstream packets.</evidence-6>
+        <evidence-7>The wave rejects blended packets that treat a privilege-failure boundary as if it were already a privileged TPROXY success surface.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsPrivilegedTproxyWave; expected-evidence=preserved ordinary baseline, explicit Phase-43 privilege boundary, one exact privileged TPROXY launch class, green privileged smoke with transparent-socket proof and real destination recovery, and separate voice and video packets; observed-evidence=phase artifacts, privilege packet, smoke packet, and execution packet; first-divergent-block=first missing privileged TPROXY gate requirement; next-action=repair that exact privilege or TPROXY layer before spending more call attempts</failure-packet-template>
+    </LV-035>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -7502,6 +7588,31 @@ PY</command-3>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-43; expected-evidence=execution-ready non-REDIRECT live calls wave with preserved ordinary baseline, explicit Phase-42 redirect boundary, one exact topology choice and runtime profile, green non-REDIRECT smoke proving real destination recovery, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, topology packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-43 gate requirement; next-action=repair the missing Phase-43 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-43>
+    <Gate-Phase-44 PHASE="Phase-44">
+      <goal>The project has an execution-ready privileged TPROXY helper branch before any new Telegram calls packet is spent.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-44|M-TPROXY-PRIV-HYPOTHESIS|M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-035|127.0.0.1:1080|TPROXY|privileged|Operation not permitted|Phase-43|Phase-42|Phase-34' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the already-working ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the blocked Phase-43 privilege-boundary packet explicit.</evidence-2>
+        <evidence-3>The gate requires one exact privileged launch class and one exact privileged runtime profile.</evidence-3>
+        <evidence-4>The gate requires green privileged TPROXY smoke before any new calls packet.</evidence-4>
+        <evidence-5>The gate requires proof of transparent-socket enablement and real non-helper destination recovery.</evidence-5>
+        <evidence-6>The gate requires no second auth/bootstrap window anywhere in the branch.</evidence-6>
+        <evidence-7>The gate requires separate voice and video packets plus a bounded final decision.</evidence-7>
+        <evidence-8>The gate rejects blended evidence where the old privilege-failure packet is treated as if it were already a privileged TPROXY success packet.</evidence-8>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-44; expected-evidence=execution-ready privileged TPROXY calls wave with preserved ordinary baseline, explicit Phase-43 privilege boundary, one exact privileged launch class and runtime profile, green privileged smoke proving transparent-socket enablement plus real destination recovery, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, privilege packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-44 gate requirement; next-action=repair the missing Phase-44 artifact before executing the wave</failure-packet-template>
+    </Gate-Phase-44>
   </PhaseGates>
 
   <FailurePackets>

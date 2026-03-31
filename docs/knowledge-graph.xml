@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.48">
+  <Project NAME="n0wss" VERSION="0.2.49">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3047,6 +3047,105 @@
         <fn-issueTelegramCallsNonRedirectDecision PURPOSE="Issue the bounded final decision after the non-REDIRECT live calls branch." />
       </annotations>
     </M-TELEGRAM-CALLS-NONREDIRECT-DECISION>
+    <M-TPROXY-PRIV-HYPOTHESIS NAME="TproxyPrivHypothesis" TYPE="UTILITY" STATUS="planned">
+      <purpose>Freeze the new truth-boundary that the Phase-43 TPROXY branch is blocked by privileged transparent-socket launch rather than by topology choice alone.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-NONREDIRECT-DECISION, M-NONREDIRECT-LIVE-SMOKE</depends>
+      <verification-ref>V-M-TPROXY-PRIV-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezeTproxyPrivHypothesis PURPOSE="Freeze the privileged transparent-socket boundary above the blocked Phase-43 branch." />
+      </annotations>
+    </M-TPROXY-PRIV-HYPOTHESIS>
+    <M-PHASE43-PRIV-BOUNDARY NAME="Phase43PrivBoundary" TYPE="UTILITY" STATUS="planned">
+      <purpose>Explicitly preserve the Phase-43 tail as blocked by the missing privileged launch surface instead of by topology ambiguity.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TPROXY-PRIV-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE43-PRIV-BOUNDARY</verification-ref>
+      <annotations>
+        <fn-freezePhase43PrivBoundary PURPOSE="Keep the blocked Phase-43 TPROXY branch explicit and non-runnable until a privileged launch surface exists." />
+      </annotations>
+    </M-PHASE43-PRIV-BOUNDARY>
+    <M-TPROXY-PRIV-TECH-DECISION NAME="TproxyPrivTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Choose one exact privileged launch class for the TPROXY helper branch so transparent-socket enablement is explicit and bounded.</purpose>
+      <path>docs/technology.xml</path>
+      <depends>M-NONREDIRECT-TECH-DECISION, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT</depends>
+      <verification-ref>V-M-TPROXY-PRIV-TECH-DECISION</verification-ref>
+      <annotations>
+        <fn-chooseTproxyPrivTechDecision PURPOSE="Choose one exact privileged launch class for the TPROXY helper branch." />
+      </annotations>
+    </M-TPROXY-PRIV-TECH-DECISION>
+    <M-TPROXY-PRIV-RUNTIME-PROFILE NAME="TproxyPrivRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze the exact privileged runtime topology for helper ownership, required capabilities, and preserved ordinary baseline.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TPROXY-PRIV-TECH-DECISION, M-NONREDIRECT-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-TPROXY-PRIV-RUNTIME-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeTproxyPrivRuntimeProfile PURPOSE="Freeze the exact privileged runtime profile for the TPROXY helper branch." />
+      </annotations>
+    </M-TPROXY-PRIV-RUNTIME-PROFILE>
+    <M-TPROXY-PRIV-LAUNCH-DELTA NAME="TproxyPrivLaunchDelta" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define the minimal code or config delta needed for privileged transparent-socket launch without widening the generic helper contract.</purpose>
+      <path>src/cli/mod.rs</path>
+      <depends>M-TPROXY-PRIV-TECH-DECISION, M-CLI, M-CONFIG, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
+      <verification-ref>V-M-TPROXY-PRIV-LAUNCH-DELTA</verification-ref>
+      <annotations>
+        <fn-applyTproxyPrivLaunchDelta PURPOSE="Apply the minimal launch-surface delta required for privileged TPROXY helper startup." />
+      </annotations>
+    </M-TPROXY-PRIV-LAUNCH-DELTA>
+    <M-TPROXY-PRIV-RUNBOOK NAME="TproxyPrivRunbook" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Define the exact operator packet for privileged helper launch, capability proof, TPROXY setup, cleanup, and baseline preservation.</purpose>
+      <path>docs/OPERATORS.md</path>
+      <depends>M-TPROXY-PRIV-RUNTIME-PROFILE, M-NONREDIRECT-LIVE-RUNBOOK</depends>
+      <verification-ref>V-M-TPROXY-PRIV-RUNBOOK</verification-ref>
+      <annotations>
+        <fn-freezeTproxyPrivRunbook PURPOSE="Freeze the exact operator packet for the privileged TPROXY helper branch." />
+      </annotations>
+    </M-TPROXY-PRIV-RUNBOOK>
+    <M-TPROXY-PRIV-SMOKE NAME="TproxyPrivSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Prove outside Telegram UI that a privileged TPROXY launch can enable transparent sockets, recover a real destination tuple, and preserve the ordinary baseline.</purpose>
+      <path>src/cli/mod.test.rs</path>
+      <depends>M-TPROXY-PRIV-LAUNCH-DELTA, M-TPROXY-PRIV-RUNBOOK</depends>
+      <verification-ref>V-M-TPROXY-PRIV-SMOKE</verification-ref>
+      <annotations>
+        <fn-proveTproxyPrivSmoke PURPOSE="Prove privileged TPROXY launch and real destination recovery before any new call packet." />
+      </annotations>
+    </M-TPROXY-PRIV-SMOKE>
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE NAME="TelegramCallsTproxyPrivVoice" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after green privileged TPROXY smoke.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TPROXY-PRIV-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsTproxyPrivVoice PURPOSE="Spend one bounded voice packet after privileged TPROXY smoke is green." />
+      </annotations>
+    </M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE>
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO NAME="TelegramCallsTproxyPrivVideo" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded video attempt on the same privileged TPROXY branch without inheriting the voice result.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsTproxyPrivVideo PURPOSE="Spend one bounded video packet on the privileged TPROXY branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO>
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON NAME="TelegramCallsTproxyPrivComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the privileged TPROXY packets against the earlier direct-media, redirect-boundary, and privilege-boundary packets.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE, M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramCallsTproxyPriv PURPOSE="Compare the privileged TPROXY packets against the preserved earlier boundaries." />
+      </annotations>
+    </M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON>
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION NAME="TelegramCallsTproxyPrivDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded final decision after the privileged TPROXY calls branch.</purpose>
+      <path>README.md</path>
+      <depends>M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsTproxyPrivDecision PURPOSE="Issue the bounded final decision after the privileged TPROXY calls branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
