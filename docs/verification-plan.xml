@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.82">
+<VerificationPlan VERSION="0.2.83">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -154,6 +154,8 @@
     <telegram-postrecovery-smoke-first-rule>Phase-46 may spend voice or video packets only after post-recovery smoke proves that tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome can be kept as separate evidence classes.</telegram-postrecovery-smoke-first-rule>
     <telegram-postrecovery-topology-lock-rule>Phase-46 may not silently change the preserved Phase-45 interception topology, helper launch shape, or ordinary Telegram baseline while it studies call establishment above recovery.</telegram-postrecovery-topology-lock-rule>
     <telegram-postrecovery-proof-separation-rule>Phase-46 is invalid if it blends tuple recovery, governed handoff, downstream establishment behavior, and user-visible key-exchange outcome into one vague success claim.</telegram-postrecovery-proof-separation-rule>
+    <telegram-postrecovery-phase45-positive-evidence-rule>Phase-46 must preserve the statement that Phase-45 was the first branch with real Telegram media-tuple recovery and governed handoff during bounded calls packets; that first-positive-evidence boundary may not move earlier or later without new bounded proof.</telegram-postrecovery-phase45-positive-evidence-rule>
+    <telegram-postrecovery-proof-order-rule>Phase-46 evidence is invalid unless tuple recovery proof, governed-handoff proof, downstream-establishment proof, and key-exchange outcome proof appear in that order as separate evidence classes.</telegram-postrecovery-proof-order-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -6138,9 +6140,9 @@
     </V-M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION>
     <V-M-POSTRECOVERY-HYPOTHESIS MODULE="M-POSTRECOVERY-HYPOTHESIS" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/knowledge-graph.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'Phase-45|post-recovery|key-exchange|real tuple|real-media-tuple|governed handoff' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The new hypothesis freezes Phase-45 as tuple-recovery green but establishment-blocked.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The hypothesis reopens topology recovery or hides the completed Phase-45 packet.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'Phase-45|post-recovery|key-exchange|real tuple|real-media-tuple|governed handoff' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-1><check-2>rg -n 'first real-media-tuple branch|first real-tuple-success branch|Phase-45 establishment boundary' docs/development-plan.xml docs/knowledge-graph.xml docs/verification-plan.xml</check-2></module-checks>
+      <success-scenarios><scenario-1>The new hypothesis freezes Phase-45 as tuple-recovery green but establishment-blocked.</scenario-1><scenario-2>The hypothesis preserves Phase-45 as the first positive-evidence boundary and does not shift that claim elsewhere.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The hypothesis reopens topology recovery or hides the completed Phase-45 packet.</scenario-1><scenario-2>The hypothesis blurs where positive evidence first appeared.</scenario-2></failure-scenarios>
     </V-M-POSTRECOVERY-HYPOTHESIS>
     <V-M-PHASE45-ESTABLISHMENT-BOUNDARY MODULE="M-PHASE45-ESTABLISHMENT-BOUNDARY" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/knowledge-graph.xml</file><file>docs/verification-plan.xml</file></test-files>
@@ -6168,21 +6170,21 @@
     </V-M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT>
     <V-M-POSTRECOVERY-SMOKE MODULE="M-POSTRECOVERY-SMOKE" PRIORITY="high">
       <test-files><file>src/cli/mod.test.rs</file><file>tests/udp_origdst_smoke.rs</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery smoke|tuple recovery|governed handoff|establishment behavior|key-exchange outcome|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The post-recovery smoke packet proves the new evidence surface without spending a Telegram UI packet.</scenario-1><scenario-2>The smoke packet keeps recovery, downstream behavior, and baseline-preserve proof separate enough to isolate the first failing layer.</scenario-2></success-scenarios>
-      <failure-scenarios><scenario-1>The smoke packet still blends recovery with establishment claims or weakens the preserved baseline.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'post-recovery smoke|tuple recovery|governed handoff|establishment behavior|key-exchange outcome|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'proof order|separate evidence classes|Phase-45|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
+      <success-scenarios><scenario-1>The post-recovery smoke packet proves the new evidence surface without spending a Telegram UI packet.</scenario-1><scenario-2>The smoke packet keeps recovery, downstream behavior, and baseline-preserve proof separate enough to isolate the first failing layer.</scenario-2><scenario-3>The smoke packet proves the required proof order above the unchanged Phase-45 topology.</scenario-3></success-scenarios>
+      <failure-scenarios><scenario-1>The smoke packet still blends recovery with establishment claims or weakens the preserved baseline.</scenario-1><scenario-2>The smoke packet lets downstream-establishment claims appear before tuple-recovery or governed-handoff proof.</scenario-2></failure-scenarios>
     </V-M-POSTRECOVERY-SMOKE>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-VOICE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery voice|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The post-recovery voice packet is downstream of green post-recovery smoke and preserves the ordinary logged-in baseline.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The post-recovery voice packet is spent before green smoke or collapses recovery and establishment into one claim.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'post-recovery voice|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
+      <success-scenarios><scenario-1>The post-recovery voice packet is downstream of green post-recovery smoke and preserves the ordinary logged-in baseline.</scenario-1><scenario-2>The voice packet records tuple recovery, governed handoff, establishment behavior, and UI outcome in the required order without changing topology.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The post-recovery voice packet is spent before green smoke or collapses recovery and establishment into one claim.</scenario-1><scenario-2>The voice packet silently changes topology or skips one proof class.</scenario-2></failure-scenarios>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The post-recovery video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The post-recovery video packet silently inherits voice or bypasses smoke-first policy.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
+      <success-scenarios><scenario-1>The post-recovery video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1><scenario-2>The video packet records the same ordered proof classes without inheriting the voice evidence.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The post-recovery video packet silently inherits voice or bypasses smoke-first policy.</scenario-1><scenario-2>The video packet collapses proof classes or changes topology under the same branch label.</scenario-2></failure-scenarios>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
@@ -6941,6 +6943,7 @@ PY</command-5>
         <command-1>rg -n 'Phase-46|post-recovery|Phase-45|establishment boundary|key-exchange' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
         <command-2>rg -n 'LV-037|Gate-Phase-46|127.0.0.1:1080|no second auth|tuple recovery|governed handoff' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-2>
         <command-3>rg -n 'establishment behavior|Обмен ключами шифрования|separate evidence classes' docs/development-plan.xml docs/verification-plan.xml</command-3>
+        <command-4>rg -n 'first real-media-tuple branch|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-4>
       </commands>
       <required-evidence>
         <evidence-1>The wave keeps the ordinary logged-in Telegram baseline explicit and preserved.</evidence-1>
@@ -6949,6 +6952,7 @@ PY</command-5>
         <evidence-4>The wave requires green post-recovery smoke before any new calls packet.</evidence-4>
         <evidence-5>The wave requires separate proof for tuple recovery, governed handoff, downstream establishment behavior, and user-visible key-exchange outcome.</evidence-5>
         <evidence-6>The wave keeps voice and video as separate downstream packets.</evidence-6>
+        <evidence-7>The wave preserves proof order from tuple recovery through UI outcome and does not relocate where positive evidence first appeared.</evidence-7>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsPostRecoveryWave; expected-evidence=preserved ordinary baseline, explicit Phase-45 establishment boundary, one exact post-recovery evidence class, green post-recovery smoke proving separate evidence classes above tuple recovery, and separate voice and video packets; observed-evidence=phase artifacts, post-recovery packet, smoke packet, and execution packet; first-divergent-block=first missing post-recovery gate requirement; next-action=repair that exact evidence layer before spending more call attempts</failure-packet-template>
     </LV-037>
@@ -7821,6 +7825,7 @@ PY</command-3>
       <commands>
         <command-1>rg -n 'Phase-46|M-POSTRECOVERY-HYPOTHESIS|M-TELEGRAM-CALLS-POSTRECOVERY-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
         <command-2>rg -n 'LV-037|127.0.0.1:1080|Phase-45|post-recovery|Обмен ключами шифрования|governed handoff|tuple recovery' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-2>
+        <command-3>rg -n 'first real-media-tuple branch|proof order|topology unchanged' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-3>
         <command-3>python3 - &lt;&lt;'PY'
 import xml.etree.ElementTree as ET
 for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
@@ -7837,6 +7842,7 @@ PY</command-3>
         <evidence-5>The gate requires separate proof for tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome.</evidence-5>
         <evidence-6>The gate requires no second auth/bootstrap window anywhere in the branch.</evidence-6>
         <evidence-7>The gate requires separate voice and video packets plus a bounded final decision.</evidence-7>
+        <evidence-8>The gate preserves proof order and the statement that Phase-45 was the first positive-evidence boundary.</evidence-8>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-46; expected-evidence=execution-ready post-recovery calls wave with preserved ordinary baseline, explicit Phase-45 establishment boundary, one exact post-recovery evidence class and preserved runtime profile, green post-recovery smoke proving separate evidence classes above tuple recovery, separate voice and video packets, and bounded decision; observed-evidence=phase artifacts, post-recovery packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-46 gate requirement; next-action=repair the missing Phase-46 artifact before executing the wave</failure-packet-template>
     </Gate-Phase-46>
