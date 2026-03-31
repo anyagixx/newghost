@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.57">
+<DevelopmentPlan VERSION="0.2.58">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7977,7 +7977,7 @@
       </observability>
       <verification-ref>V-M-TPROXY-PRIV-RUNBOOK</verification-ref>
     </M-TPROXY-PRIV-RUNBOOK>
-    <M-TPROXY-PRIV-SMOKE NAME="TproxyPrivSmoke" TYPE="CORE_LOGIC" LAYER="47" ORDER="7" STATUS="planned">
+    <M-TPROXY-PRIV-SMOKE NAME="TproxyPrivSmoke" TYPE="CORE_LOGIC" LAYER="47" ORDER="7" STATUS="superseded">
       <contract>
         <purpose>Prove outside Telegram UI that the privileged TPROXY branch can enable transparent sockets, recover a real destination tuple, and preserve the ordinary baseline.</purpose>
         <inputs>
@@ -7999,7 +7999,7 @@
       </observability>
       <verification-ref>V-M-TPROXY-PRIV-SMOKE</verification-ref>
     </M-TPROXY-PRIV-SMOKE>
-    <M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE NAME="TelegramCallsTproxyPrivVoice" TYPE="CORE_LOGIC" LAYER="47" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE NAME="TelegramCallsTproxyPrivVoice" TYPE="CORE_LOGIC" LAYER="47" ORDER="8" STATUS="superseded">
       <contract>
         <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after privileged TPROXY smoke is green.</purpose>
         <inputs>
@@ -8020,7 +8020,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE>
-    <M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO NAME="TelegramCallsTproxyPrivVideo" TYPE="CORE_LOGIC" LAYER="47" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO NAME="TelegramCallsTproxyPrivVideo" TYPE="CORE_LOGIC" LAYER="47" ORDER="9" STATUS="superseded">
       <contract>
         <purpose>Run one bounded video attempt on the same privileged TPROXY branch without inheriting the voice result.</purpose>
         <inputs>
@@ -8041,7 +8041,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO>
-    <M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON NAME="TelegramCallsTproxyPrivComparison" TYPE="CORE_LOGIC" LAYER="47" ORDER="10" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON NAME="TelegramCallsTproxyPrivComparison" TYPE="CORE_LOGIC" LAYER="47" ORDER="10" STATUS="superseded">
       <contract>
         <purpose>Compare the privileged TPROXY packets against the older direct-media, redirect-boundary, and blocked non-REDIRECT privilege-boundary packets.</purpose>
         <inputs>
@@ -8062,7 +8062,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON>
-    <M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION NAME="TelegramCallsTproxyPrivDecision" TYPE="ENTRY_POINT" LAYER="47" ORDER="11" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION NAME="TelegramCallsTproxyPrivDecision" TYPE="ENTRY_POINT" LAYER="47" ORDER="11" STATUS="superseded">
       <contract>
         <purpose>Issue the bounded final decision after the privileged TPROXY calls branch.</purpose>
         <inputs>
@@ -8084,6 +8084,242 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION>
+    <M-TPROXY-NONOUTPUT-HYPOTHESIS NAME="TproxyNonOutputHypothesis" TYPE="UTILITY" LAYER="48" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the new truth-boundary that Phase-44 proved privileged launch plus transparent-socket enablement, but failed specifically on host OUTPUT-class TPROXY interception.</purpose>
+        <inputs>
+          <input-1>The blocked Phase-44 smoke packet and the bounded privileged-launch evidence beneath it.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded hypothesis packet naming non-OUTPUT TPROXY topology as the exact next branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/OPERATORS.md</file-2>
+        <file-3>docs/development-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION, M-TPROXY-PRIV-SMOKE</depends>
+      <observability>
+        <log-prefix>[TproxyNonOutputHypothesis]</log-prefix>
+        <critical-block>BLOCK_TPROXY_NONOUTPUT_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-TPROXY-NONOUTPUT-HYPOTHESIS</verification-ref>
+    </M-TPROXY-NONOUTPUT-HYPOTHESIS>
+    <M-PHASE44-OUTPUT-BOUNDARY NAME="Phase44OutputBoundary" TYPE="UTILITY" LAYER="48" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Explicitly preserve the old Phase-44 tail as a blocked host OUTPUT TPROXY topology packet rather than as missing privilege proof.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-44 smoke packet and the new non-OUTPUT topology hypothesis.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A visible output-boundary packet that no longer looks runnable as the honest next branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TPROXY-NONOUTPUT-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase44OutputBoundary]</log-prefix>
+        <critical-block>BLOCK_PHASE44_OUTPUT_BOUNDARY</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE44-OUTPUT-BOUNDARY</verification-ref>
+    </M-PHASE44-OUTPUT-BOUNDARY>
+    <M-TPROXY-NONOUTPUT-TECH-DECISION NAME="TproxyNonOutputTechDecision" TYPE="ENTRY_POINT" LAYER="48" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Choose one exact privileged non-OUTPUT interception class for the next TPROXY branch so the unsupported host OUTPUT shape is no longer reused.</purpose>
+        <inputs>
+          <input-1>The blocked host OUTPUT TPROXY packet and the already-approved privileged helper launch shape.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One exact non-OUTPUT TPROXY topology class for the next live branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/technology.xml</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TPROXY-PRIV-TECH-DECISION, M-NONREDIRECT-TECH-DECISION</depends>
+      <observability>
+        <log-prefix>[TproxyNonOutputTechDecision]</log-prefix>
+        <critical-block>BLOCK_TPROXY_NONOUTPUT_TECH_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TPROXY-NONOUTPUT-TECH-DECISION</verification-ref>
+    </M-TPROXY-NONOUTPUT-TECH-DECISION>
+    <M-TPROXY-NONOUTPUT-RUNTIME-PROFILE NAME="TproxyNonOutputRuntimeProfile" TYPE="INTEGRATION" LAYER="48" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Freeze the exact non-OUTPUT TPROXY runtime profile while preserving the ordinary Telegram baseline and the approved privileged helper shape.</purpose>
+        <inputs>
+          <input-1>The exact non-OUTPUT topology decision plus the already-approved privileged helper runtime profile.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One exact non-OUTPUT TPROXY runtime profile.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+      </target-files>
+      <depends>M-TPROXY-NONOUTPUT-TECH-DECISION, M-TPROXY-PRIV-RUNTIME-PROFILE</depends>
+      <observability>
+        <log-prefix>[TproxyNonOutputRuntimeProfile]</log-prefix>
+        <critical-block>BLOCK_TPROXY_NONOUTPUT_RUNTIME_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-TPROXY-NONOUTPUT-RUNTIME-PROFILE</verification-ref>
+    </M-TPROXY-NONOUTPUT-RUNTIME-PROFILE>
+    <M-TPROXY-NONOUTPUT-LINUX-DELTA NAME="TproxyNonOutputLinuxDelta" TYPE="CORE_LOGIC" LAYER="48" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Define the minimal Linux or routing delta required for the chosen non-OUTPUT TPROXY topology without widening generic helper logic.</purpose>
+        <inputs>
+          <input-1>The exact non-OUTPUT topology decision and the existing Linux origdst adapter surface.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One bounded Linux delta for the non-OUTPUT TPROXY branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/udp_origdst/linux.rs</file-1>
+        <file-2>src/udp_origdst/linux.test.rs</file-2>
+      </target-files>
+      <depends>M-TPROXY-NONOUTPUT-TECH-DECISION, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
+      <observability>
+        <log-prefix>[TproxyNonOutputLinuxDelta]</log-prefix>
+        <critical-block>BLOCK_TPROXY_NONOUTPUT_LINUX_DELTA</critical-block>
+      </observability>
+      <verification-ref>V-M-TPROXY-NONOUTPUT-LINUX-DELTA</verification-ref>
+    </M-TPROXY-NONOUTPUT-LINUX-DELTA>
+    <M-TPROXY-NONOUTPUT-RUNBOOK NAME="TproxyNonOutputRunbook" TYPE="INTEGRATION" LAYER="48" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Define the exact operator packet for privileged helper launch, non-OUTPUT TPROXY rules, routing marks, cleanup, and preserved baseline proof.</purpose>
+        <inputs>
+          <input-1>The exact non-OUTPUT runtime profile and the existing privileged helper launch runbook.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>One exact operator runbook for the non-OUTPUT TPROXY branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/OPERATORS.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TPROXY-NONOUTPUT-RUNTIME-PROFILE, M-TPROXY-PRIV-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[TproxyNonOutputRunbook]</log-prefix>
+        <critical-block>BLOCK_TPROXY_NONOUTPUT_RUNBOOK</critical-block>
+      </observability>
+      <verification-ref>V-M-TPROXY-NONOUTPUT-RUNBOOK</verification-ref>
+    </M-TPROXY-NONOUTPUT-RUNBOOK>
+    <M-TPROXY-NONOUTPUT-SMOKE NAME="TproxyNonOutputSmoke" TYPE="CORE_LOGIC" LAYER="48" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Prove outside Telegram UI that the new non-OUTPUT TPROXY topology can install supported interception rules, recover a real destination tuple, and preserve the ordinary baseline.</purpose>
+        <inputs>
+          <input-1>The exact non-OUTPUT Linux delta and operator runbook.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-OUTPUT TPROXY smoke packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/cli/mod.test.rs</file-1>
+        <file-2>tests/udp_origdst_smoke.rs</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TPROXY-NONOUTPUT-LINUX-DELTA, M-TPROXY-NONOUTPUT-RUNBOOK</depends>
+      <observability>
+        <log-prefix>[TproxyNonOutputSmoke]</log-prefix>
+        <critical-block>BLOCK_TPROXY_NONOUTPUT_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-TPROXY-NONOUTPUT-SMOKE</verification-ref>
+    </M-TPROXY-NONOUTPUT-SMOKE>
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE NAME="TelegramCallsTproxyNonOutputVoice" TYPE="CORE_LOGIC" LAYER="48" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-OUTPUT privileged smoke.</purpose>
+        <inputs>
+          <input-1>The bounded non-OUTPUT TPROXY smoke packet and server-correlation surface.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-OUTPUT TPROXY voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TPROXY-NONOUTPUT-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsTproxyNonOutputVoice]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_TPROXY_NONOUTPUT_VOICE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE</verification-ref>
+    </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE>
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO NAME="TelegramCallsTproxyNonOutputVideo" TYPE="CORE_LOGIC" LAYER="48" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded video attempt on the same non-OUTPUT privileged branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded non-OUTPUT TPROXY voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-OUTPUT TPROXY video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsTproxyNonOutputVideo]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_TPROXY_NONOUTPUT_VIDEO</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO</verification-ref>
+    </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO>
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON NAME="TelegramCallsTproxyNonOutputComparison" TYPE="CORE_LOGIC" LAYER="48" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Compare the non-OUTPUT TPROXY packets against the old direct-media, redirect-boundary, non-REDIRECT, and output-boundary packets.</purpose>
+        <inputs>
+          <input-1>The bounded non-OUTPUT TPROXY voice and video packets.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded comparison packet for the non-OUTPUT TPROXY branch.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE, M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO</depends>
+      <observability>
+        <log-prefix>[TelegramCallsTproxyNonOutputComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_TPROXY_NONOUTPUT_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON>
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION NAME="TelegramCallsTproxyNonOutputDecision" TYPE="ENTRY_POINT" LAYER="48" ORDER="11" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded final decision after the non-OUTPUT privileged TPROXY branch.</purpose>
+        <inputs>
+          <input-1>The bounded non-OUTPUT TPROXY comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded non-OUTPUT privileged TPROXY final decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsTproxyNonOutputDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_TPROXY_NONOUTPUT_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION>
   </Modules>
 
   <DataFlow>
@@ -9362,7 +9598,7 @@
       <note-5>The only approved new variable is the interception topology class itself; live helper process shape, ordinary baseline, and no-second-auth rule stay fixed.</note-5>
       <note-6>On 2026-03-31 the first Phase-43 execution packet closed the docs-only boundary and technology work: the old Phase-42 call tail was explicitly superseded as a redirect-topology boundary, Linux `TPROXY` was frozen as the one exact non-REDIRECT interception class on this workstation, and the live operator runbook was narrowed so only the interception topology class may change while the governed `origdst-live` launch shape and the preserved `127.0.0.1:1080` baseline stay fixed.</note-6>
     </Phase-43>
-    <Phase-44 name="Privileged TPROXY Helper Launch Surface" status="in_progress">
+    <Phase-44 name="Privileged TPROXY Helper Launch Surface" status="superseded">
       <goal>Add one exact privileged launch surface for the TPROXY branch so transparent-socket enablement becomes operationally bounded before any new smoke or calls packet.</goal>
       <step-1 module="M-TPROXY-PRIV-HYPOTHESIS" status="done" verification="V-M-TPROXY-PRIV-HYPOTHESIS">Freeze the privileged transparent-socket boundary above the blocked Phase-43 branch</step-1>
       <step-2 module="M-PHASE43-PRIV-BOUNDARY" status="done" verification="V-M-PHASE43-PRIV-BOUNDARY">Explicitly freeze the old Phase-43 tail as blocked by privileged launch rather than topology choice</step-2>
@@ -9370,17 +9606,37 @@
       <step-4 module="M-TPROXY-PRIV-RUNTIME-PROFILE" status="done" verification="V-M-TPROXY-PRIV-RUNTIME-PROFILE">Freeze one exact privileged runtime profile for helper owner, capability surface, and preserved baseline</step-4>
       <step-5 module="M-TPROXY-PRIV-LAUNCH-DELTA" status="done" verification="V-M-TPROXY-PRIV-LAUNCH-DELTA">Define the minimal code or config delta required for privileged transparent-socket launch</step-5>
       <step-6 module="M-TPROXY-PRIV-RUNBOOK" status="done" verification="V-M-TPROXY-PRIV-RUNBOOK">Define the exact operator packet for privileged helper launch, capability proof, TPROXY setup, and cleanup</step-6>
-      <step-7 module="M-TPROXY-PRIV-SMOKE" status="planned" verification="V-M-TPROXY-PRIV-SMOKE">Prove outside Telegram UI that privileged TPROXY launch can enable transparent sockets and recover a real destination tuple</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window only after privileged TPROXY smoke is green</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO">Run one bounded video attempt on the same privileged branch without inheriting voice</step-9>
-      <step-10 module="M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON">Compare the privileged TPROXY packets against Phase-34, Phase-42, and the blocked Phase-43 privilege boundary</step-10>
-      <step-11 module="M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION">Issue the bounded decision after the privileged TPROXY calls branch</step-11>
+      <step-7 module="M-TPROXY-PRIV-SMOKE" status="superseded" verification="V-M-TPROXY-PRIV-SMOKE">Prove outside Telegram UI that privileged TPROXY launch can enable transparent sockets and recover a real destination tuple</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE" status="superseded" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window only after privileged TPROXY smoke is green</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO" status="superseded" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-VIDEO">Run one bounded video attempt on the same privileged branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON" status="superseded" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-COMPARISON">Compare the privileged TPROXY packets against Phase-34, Phase-42, and the blocked Phase-43 privilege boundary</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION" status="superseded" verification="V-M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION">Issue the bounded decision after the privileged TPROXY calls branch</step-11>
       <note-1>Phase-44 starts only after the preserved ordinary Telegram baseline, the Phase-42 redirect-boundary packet, and the blocked Phase-43 privilege-failure packet are all visible together.</note-1>
       <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
       <note-3>No Telegram voice or video packet is valid before privileged TPROXY smoke proves transparent-socket enablement plus real destination recovery.</note-3>
       <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files.</note-4>
       <note-5>The only approved new variable is the privileged launch surface itself; the non-REDIRECT topology class remains `TPROXY`, and helper runtime shape plus no-second-auth rule stay fixed.</note-5>
+      <note-6>On 2026-03-31 the first privileged smoke packet proved root-run helper launch, `IP_TRANSPARENT` enablement, and preserved baseline at `127.0.0.1:1080`, but the host OUTPUT-class TPROXY packet itself failed on this workstation: `iptables` returned `Invalid argument` and `nft` route/output returned `Operation not supported`.</note-6>
     </Phase-44>
+    <Phase-45 name="Privileged Non-Output TPROXY Topology" status="planned">
+      <goal>Replace the blocked host OUTPUT TPROXY shape with one exact privileged non-OUTPUT topology before any new Telegram calls packet is spent.</goal>
+      <step-1 module="M-TPROXY-NONOUTPUT-HYPOTHESIS" status="planned" verification="V-M-TPROXY-NONOUTPUT-HYPOTHESIS">Freeze the new truth-boundary above the blocked Phase-44 output packet</step-1>
+      <step-2 module="M-PHASE44-OUTPUT-BOUNDARY" status="planned" verification="V-M-PHASE44-OUTPUT-BOUNDARY">Explicitly preserve the old Phase-44 tail as a blocked host OUTPUT TPROXY packet</step-2>
+      <step-3 module="M-TPROXY-NONOUTPUT-TECH-DECISION" status="planned" verification="V-M-TPROXY-NONOUTPUT-TECH-DECISION">Choose one exact privileged non-OUTPUT interception class</step-3>
+      <step-4 module="M-TPROXY-NONOUTPUT-RUNTIME-PROFILE" status="planned" verification="V-M-TPROXY-NONOUTPUT-RUNTIME-PROFILE">Freeze one exact non-OUTPUT runtime profile while preserving the ordinary baseline</step-4>
+      <step-5 module="M-TPROXY-NONOUTPUT-LINUX-DELTA" status="planned" verification="V-M-TPROXY-NONOUTPUT-LINUX-DELTA">Define the minimal Linux or routing delta for the chosen non-OUTPUT TPROXY topology</step-5>
+      <step-6 module="M-TPROXY-NONOUTPUT-RUNBOOK" status="planned" verification="V-M-TPROXY-NONOUTPUT-RUNBOOK">Define the exact operator packet for privileged helper launch, non-OUTPUT TPROXY rules, routing marks, and cleanup</step-6>
+      <step-7 module="M-TPROXY-NONOUTPUT-SMOKE" status="planned" verification="V-M-TPROXY-NONOUTPUT-SMOKE">Prove outside Telegram UI that the non-OUTPUT privileged topology can install supported interception rules and recover a real destination tuple</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE">Run one bounded voice attempt only after green non-OUTPUT privileged smoke</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON">Compare the non-OUTPUT privileged packets against Phase-34, Phase-42, Phase-43, and Phase-44</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION">Issue the bounded decision after the non-OUTPUT privileged TPROXY branch</step-11>
+      <note-1>Phase-45 starts only after the preserved ordinary Telegram baseline, the Phase-42 redirect-boundary packet, the Phase-43 privilege-boundary packet, and the Phase-44 output-boundary packet are all visible together.</note-1>
+      <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
+      <note-3>No Telegram voice or video packet is valid before non-OUTPUT privileged smoke proves supported rule install plus real destination recovery.</note-3>
+      <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files.</note-4>
+      <note-5>The only approved new variable is the interception topology shape itself; privileged helper launch, helper listener shape, and no-second-auth rule stay fixed.</note-5>
+    </Phase-45>
   </ImplementationOrder>
 
   <ExecutionPolicy>
