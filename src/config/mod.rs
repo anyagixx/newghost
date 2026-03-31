@@ -1,16 +1,17 @@
 // FILE: src/config/mod.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
-//   PURPOSE: Load and validate runtime configuration for client and server modes.
-//   SCOPE: CLI parsing, typed configuration assembly, deterministic validation, and stable log markers.
+//   PURPOSE: Load and validate runtime configuration for client, server, and live origdst-helper modes.
+//   SCOPE: CLI parsing, typed configuration assembly, deterministic validation, explicit live-helper launch shape, and stable log markers.
 //   DEPENDS: clap, thiserror, tracing, url
-//   LINKS: M-CONFIG, V-M-CONFIG, DF-CLIENT-BOOT, VF-001
+//   LINKS: M-CONFIG, M-ORIGDST-LIVE-CONFIG-SHAPE, V-M-CONFIG, V-M-ORIGDST-LIVE-CONFIG-SHAPE, DF-CLIENT-BOOT, VF-001
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   AppConfig - validated application configuration
-//   RuntimeMode - client or server configuration branch
+//   RuntimeMode - client, server, or live origdst-helper configuration branch
 //   ClientTlsConfig - client-side trust-anchor and optional endpoint-identity override
+//   OrigDstLiveConfig - explicit live helper listener and preserved-baseline launch shape
 //   LimitsConfig - concurrency and queue limits
 //   TimeoutConfig - transport and shutdown timing knobs
 //   BurstDetectionConfig - observability thresholds for burst detection
@@ -18,7 +19,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Added client TLS trust-anchor and optional server-name override to unblock live WSS bootstrap.
+//   LAST_CHANGE: v0.1.2 - Added explicit origdst-live launch config so Phase-42 can run one governed helper process without hidden shell or desktop state.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -48,6 +49,7 @@ pub struct AppConfig {
 pub enum RuntimeMode {
     Client(ClientConfig),
     Server(ServerConfig),
+    OrigDstLive(OrigDstLiveConfig),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,6 +70,14 @@ pub struct ServerConfig {
     pub listen_addr: SocketAddr,
     pub tls_cert_path: PathBuf,
     pub tls_key_path: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OrigDstLiveConfig {
+    pub listener_addr: SocketAddr,
+    pub payload_capacity_bytes: usize,
+    pub operator_uid: u32,
+    pub preserve_baseline_proxy_addr: SocketAddr,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -172,6 +182,16 @@ enum ModeArgs {
         #[arg(long)]
         tls_key_path: PathBuf,
     },
+    OrigdstLive {
+        #[arg(long, default_value = "127.0.0.1:10073")]
+        listener_addr: SocketAddr,
+        #[arg(long, default_value_t = 65_507)]
+        payload_capacity_bytes: usize,
+        #[arg(long, default_value_t = 1000)]
+        operator_uid: u32,
+        #[arg(long, default_value = "127.0.0.1:1080")]
+        preserve_baseline_proxy_addr: SocketAddr,
+    },
 }
 
 // START_CONTRACT: load_config_from
@@ -196,6 +216,7 @@ where
         mode = match &config.runtime_mode {
             RuntimeMode::Client(_) => "client",
             RuntimeMode::Server(_) => "server",
+            RuntimeMode::OrigDstLive(_) => "origdst-live",
         },
         max_pending_intents = config.limits.max_pending_intents,
         max_sessions = config.limits.max_sessions,
@@ -279,6 +300,22 @@ impl TryFrom<CliArgs> for AppConfig {
                     tls_key_path,
                 })
             }
+            ModeArgs::OrigdstLive {
+                listener_addr,
+                payload_capacity_bytes,
+                operator_uid,
+                preserve_baseline_proxy_addr,
+            } => {
+                validate_positive("payload_capacity_bytes", payload_capacity_bytes)?;
+                validate_positive_u32("operator_uid", operator_uid)?;
+
+                RuntimeMode::OrigDstLive(OrigDstLiveConfig {
+                    listener_addr,
+                    payload_capacity_bytes,
+                    operator_uid,
+                    preserve_baseline_proxy_addr,
+                })
+            }
         };
 
         Ok(AppConfig {
@@ -320,6 +357,13 @@ fn validate_positive(field: &'static str, value: usize) -> Result<(), ConfigErro
 }
 
 fn validate_positive_u64(field: &'static str, value: u64) -> Result<(), ConfigError> {
+    if value == 0 {
+        return Err(ConfigError::NonPositiveValue { field });
+    }
+    Ok(())
+}
+
+fn validate_positive_u32(field: &'static str, value: u32) -> Result<(), ConfigError> {
     if value == 0 {
         return Err(ConfigError::NonPositiveValue { field });
     }

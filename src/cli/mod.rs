@@ -1,10 +1,10 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.6
+// VERSION: 0.1.7
 // START_MODULE_CONTRACT
-//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery and WSS return-handler wiring.
-//   SCOPE: Startup bootstrap, client or server mode selection, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, WSS inbound-handler registration, and local shutdown-state coordination.
-//   DEPENDS: std, async-trait, http, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/proxy_bridge/mod.rs, src/session/mod.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs
-//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, V-M-CLI, DF-CLIENT-BOOT, DF-SHUTDOWN
+//   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery, WSS return-handler wiring, and one governed live origdst-helper launch surface.
+//   SCOPE: Startup bootstrap, client or server mode selection, live origdst-helper entrypoint and launcher wiring, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, WSS inbound-handler registration, and local shutdown-state coordination.
+//   DEPENDS: std, async-trait, http, thiserror, tokio, tokio-util, tracing, src/config/mod.rs, src/obs/mod.rs, src/auth/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/proxy_bridge/mod.rs, src/session/mod.rs, src/transport/adapter_contract.rs, src/transport/task_tracker.rs, src/udp_origdst/mod.rs
+//   LINKS: M-CLI, M-CONFIG, M-OBS, M-AUTH, M-TLS, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-ORIGDST-LIVE-LAUNCHER, V-M-CLI, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER, DF-CLIENT-BOOT, DF-SHUTDOWN
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -14,18 +14,20 @@
 //   SessionManagerConfig - session-aware idle and shutdown timings derived during bootstrap
 //   ShutdownCoordinator - local shutdown state machine for accept-stop and drain phases
 //   ClientDatagramInboundTarget - client runtime datagram sink that returns inbound replies to the owning local UDP relay socket
+//   OrigDstLiveLaunchResult - bounded live helper launch metadata for one packet window
 //   CliRuntimeError - typed runtime-launch and shutdown surface errors after bootstrap
+//   run_origdst_live_until_cancelled - bind and run one governed live origdst helper listener until cancellation
 //   run_from - bootstrap config, observability, auth, optional TLS, and selected-mode startup artifacts
 //   run_until_shutdown_from - launch the selected runtime surface and keep it alive until cancellation
 //   coordinate_shutdown - drive shutdown phases in deterministic order
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.6 - Wired the live client gateway to the inbound datagram target so governed WSS return frames can reach the owning local relay socket at runtime.
+//   LAST_CHANGE: v0.1.7 - Added the governed origdst-live entrypoint and launcher so Phase-42 can run one repo-local helper process with explicit launch and listener-bind anchors.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
-use std::net::SocketAddr;
+use std::net::{SocketAddr, UdpSocket};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -38,7 +40,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 use crate::auth::{AuthPolicy, AuthPolicyConfig};
-use crate::config::{load_config_from, AppConfig, RuntimeMode};
+use crate::config::{load_config_from, AppConfig, OrigDstLiveConfig, RuntimeMode};
 use crate::obs::{init_observability, ObservabilityConfig, ObservabilityHandles};
 use crate::proxy_bridge::{ProxyBridge, ProxyBridgeConfig};
 use crate::session::{
@@ -54,6 +56,9 @@ use crate::transport::adapter_contract::{TransportAdapter, TransportRequest};
 use crate::transport::datagram_contract::DatagramAssociationId;
 use crate::transport::stream::ResolvedStream;
 use crate::transport::task_tracker::AdapterTaskTracker;
+use crate::udp_origdst::{
+    RecoveredUdpTuple, UdpOrigDstError, UdpOrigDstGovernedHandoff, UdpOrigDstRuntime,
+};
 use crate::wss_gateway::{DatagramInboundHandler, GatewayConfig, WssGateway};
 
 #[cfg(test)]
@@ -64,6 +69,7 @@ mod tests;
 pub enum ApplicationMode {
     Client,
     Server,
+    OrigDstLive,
 }
 
 #[derive(Clone)]
@@ -80,6 +86,12 @@ pub struct ApplicationRunResult {
     pub mode: ApplicationMode,
     pub startup: StartupArtifacts,
     pub shutdown: ShutdownCoordinator,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OrigDstLiveLaunchResult {
+    pub listener_addr: SocketAddr,
+    pub payload_capacity_bytes: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -136,6 +148,8 @@ pub enum CliRuntimeError {
     ServerRuntime(String),
     #[error("client runtime failed: {0}")]
     ClientRuntime(String),
+    #[error("origdst live runtime failed: {0}")]
+    OrigDstLiveRuntime(String),
 }
 
 impl ApplicationRunResult {
@@ -143,6 +157,7 @@ impl ApplicationRunResult {
         match self.mode {
             ApplicationMode::Client => "client",
             ApplicationMode::Server => "server",
+            ApplicationMode::OrigDstLive => "origdst-live",
         }
     }
 }
@@ -188,6 +203,9 @@ struct ClientDatagramInboundTarget {
     registry: Arc<UdpAssociationRegistry>,
     relay_sockets: UdpRelaySocketRegistry,
 }
+
+#[derive(Clone, Default)]
+struct LoggingOrigDstLiveHandoff;
 
 #[derive(Debug, Error)]
 enum ClientDatagramInboundTargetError {
@@ -249,6 +267,24 @@ impl ClientDatagramInboundTarget {
             registry,
             relay_sockets,
         }
+    }
+}
+
+#[async_trait]
+impl UdpOrigDstGovernedHandoff for LoggingOrigDstLiveHandoff {
+    async fn forward_recovered_tuple(
+        &self,
+        tuple: RecoveredUdpTuple,
+        payload: Vec<u8>,
+    ) -> Result<(), UdpOrigDstError> {
+        info!(
+            client_source = %tuple.client_source_addr,
+            helper_listener = %tuple.helper_listener_addr,
+            original_target = ?tuple.original_target,
+            payload_len = payload.len(),
+            "[OrigDstLiveLauncher][forwardRecoveredTuple][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live governed handoff observed"
+        );
+        Ok(())
     }
 }
 
@@ -327,6 +363,7 @@ where
     let mode = match config.runtime_mode {
         RuntimeMode::Client(_) => ApplicationMode::Client,
         RuntimeMode::Server(_) => ApplicationMode::Server,
+        RuntimeMode::OrigDstLive(_) => ApplicationMode::OrigDstLive,
     };
 
     let tls_context = match &config.runtime_mode {
@@ -344,6 +381,7 @@ where
             key_path: server_config.tls_key_path.clone(),
             trust_anchor_path: server_config.tls_cert_path.clone(),
         })?),
+        RuntimeMode::OrigDstLive(_) => None,
     };
 
     let shutdown = ShutdownCoordinator::new(ShutdownConfig {
@@ -379,7 +417,7 @@ where
 //   INPUTS: { args: Iterator<Item = OsString> - command-line arguments including binary name, cancel: CancellationToken - process-level shutdown signal boundary }
 //   OUTPUTS: { Result<ApplicationRunResult, CliRuntimeError> - initialized startup artifacts after runtime launch and coordinated shutdown }
 //   SIDE_EFFECTS: [binds runtime listeners, spawns runtime tasks, and coordinates shutdown on cancellation]
-//   LINKS: [M-CLI, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, V-M-CLI]
+//   LINKS: [M-CLI, M-WSS-GATEWAY, M-SOCKS5, M-PROXY-BRIDGE, M-SESSION, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-ORIGDST-LIVE-LAUNCHER, V-M-CLI, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER]
 // END_CONTRACT: run_until_shutdown_from
 pub async fn run_until_shutdown_from<I, T>(
     args: I,
@@ -398,6 +436,14 @@ where
         RuntimeMode::Client(client_config) => {
             run_client_mode(&startup, client_config.listen_addr, cancel.clone()).await?;
         }
+        RuntimeMode::OrigDstLive(origdst_live_config) => {
+            run_origdst_live_until_cancelled(
+                origdst_live_config,
+                cancel.clone(),
+                LoggingOrigDstLiveHandoff,
+            )
+            .await?;
+        }
     }
 
     coordinate_shutdown(&startup.shutdown);
@@ -407,6 +453,62 @@ where
     );
     Ok(startup)
     // END_BLOCK_RUN_SELECTED_MODE
+}
+
+// START_CONTRACT: run_origdst_live_until_cancelled
+//   PURPOSE: Bind and run one governed live repo-local origdst helper listener until cancellation while keeping process-launch and listener-bind anchors separate.
+//   INPUTS: { config: &OrigDstLiveConfig - explicit live helper listener and baseline-preserve shape, cancel: CancellationToken - bounded packet-window cancellation boundary, handoff: H - governed recovered-tuple sink for the live helper process }
+//   OUTPUTS: { Result<OrigDstLiveLaunchResult, CliRuntimeError> - bound listener metadata when the helper exits cleanly after cancellation }
+//   SIDE_EFFECTS: [binds one UDP listener, emits stable launch and listener-bind logs, and runs the live origdst recovery loop until cancellation]
+//   LINKS: [M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-ORIGDST-LIVE-LAUNCHER, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER]
+// END_CONTRACT: run_origdst_live_until_cancelled
+pub async fn run_origdst_live_until_cancelled<H>(
+    config: &OrigDstLiveConfig,
+    cancel: CancellationToken,
+    handoff: H,
+) -> Result<OrigDstLiveLaunchResult, CliRuntimeError>
+where
+    H: UdpOrigDstGovernedHandoff,
+{
+    // START_BLOCK_ORIGDST_LIVE_ENTRYPOINT
+    info!(
+        listener_addr = %config.listener_addr,
+        payload_capacity_bytes = config.payload_capacity_bytes,
+        operator_uid = config.operator_uid,
+        preserve_baseline_proxy_addr = %config.preserve_baseline_proxy_addr,
+        "[OrigDstLiveEntrypoint][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_ENTRYPOINT] origdst live entrypoint starting"
+    );
+    // END_BLOCK_ORIGDST_LIVE_ENTRYPOINT
+
+    // START_BLOCK_ORIGDST_LIVE_LAUNCHER
+    let socket = UdpSocket::bind(config.listener_addr)
+        .map_err(|error| CliRuntimeError::OrigDstLiveRuntime(error.to_string()))?;
+    let listener_addr = socket
+        .local_addr()
+        .map_err(|error| CliRuntimeError::OrigDstLiveRuntime(error.to_string()))?;
+
+    info!(
+        listener_addr = %listener_addr,
+        payload_capacity_bytes = config.payload_capacity_bytes,
+        "[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live listener bound"
+    );
+
+    let runtime = UdpOrigDstRuntime::new(handoff);
+    runtime
+        .run_linux_ipv4_listener_until_cancelled(socket, config.payload_capacity_bytes, cancel)
+        .await
+        .map_err(|error| CliRuntimeError::OrigDstLiveRuntime(error.to_string()))?;
+
+    info!(
+        listener_addr = %listener_addr,
+        "[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live listener stopped after cancellation"
+    );
+
+    Ok(OrigDstLiveLaunchResult {
+        listener_addr,
+        payload_capacity_bytes: config.payload_capacity_bytes,
+    })
+    // END_BLOCK_ORIGDST_LIVE_LAUNCHER
 }
 
 // START_CONTRACT: coordinate_shutdown
@@ -607,9 +709,9 @@ async fn build_client_gateway(
 ) -> Result<WssGateway, CliRuntimeError> {
     let client_config = match &startup.startup.config.runtime_mode {
         RuntimeMode::Client(client_config) => client_config,
-        RuntimeMode::Server(_) => {
+        RuntimeMode::Server(_) | RuntimeMode::OrigDstLive(_) => {
             return Err(CliRuntimeError::ClientRuntime(
-                "client gateway requested in server mode".to_string(),
+                "client gateway requested outside client mode".to_string(),
             ))
         }
     };

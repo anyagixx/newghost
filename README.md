@@ -67,6 +67,12 @@ Server mode:
 n0wss --auth-token <token> server --tls-cert-path certs/server.pem --tls-key-path certs/server.key
 ```
 
+Origdst-live mode:
+
+```text
+n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080
+```
+
 Important validated options:
 
 - `--max-pending-intents`
@@ -74,6 +80,10 @@ Important validated options:
 - `--tls-trust-anchor-path`
 - `--tls-server-name-override`
 - `--iroh-connect-timeout-secs`
+- `--listener-addr`
+- `--payload-capacity-bytes`
+- `--operator-uid`
+- `--preserve-baseline-proxy-addr`
 - `--wss-connect-timeout-secs`
 - `--socks5-total-timeout-secs`
 - `--graceful-timeout-secs`
@@ -293,6 +303,12 @@ Current calls-profile status:
   the current repository still lacks a repo-local helper runtime that can recover arbitrary UDP original destinations and normalize them into the governed datagram path, so the next honest branch is helper-runtime engineering rather than another smoke or calls rerun
 - the new Phase-41 branch is therefore repo-local-helper-only:
   it keeps the already logged-in ordinary Telegram Desktop baseline, keeps the fixed historical boundaries from Phase-34 and Phase-39/40 visible, and isolates Linux original-destination recovery from the generic helper runtime before any new Telegram voice or video packet is allowed
+- the green Phase-41 smoke packet is now explicitly separated from live-launch readiness:
+  the repository already proves test-level repo-local tuple recovery and governed handoff for more than one tuple, but that packet alone does not yet give the operator one governed live process surface that can sit beside the ordinary logged-in Telegram window during a bounded calls wave
+- the new Phase-42 branch is therefore live-launch-only:
+  it must add one exact `origdst-live` process entrypoint, one exact config shape, and one reversible operator runbook before any new Telegram voice or video packet is valid
+- the live-launch branch stays bounded and safety-first:
+  it must stay attached to the ordinary logged-in Telegram Desktop baseline, must not reopen a second auth/bootstrap window, and must not weaken the already-working `127.0.0.1:1080` path for texts, media files, or large files
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

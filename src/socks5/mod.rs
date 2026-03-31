@@ -163,7 +163,8 @@ impl Socks5ProxyConfig {
                 listen_addr: client.listen_addr,
                 total_timeout: config.timeouts.socks5_total_timeout,
             }),
-            crate::config::RuntimeMode::Server(_) => None,
+            crate::config::RuntimeMode::Server(_)
+            | crate::config::RuntimeMode::OrigDstLive(_) => None,
         }
     }
 }

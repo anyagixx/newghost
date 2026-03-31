@@ -142,6 +142,7 @@ impl ObservabilityConfig {
             mode_label: match config.runtime_mode {
                 RuntimeMode::Client(_) => "client".to_string(),
                 RuntimeMode::Server(_) => "server".to_string(),
+                RuntimeMode::OrigDstLive(_) => "origdst-live".to_string(),
             },
             burst_detection: config.burst_detection.clone(),
             peak_reset_interval: Duration::from_secs(60),

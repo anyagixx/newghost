@@ -1,30 +1,33 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.4
+// VERSION: 0.1.5
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, and shutdown sequencing for client and server startup paths.
-//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, and shutdown ordering.
-//   DEPENDS: src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs
-//   LINKS: V-M-CLI, V-M-TLS
+//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, and shutdown sequencing for governed startup paths.
+//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, and shutdown ordering.
+//   DEPENDS: src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs, src/udp_origdst/mod.rs
+//   LINKS: V-M-CLI, V-M-TLS, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   selects_client_mode_on_valid_startup - proves baseline client bootstrap
 //   selects_client_mode_and_builds_tls_when_trust_anchor_is_configured - proves optional client TLS bootstrap
 //   selects_server_mode_and_builds_tls_on_valid_startup - proves server TLS bootstrap
+//   selects_origdst_live_mode_on_valid_startup - proves the new governed live helper startup shape
 //   server_runtime_binds_listener_until_cancelled - proves server runtime stays alive and binds a socket until cancellation
 //   client_runtime_binds_socks5_listener_until_cancelled - proves client runtime stays alive and binds a SOCKS5 socket until cancellation
+//   origdst_live_runtime_binds_listener_until_cancelled - proves the live helper launcher emits a bound listener and stays alive until cancellation
 //   client_runtime_forwards_udp_datagram_through_runtime_bridge - proves the live client bootstrap wires UDP ingress into the datagram runtime bridge and reaches a real UDP target
 //   client_inbound_target_delivers_reply_into_owned_udp_socket - proves client-side inbound delivery returns one governed datagram into the owning local UDP relay socket
 //   shutdown_stops_accepts_before_drain_and_release - proves deterministic shutdown ordering
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.4 - Added client-side inbound delivery coverage so Phase-26 can prove governed replies return into the owning local UDP relay socket.
+//   LAST_CHANGE: v0.1.5 - Added origdst-live startup and listener-lifecycle coverage so Phase-42 can prove one governed live helper entrypoint before live smoke.
 // END_CHANGE_SUMMARY
 
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::net::TcpListener as StdTcpListener;
+use std::net::UdpSocket as StdUdpSocket;
 use std::time::Duration;
 
 use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
@@ -138,6 +141,21 @@ fn selects_server_mode_and_builds_tls_on_valid_startup() {
     );
 }
 
+#[test]
+fn selects_origdst_live_mode_on_valid_startup() {
+    let run_result = run_from([
+        "n0wss",
+        "--auth-token",
+        "token-12345",
+        "origdst-live",
+    ])
+    .expect("origdst-live startup should succeed");
+
+    assert_eq!(run_result.mode, ApplicationMode::OrigDstLive);
+    assert!(run_result.startup.tls_context.is_none());
+    assert!(run_result.shutdown.can_accept_new_work());
+}
+
 fn reserve_local_addr() -> String {
     let listener = StdTcpListener::bind("127.0.0.1:0").expect("ephemeral listener should bind");
     let addr = listener.local_addr().expect("local addr should resolve");
@@ -154,6 +172,20 @@ async fn wait_for_listener(addr: &str) {
     }
 
     panic!("listener {addr} did not become reachable");
+}
+
+async fn wait_for_udp_listener_bound(addr: &str) {
+    for _ in 0..50 {
+        match StdUdpSocket::bind(addr) {
+            Ok(socket) => {
+                drop(socket);
+                sleep(Duration::from_millis(20)).await;
+            }
+            Err(_) => return,
+        }
+    }
+
+    panic!("udp listener {addr} did not become reachable");
 }
 
 async fn socks5_udp_associate(listen_addr: &str) -> (TcpStream, SocketAddr) {
@@ -265,6 +297,39 @@ async fn client_runtime_binds_socks5_listener_until_cancelled() {
     task.await
         .expect("client runtime task should join")
         .expect("client runtime should shut down cleanly");
+}
+
+#[tokio::test]
+async fn origdst_live_runtime_binds_listener_until_cancelled() {
+    let listen_addr = reserve_local_addr();
+    let cancel = CancellationToken::new();
+    let task = tokio::spawn({
+        let cancel = cancel.clone();
+        let listen_addr = listen_addr.clone();
+        async move {
+            run_until_shutdown_from(
+                [
+                    "n0wss",
+                    "--auth-token",
+                    "token-12345",
+                    "origdst-live",
+                    "--listener-addr",
+                    listen_addr.as_str(),
+                ],
+                cancel,
+            )
+            .await
+        }
+    });
+
+    wait_for_udp_listener_bound(&listen_addr).await;
+    cancel.cancel();
+
+    let result = task
+        .await
+        .expect("origdst live runtime task should join")
+        .expect("origdst live runtime should shut down cleanly");
+    assert_eq!(result.mode, ApplicationMode::OrigDstLive);
 }
 
 #[tokio::test]

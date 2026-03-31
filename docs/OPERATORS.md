@@ -1827,6 +1827,48 @@ Exact setup and cleanup shape for the repo-local helper wave:
    prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup
 5. No Telegram voice or video packet is allowed until that exact setup has already produced green multi-tuple smoke
 
+### Phase-42 Repo-Local Helper Live Launch Surface
+
+Phase-42 starts only after the Phase-41 smoke packet is already green in tests. The new branch does not reopen tuple-recovery engineering. It adds one exact live helper process surface for bounded operator packet windows.
+
+Bounded operator rules for the live-launch branch:
+
+1. Stay attached to the ordinary logged-in Telegram Desktop baseline:
+   keep the ordinary Telegram Desktop window and its preserved `SOCKS5 127.0.0.1:1080` path untouched
+   do not open a second Telegram auth or bootstrap window
+2. Freeze one exact live launch shape:
+   use only the governed `origdst-live` CLI mode
+   do not rely on inherited desktop proxy state, shell wrappers, or ad hoc environment mutation
+3. Keep launch evidence split:
+   the packet must show a process-launch anchor and a separate listener-bind anchor
+   if those two surfaces blur together, the live-launch packet is too weak
+4. Keep the helper packet reversible:
+   add temporary interception only for the bounded packet window
+   remove the temporary interception rule and stop the helper immediately after the packet window
+5. No Telegram voice or video packet is valid until one live helper packet already proves:
+   process launch
+   listener bind
+   tuple recovery
+   governed handoff
+   preserved baseline at `127.0.0.1:1080`
+   no second auth/bootstrap surface
+
+Exact launch shape for the live helper packet:
+
+```text
+n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080
+```
+
+Exact bounded operator packet:
+
+1. Start the repo-local live helper in `origdst-live` mode and capture its bounded log window.
+2. Add one temporary host-side `iptables -t nat OUTPUT` redirect for outbound UDP owned by the Telegram Desktop operator UID.
+3. Keep loopback and the preserved `127.0.0.1:1080` baseline excluded from that redirect.
+4. Collect bounded launch, listener-bind, tuple-recovery, and governed-handoff evidence.
+5. Delete the temporary `iptables` rule.
+6. Stop the `origdst-live` helper process.
+7. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.
+
 ## Quick Runtime Shapes
 
 These are the currently validated runtime argument shapes from the CLI/config tests.
@@ -1841,6 +1883,12 @@ Server mode:
 
 ```text
 n0wss --auth-token <token> server --tls-cert-path certs/server.pem --tls-key-path certs/server.key
+```
+
+Origdst-live mode:
+
+```text
+n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080
 ```
 
 Do not publish examples with a non-`wss` remote URL or with missing TLS paths for server mode.
