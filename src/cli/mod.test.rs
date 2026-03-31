@@ -1,10 +1,10 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.5
+// VERSION: 0.1.6
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, and shutdown sequencing for governed startup paths.
-//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, and shutdown ordering.
-//   DEPENDS: src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs, src/udp_origdst/mod.rs
-//   LINKS: V-M-CLI, V-M-TLS, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER
+//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, live-launch smoke, and shutdown sequencing for governed startup paths.
+//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, live tuple-recovery smoke, and shutdown ordering.
+//   DEPENDS: async-trait, src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs, src/udp_origdst/mod.rs
+//   LINKS: V-M-CLI, V-M-TLS, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER, V-M-ORIGDST-LIVE-SMOKE
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -15,21 +15,25 @@
 //   server_runtime_binds_listener_until_cancelled - proves server runtime stays alive and binds a socket until cancellation
 //   client_runtime_binds_socks5_listener_until_cancelled - proves client runtime stays alive and binds a SOCKS5 socket until cancellation
 //   origdst_live_runtime_binds_listener_until_cancelled - proves the live helper launcher emits a bound listener and stays alive until cancellation
+//   origdst_live_smoke_proves_launch_listener_tuple_handoff_and_preserved_baseline - proves the live helper packet stays outside Telegram UI while preserving the ordinary baseline and forwarding one recovered tuple
 //   client_runtime_forwards_udp_datagram_through_runtime_bridge - proves the live client bootstrap wires UDP ingress into the datagram runtime bridge and reaches a real UDP target
 //   client_inbound_target_delivers_reply_into_owned_udp_socket - proves client-side inbound delivery returns one governed datagram into the owning local UDP relay socket
 //   shutdown_stops_accepts_before_drain_and_release - proves deterministic shutdown ordering
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.5 - Added origdst-live startup and listener-lifecycle coverage so Phase-42 can prove one governed live helper entrypoint before live smoke.
+//   LAST_CHANGE: v0.1.6 - Added a bounded live-launch smoke packet proving entrypoint, listener bind, tuple recovery, governed handoff, and preserved baseline outside Telegram UI.
 // END_CHANGE_SUMMARY
 
 use std::fs;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::net::TcpListener as StdTcpListener;
 use std::net::UdpSocket as StdUdpSocket;
+use std::sync::{Arc, Mutex};
+use std::thread;
 use std::time::Duration;
 
+use async_trait::async_trait;
 use rcgen::{CertificateParams, DistinguishedName, DnType, KeyPair};
 use tempfile::tempdir;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -38,12 +42,35 @@ use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
 use super::{
-    coordinate_shutdown, run_from, run_until_shutdown_from, ApplicationMode,
+    coordinate_shutdown, run_from, run_origdst_live_until_cancelled, run_until_shutdown_from,
+    ApplicationMode,
     ClientDatagramInboundTarget, ShutdownState,
 };
 use crate::session::{DatagramDispatchTarget, UdpAssociationRegistry};
 use crate::socks5::udp_associate::{encode_udp_datagram, UdpRelaySocketRegistry};
 use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
+use crate::udp_origdst::{RecoveredUdpTuple, UdpOrigDstError, UdpOrigDstGovernedHandoff};
+use crate::config::OrigDstLiveConfig;
+
+#[derive(Clone, Default)]
+struct RecordingOrigDstLiveHandoff {
+    calls: Arc<Mutex<Vec<(RecoveredUdpTuple, Vec<u8>)>>>,
+}
+
+#[async_trait]
+impl UdpOrigDstGovernedHandoff for RecordingOrigDstLiveHandoff {
+    async fn forward_recovered_tuple(
+        &self,
+        tuple: RecoveredUdpTuple,
+        payload: Vec<u8>,
+    ) -> Result<(), UdpOrigDstError> {
+        self.calls
+            .lock()
+            .expect("recording origdst handoff lock poisoned")
+            .push((tuple, payload));
+        Ok(())
+    }
+}
 
 fn write_server_tls_fixture() -> (tempfile::TempDir, String, String) {
     let dir = tempdir().expect("tempdir should build");
@@ -188,6 +215,15 @@ async fn wait_for_udp_listener_bound(addr: &str) {
     panic!("udp listener {addr} did not become reachable");
 }
 
+fn reserve_local_udp_addr() -> SocketAddr {
+    let socket =
+        StdUdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+            .expect("ephemeral udp listener should bind");
+    let addr = socket.local_addr().expect("udp local addr should resolve");
+    drop(socket);
+    addr
+}
+
 async fn socks5_udp_associate(listen_addr: &str) -> (TcpStream, SocketAddr) {
     let mut control = TcpStream::connect(listen_addr)
         .await
@@ -301,7 +337,7 @@ async fn client_runtime_binds_socks5_listener_until_cancelled() {
 
 #[tokio::test]
 async fn origdst_live_runtime_binds_listener_until_cancelled() {
-    let listen_addr = reserve_local_addr();
+    let listen_addr = reserve_local_udp_addr().to_string();
     let cancel = CancellationToken::new();
     let task = tokio::spawn({
         let cancel = cancel.clone();
@@ -330,6 +366,87 @@ async fn origdst_live_runtime_binds_listener_until_cancelled() {
         .expect("origdst live runtime task should join")
         .expect("origdst live runtime should shut down cleanly");
     assert_eq!(result.mode, ApplicationMode::OrigDstLive);
+}
+
+#[tokio::test]
+async fn origdst_live_smoke_proves_launch_listener_tuple_handoff_and_preserved_baseline() {
+    let startup = run_from([
+        "n0wss",
+        "--auth-token",
+        "token-12345",
+        "origdst-live",
+    ])
+    .expect("origdst-live startup should succeed");
+    assert_eq!(startup.mode, ApplicationMode::OrigDstLive);
+
+    let baseline_listener = StdTcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind preserved baseline listener");
+    let baseline_addr = baseline_listener
+        .local_addr()
+        .expect("preserved baseline listener addr");
+    let baseline_thread = thread::spawn(move || {
+        let (_stream, _) = baseline_listener.accept().expect("accept preserved baseline probe");
+    });
+
+    let helper_addr = reserve_local_udp_addr();
+    let config = OrigDstLiveConfig {
+        listener_addr: helper_addr,
+        payload_capacity_bytes: 128,
+        operator_uid: 1000,
+        preserve_baseline_proxy_addr: baseline_addr,
+    };
+    let handoff = RecordingOrigDstLiveHandoff::default();
+    let cancel = CancellationToken::new();
+    let task = tokio::spawn({
+        let cancel = cancel.clone();
+        let handoff = handoff.clone();
+        let config = config.clone();
+        async move { run_origdst_live_until_cancelled(&config, cancel, handoff).await }
+    });
+
+    wait_for_udp_listener_bound(&helper_addr.to_string()).await;
+    let sender = StdUdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind smoke sender");
+    let sender_addr = sender.local_addr().expect("smoke sender addr");
+    sender
+        .send_to(b"live-smoke", helper_addr)
+        .expect("send smoke packet");
+
+    for _ in 0..20 {
+        if handoff
+            .calls
+            .lock()
+            .expect("recording origdst handoff lock poisoned")
+            .len()
+            == 1
+        {
+            break;
+        }
+        sleep(Duration::from_millis(25)).await;
+    }
+
+    let calls = handoff
+        .calls
+        .lock()
+        .expect("recorded origdst calls lock poisoned");
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].0.client_source_addr, sender_addr);
+    assert_eq!(calls[0].0.helper_listener_addr, helper_addr);
+    assert_eq!(calls[0].0.original_target, DatagramTarget::Ip(helper_addr));
+    assert_eq!(calls[0].1, b"live-smoke".to_vec());
+    drop(calls);
+
+    let _baseline_probe =
+        TcpStream::connect(baseline_addr).await.expect("preserved baseline should stay reachable");
+    baseline_thread.join().expect("baseline thread join");
+
+    cancel.cancel();
+    let launch = task
+        .await
+        .expect("origdst live smoke task should join")
+        .expect("origdst live smoke should shut down cleanly");
+    assert_eq!(launch.listener_addr, helper_addr);
+    assert_eq!(launch.payload_capacity_bytes, 128);
 }
 
 #[tokio::test]
