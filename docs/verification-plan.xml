@@ -6044,7 +6044,7 @@
     </V-M-TPROXY-PRIV-SMOKE>
     <V-M-TPROXY-NONOUTPUT-HYPOTHESIS MODULE="M-TPROXY-NONOUTPUT-HYPOTHESIS" PRIORITY="high">
       <test-files><file>README.md</file><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'Phase-45|non-OUTPUT|Phase-44|OUTPUT TPROXY|Operation not supported|Invalid argument' README.md docs/OPERATORS.md docs/development-plan.xml</check-1></module-checks>
+      <module-checks><check-1>rg -n 'Phase-45|non-OUTPUT|Phase-44|OUTPUT TPROXY|Operation not supported|Invalid argument' README.md docs/OPERATORS.md docs/development-plan.xml</check-1><check-2>rg -n 'owner-mark|veth/netns|PREROUTING' README.md docs/OPERATORS.md docs/development-plan.xml docs/technology.xml</check-2></module-checks>
       <success-scenarios><scenario-1>The new hypothesis keeps the blocked Phase-44 packet visible while naming host OUTPUT TPROXY as the exact next blocker.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The hypothesis hides the output-boundary or reclassifies the blocker as generic helper failure.</scenario-1></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-HYPOTHESIS>
@@ -6056,25 +6056,25 @@
     </V-M-PHASE44-OUTPUT-BOUNDARY>
     <V-M-TPROXY-NONOUTPUT-TECH-DECISION MODULE="M-TPROXY-NONOUTPUT-TECH-DECISION" PRIORITY="high">
       <test-files><file>docs/technology.xml</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT|TPROXY|single topology class|Phase-44|OUTPUT' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'supported rule install|route proof|mark proof|kernel-supported path' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
+      <module-checks><check-1>rg -n 'non-OUTPUT|TPROXY|single topology class|Phase-44|OUTPUT' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'supported rule install|route proof|mark proof|kernel-supported path|owner-mark|veth/netns|PREROUTING' docs/development-plan.xml docs/verification-plan.xml docs/technology.xml docs/OPERATORS.md</check-2></module-checks>
       <success-scenarios><scenario-1>The branch chooses one exact privileged non-OUTPUT interception class and keeps the old host OUTPUT shape visible as blocked history only.</scenario-1><scenario-2>The chosen topology names where supported rule-install proof and route-mark proof must appear before smoke can go green.</scenario-2></success-scenarios>
       <failure-scenarios><scenario-1>The branch mixes OUTPUT and non-OUTPUT topology evidence or leaves the replacement topology vague.</scenario-1><scenario-2>The branch chooses a topology class but leaves supported rule-install proof or route proof implicit.</scenario-2></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-TECH-DECISION>
     <V-M-TPROXY-NONOUTPUT-RUNTIME-PROFILE MODULE="M-TPROXY-NONOUTPUT-RUNTIME-PROFILE" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT|127.0.0.1:1080|ordinary baseline|origdst-live|privileged' docs/OPERATORS.md docs/development-plan.xml</check-1></module-checks>
+      <module-checks><check-1>rg -n 'non-OUTPUT|127.0.0.1:1080|ordinary baseline|origdst-live|privileged|owner-mark|veth/netns|PREROUTING' docs/OPERATORS.md docs/development-plan.xml</check-1></module-checks>
       <success-scenarios><scenario-1>The runtime profile changes interception topology only while keeping privileged helper launch and the preserved baseline fixed.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The runtime profile weakens the ordinary baseline guarantee or quietly changes helper launch shape again.</scenario-1></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-RUNTIME-PROFILE>
     <V-M-TPROXY-NONOUTPUT-LINUX-DELTA MODULE="M-TPROXY-NONOUTPUT-LINUX-DELTA" PRIORITY="high">
       <test-files><file>src/udp_origdst/linux.rs</file><file>src/udp_origdst/linux.test.rs</file></test-files>
-      <module-checks><check-1>rg -n 'TPROXY|non-OUTPUT|route|prerouting|socket mark|fwmark' src/udp_origdst/linux.rs src/udp_origdst/linux.test.rs</check-1></module-checks>
+      <module-checks><check-1>rg -n 'TPROXY|non-OUTPUT|route|prerouting|socket mark|fwmark|owner-mark|veth-netns-ingress' src/udp_origdst/linux.rs src/udp_origdst/linux.test.rs</check-1></module-checks>
       <success-scenarios><scenario-1>The Linux delta stays minimal and explicit for the chosen non-OUTPUT topology.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The Linux delta silently widens generic helper behavior or keeps relying on the blocked host OUTPUT shape.</scenario-1></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-LINUX-DELTA>
     <V-M-TPROXY-NONOUTPUT-RUNBOOK MODULE="M-TPROXY-NONOUTPUT-RUNBOOK" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT|supported rule install|cleanup|127.0.0.1:1080|no second auth' docs/OPERATORS.md docs/verification-plan.xml</check-1><check-2>rg -n 'route proof|mark proof|helper launch|transparent-socket proof|real-target proof' docs/OPERATORS.md docs/verification-plan.xml</check-2></module-checks>
+      <module-checks><check-1>rg -n 'non-OUTPUT|supported rule install|cleanup|127.0.0.1:1080|no second auth|owner-mark|veth/netns|PREROUTING' docs/OPERATORS.md docs/verification-plan.xml</check-1><check-2>rg -n 'route proof|mark proof|helper launch|transparent-socket proof|real-target proof|policy-route' docs/OPERATORS.md docs/verification-plan.xml</check-2></module-checks>
       <success-scenarios><scenario-1>The runbook defines one exact non-OUTPUT privileged operator packet with supported rule-install proof, cleanup, and preserved baseline proof.</scenario-1><scenario-2>The runbook keeps helper launch proof, supported rule-install proof, route-mark proof, and tuple-recovery proof as separate evidence classes.</scenario-2></success-scenarios>
       <failure-scenarios><scenario-1>The runbook leaves supported rule install or cleanup ownership ambiguous, or blends old host OUTPUT evidence into the new packet.</scenario-1><scenario-2>The runbook hides route or mark setup inside one opaque shell packet.</scenario-2></failure-scenarios>
     </V-M-TPROXY-NONOUTPUT-RUNBOOK>

@@ -3146,7 +3146,7 @@
         <fn-issueTelegramCallsTproxyPrivDecision PURPOSE="Issue the bounded final decision after the privileged TPROXY calls branch." />
       </annotations>
     </M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION>
-    <M-TPROXY-NONOUTPUT-HYPOTHESIS NAME="TproxyNonOutputHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-TPROXY-NONOUTPUT-HYPOTHESIS NAME="TproxyNonOutputHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the new truth-boundary that Phase-44 proved privilege and transparent-socket success but failed specifically on host OUTPUT-class TPROXY interception.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-TPROXY-PRIV-DECISION, M-TPROXY-PRIV-SMOKE</depends>
@@ -3155,7 +3155,7 @@
         <fn-freezeTproxyNonOutputHypothesis PURPOSE="Freeze the non-OUTPUT topology boundary above the blocked Phase-44 packet." />
       </annotations>
     </M-TPROXY-NONOUTPUT-HYPOTHESIS>
-    <M-PHASE44-OUTPUT-BOUNDARY NAME="Phase44OutputBoundary" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE44-OUTPUT-BOUNDARY NAME="Phase44OutputBoundary" TYPE="UTILITY" STATUS="done">
       <purpose>Explicitly preserve the old Phase-44 tail as blocked by host OUTPUT TPROXY semantics rather than by missing privilege proof.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TPROXY-NONOUTPUT-HYPOTHESIS</depends>
@@ -3164,8 +3164,8 @@
         <fn-freezePhase44OutputBoundary PURPOSE="Keep the blocked Phase-44 OUTPUT TPROXY packet explicit and non-runnable." />
       </annotations>
     </M-PHASE44-OUTPUT-BOUNDARY>
-    <M-TPROXY-NONOUTPUT-TECH-DECISION NAME="TproxyNonOutputTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
-      <purpose>Choose one exact privileged non-OUTPUT interception class for the next TPROXY branch.</purpose>
+    <M-TPROXY-NONOUTPUT-TECH-DECISION NAME="TproxyNonOutputTechDecision" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Choose one exact privileged non-OUTPUT interception class for the next TPROXY branch: host owner-mark plus policy routing into isolated veth/netns ingress, with TPROXY installed only on namespace PREROUTING.</purpose>
       <path>docs/technology.xml</path>
       <depends>M-TPROXY-PRIV-TECH-DECISION, M-NONREDIRECT-TECH-DECISION</depends>
       <verification-ref>V-M-TPROXY-NONOUTPUT-TECH-DECISION</verification-ref>
@@ -3173,8 +3173,8 @@
         <fn-chooseTproxyNonOutputTechDecision PURPOSE="Choose one exact privileged non-OUTPUT interception class." />
       </annotations>
     </M-TPROXY-NONOUTPUT-TECH-DECISION>
-    <M-TPROXY-NONOUTPUT-RUNTIME-PROFILE NAME="TproxyNonOutputRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
-      <purpose>Freeze the exact runtime profile for the chosen non-OUTPUT TPROXY topology while preserving the ordinary baseline.</purpose>
+    <M-TPROXY-NONOUTPUT-RUNTIME-PROFILE NAME="TproxyNonOutputRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Freeze the exact runtime profile for the chosen non-OUTPUT TPROXY topology while preserving the ordinary baseline and limiting host OUTPUT to steering mark only.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TPROXY-NONOUTPUT-TECH-DECISION, M-TPROXY-PRIV-RUNTIME-PROFILE</depends>
       <verification-ref>V-M-TPROXY-NONOUTPUT-RUNTIME-PROFILE</verification-ref>
@@ -3182,8 +3182,8 @@
         <fn-freezeTproxyNonOutputRuntimeProfile PURPOSE="Freeze the exact non-OUTPUT privileged runtime profile." />
       </annotations>
     </M-TPROXY-NONOUTPUT-RUNTIME-PROFILE>
-    <M-TPROXY-NONOUTPUT-LINUX-DELTA NAME="TproxyNonOutputLinuxDelta" TYPE="CORE_LOGIC" STATUS="planned">
-      <purpose>Define the minimal Linux or routing delta needed for the chosen non-OUTPUT TPROXY topology.</purpose>
+    <M-TPROXY-NONOUTPUT-LINUX-DELTA NAME="TproxyNonOutputLinuxDelta" TYPE="CORE_LOGIC" STATUS="done">
+      <purpose>Define the minimal Linux or routing delta needed for the chosen non-OUTPUT TPROXY topology, with explicit owner-mark, policy-route, veth/netns ingress, and PREROUTING anchors.</purpose>
       <path>src/udp_origdst/linux.rs</path>
       <depends>M-TPROXY-NONOUTPUT-TECH-DECISION, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
       <verification-ref>V-M-TPROXY-NONOUTPUT-LINUX-DELTA</verification-ref>
@@ -3191,8 +3191,8 @@
         <fn-applyTproxyNonOutputLinuxDelta PURPOSE="Apply the bounded Linux delta required by the non-OUTPUT TPROXY branch." />
       </annotations>
     </M-TPROXY-NONOUTPUT-LINUX-DELTA>
-    <M-TPROXY-NONOUTPUT-RUNBOOK NAME="TproxyNonOutputRunbook" TYPE="INTEGRATION" STATUS="planned">
-      <purpose>Define the exact operator packet for privileged helper launch, non-OUTPUT TPROXY rules, routing marks, cleanup, and preserved baseline proof.</purpose>
+    <M-TPROXY-NONOUTPUT-RUNBOOK NAME="TproxyNonOutputRunbook" TYPE="INTEGRATION" STATUS="done">
+      <purpose>Define the exact operator packet for privileged helper launch, host owner-mark steering, veth/netns ingress, namespace PREROUTING TPROXY rules, cleanup, and preserved baseline proof.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TPROXY-NONOUTPUT-RUNTIME-PROFILE, M-TPROXY-PRIV-RUNBOOK</depends>
       <verification-ref>V-M-TPROXY-NONOUTPUT-RUNBOOK</verification-ref>
