@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.53">
+<DevelopmentPlan VERSION="0.2.54">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -7501,7 +7501,7 @@
       </observability>
       <verification-ref>V-M-ORIGDST-LIVE-RUNBOOK</verification-ref>
     </M-ORIGDST-LIVE-RUNBOOK>
-    <M-ORIGDST-LIVE-SMOKE NAME="OrigDstLiveSmoke" TYPE="CORE_LOGIC" LAYER="45" ORDER="7" STATUS="planned">
+    <M-ORIGDST-LIVE-SMOKE NAME="OrigDstLiveSmoke" TYPE="CORE_LOGIC" LAYER="45" ORDER="7" STATUS="done">
       <contract>
         <purpose>Prove the live helper launch surface outside Telegram UI before any new call packet is spent.</purpose>
         <inputs>
@@ -8854,7 +8854,7 @@
       <step-4 module="M-ORIGDST-LIVE-CONFIG-SHAPE" status="done" verification="V-M-ORIGDST-LIVE-CONFIG-SHAPE">Define the exact config and runtime arguments for live helper launch</step-4>
       <step-5 module="M-ORIGDST-LIVE-LAUNCHER" status="done" verification="V-M-ORIGDST-LIVE-LAUNCHER">Implement the governed live helper launcher and lifecycle anchors</step-5>
       <step-6 module="M-ORIGDST-LIVE-RUNBOOK" status="done" verification="V-M-ORIGDST-LIVE-RUNBOOK">Define the operator packet for live helper launch, interception, and cleanup</step-6>
-      <step-7 module="M-ORIGDST-LIVE-SMOKE" status="planned" verification="V-M-ORIGDST-LIVE-SMOKE">Prove the live helper launch surface outside Telegram UI before any call packet is spent</step-7>
+      <step-7 module="M-ORIGDST-LIVE-SMOKE" status="done" verification="V-M-ORIGDST-LIVE-SMOKE">Prove the live helper launch surface outside Telegram UI before any call packet is spent</step-7>
       <step-8 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window after live-launch smoke is green</step-8>
       <step-9 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
       <step-10 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON">Compare the live-launch packets against Phase-34, Phase-39, Phase-40, and the test-only Phase-41 boundary</step-10>
@@ -8865,6 +8865,7 @@
       <note-4>The live launch surface must remain reversible and must not weaken the already-working `127.0.0.1:1080` path for texts, media files, and large files.</note-4>
       <note-5>The new branch is specifically about the missing operator-facing launch surface; it must not reopen earlier tuple-recovery or auth/bootstrap branches unless new evidence forces it.</note-5>
       <note-6>On 2026-03-31 the first execution packet added one governed `origdst-live` CLI mode, one exact config shape, one cancellation-controlled live launcher with separate launch and listener-bind anchors, and one explicit operator runbook before any live smoke or Telegram call packet was spent.</note-6>
+      <note-7>Later on the same date the bounded live-smoke packet turned green in `src/cli/mod.test.rs`: the same test window now proves origdst-live startup, listener bind, one recovered tuple, one governed handoff, and one preserved-baseline probe without spending any Telegram UI packet or reopening a second auth surface.</note-7>
     </Phase-42>
   </ImplementationOrder>
 

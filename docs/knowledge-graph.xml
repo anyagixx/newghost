@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.46">
+  <Project NAME="n0wss" VERSION="0.2.47">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -2903,7 +2903,7 @@
         <fn-defineOrigDstLiveRunbook PURPOSE="Define setup, cleanup, and preserved-baseline proof for the live repo-local helper packet." />
       </annotations>
     </M-ORIGDST-LIVE-RUNBOOK>
-    <M-ORIGDST-LIVE-SMOKE NAME="OrigDstLiveSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-ORIGDST-LIVE-SMOKE NAME="OrigDstLiveSmoke" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Prove the live helper launch surface outside Telegram UI before any new call packet is spent.</purpose>
       <path>src/cli/mod.test.rs</path>
       <depends>M-ORIGDST-LIVE-LAUNCHER, M-ORIGDST-LIVE-RUNBOOK</depends>
