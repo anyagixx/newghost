@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.45">
+  <Project NAME="n0wss" VERSION="0.2.46">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -11,8 +11,10 @@
       <annotations>
         <fn-run PURPOSE="Parse startup arguments and bootstrap the selected mode." />
         <fn-runUntilShutdown PURPOSE="Launch the selected runtime surface and keep it alive until cancellation." />
+        <fn-runOrigDstLiveUntilCancelled PURPOSE="Bind and run one governed live origdst helper listener until cancellation." />
         <fn-coordinateShutdown PURPOSE="Stop accepts, drain work, and release transports in order." />
         <type-ApplicationRunResult PURPOSE="Represent final startup or shutdown outcomes." />
+        <type-OrigDstLiveLaunchResult PURPOSE="Represent bounded live-helper listener metadata for one packet window." />
         <type-CliRuntimeError PURPOSE="Report deterministic runtime-launch and listener-lifecycle failures after bootstrap." />
         <type-StartupArtifacts PURPOSE="Carry config, observability, auth policy, session timings, and optional TLS startup handles." />
       </annotations>
@@ -37,6 +39,7 @@
         <fn-loadConfig PURPOSE="Load and validate CLI arguments and environment configuration." />
         <type-AppConfig PURPOSE="Typed runtime configuration for client and server modes." />
         <type-ClientTlsConfig PURPOSE="Carries optional client trust-anchor material and endpoint-identity override for outbound WSS." />
+        <type-OrigDstLiveConfig PURPOSE="Carries the exact live helper listener, payload capacity, operator user, and preserved-baseline fields." />
         <export-config PURPOSE="Expose validated immutable configuration to the rest of the application." />
       </annotations>
     </M-CONFIG>
@@ -2846,7 +2849,7 @@
         <fn-issueTelegramCallsOrigDstDecision PURPOSE="Issue the bounded final decision after the repo-local helper arbitrary-UDP calls branch." />
       </annotations>
     </M-TELEGRAM-CALLS-ORIGDST-DECISION>
-    <M-ORIGDST-LAUNCH-HYPOTHESIS NAME="OrigDstLaunchHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-ORIGDST-LAUNCH-HYPOTHESIS NAME="OrigDstLaunchHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the live-launch blocker above the green repo-local helper smoke packet.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-UDP-ORIGDST-SMOKE, M-TELEGRAM-CALLS-ORIGDST-DECISION</depends>
@@ -2855,7 +2858,7 @@
         <fn-freezeOrigDstLaunchHypothesis PURPOSE="Freeze the exact live-launch blocker above the green repo-local helper smoke packet." />
       </annotations>
     </M-ORIGDST-LAUNCH-HYPOTHESIS>
-    <M-PHASE41-LAUNCH-BOUNDARY NAME="Phase41LaunchBoundary" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE41-LAUNCH-BOUNDARY NAME="Phase41LaunchBoundary" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the old Phase-41 voice and video tail as blocked by the missing live helper launch surface.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-ORIGDST-LAUNCH-HYPOTHESIS</depends>
@@ -2864,40 +2867,40 @@
         <fn-freezePhase41LaunchBoundary PURPOSE="Keep the blocked live-launch boundary explicit for the old Phase-41 tail." />
       </annotations>
     </M-PHASE41-LAUNCH-BOUNDARY>
-    <M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT NAME="OrigDstLiveEntrypointContract" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT NAME="OrigDstLiveEntrypointContract" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Define one governed process entrypoint that binds the repo-local helper listener, runs origdst recovery, and stays observable for bounded packet windows.</purpose>
       <path>src/cli/mod.rs</path>
       <depends>M-UDP-ORIGDST-CONTRACT, M-CLI</depends>
       <verification-ref>V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT</verification-ref>
       <annotations>
-        <fn-defineOrigDstLiveEntrypoint PURPOSE="Define the live process entrypoint for the repo-local origdst helper." />
+        <fn-runOrigDstLiveEntrypoint PURPOSE="Define one governed live process entrypoint for the repo-local origdst helper." />
       </annotations>
     </M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT>
-    <M-ORIGDST-LIVE-CONFIG-SHAPE NAME="OrigDstLiveConfigShape" TYPE="UTILITY" STATUS="planned">
+    <M-ORIGDST-LIVE-CONFIG-SHAPE NAME="OrigDstLiveConfigShape" TYPE="UTILITY" STATUS="done">
       <purpose>Define the exact config and runtime arguments for live helper launch without weakening the preserved baseline.</purpose>
       <path>src/config/mod.rs</path>
       <depends>M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-UDP-ORIGDST-RUNBOOK</depends>
       <verification-ref>V-M-ORIGDST-LIVE-CONFIG-SHAPE</verification-ref>
       <annotations>
-        <fn-defineOrigDstLiveConfigShape PURPOSE="Define config fields and argument shape for the live repo-local helper launcher." />
+        <fn-defineOrigDstLiveConfigShape PURPOSE="Define config fields and the exact `origdst-live` argument shape for the live repo-local helper launcher." />
       </annotations>
     </M-ORIGDST-LIVE-CONFIG-SHAPE>
-    <M-ORIGDST-LIVE-LAUNCHER NAME="OrigDstLiveLauncher" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-ORIGDST-LIVE-LAUNCHER NAME="OrigDstLiveLauncher" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Implement the governed live launcher that starts the repo-local helper loop, emits stable launch anchors, and stays alive until cancellation.</purpose>
       <path>src/cli/mod.rs</path>
       <depends>M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, M-UDP-ORIGDST-RUNTIME, M-OBS</depends>
       <verification-ref>V-M-ORIGDST-LIVE-LAUNCHER</verification-ref>
       <annotations>
-        <fn-runOrigDstLiveLauncher PURPOSE="Run the live repo-local helper launcher until cancellation." />
+        <fn-runOrigDstLiveLauncher PURPOSE="Run the live repo-local helper launcher until cancellation with separate launch and listener-bind anchors." />
       </annotations>
     </M-ORIGDST-LIVE-LAUNCHER>
-    <M-ORIGDST-LIVE-RUNBOOK NAME="OrigDstLiveRunbook" TYPE="INTEGRATION" STATUS="planned">
+    <M-ORIGDST-LIVE-RUNBOOK NAME="OrigDstLiveRunbook" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define the operator packet for live helper launch, interception, evidence collection, and cleanup without weakening the preserved baseline.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-ORIGDST-LIVE-CONFIG-SHAPE, M-UDP-ORIGDST-RUNBOOK</depends>
       <verification-ref>V-M-ORIGDST-LIVE-RUNBOOK</verification-ref>
       <annotations>
-        <fn-defineOrigDstLiveRunbook PURPOSE="Define setup and cleanup for the live repo-local helper packet." />
+        <fn-defineOrigDstLiveRunbook PURPOSE="Define setup, cleanup, and preserved-baseline proof for the live repo-local helper packet." />
       </annotations>
     </M-ORIGDST-LIVE-RUNBOOK>
     <M-ORIGDST-LIVE-SMOKE NAME="OrigDstLiveSmoke" TYPE="CORE_LOGIC" STATUS="planned">

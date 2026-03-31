@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.74">
+<VerificationPlan VERSION="0.2.75">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -5842,7 +5842,7 @@
     </V-M-PHASE41-LAUNCH-BOUNDARY>
     <V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT MODULE="M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT" PRIORITY="high">
       <test-files><file>src/cli/mod.rs</file><file>src/cli/mod.test.rs</file><file>docs/development-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'origdst live entrypoint|helper listener|cancellation|launch anchor|listener bind' src/cli/mod.rs src/cli/mod.test.rs docs/development-plan.xml</check-1></module-checks>
+      <module-checks><check-1>rg -n 'origdst-live|origdst live entrypoint|helper listener|cancellation|launch anchor|listener bind' src/cli/mod.rs src/cli/mod.test.rs docs/development-plan.xml</check-1></module-checks>
       <success-scenarios>
         <scenario-1>The entrypoint contract names one exact live process surface for the repo-local helper and keeps its observability explicit.</scenario-1>
         <scenario-2>The entrypoint contract distinguishes process launch from listener bind so a failure packet can name the first divergent launch layer precisely.</scenario-2>
@@ -5854,7 +5854,7 @@
     </V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT>
     <V-M-ORIGDST-LIVE-CONFIG-SHAPE MODULE="M-ORIGDST-LIVE-CONFIG-SHAPE" PRIORITY="high">
       <test-files><file>src/config/mod.rs</file><file>src/config/mod.test.rs</file><file>docs/OPERATORS.md</file></test-files>
-      <module-checks><check-1>rg -n '127.0.0.1:10073|payload capacity|operator user|baseline preserve|live helper|env' src/config/mod.rs src/config/mod.test.rs docs/OPERATORS.md</check-1></module-checks>
+      <module-checks><check-1>rg -n 'origdst-live|127.0.0.1:10073|payload capacity|operator user|baseline preserve|live helper|env' src/config/mod.rs src/config/mod.test.rs docs/OPERATORS.md</check-1></module-checks>
       <success-scenarios>
         <scenario-1>The config shape names the live helper listener, payload capacity, and baseline-preserve fields explicitly.</scenario-1>
         <scenario-2>The config shape freezes one exact launch shape and does not depend on inherited shell or desktop environment state.</scenario-2>
@@ -5878,7 +5878,7 @@
     </V-M-ORIGDST-LIVE-LAUNCHER>
     <V-M-ORIGDST-LIVE-RUNBOOK MODULE="M-ORIGDST-LIVE-RUNBOOK" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'live helper|temporary interception rule|cleanup|127.0.0.1:1080|no second auth' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <module-checks><check-1>rg -n 'origdst-live|live helper|temporary interception rule|cleanup|127.0.0.1:1080|no second auth' docs/OPERATORS.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
       <success-scenarios><scenario-1>The runbook defines explicit setup, cleanup, and preserved-baseline proof for the live helper packet window.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The runbook leaves live helper process ownership, interception cleanup, or baseline proof ambiguous.</scenario-1></failure-scenarios>
     </V-M-ORIGDST-LIVE-RUNBOOK>
