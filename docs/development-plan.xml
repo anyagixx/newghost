@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.58">
+<DevelopmentPlan VERSION="0.2.59">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -8320,6 +8320,219 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION>
+    <M-POSTRECOVERY-HYPOTHESIS NAME="PostRecoveryHypothesis" TYPE="UTILITY" LAYER="49" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the new truth-boundary above Phase-45: real Telegram media-tuple recovery is green while call establishment remains blocked at key exchange.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-45 final decision packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery hypothesis packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION</depends>
+      <observability>
+        <log-prefix>[PostRecoveryHypothesis]</log-prefix>
+        <critical-block>BLOCK_POSTRECOVERY_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-POSTRECOVERY-HYPOTHESIS</verification-ref>
+    </M-POSTRECOVERY-HYPOTHESIS>
+    <M-PHASE45-ESTABLISHMENT-BOUNDARY NAME="Phase45EstablishmentBoundary" TYPE="UTILITY" LAYER="49" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Explicitly preserve Phase-45 as the first real-media-tuple branch while freezing its tail as a key-exchange establishment boundary.</purpose>
+        <inputs>
+          <input-1>The bounded post-recovery hypothesis packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded Phase-45 establishment-boundary packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-POSTRECOVERY-HYPOTHESIS</depends>
+      <observability>
+        <log-prefix>[Phase45EstablishmentBoundary]</log-prefix>
+        <critical-block>BLOCK_PHASE45_ESTABLISHMENT_BOUNDARY</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE45-ESTABLISHMENT-BOUNDARY</verification-ref>
+    </M-PHASE45-ESTABLISHMENT-BOUNDARY>
+    <M-POSTRECOVERY-TECH-DECISION NAME="PostRecoveryTechDecision" TYPE="ENTRY_POINT" LAYER="49" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Choose one exact post-recovery evidence class for the next branch so tuple recovery, establishment behavior, and key-exchange failure can be separated without changing the Phase-45 topology itself.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-45 establishment-boundary packet and server-correlation surface.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery technology-decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-PHASE45-ESTABLISHMENT-BOUNDARY, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[PostRecoveryTechDecision]</log-prefix>
+        <critical-block>BLOCK_POSTRECOVERY_TECH_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-POSTRECOVERY-TECH-DECISION</verification-ref>
+    </M-POSTRECOVERY-TECH-DECISION>
+    <M-POSTRECOVERY-RUNTIME-PROFILE NAME="PostRecoveryRuntimeProfile" TYPE="INTEGRATION" LAYER="49" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Freeze one exact runtime profile for the post-recovery branch while preserving the Phase-45 interception topology, root-run helper shape, and ordinary Telegram baseline unchanged.</purpose>
+        <inputs>
+          <input-1>The bounded post-recovery technology-decision packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery runtime-profile packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-POSTRECOVERY-TECH-DECISION, M-TPROXY-NONOUTPUT-RUNTIME-PROFILE</depends>
+      <observability>
+        <log-prefix>[PostRecoveryRuntimeProfile]</log-prefix>
+        <critical-block>BLOCK_POSTRECOVERY_RUNTIME_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-POSTRECOVERY-RUNTIME-PROFILE</verification-ref>
+    </M-POSTRECOVERY-RUNTIME-PROFILE>
+    <M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT NAME="CallEstablishmentEvidenceContract" TYPE="CORE_LOGIC" LAYER="49" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Define one exact evidence contract that keeps tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome as separate proof classes.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-45 establishment-boundary packet and post-recovery technology decision.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded call-establishment evidence contract packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-PHASE45-ESTABLISHMENT-BOUNDARY, M-POSTRECOVERY-TECH-DECISION</depends>
+      <observability>
+        <log-prefix>[CallEstablishmentEvidenceContract]</log-prefix>
+        <critical-block>BLOCK_CALL_ESTABLISHMENT_EVIDENCE_CONTRACT</critical-block>
+      </observability>
+      <verification-ref>V-M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT</verification-ref>
+    </M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT>
+    <M-POSTRECOVERY-SMOKE NAME="PostRecoverySmoke" TYPE="CORE_LOGIC" LAYER="49" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Prove outside Telegram UI that the post-recovery evidence surface can distinguish outbound tuple recovery from downstream establishment or return behavior without spending a new calls packet.</purpose>
+        <inputs>
+          <input-1>The bounded call-establishment evidence contract and post-recovery runtime profile.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery smoke packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>src/cli/mod.test.rs</file-1>
+        <file-2>tests/udp_origdst_smoke.rs</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT, M-POSTRECOVERY-RUNTIME-PROFILE</depends>
+      <observability>
+        <log-prefix>[PostRecoverySmoke]</log-prefix>
+        <critical-block>BLOCK_POSTRECOVERY_SMOKE</critical-block>
+      </observability>
+      <verification-ref>V-M-POSTRECOVERY-SMOKE</verification-ref>
+    </M-POSTRECOVERY-SMOKE>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-VOICE NAME="TelegramCallsPostRecoveryVoice" TYPE="CORE_LOGIC" LAYER="49" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded voice attempt only after green post-recovery smoke so tuple recovery, downstream establishment evidence, and key-exchange outcome stay explicitly separated.</purpose>
+        <inputs>
+          <input-1>The bounded post-recovery smoke packet and server-correlation surface.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-POSTRECOVERY-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsPostRecoveryVoice]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_POSTRECOVERY_VOICE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE</verification-ref>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" LAYER="49" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded video attempt on the same post-recovery branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded post-recovery voice packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery video packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-VOICE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsPostRecoveryVideo]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_POSTRECOVERY_VIDEO</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO</verification-ref>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON NAME="TelegramCallsPostRecoveryComparison" TYPE="CORE_LOGIC" LAYER="49" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45 while preserving the first real-tuple-success boundary.</purpose>
+        <inputs>
+          <input-1>The bounded post-recovery voice and video packets.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-VOICE, M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO</depends>
+      <observability>
+        <log-prefix>[TelegramCallsPostRecoveryComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_POSTRECOVERY_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" LAYER="49" ORDER="10" STATUS="planned">
+      <contract>
+        <purpose>Issue the bounded final decision after the post-recovery establishment branch.</purpose>
+        <inputs>
+          <input-1>The bounded post-recovery comparison packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded post-recovery final decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsPostRecoveryDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_POSTRECOVERY_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
   </Modules>
 
   <DataFlow>
@@ -9007,6 +9220,31 @@
       <step-2>The final decision names whether the next branch is a governed-path code branch, an app-build branch, a direct-media conclusion, or a bounded stop due to insufficient evidence.</step-2>
       <evidence>A bounded attribution decision packet.</evidence>
     </DF-TELEGRAM-ATTRIBUTION-DECISION>
+    <DF-POSTRECOVERY-BOUNDARY NAME="PostRecoveryBoundary" TRIGGER="Phase-45 completed with real Telegram media-tuple recovery and governed handoff while voice and video still stalled at key exchange.">
+      <step-1>The boundary packet preserves Phase-45 as the first branch with real Telegram media tuples under the governed path.</step-1>
+      <step-2>The same packet freezes the next honest question as post-recovery call establishment rather than topology recovery.</step-2>
+      <evidence>A bounded post-recovery hypothesis packet.</evidence>
+    </DF-POSTRECOVERY-BOUNDARY>
+    <DF-POSTRECOVERY-SMOKE NAME="PostRecoverySmoke" TRIGGER="The project needs one smoke packet that can separate tuple recovery from downstream establishment behavior before new calls packets are spent.">
+      <step-1>The controller freezes one exact evidence contract for tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome.</step-1>
+      <step-2>The bounded smoke packet proves that the chosen evidence surface can distinguish those proof classes without spending a new Telegram UI packet.</step-2>
+      <evidence>A bounded post-recovery smoke packet.</evidence>
+    </DF-POSTRECOVERY-SMOKE>
+    <DF-TELEGRAM-CALLS-POSTRECOVERY-VOICE NAME="TelegramCallsPostRecoveryVoice" TRIGGER="Green post-recovery smoke exists and one bounded voice packet is approved on the preserved Phase-45 topology.">
+      <step-1>The ordinary logged-in Telegram Desktop window runs one bounded voice packet on the unchanged baseline.</step-1>
+      <step-2>The packet records real tuple recovery, governed handoff, downstream establishment evidence, and the user-visible key-exchange outcome as separate evidence classes.</step-2>
+      <evidence>A bounded post-recovery voice packet.</evidence>
+    </DF-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
+    <DF-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TRIGGER="The bounded post-recovery voice packet is preserved and one separate video packet is approved.">
+      <step-1>The ordinary logged-in Telegram Desktop window runs one bounded video packet on the same preserved topology.</step-1>
+      <step-2>The video packet stays separate from voice while recording the same evidence classes.</step-2>
+      <evidence>A bounded post-recovery video packet.</evidence>
+    </DF-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
+    <DF-POSTRECOVERY-DECISION NAME="PostRecoveryDecision" TRIGGER="The bounded post-recovery voice and video packets plus preserved earlier boundaries are all available.">
+      <step-1>The comparison packet keeps Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45 visible while classifying whether any positive evidence first appears beyond tuple recovery.</step-1>
+      <step-2>The final decision stays bounded to the post-recovery establishment branch and says whether the tested setup remains key-exchange no-go, exposes a narrower downstream layer, or becomes green.</step-2>
+      <evidence>A bounded post-recovery decision packet.</evidence>
+    </DF-POSTRECOVERY-DECISION>
   </DataFlow>
 
   <ImplementationOrder>
@@ -9641,6 +9879,24 @@
       <note-8>Later on the same date the bounded non-OUTPUT video packet stayed separate, recovered real Telegram media tuples including `91.108.13.23:599`, `91.108.17.35:599`, and `91.108.9.121:596`, and still ended in the same key-exchange stall class.</note-8>
       <note-9>The bounded final decision for Phase-45 is now fixed: supported non-OUTPUT interception, real Telegram media-destination recovery, and governed handoff are green on this host beside the preserved `127.0.0.1:1080` baseline, but successful Telegram Desktop voice or video establishment is still not green.</note-9>
     </Phase-45>
+    <Phase-46 name="Post-Recovery Call Establishment Boundary" status="pending">
+      <goal>Freeze the first post-Phase-45 branch above real tuple recovery so the next bounded work can isolate why call establishment still stalls at key exchange on the preserved topology.</goal>
+      <step-1 module="M-POSTRECOVERY-HYPOTHESIS" status="planned" verification="V-M-POSTRECOVERY-HYPOTHESIS">Freeze the new truth-boundary above the completed Phase-45 packet</step-1>
+      <step-2 module="M-PHASE45-ESTABLISHMENT-BOUNDARY" status="planned" verification="V-M-PHASE45-ESTABLISHMENT-BOUNDARY">Explicitly preserve Phase-45 as the first real-media-tuple branch while freezing its tail as a key-exchange establishment boundary</step-2>
+      <step-3 module="M-POSTRECOVERY-TECH-DECISION" status="planned" verification="V-M-POSTRECOVERY-TECH-DECISION">Choose one exact post-recovery evidence class for the next branch</step-3>
+      <step-4 module="M-POSTRECOVERY-RUNTIME-PROFILE" status="planned" verification="V-M-POSTRECOVERY-RUNTIME-PROFILE">Freeze one exact runtime profile for the post-recovery branch while preserving the Phase-45 topology unchanged</step-4>
+      <step-5 module="M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT" status="planned" verification="V-M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT">Define one exact evidence contract that separates tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome</step-5>
+      <step-6 module="M-POSTRECOVERY-SMOKE" status="planned" verification="V-M-POSTRECOVERY-SMOKE">Prove outside Telegram UI that the post-recovery evidence surface can distinguish tuple recovery from downstream establishment behavior</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-POSTRECOVERY-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE">Run one bounded voice attempt only after green post-recovery smoke</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON">Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION">Issue the bounded final decision after the post-recovery establishment branch</step-10>
+      <note-1>Phase-46 starts only after the preserved ordinary Telegram baseline, the Phase-42 redirect-boundary packet, the Phase-43 privilege-boundary packet, the Phase-44 output-boundary packet, and the completed Phase-45 real-tuple but key-exchange-stall packet are all visible together.</note-1>
+      <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
+      <note-3>No Telegram voice or video packet is valid before post-recovery smoke proves that tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome can be kept as separate evidence classes.</note-3>
+      <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files, and it must preserve the exact Phase-45 interception topology unless a later branch proves that this boundary was wrong.</note-4>
+      <note-5>The only approved new variable is the post-recovery evidence class itself; interception topology, helper launch shape, and no-second-auth rule stay fixed.</note-5>
+    </Phase-46>
   </ImplementationOrder>
 
   <ExecutionPolicy>

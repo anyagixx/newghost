@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.51">
+  <Project NAME="n0wss" VERSION="0.2.52">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3245,6 +3245,96 @@
         <fn-issueTelegramCallsTproxyNonOutputDecision PURPOSE="Issue the bounded final decision after the non-OUTPUT privileged TPROXY branch." />
       </annotations>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION>
+    <M-POSTRECOVERY-HYPOTHESIS NAME="PostRecoveryHypothesis" TYPE="UTILITY" STATUS="planned">
+      <purpose>Freeze the new truth-boundary above Phase-45: real Telegram media-tuple recovery is green while call establishment remains blocked at key exchange.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION</depends>
+      <verification-ref>V-M-POSTRECOVERY-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-freezePostRecoveryHypothesis PURPOSE="Freeze the post-recovery establishment boundary above Phase-45." />
+      </annotations>
+    </M-POSTRECOVERY-HYPOTHESIS>
+    <M-PHASE45-ESTABLISHMENT-BOUNDARY NAME="Phase45EstablishmentBoundary" TYPE="UTILITY" STATUS="planned">
+      <purpose>Explicitly preserve Phase-45 as the first real-media-tuple branch while freezing its tail as a key-exchange establishment boundary.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-POSTRECOVERY-HYPOTHESIS</depends>
+      <verification-ref>V-M-PHASE45-ESTABLISHMENT-BOUNDARY</verification-ref>
+      <annotations>
+        <fn-freezePhase45EstablishmentBoundary PURPOSE="Keep the Phase-45 establishment boundary explicit and non-blended." />
+      </annotations>
+    </M-PHASE45-ESTABLISHMENT-BOUNDARY>
+    <M-POSTRECOVERY-TECH-DECISION NAME="PostRecoveryTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Choose one exact post-recovery evidence class for the next branch so tuple recovery, establishment behavior, and key-exchange failure remain separable.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-PHASE45-ESTABLISHMENT-BOUNDARY, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-POSTRECOVERY-TECH-DECISION</verification-ref>
+      <annotations>
+        <fn-choosePostRecoveryTechDecision PURPOSE="Choose one exact post-recovery evidence class." />
+      </annotations>
+    </M-POSTRECOVERY-TECH-DECISION>
+    <M-POSTRECOVERY-RUNTIME-PROFILE NAME="PostRecoveryRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze one exact runtime profile for the post-recovery branch while preserving the Phase-45 topology unchanged.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-POSTRECOVERY-TECH-DECISION, M-TPROXY-NONOUTPUT-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-POSTRECOVERY-RUNTIME-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezePostRecoveryRuntimeProfile PURPOSE="Freeze the post-recovery runtime profile above the preserved Phase-45 topology." />
+      </annotations>
+    </M-POSTRECOVERY-RUNTIME-PROFILE>
+    <M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT NAME="CallEstablishmentEvidenceContract" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one exact evidence contract that keeps tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome separate.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-PHASE45-ESTABLISHMENT-BOUNDARY, M-POSTRECOVERY-TECH-DECISION</depends>
+      <verification-ref>V-M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT</verification-ref>
+      <annotations>
+        <fn-defineCallEstablishmentEvidenceContract PURPOSE="Define the post-recovery evidence packet for establishment behavior." />
+      </annotations>
+    </M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT>
+    <M-POSTRECOVERY-SMOKE NAME="PostRecoverySmoke" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Prove outside Telegram UI that the post-recovery evidence surface can distinguish outbound tuple recovery from downstream establishment behavior.</purpose>
+      <path>src/cli/mod.test.rs</path>
+      <depends>M-CALL-ESTABLISHMENT-EVIDENCE-CONTRACT, M-POSTRECOVERY-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-POSTRECOVERY-SMOKE</verification-ref>
+      <annotations>
+        <fn-provePostRecoverySmoke PURPOSE="Prove the evidence surface above Phase-45 before new calls packets are spent." />
+      </annotations>
+    </M-POSTRECOVERY-SMOKE>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-VOICE NAME="TelegramCallsPostRecoveryVoice" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded voice attempt only after green post-recovery smoke.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-POSTRECOVERY-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsPostRecoveryVoice PURPOSE="Spend one bounded voice packet on the post-recovery branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO NAME="TelegramCallsPostRecoveryVideo" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Run one bounded video attempt on the same post-recovery branch without inheriting the voice result.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-VOICE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsPostRecoveryVideo PURPOSE="Spend one bounded video packet on the post-recovery branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON NAME="TelegramCallsPostRecoveryComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-VOICE, M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramCallsPostRecovery PURPOSE="Compare the post-recovery packets against preserved earlier boundaries." />
+      </annotations>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue the bounded final decision after the post-recovery establishment branch.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsPostRecoveryDecision PURPOSE="Issue the bounded final decision after the post-recovery branch." />
+      </annotations>
+    </M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
