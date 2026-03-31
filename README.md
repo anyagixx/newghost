@@ -328,6 +328,12 @@ Current calls-profile status:
   the same ordinary logged-in Telegram window, the same root-run `origdst-live` helper, and the same preserved `127.0.0.1:1080` baseline remain fixed, while only the interception hook moves away from host `OUTPUT`
 - the current Phase-45 technology decision is now fixed to one exact class on this host:
   host `OUTPUT` may set only the operator-UID steering mark, while policy routing sends that traffic into an isolated `veth/netns` ingress where Linux `TPROXY` is installed only on namespace `PREROUTING`; no blended `OUTPUT TPROXY`, `REDIRECT`, or `NFQUEUE` packet counts as honest next work
+- the completed Phase-45 comparison packet on 2026-03-31 is greener in interception but still not green in user-visible call outcome:
+  Phase-34 stayed the preserved `direct-media outside SOCKS` boundary, Phase-42 stayed the live-UDP-but-helper-collapse boundary, Phase-43 stayed the privilege boundary, and Phase-44 stayed the blocked host-`OUTPUT` boundary, while Phase-45 became the first branch to recover real Telegram media tuples under the governed path during both bounded voice and bounded video waves
+- the bounded Phase-45 calls packet still remains key-exchange no-go for the tested Desktop setup:
+  the non-`OUTPUT` privileged topology preserved the ordinary `127.0.0.1:1080` baseline, emitted governed handoff anchors, and recovered real Telegram media tuples such as `91.108.13.25:596`, `91.108.9.103:597`, `91.108.13.23:599`, and `91.108.17.35:599`, but both bounded calls waves still stalled at `Обмен ключами шифрования`
+- the bounded Phase-45 final decision therefore stays narrow and non-green:
+  this host now has evidence for supported non-`OUTPUT` interception, real Telegram media-destination recovery, and governed handoff beside the preserved Desktop baseline, but that evidence still does not produce a green voice or video call, so the tested Desktop calls envelope remains no-go rather than transport-blind or helper-blind
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

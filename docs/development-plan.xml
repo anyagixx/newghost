@@ -8235,7 +8235,7 @@
       </observability>
       <verification-ref>V-M-TPROXY-NONOUTPUT-SMOKE</verification-ref>
     </M-TPROXY-NONOUTPUT-SMOKE>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE NAME="TelegramCallsTproxyNonOutputVoice" TYPE="CORE_LOGIC" LAYER="48" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE NAME="TelegramCallsTproxyNonOutputVoice" TYPE="CORE_LOGIC" LAYER="48" ORDER="8" STATUS="done">
       <contract>
         <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-OUTPUT privileged smoke.</purpose>
         <inputs>
@@ -8256,7 +8256,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO NAME="TelegramCallsTproxyNonOutputVideo" TYPE="CORE_LOGIC" LAYER="48" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO NAME="TelegramCallsTproxyNonOutputVideo" TYPE="CORE_LOGIC" LAYER="48" ORDER="9" STATUS="done">
       <contract>
         <purpose>Run one bounded video attempt on the same non-OUTPUT privileged branch without inheriting the voice result.</purpose>
         <inputs>
@@ -8277,7 +8277,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON NAME="TelegramCallsTproxyNonOutputComparison" TYPE="CORE_LOGIC" LAYER="48" ORDER="10" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON NAME="TelegramCallsTproxyNonOutputComparison" TYPE="CORE_LOGIC" LAYER="48" ORDER="10" STATUS="done">
       <contract>
         <purpose>Compare the non-OUTPUT TPROXY packets against the old direct-media, redirect-boundary, non-REDIRECT, and output-boundary packets.</purpose>
         <inputs>
@@ -8298,7 +8298,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION NAME="TelegramCallsTproxyNonOutputDecision" TYPE="ENTRY_POINT" LAYER="48" ORDER="11" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION NAME="TelegramCallsTproxyNonOutputDecision" TYPE="ENTRY_POINT" LAYER="48" ORDER="11" STATUS="done">
       <contract>
         <purpose>Issue the bounded final decision after the non-OUTPUT privileged TPROXY branch.</purpose>
         <inputs>
@@ -9618,7 +9618,7 @@
       <note-5>The only approved new variable is the privileged launch surface itself; the non-REDIRECT topology class remains `TPROXY`, and helper runtime shape plus no-second-auth rule stay fixed.</note-5>
       <note-6>On 2026-03-31 the first privileged smoke packet proved root-run helper launch, `IP_TRANSPARENT` enablement, and preserved baseline at `127.0.0.1:1080`, but the host OUTPUT-class TPROXY packet itself failed on this workstation: `iptables` returned `Invalid argument` and `nft` route/output returned `Operation not supported`.</note-6>
     </Phase-44>
-    <Phase-45 name="Privileged Non-Output TPROXY Topology" status="in_progress">
+    <Phase-45 name="Privileged Non-Output TPROXY Topology" status="done">
       <goal>Replace the blocked host OUTPUT TPROXY shape with one exact privileged non-OUTPUT topology before any new Telegram calls packet is spent.</goal>
       <step-1 module="M-TPROXY-NONOUTPUT-HYPOTHESIS" status="done" verification="V-M-TPROXY-NONOUTPUT-HYPOTHESIS">Freeze the new truth-boundary above the blocked Phase-44 output packet</step-1>
       <step-2 module="M-PHASE44-OUTPUT-BOUNDARY" status="done" verification="V-M-PHASE44-OUTPUT-BOUNDARY">Explicitly preserve the old Phase-44 tail as a blocked host OUTPUT TPROXY packet</step-2>
@@ -9627,16 +9627,19 @@
       <step-5 module="M-TPROXY-NONOUTPUT-LINUX-DELTA" status="done" verification="V-M-TPROXY-NONOUTPUT-LINUX-DELTA">Define the minimal Linux or routing delta for the chosen non-OUTPUT TPROXY topology</step-5>
       <step-6 module="M-TPROXY-NONOUTPUT-RUNBOOK" status="done" verification="V-M-TPROXY-NONOUTPUT-RUNBOOK">Define the exact operator packet for privileged helper launch, non-OUTPUT TPROXY rules, routing marks, and cleanup</step-6>
       <step-7 module="M-TPROXY-NONOUTPUT-SMOKE" status="done" verification="V-M-TPROXY-NONOUTPUT-SMOKE">Prove outside Telegram UI that the non-OUTPUT privileged topology can install supported interception rules and recover a real destination tuple</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE">Run one bounded voice attempt only after green non-OUTPUT privileged smoke</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
-      <step-10 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON">Compare the non-OUTPUT privileged packets against Phase-34, Phase-42, Phase-43, and Phase-44</step-10>
-      <step-11 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION">Issue the bounded decision after the non-OUTPUT privileged TPROXY branch</step-11>
+      <step-8 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE">Run one bounded voice attempt only after green non-OUTPUT privileged smoke</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO" status="done" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON" status="done" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON">Compare the non-OUTPUT privileged packets against Phase-34, Phase-42, Phase-43, and Phase-44</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION" status="done" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION">Issue the bounded decision after the non-OUTPUT privileged TPROXY branch</step-11>
       <note-1>Phase-45 starts only after the preserved ordinary Telegram baseline, the Phase-42 redirect-boundary packet, the Phase-43 privilege-boundary packet, and the Phase-44 output-boundary packet are all visible together.</note-1>
       <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
       <note-3>No Telegram voice or video packet is valid before non-OUTPUT privileged smoke proves supported rule install plus real destination recovery.</note-3>
       <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files.</note-4>
       <note-5>The only approved new variable is the interception topology shape itself; privileged helper launch, helper listener shape, and no-second-auth rule stay fixed.</note-5>
       <note-6>The exact Phase-45 topology is now frozen: host OUTPUT may set only the operator-UID steering mark; policy routing then steers that traffic into isolated veth/netns ingress where Linux TPROXY is installed only on namespace PREROUTING beside the same root-run `origdst-live` helper.</note-6>
+      <note-7>On 2026-03-31 the bounded non-OUTPUT voice packet recovered real Telegram media tuples including `91.108.13.25:596`, `91.108.9.103:597`, and `91.108.17.41:597` with governed handoff anchors while the ordinary Telegram window still stalled at `Обмен ключами шифрования`.</note-7>
+      <note-8>Later on the same date the bounded non-OUTPUT video packet stayed separate, recovered real Telegram media tuples including `91.108.13.23:599`, `91.108.17.35:599`, and `91.108.9.121:596`, and still ended in the same key-exchange stall class.</note-8>
+      <note-9>The bounded final decision for Phase-45 is now fixed: supported non-OUTPUT interception, real Telegram media-destination recovery, and governed handoff are green on this host beside the preserved `127.0.0.1:1080` baseline, but successful Telegram Desktop voice or video establishment is still not green.</note-9>
     </Phase-45>
   </ImplementationOrder>
 

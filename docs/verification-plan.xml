@@ -6086,27 +6086,27 @@
     </V-M-TPROXY-NONOUTPUT-SMOKE>
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT voice|already logged-in|supported rule install|real target|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The non-OUTPUT privileged voice packet is explicitly downstream of green non-OUTPUT smoke and the ordinary logged-in baseline.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The non-OUTPUT privileged voice packet is spent before green non-OUTPUT smoke or reopens a second auth window.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'non-OUTPUT voice|already logged-in|real Telegram media tuples|governed handoff|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml README.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The non-OUTPUT privileged voice packet is explicitly downstream of green non-OUTPUT smoke and the ordinary logged-in baseline.</scenario-1><scenario-2>The voice packet records governed handoff plus at least one real Telegram media tuple even if the user-visible call outcome still stalls at key exchange.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The non-OUTPUT privileged voice packet is spent before green non-OUTPUT smoke or reopens a second auth window.</scenario-1><scenario-2>The voice packet claims success without separate evidence for real tuple recovery and the observed key-exchange outcome.</scenario-2></failure-scenarios>
     </V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE>
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT video|already logged-in|supported rule install|real target|governed path|outside it|nowhere' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The non-OUTPUT privileged video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The non-OUTPUT privileged video packet silently inherits voice or bypasses smoke-first policy.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'non-OUTPUT video|already logged-in|real Telegram media tuples|governed handoff|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml README.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The non-OUTPUT privileged video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1><scenario-2>The video packet records governed handoff plus at least one real Telegram media tuple without inheriting the voice evidence.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The non-OUTPUT privileged video packet silently inherits voice or bypasses smoke-first policy.</scenario-1><scenario-2>The video packet claims success without separate evidence for real tuple recovery and the observed key-exchange outcome.</scenario-2></failure-scenarios>
     </V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO>
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON" PRIORITY="high">
       <test-files><file>README.md</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'Phase-34|Phase-42|Phase-43|Phase-44|non-OUTPUT voice|non-OUTPUT video' README.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The comparison keeps the old direct-media, redirect-boundary, privilege-boundary, and output-boundary packets visible while evaluating the non-OUTPUT branch.</scenario-1><scenario-2>The comparison states whether positive evidence first appeared at supported rule install, at real-target recovery, during calls, or nowhere.</scenario-2></success-scenarios>
-      <failure-scenarios><scenario-1>The comparison hides one of the earlier boundaries or treats the Phase-44 output-boundary packet as if it were already a non-OUTPUT success packet.</scenario-1><scenario-2>The comparison collapses rule-install proof and tuple-recovery proof into one vague success claim.</scenario-2></failure-scenarios>
+      <module-checks><check-1>rg -n 'Phase-34|Phase-42|Phase-43|Phase-44|Phase-45|non-OUTPUT voice|non-OUTPUT video|real Telegram media tuples' README.md docs/verification-plan.xml docs/development-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The comparison keeps the old direct-media, redirect-boundary, privilege-boundary, and output-boundary packets visible while evaluating the non-OUTPUT branch.</scenario-1><scenario-2>The comparison states that positive evidence first appeared as real Telegram media-tuple recovery and governed handoff during the bounded non-OUTPUT calls packets, not earlier.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The comparison hides one of the earlier boundaries or treats the Phase-44 output-boundary packet as if it were already a non-OUTPUT success packet.</scenario-1><scenario-2>The comparison collapses rule-install proof, tuple-recovery proof, and user-visible call outcome into one vague success claim.</scenario-2></failure-scenarios>
     </V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON>
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION" PRIORITY="high">
       <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-OUTPUT decision|127.0.0.1:1080|Phase-44|Phase-43|Phase-42|Phase-34' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The final decision stays bounded to the non-OUTPUT privileged TPROXY branch and preserves the ordinary baseline.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The final decision overclaims success or hides the blocked Phase-44 output-boundary packet.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'non-OUTPUT decision|127.0.0.1:1080|Phase-45|Phase-44|Phase-43|Phase-42|Phase-34|real Telegram media tuples|Обмен ключами шифрования' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The final decision stays bounded to the non-OUTPUT privileged TPROXY branch and preserves the ordinary baseline.</scenario-1><scenario-2>The final decision says explicitly that interception, real-target recovery, and governed handoff turned green while successful voice or video establishment did not.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The final decision overclaims success or hides the blocked Phase-44 output-boundary packet.</scenario-1><scenario-2>The final decision erases the observed key-exchange stall class after real tuple recovery became green.</scenario-2></failure-scenarios>
     </V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION>
     <V-M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE MODULE="M-TELEGRAM-CALLS-TPROXY-PRIV-VOICE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>

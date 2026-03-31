@@ -3209,7 +3209,7 @@
         <fn-proveTproxyNonOutputSmoke PURPOSE="Prove supported non-OUTPUT TPROXY interception before any new call packet." />
       </annotations>
     </M-TPROXY-NONOUTPUT-SMOKE>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE NAME="TelegramCallsTproxyNonOutputVoice" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE NAME="TelegramCallsTproxyNonOutputVoice" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-OUTPUT TPROXY smoke.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TPROXY-NONOUTPUT-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
@@ -3218,7 +3218,7 @@
         <fn-runTelegramCallsTproxyNonOutputVoice PURPOSE="Spend one bounded voice packet after green non-OUTPUT TPROXY smoke." />
       </annotations>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO NAME="TelegramCallsTproxyNonOutputVideo" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO NAME="TelegramCallsTproxyNonOutputVideo" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Run one bounded video attempt on the same non-OUTPUT privileged branch without inheriting the voice result.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE</depends>
@@ -3227,7 +3227,7 @@
         <fn-runTelegramCallsTproxyNonOutputVideo PURPOSE="Spend one bounded video packet on the non-OUTPUT privileged branch." />
       </annotations>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON NAME="TelegramCallsTproxyNonOutputComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON NAME="TelegramCallsTproxyNonOutputComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare the non-OUTPUT TPROXY packets against the earlier direct-media and topology-boundary packets.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE, M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO</depends>
@@ -3236,7 +3236,7 @@
         <fn-compareTelegramCallsTproxyNonOutput PURPOSE="Compare the non-OUTPUT TPROXY packets against preserved earlier boundaries." />
       </annotations>
     </M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON>
-    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION NAME="TelegramCallsTproxyNonOutputDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-DECISION NAME="TelegramCallsTproxyNonOutputDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue the bounded final decision after the non-OUTPUT privileged TPROXY calls branch.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON</depends>
