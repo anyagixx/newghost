@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.78">
+<VerificationPlan VERSION="0.2.79">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -6009,13 +6009,13 @@
     <V-M-TPROXY-PRIV-TECH-DECISION MODULE="M-TPROXY-PRIV-TECH-DECISION" PRIORITY="high">
       <test-files><file>docs/technology.xml</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
       <module-checks><check-1>rg -n 'TPROXY|privileged launch|root-run|capability|single launch class' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Operation not permitted|Phase-43|privilege-boundary|not partial success' docs/development-plan.xml docs/verification-plan.xml README.md</check-2></module-checks>
-      <success-scenarios><scenario-1>The branch chooses one exact privileged launch class for TPROXY transparent-socket enablement.</scenario-1></success-scenarios>
+      <success-scenarios><scenario-1>The branch chooses the one exact privileged launch class now approved for this workstation: a root-run repo-local helper for TPROXY transparent-socket enablement.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The branch mixes multiple privilege models or leaves the launch class vague.</scenario-1><scenario-2>The branch quietly reuses the blocked Phase-43 privilege-failure packet as if it were already partial privileged-launch success evidence.</scenario-2></failure-scenarios>
     </V-M-TPROXY-PRIV-TECH-DECISION>
     <V-M-TPROXY-PRIV-RUNTIME-PROFILE MODULE="M-TPROXY-PRIV-RUNTIME-PROFILE" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file></test-files>
       <module-checks><check-1>rg -n 'TPROXY|privileged|127.0.0.1:1080|helper owner|capabilities|ordinary baseline' docs/OPERATORS.md docs/development-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The runtime profile fixes helper ownership, required capabilities, and preserved-baseline boundaries for the privileged TPROXY branch.</scenario-1></success-scenarios>
+      <success-scenarios><scenario-1>The runtime profile fixes root-owned helper launch, required transparent-socket privilege boundary, and preserved-baseline boundaries for the privileged TPROXY branch.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The runtime profile weakens the ordinary baseline guarantee or leaves helper ownership and capability scope ambiguous.</scenario-1></failure-scenarios>
     </V-M-TPROXY-PRIV-RUNTIME-PROFILE>
     <V-M-TPROXY-PRIV-LAUNCH-DELTA MODULE="M-TPROXY-PRIV-LAUNCH-DELTA" PRIORITY="high">
@@ -6027,7 +6027,7 @@
     <V-M-TPROXY-PRIV-RUNBOOK MODULE="M-TPROXY-PRIV-RUNBOOK" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
       <module-checks><check-1>rg -n 'TPROXY|privileged launch|transparent socket|cleanup|127.0.0.1:1080|no second auth' docs/OPERATORS.md docs/verification-plan.xml</check-1><check-2>rg -n 'who owns helper|capability proof|transparent-socket proof|cleanup proof' docs/OPERATORS.md docs/verification-plan.xml</check-2></module-checks>
-      <success-scenarios><scenario-1>The runbook defines explicit privileged helper launch, capability proof, TPROXY setup, cleanup, and preserved-baseline proof.</scenario-1><scenario-2>The runbook separates privilege proof, transparent-socket proof, and cleanup proof so another agent can debug the first failing layer deterministically.</scenario-2></success-scenarios>
+      <success-scenarios><scenario-1>The runbook defines explicit root-run helper launch, capability proof, TPROXY setup, cleanup, and preserved-baseline proof.</scenario-1><scenario-2>The runbook separates privilege proof, transparent-socket proof, and cleanup proof so another agent can debug the first failing layer deterministically.</scenario-2></success-scenarios>
       <failure-scenarios><scenario-1>The runbook leaves privilege acquisition, cleanup ownership, or baseline-preserve proof ambiguous.</scenario-1><scenario-2>The runbook blends helper start, capability enablement, and transparent-socket success into one opaque packet.</scenario-2></failure-scenarios>
     </V-M-TPROXY-PRIV-RUNBOOK>
     <V-M-TPROXY-PRIV-SMOKE MODULE="M-TPROXY-PRIV-SMOKE" PRIORITY="high">

@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.49">
+  <Project NAME="n0wss" VERSION="0.2.50">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3002,7 +3002,7 @@
         <fn-freezeNonRedirectLiveRunbook PURPOSE="Freeze the exact operator packet for the non-REDIRECT live branch." />
       </annotations>
     </M-NONREDIRECT-LIVE-RUNBOOK>
-    <M-NONREDIRECT-LIVE-SMOKE NAME="NonRedirectLiveSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-NONREDIRECT-LIVE-SMOKE NAME="NonRedirectLiveSmoke" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Prove outside Telegram UI that the new non-REDIRECT live topology recovers real destination tuples instead of the helper listener while the baseline remains green.</purpose>
       <path>src/cli/mod.test.rs</path>
       <depends>M-NONREDIRECT-LINUX-ADAPTER-DELTA, M-NONREDIRECT-LIVE-RUNBOOK</depends>
@@ -3011,7 +3011,7 @@
         <fn-proveNonRedirectLiveSmoke PURPOSE="Prove real destination recovery under the new live topology before any new call packet." />
       </annotations>
     </M-NONREDIRECT-LIVE-SMOKE>
-    <M-TELEGRAM-CALLS-NONREDIRECT-VOICE NAME="TelegramCallsNonRedirectVoice" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-NONREDIRECT-VOICE NAME="TelegramCallsNonRedirectVoice" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-REDIRECT live smoke proves real destination recovery.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-NONREDIRECT-LIVE-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
@@ -3020,7 +3020,7 @@
         <fn-runTelegramCallsNonRedirectVoice PURPOSE="Spend one bounded voice packet on the ordinary logged-in Telegram window after green non-REDIRECT smoke." />
       </annotations>
     </M-TELEGRAM-CALLS-NONREDIRECT-VOICE>
-    <M-TELEGRAM-CALLS-NONREDIRECT-VIDEO NAME="TelegramCallsNonRedirectVideo" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-NONREDIRECT-VIDEO NAME="TelegramCallsNonRedirectVideo" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded video attempt on the same non-REDIRECT branch without inheriting the voice result.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-NONREDIRECT-VOICE</depends>
@@ -3029,7 +3029,7 @@
         <fn-runTelegramCallsNonRedirectVideo PURPOSE="Spend one bounded video packet on the non-REDIRECT branch." />
       </annotations>
     </M-TELEGRAM-CALLS-NONREDIRECT-VIDEO>
-    <M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON NAME="TelegramCallsNonRedirectComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON NAME="TelegramCallsNonRedirectComparison" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Compare the non-REDIRECT live packets against the older direct-media verdict and the fixed-tuple, test-only, and redirect-boundary packets.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-NONREDIRECT-VOICE, M-TELEGRAM-CALLS-NONREDIRECT-VIDEO</depends>
@@ -3038,7 +3038,7 @@
         <fn-compareTelegramCallsNonRedirect PURPOSE="Compare the non-REDIRECT live packets against the preserved older boundaries." />
       </annotations>
     </M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON>
-    <M-TELEGRAM-CALLS-NONREDIRECT-DECISION NAME="TelegramCallsNonRedirectDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-NONREDIRECT-DECISION NAME="TelegramCallsNonRedirectDecision" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Issue the bounded final decision after the non-REDIRECT live calls branch.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-NONREDIRECT-COMPARISON</depends>
@@ -3047,7 +3047,7 @@
         <fn-issueTelegramCallsNonRedirectDecision PURPOSE="Issue the bounded final decision after the non-REDIRECT live calls branch." />
       </annotations>
     </M-TELEGRAM-CALLS-NONREDIRECT-DECISION>
-    <M-TPROXY-PRIV-HYPOTHESIS NAME="TproxyPrivHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-TPROXY-PRIV-HYPOTHESIS NAME="TproxyPrivHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the new truth-boundary that the Phase-43 TPROXY branch is blocked by privileged transparent-socket launch rather than by topology choice alone.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-NONREDIRECT-DECISION, M-NONREDIRECT-LIVE-SMOKE</depends>
@@ -3056,7 +3056,7 @@
         <fn-freezeTproxyPrivHypothesis PURPOSE="Freeze the privileged transparent-socket boundary above the blocked Phase-43 branch." />
       </annotations>
     </M-TPROXY-PRIV-HYPOTHESIS>
-    <M-PHASE43-PRIV-BOUNDARY NAME="Phase43PrivBoundary" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE43-PRIV-BOUNDARY NAME="Phase43PrivBoundary" TYPE="UTILITY" STATUS="done">
       <purpose>Explicitly preserve the Phase-43 tail as blocked by the missing privileged launch surface instead of by topology ambiguity.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TPROXY-PRIV-HYPOTHESIS</depends>
@@ -3065,7 +3065,7 @@
         <fn-freezePhase43PrivBoundary PURPOSE="Keep the blocked Phase-43 TPROXY branch explicit and non-runnable until a privileged launch surface exists." />
       </annotations>
     </M-PHASE43-PRIV-BOUNDARY>
-    <M-TPROXY-PRIV-TECH-DECISION NAME="TproxyPrivTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TPROXY-PRIV-TECH-DECISION NAME="TproxyPrivTechDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Choose one exact privileged launch class for the TPROXY helper branch so transparent-socket enablement is explicit and bounded.</purpose>
       <path>docs/technology.xml</path>
       <depends>M-NONREDIRECT-TECH-DECISION, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT</depends>
@@ -3074,7 +3074,7 @@
         <fn-chooseTproxyPrivTechDecision PURPOSE="Choose one exact privileged launch class for the TPROXY helper branch." />
       </annotations>
     </M-TPROXY-PRIV-TECH-DECISION>
-    <M-TPROXY-PRIV-RUNTIME-PROFILE NAME="TproxyPrivRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-TPROXY-PRIV-RUNTIME-PROFILE NAME="TproxyPrivRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze the exact privileged runtime topology for helper ownership, required capabilities, and preserved ordinary baseline.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TPROXY-PRIV-TECH-DECISION, M-NONREDIRECT-RUNTIME-PROFILE</depends>
@@ -3083,7 +3083,7 @@
         <fn-freezeTproxyPrivRuntimeProfile PURPOSE="Freeze the exact privileged runtime profile for the TPROXY helper branch." />
       </annotations>
     </M-TPROXY-PRIV-RUNTIME-PROFILE>
-    <M-TPROXY-PRIV-LAUNCH-DELTA NAME="TproxyPrivLaunchDelta" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TPROXY-PRIV-LAUNCH-DELTA NAME="TproxyPrivLaunchDelta" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define the minimal code or config delta needed for privileged transparent-socket launch without widening the generic helper contract.</purpose>
       <path>src/cli/mod.rs</path>
       <depends>M-TPROXY-PRIV-TECH-DECISION, M-CLI, M-CONFIG, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
@@ -3092,7 +3092,7 @@
         <fn-applyTproxyPrivLaunchDelta PURPOSE="Apply the minimal launch-surface delta required for privileged TPROXY helper startup." />
       </annotations>
     </M-TPROXY-PRIV-LAUNCH-DELTA>
-    <M-TPROXY-PRIV-RUNBOOK NAME="TproxyPrivRunbook" TYPE="INTEGRATION" STATUS="planned">
+    <M-TPROXY-PRIV-RUNBOOK NAME="TproxyPrivRunbook" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define the exact operator packet for privileged helper launch, capability proof, TPROXY setup, cleanup, and baseline preservation.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-TPROXY-PRIV-RUNTIME-PROFILE, M-NONREDIRECT-LIVE-RUNBOOK</depends>
