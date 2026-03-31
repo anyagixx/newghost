@@ -1,10 +1,10 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.8
+// VERSION: 0.1.9
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, live-launch smoke, non-OUTPUT live-smoke launch shape, and shutdown sequencing for governed startup paths.
-//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, live tuple-recovery smoke, non-OUTPUT launch-shape proof, and shutdown ordering.
+//   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, live-launch smoke, non-OUTPUT live-smoke launch shape, post-recovery topology-lock proof, and shutdown sequencing for governed startup paths.
+//   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, live tuple-recovery smoke, non-OUTPUT launch-shape proof, post-recovery launch-shape proof, and shutdown ordering.
 //   DEPENDS: async-trait, src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs, src/udp_origdst/mod.rs
-//   LINKS: V-M-CLI, V-M-TLS, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER, V-M-ORIGDST-LIVE-SMOKE, V-M-TPROXY-NONOUTPUT-SMOKE
+//   LINKS: V-M-CLI, V-M-TLS, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER, V-M-ORIGDST-LIVE-SMOKE, V-M-TPROXY-NONOUTPUT-SMOKE, V-M-POSTRECOVERY-SMOKE
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
@@ -17,13 +17,14 @@
 //   origdst_live_runtime_binds_listener_until_cancelled - proves the live helper launcher emits a bound listener and stays alive until cancellation
 //   origdst_live_smoke_proves_launch_listener_tuple_handoff_and_preserved_baseline - proves the live helper packet stays outside Telegram UI while preserving the ordinary baseline and forwarding one recovered tuple
 //   origdst_live_nonoutput_smoke_proves_launch_shape_and_preserved_baseline - proves the Phase-45 non-OUTPUT smoke packet keeps launch proof, route-mark plan proof, local-delivery plan proof, and preserved baseline proof outside Telegram UI
+//   origdst_live_postrecovery_smoke_proves_topology_lock_and_evidence_order - proves the Phase-46 post-recovery branch keeps the Phase-45 launch shape fixed while preserving a deterministic proof order before any new calls packet
 //   client_runtime_forwards_udp_datagram_through_runtime_bridge - proves the live client bootstrap wires UDP ingress into the datagram runtime bridge and reaches a real UDP target
 //   client_inbound_target_delivers_reply_into_owned_udp_socket - proves client-side inbound delivery returns one governed datagram into the owning local UDP relay socket
 //   shutdown_stops_accepts_before_drain_and_release - proves deterministic shutdown ordering
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.8 - Added a bounded Phase-45 non-OUTPUT live-smoke launch-shape test so privileged launch, route-mark planning, local-delivery planning, and preserved baseline proof stay separate before any Telegram packet.
+//   LAST_CHANGE: v0.1.9 - Added a bounded Phase-46 post-recovery smoke test so launch-shape proof, topology lock, and smoke proof order stay separate above the completed Phase-45 packet.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -526,6 +527,94 @@ async fn origdst_live_nonoutput_smoke_proves_launch_shape_and_preserved_baseline
     assert_eq!(launch.listener_addr, helper_addr);
     assert_eq!(launch.payload_capacity_bytes, 128);
     // END_BLOCK_TPROXY_NONOUTPUT_SMOKE
+}
+
+#[tokio::test]
+async fn origdst_live_postrecovery_smoke_proves_topology_lock_and_evidence_order() {
+    // START_BLOCK_POSTRECOVERY_SMOKE
+    let startup = run_from([
+        "n0wss",
+        "--auth-token",
+        "token-12345",
+        "origdst-live",
+        "--transparent-socket-mode",
+        "required",
+    ])
+    .expect("origdst-live post-recovery startup should succeed");
+    assert_eq!(startup.mode, ApplicationMode::OrigDstLive);
+
+    let baseline_listener =
+        StdTcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+            .expect("bind post-recovery preserved baseline listener");
+    let baseline_addr = baseline_listener
+        .local_addr()
+        .expect("post-recovery preserved baseline listener addr");
+    let baseline_thread = thread::spawn(move || {
+        let (_stream, _) = baseline_listener
+            .accept()
+            .expect("accept post-recovery preserved baseline probe");
+    });
+
+    let helper_addr = reserve_local_udp_addr();
+    let nonoutput_plan = plan_linux_nonoutput_tproxy(helper_addr);
+    let proof_order = [
+        "launch-shape",
+        nonoutput_plan.route_marker,
+        nonoutput_plan.route_localnet_marker,
+        "baseline-preserve",
+    ];
+    assert_eq!(
+        proof_order,
+        [
+            "launch-shape",
+            "policy-routing-fwmark",
+            "route-localnet",
+            "baseline-preserve",
+        ]
+    );
+
+    let config = OrigDstLiveConfig {
+        listener_addr: helper_addr,
+        payload_capacity_bytes: 128,
+        operator_uid: 1000,
+        preserve_baseline_proxy_addr: baseline_addr,
+        transparent_socket_mode: OrigDstTransparentSocketMode::Disabled,
+    };
+    let handoff = RecordingOrigDstLiveHandoff::default();
+    let cancel = CancellationToken::new();
+    let task = tokio::spawn({
+        let cancel = cancel.clone();
+        let handoff = handoff.clone();
+        let config = config.clone();
+        async move { run_origdst_live_until_cancelled(&config, cancel, handoff).await }
+    });
+
+    sleep(Duration::from_millis(50)).await;
+    assert!(
+        handoff
+            .calls
+            .lock()
+            .expect("recording post-recovery handoff lock poisoned")
+            .is_empty()
+    );
+
+    let _baseline_probe = TcpStream::connect(baseline_addr)
+        .await
+        .expect("post-recovery preserved baseline should stay reachable");
+    baseline_thread
+        .join()
+        .expect("post-recovery baseline thread join");
+
+    cancel.cancel();
+    let launch = task
+        .await
+        .expect("post-recovery origdst live task should join")
+        .expect("post-recovery origdst live should shut down cleanly");
+    assert_eq!(launch.listener_addr, helper_addr);
+    assert_eq!(launch.payload_capacity_bytes, 128);
+    assert_eq!(nonoutput_plan.listener_addr, helper_addr);
+    assert!(nonoutput_plan.requires_transparent_socket);
+    // END_BLOCK_POSTRECOVERY_SMOKE
 }
 
 #[tokio::test]

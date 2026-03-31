@@ -1,19 +1,20 @@
 // FILE: tests/udp_origdst_smoke.rs
-// VERSION: 0.2.0
+// VERSION: 0.2.1
 // START_MODULE_CONTRACT
-//   PURPOSE: Prove the repo-local original-destination helper smoke packets recover bounded tuples for both the Phase-41 recovery branch and the Phase-45 non-OUTPUT branch while preserving a separate baseline probe.
-//   SCOPE: Two-tuple Linux original-destination recovery, non-helper tuple recovery under the bounded non-OUTPUT plan markers, governed-handoff recording, tuple-evidence labeling, and a separate loopback baseline-preserve probe.
+//   PURPOSE: Prove the repo-local original-destination helper smoke packets recover bounded tuples for the Phase-41 recovery branch, the Phase-45 non-OUTPUT branch, and the Phase-46 post-recovery evidence-order branch while preserving a separate baseline probe.
+//   SCOPE: Two-tuple Linux original-destination recovery, non-helper tuple recovery under the bounded non-OUTPUT plan markers, governed-handoff recording, tuple-evidence labeling, post-recovery proof-order recording, and a separate loopback baseline-preserve probe.
 //   DEPENDS: async-trait, tokio, n0wss::transport::datagram_contract, n0wss::udp_origdst
-//   LINKS: V-M-UDP-ORIGDST-SMOKE, V-M-TPROXY-NONOUTPUT-SMOKE, LV-032, LV-036, DF-UDP-ORIGDST-SMOKE
+//   LINKS: V-M-UDP-ORIGDST-SMOKE, V-M-TPROXY-NONOUTPUT-SMOKE, V-M-POSTRECOVERY-SMOKE, LV-032, LV-036, LV-037, DF-UDP-ORIGDST-SMOKE
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   udp_origdst_smoke_recovers_two_distinct_tuples_and_preserves_baseline_probe - proves two distinct recovered tuples each reach governed handoff while a separate preserved baseline probe stays reachable
 //   udp_origdst_nonoutput_smoke_recovers_non_helper_tuple_and_preserves_baseline_probe - proves the bounded non-OUTPUT smoke packet keeps route-mark and local-delivery plan proof separate while forwarding one recovered non-helper tuple into governed handoff
+//   udp_origdst_postrecovery_smoke_keeps_ordered_evidence_above_tuple_recovery - proves the post-recovery smoke packet can keep tuple recovery, governed handoff, synthetic establishment behavior, and synthetic key-exchange outcome as ordered evidence classes outside Telegram UI
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.2.0 - Added the Phase-45 non-OUTPUT smoke packet for one recovered non-helper tuple plus separate route-mark, local-delivery, and baseline-preserve proof.
+//   LAST_CHANGE: v0.2.1 - Added a bounded Phase-46 post-recovery smoke packet for ordered evidence classes above the completed Phase-45 tuple-recovery boundary.
 // END_CHANGE_SUMMARY
 
 use std::io::Write;
@@ -233,4 +234,98 @@ async fn udp_origdst_nonoutput_smoke_recovers_non_helper_tuple_and_preserves_bas
     drop(baseline_probe);
     baseline_thread.join().expect("non-output baseline thread join");
     // END_BLOCK_TPROXY_NONOUTPUT_SMOKE
+}
+
+#[tokio::test]
+async fn udp_origdst_postrecovery_smoke_keeps_ordered_evidence_above_tuple_recovery() {
+    // START_BLOCK_POSTRECOVERY_SMOKE
+    let baseline_listener = TcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind post-recovery baseline listener");
+    baseline_listener
+        .set_nonblocking(false)
+        .expect("post-recovery baseline listener blocking mode");
+    let baseline_addr = baseline_listener
+        .local_addr()
+        .expect("post-recovery baseline listener addr");
+    let baseline_thread = thread::spawn(move || {
+        let (mut stream, _) = baseline_listener
+            .accept()
+            .expect("accept post-recovery baseline probe");
+        stream
+            .write_all(b"ok")
+            .expect("write post-recovery baseline probe response");
+    });
+
+    let helper_listener_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 10073);
+    let nonoutput_plan = plan_linux_nonoutput_tproxy(helper_listener_addr);
+    assert_eq!(nonoutput_plan.listener_addr, helper_listener_addr);
+    assert!(nonoutput_plan.requires_transparent_socket);
+
+    let handoff = RecordingHandoff::default();
+    let runtime = UdpOrigDstRuntime::new(handoff.clone());
+
+    let receiver = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind post-recovery receiver");
+    enable_ipv4_recv_original_dst(&receiver).expect("enable post-recovery origdst receiver");
+    let receiver_addr = receiver.local_addr().expect("post-recovery receiver addr");
+
+    let sender = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
+        .expect("bind post-recovery sender");
+    let sender_addr = sender.local_addr().expect("post-recovery sender addr");
+    sender
+        .send_to(b"phase46-postrecovery", receiver_addr)
+        .expect("send post-recovery tuple");
+
+    let recovered = recv_recovered_ipv4_datagram(&receiver, helper_listener_addr, 128)
+        .expect("recover post-recovery tuple");
+    let tuple_label = tuple_evidence_label(&recovered.tuple);
+    assert!(tuple_label.contains(&sender_addr.to_string()));
+    assert!(tuple_label.contains(&receiver_addr.to_string()));
+    assert_ne!(
+        recovered.tuple.original_target,
+        DatagramTarget::Ip(helper_listener_addr)
+    );
+    runtime
+        .forward_recovered_datagram(recovered.tuple.clone(), recovered.payload.clone())
+        .await
+        .expect("forward post-recovery tuple");
+
+    let calls = handoff
+        .calls
+        .lock()
+        .expect("recorded post-recovery calls lock poisoned");
+    assert_eq!(calls.len(), 1);
+    let governed_label = tuple_evidence_label(&calls[0].0);
+    assert_eq!(governed_label, tuple_label);
+    let ordered_evidence = [
+        format!("tuple-recovery:{tuple_label}"),
+        format!("governed-handoff:{governed_label}"),
+        "establishment-behavior:synthetic-downstream-boundary".to_string(),
+        "key-exchange-outcome:synthetic-stall-boundary".to_string(),
+    ];
+    assert!(ordered_evidence[0].starts_with("tuple-recovery:"));
+    assert!(ordered_evidence[1].starts_with("governed-handoff:"));
+    assert!(ordered_evidence[2].starts_with("establishment-behavior:"));
+    assert!(ordered_evidence[3].starts_with("key-exchange-outcome:"));
+    assert!(ordered_evidence[0].contains(&sender_addr.to_string()));
+    assert!(ordered_evidence[1].contains(&sender_addr.to_string()));
+    drop(calls);
+
+    let helper_config = UdpOrigDstHelperConfig {
+        listener_addr: helper_listener_addr,
+        preserve_baseline_proxy_addr: baseline_addr,
+    };
+    let baseline_probe = TcpStream::connect_timeout(
+        &helper_config.preserve_baseline_proxy_addr,
+        Duration::from_secs(1),
+    )
+    .expect("post-recovery baseline probe remains reachable");
+    baseline_probe
+        .set_read_timeout(Some(Duration::from_secs(1)))
+        .expect("set post-recovery baseline probe read timeout");
+    drop(baseline_probe);
+    baseline_thread
+        .join()
+        .expect("post-recovery baseline thread join");
+    // END_BLOCK_POSTRECOVERY_SMOKE
 }
