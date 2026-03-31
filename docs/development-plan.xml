@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.67">
+<DevelopmentPlan VERSION="0.2.68">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -8515,7 +8515,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
-    <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" LAYER="49" ORDER="10" STATUS="planned">
+    <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" LAYER="49" ORDER="10" STATUS="done">
       <contract>
         <purpose>Issue one bounded final decision for the post-recovery establishment branch without overstating Phase-45 tuple recovery or preserved Phase-46 evidence as green Telegram calls support.</purpose>
         <inputs>
@@ -9885,7 +9885,7 @@
       <note-8>Later on the same date the bounded non-OUTPUT video packet stayed separate, recovered real Telegram media tuples including `91.108.13.23:599`, `91.108.17.35:599`, and `91.108.9.121:596`, and still ended in the same key-exchange stall class.</note-8>
       <note-9>The bounded final decision for Phase-45 is now fixed: supported non-OUTPUT interception, real Telegram media-destination recovery, and governed handoff are green on this host beside the preserved `127.0.0.1:1080` baseline, but successful Telegram Desktop voice or video establishment is still not green.</note-9>
     </Phase-45>
-    <Phase-46 name="Post-Recovery Call Establishment Boundary" status="in_progress">
+    <Phase-46 name="Post-Recovery Call Establishment Boundary" status="done">
       <goal>Freeze the first post-Phase-45 branch above real tuple recovery so the next bounded work can isolate why call establishment still stalls at key exchange on the preserved topology.</goal>
       <step-1 module="M-POSTRECOVERY-HYPOTHESIS" status="done" verification="V-M-POSTRECOVERY-HYPOTHESIS">Freeze the new truth-boundary above the completed Phase-45 packet</step-1>
       <step-2 module="M-PHASE45-ESTABLISHMENT-BOUNDARY" status="done" verification="V-M-PHASE45-ESTABLISHMENT-BOUNDARY">Explicitly preserve Phase-45 as the first real-media-tuple branch while freezing its tail as a key-exchange establishment boundary</step-2>
@@ -9896,7 +9896,7 @@
       <step-7 module="M-TELEGRAM-CALLS-POSTRECOVERY-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE">Run one bounded voice attempt only after green post-recovery smoke</step-7>
       <step-8 module="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-8>
       <step-9 module="M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON">Compare the post-recovery packets against Phase-34, Phase-42, Phase-43, Phase-44, and Phase-45</step-9>
-      <step-10 module="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION">Issue the bounded final decision after the post-recovery establishment branch</step-10>
+      <step-10 module="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" status="done" verification="V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION">Issue the bounded final decision after the post-recovery establishment branch</step-10>
       <note-1>Phase-46 starts only after the preserved ordinary Telegram baseline, the Phase-42 redirect-boundary packet, the Phase-43 privilege-boundary packet, the Phase-44 output-boundary packet, and the completed Phase-45 real-tuple but key-exchange-stall packet are all visible together.</note-1>
       <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
       <note-3>No Telegram voice or video packet is valid before post-recovery smoke proves that tuple recovery, governed handoff, downstream establishment behavior, and key-exchange outcome can be kept as separate evidence classes.</note-3>
@@ -9907,6 +9907,7 @@
       <note-8>Once the preserved voice packet exists, the bounded post-recovery video packet must stay on the same topology, preserve the same proof order, and classify only video establishment without inheriting voice evidence.</note-8>
       <note-9>The comparison packet must keep Phase-45 explicit as the first real-media-tuple-success boundary even when preserved voice and video packets expose narrower establishment evidence above it.</note-9>
       <note-10>The final decision packet must stay bounded to the preserved post-recovery branch: it may classify the setup only as key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology, and it may not generalize that verdict beyond the bounded evidence packet.</note-10>
+      <note-11>On 2026-04-01 the Phase-46 final decision surface was fixed: this branch now closes with preserved voice, video, comparison, and bounded final decision packets while keeping Phase-45 explicit as the first real-media-tuple-success boundary on the preserved topology.</note-11>
     </Phase-46>
   </ImplementationOrder>
 

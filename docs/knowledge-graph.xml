@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.56">
+  <Project NAME="n0wss" VERSION="0.2.57">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3326,13 +3326,13 @@
         <fn-compareTelegramCallsPostRecovery PURPOSE="Compare the preserved post-recovery packets against preserved earlier boundaries without collapsing proof order." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
-    <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" STATUS="planned">
-      <purpose>Issue the bounded final decision after the post-recovery establishment branch.</purpose>
+    <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" STATUS="done">
+      <purpose>Issue one bounded final decision for the post-recovery establishment branch without overstating Phase-45 tuple recovery or preserved Phase-46 evidence as green Telegram calls support.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON</depends>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</verification-ref>
       <annotations>
-        <fn-issueTelegramCallsPostRecoveryDecision PURPOSE="Issue the bounded final decision after the post-recovery branch." />
+        <fn-issueTelegramCallsPostRecoveryDecision PURPOSE="Issue one bounded final decision for the preserved post-recovery branch without collapsing earlier boundaries." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
 
