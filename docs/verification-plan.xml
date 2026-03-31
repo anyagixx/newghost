@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.91">
+<VerificationPlan VERSION="0.2.92">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -6208,9 +6208,10 @@
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery decision|Phase-45|127.0.0.1:1080|establishment boundary|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <module-checks><check-1>rg -n 'post-recovery decision|Phase-45|127.0.0.1:1080|establishment boundary|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'key-exchange no-go|narrower downstream blocker|green establishment on the preserved topology' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-2><check-3>rg -n 'may not generalize that verdict beyond the bounded evidence packet|without overstating Phase-45 tuple recovery' docs/development-plan.xml docs/verification-plan.xml</check-3></module-checks>
       <success-scenarios><scenario-1>The final decision stays bounded to the post-recovery branch and preserves the ordinary baseline.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The final decision overclaims green call establishment or erases the preserved Phase-45 establishment boundary.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The final decision must preserve Phase-45 as the first real-media-tuple-success boundary and may not relabel tuple recovery itself as green call establishment.</assertion-1><assertion-2>The final decision must stay bounded to the preserved post-recovery branch and choose one exact verdict: key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology.</assertion-2></required-trace-assertions>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
   </ModuleVerification>
 

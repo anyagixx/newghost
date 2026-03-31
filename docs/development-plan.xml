@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.66">
+<DevelopmentPlan VERSION="0.2.67">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -8517,12 +8517,12 @@
     </M-TELEGRAM-CALLS-POSTRECOVERY-COMPARISON>
     <M-TELEGRAM-CALLS-POSTRECOVERY-DECISION NAME="TelegramCallsPostRecoveryDecision" TYPE="ENTRY_POINT" LAYER="49" ORDER="10" STATUS="planned">
       <contract>
-        <purpose>Issue the bounded final decision after the post-recovery establishment branch.</purpose>
+        <purpose>Issue one bounded final decision for the post-recovery establishment branch without overstating Phase-45 tuple recovery or preserved Phase-46 evidence as green Telegram calls support.</purpose>
         <inputs>
-          <input-1>The bounded post-recovery comparison packet.</input-1>
+          <input-1>The bounded post-recovery comparison packet with preserved earlier boundaries, voice evidence, and video evidence.</input-1>
         </inputs>
         <outputs>
-          <output-1>A bounded post-recovery final decision packet.</output-1>
+          <output-1>A bounded post-recovery final decision packet that classifies the tested setup as key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology.</output-1>
         </outputs>
       </contract>
       <target-files>
@@ -9906,6 +9906,7 @@
       <note-7>Execution of the remaining Phase-46 work is now explicitly audio-first: the bounded post-recovery voice packet is preserved, and video, comparison, and final decision stay downstream of that packet.</note-7>
       <note-8>Once the preserved voice packet exists, the bounded post-recovery video packet must stay on the same topology, preserve the same proof order, and classify only video establishment without inheriting voice evidence.</note-8>
       <note-9>The comparison packet must keep Phase-45 explicit as the first real-media-tuple-success boundary even when preserved voice and video packets expose narrower establishment evidence above it.</note-9>
+      <note-10>The final decision packet must stay bounded to the preserved post-recovery branch: it may classify the setup only as key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology, and it may not generalize that verdict beyond the bounded evidence packet.</note-10>
     </Phase-46>
   </ImplementationOrder>
 
