@@ -1,8 +1,8 @@
 // FILE: src/udp_origdst/linux.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
 //   PURPOSE: Isolate Linux-specific socket, transparent-socket, original-destination recovery, and bounded non-OUTPUT TPROXY planning surfaces for the repo-local UDP helper.
-//   SCOPE: Recovery marker definitions, listener-plan metadata, non-OUTPUT TPROXY topology markers, Linux socket-option enablement, Linux transparent-socket enablement, Linux recvmsg-based original-destination parsing, and Linux-specific recovery strategy descriptions for intercepted UDP tuples.
+//   SCOPE: Recovery marker definitions, listener-plan metadata, non-OUTPUT TPROXY topology markers, namespace local-delivery sysctl markers, Linux socket-option enablement, Linux transparent-socket enablement, Linux recvmsg-based original-destination parsing, and Linux-specific recovery strategy descriptions for intercepted UDP tuples.
 //   DEPENDS: libc, std, src/transport/datagram_contract.rs, src/udp_origdst/mod.rs
 //   LINKS: M-UDP-ORIGDST-LINUX-ADAPTER, M-TPROXY-PRIV-LAUNCH-DELTA, M-TPROXY-NONOUTPUT-LINUX-DELTA, V-M-UDP-ORIGDST-LINUX-ADAPTER, V-M-TPROXY-PRIV-LAUNCH-DELTA, V-M-TPROXY-NONOUTPUT-LINUX-DELTA, DF-UDP-ORIGDST-RECOVERY
 // END_MODULE_CONTRACT
@@ -16,6 +16,8 @@
 //   TPROXY_POLICY_ROUTE_MARKER - host-side fwmark and policy-route proof marker for the non-OUTPUT branch
 //   TPROXY_VETH_NETNS_INGRESS_MARKER - isolated veth/netns ingress proof marker for the non-OUTPUT branch
 //   TPROXY_PREROUTING_CHAIN_MARKER - namespace PREROUTING TPROXY proof marker for the non-OUTPUT branch
+//   TPROXY_ROUTE_LOCALNET_MARKER - namespace route_localnet proof marker for loopback-targeted TPROXY delivery
+//   TPROXY_RPFILTER_RELAX_MARKER - namespace rp_filter relaxation proof marker for non-OUTPUT TPROXY delivery
 //   LinuxRecoveredDatagram - one recvmsg packet plus recovered original destination metadata
 //   LinuxOrigDstSocketPlan - one bounded socket-plan description for tuple recovery
 //   LinuxNonOutputTproxyPlan - one bounded non-OUTPUT TPROXY topology plan for the live helper branch
@@ -28,7 +30,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added explicit non-OUTPUT TPROXY planning markers so Phase-45 can freeze one exact veth/netns PREROUTING topology before smoke.
+//   LAST_CHANGE: v0.1.4 - Added explicit route_localnet and rp_filter markers after Phase-45 live packet proved PREROUTING hits but no helper delivery until namespace local-delivery policy was relaxed.
 // END_CHANGE_SUMMARY
 
 use std::io;
@@ -50,6 +52,8 @@ pub const TPROXY_OUTPUT_OWNER_MARK_ONLY_MARKER: &str = "output-owner-mark-only";
 pub const TPROXY_POLICY_ROUTE_MARKER: &str = "policy-routing-fwmark";
 pub const TPROXY_VETH_NETNS_INGRESS_MARKER: &str = "veth-netns-ingress";
 pub const TPROXY_PREROUTING_CHAIN_MARKER: &str = "prerouting-tproxy";
+pub const TPROXY_ROUTE_LOCALNET_MARKER: &str = "route-localnet";
+pub const TPROXY_RPFILTER_RELAX_MARKER: &str = "rp-filter-relaxed";
 
 #[cfg(test)]
 #[path = "linux.test.rs"]
@@ -76,6 +80,8 @@ pub struct LinuxNonOutputTproxyPlan {
     pub route_marker: &'static str,
     pub ingress_marker: &'static str,
     pub interception_chain_marker: &'static str,
+    pub route_localnet_marker: &'static str,
+    pub rp_filter_marker: &'static str,
     pub requires_transparent_socket: bool,
 }
 
@@ -125,6 +131,8 @@ pub fn plan_linux_nonoutput_tproxy(listener_addr: SocketAddr) -> LinuxNonOutputT
         route_marker: TPROXY_POLICY_ROUTE_MARKER,
         ingress_marker: TPROXY_VETH_NETNS_INGRESS_MARKER,
         interception_chain_marker: TPROXY_PREROUTING_CHAIN_MARKER,
+        route_localnet_marker: TPROXY_ROUTE_LOCALNET_MARKER,
+        rp_filter_marker: TPROXY_RPFILTER_RELAX_MARKER,
         requires_transparent_socket: true,
     }
     // END_BLOCK_UDP_ORIGDST_LINUX_ADAPTER

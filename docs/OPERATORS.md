@@ -1992,6 +1992,8 @@ Bounded operator rules for the privileged non-`OUTPUT` TPROXY branch:
    prove host policy-route or equivalent mark-steering separately
    prove isolated `veth/netns` ingress setup separately
    prove namespace `PREROUTING TPROXY` install separately
+   prove namespace `route_localnet=1` separately when `TPROXY` targets `127.0.0.1:10073`
+   prove namespace `rp_filter=0` separately on the ingress surface before tuple-recovery evidence is accepted
    prove real non-helper destination recovery separately
 4. Keep Telegram UI shape fixed:
    stay attached to the already logged-in ordinary Telegram Desktop window
@@ -2010,9 +2012,14 @@ Exact bounded operator packet for the first privileged non-`OUTPUT` smoke wave:
 3. Add one temporary host owner-mark rule for outbound UDP traffic owned by the Telegram Desktop operator UID; do not install host `OUTPUT` `TPROXY`.
 4. Add one bounded policy-route path that steers the marked UDP traffic into an isolated `veth/netns` ingress surface.
 5. Inside that namespace, install one bounded `PREROUTING TPROXY` packet that targets `127.0.0.1:10073` together with the matching mark and route state required by the chosen topology.
-6. Keep loopback and the preserved baseline surfaces excluded so the helper does not eat its own traffic or the normal `127.0.0.1:1080` path.
-7. Collect bounded root-launch proof, supported rule-install proof, route-mark proof, real-target recovery proof, and governed-handoff proof.
-8. Remove namespace `PREROUTING TPROXY` rules and namespace routing state.
-9. Remove the host steering mark and policy-route state.
-10. Stop the root-run `origdst-live` helper process.
-11. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.
+6. Inside that namespace, enable the exact local-delivery sysctl surface required by the bounded live packet:
+   `net.ipv4.conf.all.route_localnet=1`
+   `net.ipv4.conf.<phase45-veth-ns>.route_localnet=1`
+   `net.ipv4.conf.all.rp_filter=0`
+   `net.ipv4.conf.<phase45-veth-ns>.rp_filter=0`
+7. Keep loopback and the preserved baseline surfaces excluded so the helper does not eat its own traffic or the normal `127.0.0.1:1080` path.
+8. Collect bounded root-launch proof, supported rule-install proof, route-mark proof, namespace local-delivery proof, real-target recovery proof, and governed-handoff proof.
+9. Remove namespace `PREROUTING TPROXY` rules and namespace routing state.
+10. Remove the host steering mark and policy-route state.
+11. Stop the root-run `origdst-live` helper process.
+12. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.

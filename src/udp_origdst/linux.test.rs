@@ -1,22 +1,22 @@
 // FILE: src/udp_origdst/linux.test.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
-//   PURPOSE: Verify the Linux original-destination adapter keeps explicit recovery-plan, non-OUTPUT TPROXY topology markers, transparent-socket, and control-message markers visible and parses recovered IPv4 tuples deterministically.
-//   SCOPE: Linux recovery-plan strategy, non-OUTPUT TPROXY planning markers, transparent-socket enablement boundary, marker, and control-message parsing checks.
+//   PURPOSE: Verify the Linux original-destination adapter keeps explicit recovery-plan, non-OUTPUT TPROXY topology markers, namespace local-delivery markers, transparent-socket, and control-message markers visible and parses recovered IPv4 tuples deterministically.
+//   SCOPE: Linux recovery-plan strategy, non-OUTPUT TPROXY planning markers, namespace local-delivery sysctl markers, transparent-socket enablement boundary, marker, and control-message parsing checks.
 //   DEPENDS: libc, src/udp_origdst/linux.rs
 //   LINKS: V-M-UDP-ORIGDST-LINUX-ADAPTER, V-M-TPROXY-PRIV-LAUNCH-DELTA, V-M-TPROXY-NONOUTPUT-LINUX-DELTA
 // END_MODULE_CONTRACT
 //
 // START_MODULE_MAP
 //   udp_origdst_linux_plan_socket_prefers_ipv6_recvmsg_strategy - proves IPv6 planning stays on an explicit recvmsg control-message surface
-//   udp_origdst_linux_plans_nonoutput_tproxy_with_namespace_prerouting_markers - proves the non-OUTPUT branch keeps one exact owner-mark, route, ingress, and PREROUTING anchor set
+//   udp_origdst_linux_plans_nonoutput_tproxy_with_namespace_prerouting_markers - proves the non-OUTPUT branch keeps one exact owner-mark, route, ingress, PREROUTING, and local-delivery anchor set
 //   udp_origdst_linux_transparent_socket_enablement_is_explicit - proves Linux transparent-socket enablement is observable as either success or a bounded privilege failure
 //   udp_origdst_linux_enables_ipv4_original_dst_option - proves Linux socket setup can enable original-destination ancillary data on a UDP socket
 //   udp_origdst_linux_recovers_ipv4_original_destination_from_control_message - proves ancillary control parsing yields the expected original IPv4 destination tuple
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added a bounded non-OUTPUT TPROXY planning check so Phase-45 can lock one exact veth/netns PREROUTING topology before smoke.
+//   LAST_CHANGE: v0.1.4 - Added namespace local-delivery marker checks after Phase-45 live packet proved PREROUTING hits needed route_localnet and rp_filter relaxation before helper receive turned green.
 // END_CHANGE_SUMMARY
 
 use std::mem::size_of;
@@ -31,7 +31,8 @@ use super::{
     LinuxOrigDstRecoveryStrategy, CONTROL_MESSAGE_API_MARKER, IPV4_ORIGINAL_DST_MARKER,
     IPV4_RECV_ORIGINAL_DST_MARKER, IPV4_TRANSPARENT_SOCKET_MARKER,
     IPV6_RECV_ORIGINAL_DST_MARKER, RECVMSG_API_MARKER, TPROXY_OUTPUT_OWNER_MARK_ONLY_MARKER,
-    TPROXY_POLICY_ROUTE_MARKER, TPROXY_PREROUTING_CHAIN_MARKER,
+    TPROXY_POLICY_ROUTE_MARKER, TPROXY_PREROUTING_CHAIN_MARKER, TPROXY_ROUTE_LOCALNET_MARKER,
+    TPROXY_RPFILTER_RELAX_MARKER,
     TPROXY_VETH_NETNS_INGRESS_MARKER,
 };
 
@@ -64,6 +65,8 @@ fn udp_origdst_linux_plans_nonoutput_tproxy_with_namespace_prerouting_markers() 
     assert_eq!(plan.route_marker, TPROXY_POLICY_ROUTE_MARKER);
     assert_eq!(plan.ingress_marker, TPROXY_VETH_NETNS_INGRESS_MARKER);
     assert_eq!(plan.interception_chain_marker, TPROXY_PREROUTING_CHAIN_MARKER);
+    assert_eq!(plan.route_localnet_marker, TPROXY_ROUTE_LOCALNET_MARKER);
+    assert_eq!(plan.rp_filter_marker, TPROXY_RPFILTER_RELAX_MARKER);
     assert!(plan.requires_transparent_socket);
 }
 
