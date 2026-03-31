@@ -8213,7 +8213,7 @@
       </observability>
       <verification-ref>V-M-TPROXY-NONOUTPUT-RUNBOOK</verification-ref>
     </M-TPROXY-NONOUTPUT-RUNBOOK>
-    <M-TPROXY-NONOUTPUT-SMOKE NAME="TproxyNonOutputSmoke" TYPE="CORE_LOGIC" LAYER="48" ORDER="7" STATUS="planned">
+    <M-TPROXY-NONOUTPUT-SMOKE NAME="TproxyNonOutputSmoke" TYPE="CORE_LOGIC" LAYER="48" ORDER="7" STATUS="done">
       <contract>
         <purpose>Prove outside Telegram UI that the new non-OUTPUT TPROXY topology can install supported interception rules, recover a real destination tuple, and preserve the ordinary baseline.</purpose>
         <inputs>
@@ -9626,7 +9626,7 @@
       <step-4 module="M-TPROXY-NONOUTPUT-RUNTIME-PROFILE" status="done" verification="V-M-TPROXY-NONOUTPUT-RUNTIME-PROFILE">Freeze one exact non-OUTPUT runtime profile while preserving the ordinary baseline</step-4>
       <step-5 module="M-TPROXY-NONOUTPUT-LINUX-DELTA" status="done" verification="V-M-TPROXY-NONOUTPUT-LINUX-DELTA">Define the minimal Linux or routing delta for the chosen non-OUTPUT TPROXY topology</step-5>
       <step-6 module="M-TPROXY-NONOUTPUT-RUNBOOK" status="done" verification="V-M-TPROXY-NONOUTPUT-RUNBOOK">Define the exact operator packet for privileged helper launch, non-OUTPUT TPROXY rules, routing marks, and cleanup</step-6>
-      <step-7 module="M-TPROXY-NONOUTPUT-SMOKE" status="planned" verification="V-M-TPROXY-NONOUTPUT-SMOKE">Prove outside Telegram UI that the non-OUTPUT privileged topology can install supported interception rules and recover a real destination tuple</step-7>
+      <step-7 module="M-TPROXY-NONOUTPUT-SMOKE" status="done" verification="V-M-TPROXY-NONOUTPUT-SMOKE">Prove outside Telegram UI that the non-OUTPUT privileged topology can install supported interception rules and recover a real destination tuple</step-7>
       <step-8 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE">Run one bounded voice attempt only after green non-OUTPUT privileged smoke</step-8>
       <step-9 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
       <step-10 module="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-COMPARISON">Compare the non-OUTPUT privileged packets against Phase-34, Phase-42, Phase-43, and Phase-44</step-10>

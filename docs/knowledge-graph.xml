@@ -3200,7 +3200,7 @@
         <fn-freezeTproxyNonOutputRunbook PURPOSE="Freeze the exact operator packet for the non-OUTPUT TPROXY branch." />
       </annotations>
     </M-TPROXY-NONOUTPUT-RUNBOOK>
-    <M-TPROXY-NONOUTPUT-SMOKE NAME="TproxyNonOutputSmoke" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TPROXY-NONOUTPUT-SMOKE NAME="TproxyNonOutputSmoke" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Prove outside Telegram UI that the chosen non-OUTPUT TPROXY topology can install supported interception rules and recover a real destination tuple.</purpose>
       <path>src/cli/mod.test.rs</path>
       <depends>M-TPROXY-NONOUTPUT-LINUX-DELTA, M-TPROXY-NONOUTPUT-RUNBOOK</depends>
