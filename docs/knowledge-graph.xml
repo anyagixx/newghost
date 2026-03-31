@@ -2912,7 +2912,7 @@
         <fn-runOrigDstLiveSmoke PURPOSE="Prove live helper launch, tuple recovery, governed handoff, and preserved baseline before calls." />
       </annotations>
     </M-ORIGDST-LIVE-SMOKE>
-    <M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE NAME="TelegramCallsLiveOrigDstVoice" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE NAME="TelegramCallsLiveOrigDstVoice" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded voice attempt on the ordinary logged-in Desktop window only after live helper launch smoke is green.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-ORIGDST-LIVE-SMOKE, M-TELEGRAM-SERVER-CORRELATION</depends>
@@ -2921,7 +2921,7 @@
         <fn-runTelegramCallsLiveOrigDstVoice PURPOSE="Run one bounded voice wave after live helper launch smoke is green." />
       </annotations>
     </M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE>
-    <M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO NAME="TelegramCallsLiveOrigDstVideo" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO NAME="TelegramCallsLiveOrigDstVideo" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Run one bounded video attempt on the same live launch branch without inheriting the voice result.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE</depends>
@@ -2930,7 +2930,7 @@
         <fn-runTelegramCallsLiveOrigDstVideo PURPOSE="Run one bounded video wave after the live helper voice wave." />
       </annotations>
     </M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO>
-    <M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON NAME="TelegramCallsLiveOrigDstComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON NAME="TelegramCallsLiveOrigDstComparison" TYPE="CORE_LOGIC" STATUS="superseded">
       <purpose>Compare live-launch origdst packets against the old direct-media verdict, fixed-tuple boundary, and test-only Phase-41 boundary.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE, M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO</depends>
@@ -2939,7 +2939,7 @@
         <fn-compareTelegramCallsLiveOrigDstPackets PURPOSE="Compare live-launch origdst call packets against the earlier boundary packets." />
       </annotations>
     </M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON>
-    <M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION NAME="TelegramCallsLiveOrigDstDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION NAME="TelegramCallsLiveOrigDstDecision" TYPE="ENTRY_POINT" STATUS="superseded">
       <purpose>Issue the bounded decision after the live-launch repo-local helper branch.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON</depends>
@@ -2948,7 +2948,7 @@
         <fn-issueTelegramCallsLiveOrigDstDecision PURPOSE="Issue the bounded final decision after the live-launch repo-local helper branch." />
       </annotations>
     </M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION>
-    <M-NONREDIRECT-ORIGDST-HYPOTHESIS NAME="NonRedirectOrigDstHypothesis" TYPE="UTILITY" STATUS="planned">
+    <M-NONREDIRECT-ORIGDST-HYPOTHESIS NAME="NonRedirectOrigDstHypothesis" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the new truth-boundary that Phase-42 observed live UDP during the call wave but OUTPUT REDIRECT collapsed original-destination recovery to the helper listener itself.</purpose>
       <path>README.md</path>
       <depends>M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION, M-ORIGDST-LIVE-SMOKE</depends>
@@ -2957,7 +2957,7 @@
         <fn-freezeNonRedirectOrigDstHypothesis PURPOSE="Freeze the redirect-collapse boundary above the valid Phase-42 live voice packet." />
       </annotations>
     </M-NONREDIRECT-ORIGDST-HYPOTHESIS>
-    <M-PHASE42-TOPOLOGY-BOUNDARY NAME="Phase42TopologyBoundary" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE42-TOPOLOGY-BOUNDARY NAME="Phase42TopologyBoundary" TYPE="UTILITY" STATUS="done">
       <purpose>Explicitly preserve the Phase-42 voice packet as valid live evidence while freezing the blocked tail as a redirect-topology boundary.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-NONREDIRECT-ORIGDST-HYPOTHESIS</depends>
@@ -2966,7 +2966,7 @@
         <fn-freezePhase42TopologyBoundary PURPOSE="Keep the Phase-42 redirect-boundary packet explicit and non-runnable." />
       </annotations>
     </M-PHASE42-TOPOLOGY-BOUNDARY>
-    <M-NONREDIRECT-TECH-DECISION NAME="NonRedirectTechDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-NONREDIRECT-TECH-DECISION NAME="NonRedirectTechDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Choose one exact non-REDIRECT interception class for the next live UDP calls branch so real destination semantics remain recoverable.</purpose>
       <path>docs/technology.xml</path>
       <depends>M-UDP-ORIGDST-LINUX-ADAPTER, M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT</depends>
@@ -2975,7 +2975,7 @@
         <fn-chooseNonRedirectTechDecision PURPOSE="Choose one exact non-REDIRECT live interception topology class." />
       </annotations>
     </M-NONREDIRECT-TECH-DECISION>
-    <M-NONREDIRECT-RUNTIME-PROFILE NAME="NonRedirectRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-NONREDIRECT-RUNTIME-PROFILE NAME="NonRedirectRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze the exact live topology that keeps the ordinary Telegram baseline unchanged while replacing REDIRECT with one non-REDIRECT interception method.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-NONREDIRECT-TECH-DECISION, M-ORIGDST-LIVE-RUNBOOK</depends>
@@ -2984,7 +2984,7 @@
         <fn-freezeNonRedirectRuntimeProfile PURPOSE="Freeze the exact non-REDIRECT runtime and operator-facing topology." />
       </annotations>
     </M-NONREDIRECT-RUNTIME-PROFILE>
-    <M-NONREDIRECT-LINUX-ADAPTER-DELTA NAME="NonRedirectLinuxAdapterDelta" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-NONREDIRECT-LINUX-ADAPTER-DELTA NAME="NonRedirectLinuxAdapterDelta" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define the minimal Linux recovery-surface delta required by the chosen non-REDIRECT topology while keeping generic helper runtime logic unchanged.</purpose>
       <path>src/udp_origdst/linux.rs</path>
       <depends>M-NONREDIRECT-TECH-DECISION, M-UDP-ORIGDST-LINUX-ADAPTER</depends>
@@ -2993,7 +2993,7 @@
         <fn-applyNonRedirectLinuxAdapterDelta PURPOSE="Apply the isolated Linux-adapter changes required for non-REDIRECT recovery semantics." />
       </annotations>
     </M-NONREDIRECT-LINUX-ADAPTER-DELTA>
-    <M-NONREDIRECT-LIVE-RUNBOOK NAME="NonRedirectLiveRunbook" TYPE="INTEGRATION" STATUS="planned">
+    <M-NONREDIRECT-LIVE-RUNBOOK NAME="NonRedirectLiveRunbook" TYPE="INTEGRATION" STATUS="done">
       <purpose>Define the exact operator packet for live helper launch, non-REDIRECT interception, evidence capture, cleanup, and baseline preservation.</purpose>
       <path>docs/OPERATORS.md</path>
       <depends>M-NONREDIRECT-RUNTIME-PROFILE, M-ORIGDST-LIVE-RUNBOOK</depends>

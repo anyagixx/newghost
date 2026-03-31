@@ -1,4 +1,4 @@
-<TechnologyStack VERSION="0.2.4">
+<TechnologyStack VERSION="0.2.5">
   <Runtime>Tokio 1.48.0</Runtime>
   <Language>Rust 1.94 (edition 2021)</Language>
   <Framework>iroh + WSS transport stack 0.97/0.28</Framework>
@@ -47,6 +47,11 @@
       <decision>`Phase-40` freezes one exact arbitrary-destination UDP interception class for the current workstation: kernel-assisted interception with original-destination recovery plus one repo-local helper runtime.</decision>
       <reason>On 2026-03-30 the host already exposed `nft`, `iptables`, and loaded kernel surfaces such as `nft_tproxy`, `xt_TPROXY`, `xt_socket`, `nf_tproxy_ipv4`, and `nf_tproxy_ipv6`, while no installable arbitrary-UDP helper binary such as `tun2socks`, `sing-box`, `gost`, or `hev-socks5-tunnel` was present. The existing `redsocks/redudp` path therefore remains only a fixed-destination smoke boundary, not the approved arbitrary-UDP class.</reason>
       <boundary>The arbitrary-UDP surface must stay attached to the already logged-in ordinary Telegram Desktop baseline, must not introduce a second auth/bootstrap window, and must remain reversible through explicit experiment-local setup and cleanup without weakening the preserved `127.0.0.1:1080` path.</boundary>
+    </surface>
+    <surface name="telegram-nonredirect-live-topology" class="kernel-tproxy-repo-local-helper">
+      <decision>`Phase-43` freezes one exact non-REDIRECT live interception class for the current workstation: host-side Linux `TPROXY` for UDP plus the existing repo-local `origdst-live` helper.</decision>
+      <reason>The bounded Phase-42 live voice packet already proved live UDP activity, but the `iptables -t nat OUTPUT ... REDIRECT --to-ports 10073` topology collapsed recovered destination evidence to the helper listener itself. On this workstation the already-present kernel surfaces include `xt_TPROXY`, `xt_socket`, `nf_tproxy_ipv4`, and `nf_tproxy_ipv6`, so `TPROXY` is the narrowest honest next topology class that can preserve real destination semantics without introducing an external helper stack or reopening second-window auth branches.</reason>
+      <boundary>The non-REDIRECT live topology may change interception class only; the ordinary logged-in Telegram Desktop window, the governed `origdst-live` process shape, the preserved `127.0.0.1:1080` baseline, and the no-second-auth rule must remain fixed for the whole branch.</boundary>
     </surface>
   </ExperimentSurfaces>
 

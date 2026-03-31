@@ -1892,3 +1892,38 @@ n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payloa
 ```
 
 Do not publish examples with a non-`wss` remote URL or with missing TLS paths for server mode.
+
+### Phase-43 Telegram Live Non-Redirect OrigDst Topology
+
+Phase-43 starts only after the bounded Phase-42 live voice packet is frozen as a redirect-boundary packet. The ordinary logged-in Telegram Desktop window, the governed `origdst-live` helper process shape, and the preserved `SOCKS5 127.0.0.1:1080` baseline all stay fixed. The only approved new variable is the interception topology class itself.
+
+Bounded operator rules for the non-REDIRECT branch:
+
+1. Stay attached to the ordinary logged-in Telegram Desktop baseline:
+   keep the ordinary Telegram Desktop window and its preserved `SOCKS5 127.0.0.1:1080` path untouched
+   do not open a second Telegram auth or bootstrap window
+2. Freeze one exact non-REDIRECT topology class:
+   use Linux `TPROXY` only
+   do not reuse `REDIRECT --to-ports 10073` as if it were already valid non-REDIRECT evidence
+   do not blend `TPROXY`, `NFQUEUE`, or another interception class in one packet
+3. Keep helper process shape fixed:
+   use only the governed `origdst-live` CLI mode
+   keep the helper listener on `127.0.0.1:10073`
+   keep the preserved baseline proof on `127.0.0.1:1080`
+4. Keep evidence split:
+   prove process launch, listener bind, recovered real destination tuple, and governed handoff separately
+   if recovered targets still equal `127.0.0.1:10073`, stop the branch there
+5. Cleanup stays mandatory:
+   remove temporary `TPROXY`-class interception immediately after the bounded packet window
+   stop the helper process
+   prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy after cleanup
+
+Exact bounded operator packet for the next smoke wave:
+
+1. Start the repo-local live helper in `origdst-live` mode and capture its bounded log window.
+2. Add one temporary host-side UDP interception packet using Linux `TPROXY` for outbound traffic owned by the Telegram Desktop operator UID.
+3. Keep loopback and the preserved baseline surfaces excluded so the helper does not eat its own traffic or the normal `127.0.0.1:1080` path.
+4. Collect bounded launch, listener-bind, real-destination recovery, and governed-handoff evidence.
+5. Remove the temporary `TPROXY`-class interception rules.
+6. Stop the `origdst-live` helper process.
+7. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.

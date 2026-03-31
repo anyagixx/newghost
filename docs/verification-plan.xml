@@ -5938,9 +5938,9 @@
     </V-M-PHASE42-TOPOLOGY-BOUNDARY>
     <V-M-NONREDIRECT-TECH-DECISION MODULE="M-NONREDIRECT-TECH-DECISION" PRIORITY="high">
       <test-files><file>docs/technology.xml</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'non-REDIRECT|TPROXY|NFQUEUE|single topology class|real destination' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The branch chooses one exact non-REDIRECT interception class only.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The branch mixes multiple topology classes or leaves the interception class vague.</scenario-1></failure-scenarios>
+      <module-checks><check-1>rg -n 'non-REDIRECT|TPROXY|single topology class|real destination' docs/technology.xml docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The branch chooses Linux `TPROXY` as the one exact non-REDIRECT interception class.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The branch mixes multiple topology classes, falls back to `REDIRECT`, or leaves the interception class vague.</scenario-1></failure-scenarios>
     </V-M-NONREDIRECT-TECH-DECISION>
     <V-M-NONREDIRECT-RUNTIME-PROFILE MODULE="M-NONREDIRECT-RUNTIME-PROFILE" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/development-plan.xml</file></test-files>

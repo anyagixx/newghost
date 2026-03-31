@@ -309,6 +309,12 @@ Current calls-profile status:
   it must add one exact `origdst-live` process entrypoint, one exact config shape, and one reversible operator runbook before any new Telegram voice or video packet is valid
 - the live-launch branch stays bounded and safety-first:
   it must stay attached to the ordinary logged-in Telegram Desktop baseline, must not reopen a second auth/bootstrap window, and must not weaken the already-working `127.0.0.1:1080` path for texts, media files, or large files
+- the bounded Phase-42 live voice packet is now frozen as valid but redirect-bound:
+  on 2026-03-31 the ordinary logged-in Telegram window produced fast signaling and then stalled at `Обмен ключами шифрования` before aborting, while the live helper proved UDP activity but recovered `original_target=127.0.0.1:10073`; that packet is valid evidence of live UDP under the branch, but it is not valid evidence of real media-destination recovery
+- the new Phase-43 branch is therefore non-REDIRECT-only:
+  it keeps the same ordinary logged-in Telegram window, the same governed `origdst-live` helper shape, and the same preserved `127.0.0.1:1080` baseline, but replaces only the interception topology class so recovered tuples can stop collapsing to the helper listener
+- the current Phase-43 technology decision is now fixed to one exact class on this host:
+  Linux `TPROXY` is the only approved non-REDIRECT interception class for the next live branch; `REDIRECT`, blended helper stacks, or vague “transparent routing” wording are no longer honest next work
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

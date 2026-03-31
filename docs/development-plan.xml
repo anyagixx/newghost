@@ -9082,7 +9082,7 @@
       <note-6>On 2026-03-31 the first implementation packet made the helper boundary visible in operator-facing docs, exported a new `src/udp_origdst` module at the crate root, and froze compile-safe contract and Linux-adapter skeletons before any runtime behavior was added.</note-6>
       <note-7>Later on the same date the repo-local helper runtime and smoke turned green in tests, but the first attempted live voice wave was blocked before any call packet because no operator-facing launch surface existed to hold the helper listener beside the ordinary logged-in Telegram window during a bounded packet window.</note-7>
     </Phase-41>
-    <Phase-42 name="Repo-Local Helper Live Launch Surface" status="in_progress">
+    <Phase-42 name="Repo-Local Helper Live Launch Surface" status="superseded">
       <goal>Implement one governed live launch surface for the repo-local origdst helper so bounded voice and video waves can run beside the ordinary logged-in Telegram baseline without reopening auth or weakening `127.0.0.1:1080`.</goal>
       <step-1 module="M-ORIGDST-LAUNCH-HYPOTHESIS" status="done" verification="V-M-ORIGDST-LAUNCH-HYPOTHESIS">Freeze the live-launch blocker above the green repo-local helper smoke packet</step-1>
       <step-2 module="M-PHASE41-LAUNCH-BOUNDARY" status="done" verification="V-M-PHASE41-LAUNCH-BOUNDARY">Explicitly freeze the old Phase-41 tail as blocked by the missing live helper launch surface</step-2>
@@ -9091,10 +9091,10 @@
       <step-5 module="M-ORIGDST-LIVE-LAUNCHER" status="done" verification="V-M-ORIGDST-LIVE-LAUNCHER">Implement the governed live helper launcher and lifecycle anchors</step-5>
       <step-6 module="M-ORIGDST-LIVE-RUNBOOK" status="done" verification="V-M-ORIGDST-LIVE-RUNBOOK">Define the operator packet for live helper launch, interception, and cleanup</step-6>
       <step-7 module="M-ORIGDST-LIVE-SMOKE" status="done" verification="V-M-ORIGDST-LIVE-SMOKE">Prove the live helper launch surface outside Telegram UI before any call packet is spent</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window after live-launch smoke is green</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
-      <step-10 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON">Compare the live-launch packets against Phase-34, Phase-39, Phase-40, and the test-only Phase-41 boundary</step-10>
-      <step-11 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION">Issue the bounded decision after the live-launch repo-local helper branch</step-11>
+      <step-8 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE" status="superseded" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window after live-launch smoke is green</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO" status="superseded" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
+      <step-10 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON" status="superseded" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-COMPARISON">Compare the live-launch packets against Phase-34, Phase-39, Phase-40, and the test-only Phase-41 boundary</step-10>
+      <step-11 module="M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION" status="superseded" verification="V-M-TELEGRAM-CALLS-LIVE-ORIGDST-DECISION">Issue the bounded decision after the live-launch repo-local helper branch</step-11>
       <note-1>Phase-42 starts only after the preserved ordinary Telegram Desktop baseline, the Phase-34 direct-media verdict, the valid-but-insufficient Phase-39 boundary, the superseded Phase-40 boundary, and the green Phase-41 smoke packet are all visible together.</note-1>
       <note-2>No second Telegram auth/bootstrap window is allowed anywhere in this branch; it remains attached to the already logged-in ordinary Desktop window.</note-2>
       <note-3>No Telegram voice or video packet is valid before live helper launch smoke proves process launch, listener bind, tuple recovery, governed handoff, and preserved baseline inside the same bounded packet window.</note-3>
@@ -9105,14 +9105,14 @@
       <note-8>Later on the same date one bounded live voice packet was spent on the ordinary logged-in Telegram window with the preserved `127.0.0.1:1080` baseline restored through the historical SSH-forward shape, the governed `origdst-live` helper running on `127.0.0.1:10073`, and one temporary host-side `iptables -t nat OUTPUT` redirect for UDP owned by user `1000`; the operator observed fast signaling followed by `Обмен ключами шифрования` and an abort about ten seconds later, while the helper logs proved live UDP traffic but recovered `original_target=Ip(127.0.0.1:10073)` instead of a real media tuple.</note-8>
       <note-9>That bounded packet changes the honest blocker: Phase-42 no longer sits at missing live helper launch or missing UDP activity, but at a redirect-class topology boundary where `OUTPUT REDIRECT` collapses destination recovery to the helper listener itself.</note-9>
     </Phase-42>
-    <Phase-43 name="Telegram Live Non-Redirect OrigDst Topology" status="planned">
+    <Phase-43 name="Telegram Live Non-Redirect OrigDst Topology" status="in_progress">
       <goal>Replace the Phase-42 REDIRECT-based live interception shape with one exact non-REDIRECT topology so the live helper can recover real media tuples without weakening the ordinary `127.0.0.1:1080` baseline.</goal>
-      <step-1 module="M-NONREDIRECT-ORIGDST-HYPOTHESIS" status="planned" verification="V-M-NONREDIRECT-ORIGDST-HYPOTHESIS">Freeze the non-REDIRECT topology boundary above the valid Phase-42 live voice packet</step-1>
-      <step-2 module="M-PHASE42-TOPOLOGY-BOUNDARY" status="planned" verification="V-M-PHASE42-TOPOLOGY-BOUNDARY">Explicitly freeze the old Phase-42 tail as blocked by redirect-class topology collapse rather than missing UDP activity</step-2>
-      <step-3 module="M-NONREDIRECT-TECH-DECISION" status="planned" verification="V-M-NONREDIRECT-TECH-DECISION">Choose one exact non-REDIRECT interception class for the next live UDP calls branch</step-3>
-      <step-4 module="M-NONREDIRECT-RUNTIME-PROFILE" status="planned" verification="V-M-NONREDIRECT-RUNTIME-PROFILE">Freeze one exact live runtime profile that keeps the ordinary baseline unchanged while replacing REDIRECT</step-4>
-      <step-5 module="M-NONREDIRECT-LINUX-ADAPTER-DELTA" status="planned" verification="V-M-NONREDIRECT-LINUX-ADAPTER-DELTA">Define the minimal Linux-adapter delta required by the chosen non-REDIRECT topology</step-5>
-      <step-6 module="M-NONREDIRECT-LIVE-RUNBOOK" status="planned" verification="V-M-NONREDIRECT-LIVE-RUNBOOK">Define the exact operator packet for live helper launch, non-REDIRECT interception, and cleanup</step-6>
+      <step-1 module="M-NONREDIRECT-ORIGDST-HYPOTHESIS" status="done" verification="V-M-NONREDIRECT-ORIGDST-HYPOTHESIS">Freeze the non-REDIRECT topology boundary above the valid Phase-42 live voice packet</step-1>
+      <step-2 module="M-PHASE42-TOPOLOGY-BOUNDARY" status="done" verification="V-M-PHASE42-TOPOLOGY-BOUNDARY">Explicitly freeze the old Phase-42 tail as blocked by redirect-class topology collapse rather than missing UDP activity</step-2>
+      <step-3 module="M-NONREDIRECT-TECH-DECISION" status="done" verification="V-M-NONREDIRECT-TECH-DECISION">Choose one exact non-REDIRECT interception class for the next live UDP calls branch</step-3>
+      <step-4 module="M-NONREDIRECT-RUNTIME-PROFILE" status="done" verification="V-M-NONREDIRECT-RUNTIME-PROFILE">Freeze one exact live runtime profile that keeps the ordinary baseline unchanged while replacing REDIRECT</step-4>
+      <step-5 module="M-NONREDIRECT-LINUX-ADAPTER-DELTA" status="done" verification="V-M-NONREDIRECT-LINUX-ADAPTER-DELTA">Define the minimal Linux-adapter delta required by the chosen non-REDIRECT topology</step-5>
+      <step-6 module="M-NONREDIRECT-LIVE-RUNBOOK" status="done" verification="V-M-NONREDIRECT-LIVE-RUNBOOK">Define the exact operator packet for live helper launch, non-REDIRECT interception, and cleanup</step-6>
       <step-7 module="M-NONREDIRECT-LIVE-SMOKE" status="planned" verification="V-M-NONREDIRECT-LIVE-SMOKE">Prove outside Telegram UI that the non-REDIRECT live topology recovers real destination tuples instead of the helper listener</step-7>
       <step-8 module="M-TELEGRAM-CALLS-NONREDIRECT-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-NONREDIRECT-VOICE">Run one bounded voice attempt on the ordinary logged-in Telegram window only after green non-REDIRECT smoke</step-8>
       <step-9 module="M-TELEGRAM-CALLS-NONREDIRECT-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-NONREDIRECT-VIDEO">Run one bounded video attempt on the same branch without inheriting voice</step-9>
@@ -9123,6 +9123,7 @@
       <note-3>No Telegram voice or video packet is valid before non-REDIRECT live smoke proves that recovered destinations no longer collapse to the helper listener.</note-3>
       <note-4>The new branch must preserve the already-working `127.0.0.1:1080` path for texts, media files, and large files.</note-4>
       <note-5>The only approved new variable is the interception topology class itself; live helper process shape, ordinary baseline, and no-second-auth rule stay fixed.</note-5>
+      <note-6>On 2026-03-31 the first Phase-43 execution packet closed the docs-only boundary and technology work: the old Phase-42 call tail was explicitly superseded as a redirect-topology boundary, Linux `TPROXY` was frozen as the one exact non-REDIRECT interception class on this workstation, and the live operator runbook was narrowed so only the interception topology class may change while the governed `origdst-live` launch shape and the preserved `127.0.0.1:1080` baseline stay fixed.</note-6>
     </Phase-43>
   </ImplementationOrder>
 
