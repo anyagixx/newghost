@@ -8536,7 +8536,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
-    <M-PHASE46-DOWNSTREAM-BOUNDARY NAME="Phase46DownstreamBoundary" TYPE="UTILITY" LAYER="50" ORDER="1" STATUS="planned">
+    <M-PHASE46-DOWNSTREAM-BOUNDARY NAME="Phase46DownstreamBoundary" TYPE="UTILITY" LAYER="50" ORDER="1" STATUS="done">
       <contract>
         <purpose>Freeze the completed Phase-46 packet as the preserved downstream truth-boundary above transport-green, tuple-recovery-green, and governed-handoff-green evidence.</purpose>
         <inputs>
@@ -10122,9 +10122,9 @@
       <note-10>The final decision packet must stay bounded to the preserved post-recovery branch: it may classify the setup only as key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology, and it may not generalize that verdict beyond the bounded evidence packet.</note-10>
       <note-11>On 2026-04-01 the Phase-46 final decision surface was fixed: this branch now closes with preserved voice, video, comparison, and bounded final decision packets while keeping Phase-45 explicit as the first real-media-tuple-success boundary on the preserved topology.</note-11>
     </Phase-46>
-    <Phase-47 name="Downstream Establishment Isolation Above Post-Recovery" status="planned">
+    <Phase-47 name="Downstream Establishment Isolation Above Post-Recovery" status="in_progress">
       <goal>Plan the next bounded Telegram calls branch above Phase-46 so the project can isolate the first establishment-stage blocker after real tuple recovery and governed handoff on the preserved topology.</goal>
-      <step-1 module="M-PHASE46-DOWNSTREAM-BOUNDARY" status="planned" verification="V-M-PHASE46-DOWNSTREAM-BOUNDARY">Freeze Phase-46 as the preserved truth-boundary above transport-green and tuple-recovery-green evidence</step-1>
+      <step-1 module="M-PHASE46-DOWNSTREAM-BOUNDARY" status="done" verification="V-M-PHASE46-DOWNSTREAM-BOUNDARY">Freeze Phase-46 as the preserved truth-boundary above transport-green and tuple-recovery-green evidence</step-1>
       <step-2 module="M-CALL-DOWNSTREAM-HYPOTHESIS" status="planned" verification="V-M-CALL-DOWNSTREAM-HYPOTHESIS">Define one exact downstream-establishment blocker hypothesis above the completed Phase-46 packet</step-2>
       <step-3 module="M-CALL-DOWNSTREAM-RUNTIME-PROFILE" status="planned" verification="V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE">Freeze one exact runtime profile for downstream-establishment evidence without changing the preserved Phase-45 or Phase-46 topology</step-3>
       <step-4 module="M-CALL-DOWNSTREAM-INSTRUMENTATION" status="planned" verification="V-M-CALL-DOWNSTREAM-INSTRUMENTATION">Define the minimal runtime-anchor delta required to separate downstream continuation, reply, timeout, and abort evidence above governed handoff</step-4>
@@ -10139,6 +10139,7 @@
       <note-4>The branch must add only the minimal runtime-anchor delta needed to say whether post-handoff continuation, inbound reply, timeout, or abort becomes the first unresolved establishment layer.</note-4>
       <note-5>Voice and video remain separate packets unless the comparison packet proves both changed class on the same preserved topology.</note-5>
       <note-6>The final decision may classify the branch only as preserved key-exchange no-go, narrower downstream-establishment blocker, or genuine establishment progress on the preserved topology; it may not widen that verdict into a general Telegram calls support claim.</note-6>
+      <note-7>On 2026-04-01 step-1 froze Phase-46 as the preserved downstream truth-boundary: Phase-47 now executes only above the completed post-recovery packet and does not reopen transport, tuple-recovery, or topology diagnosis by default.</note-7>
     </Phase-47>
   </ImplementationOrder>
 
