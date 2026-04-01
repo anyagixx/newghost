@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.60">
+  <Project NAME="n0wss" VERSION="0.2.61">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3784,6 +3784,62 @@
       <verification-ref>V-M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION</verification-ref>
       <annotations><fn-issueTelegramCallsServerIngressDecision PURPOSE="Issue one bounded final decision for the server-ingress branch on the preserved topology." /></annotations>
     </M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION>
+    <M-PHASE49-ELIGIBILITY-BOUNDARY NAME="Phase49EligibilityBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Freeze Phase-49 as the new eligibility truth-boundary above preserved tuple recovery, governed handoff, accepted WSS handshake, and the narrowed server-ingress verdict.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION</depends>
+      <verification-ref>V-M-PHASE49-ELIGIBILITY-BOUNDARY</verification-ref>
+      <annotations><fn-freezePhase49EligibilityBoundary PURPOSE="Freeze the completed Phase-49 packet as the preserved boundary for the pre-eligibility branch." /></annotations>
+    </M-PHASE49-ELIGIBILITY-BOUNDARY>
+    <M-WSS-ELIGIBILITY-HYPOTHESIS NAME="WssEligibilityHypothesis" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one exact pre-eligibility blocker hypothesis above the preserved Phase-49 packet set without reopening generic transport, reply-path, or server-ingress diagnosis.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-PHASE49-ELIGIBILITY-BOUNDARY</depends>
+      <verification-ref>V-M-WSS-ELIGIBILITY-HYPOTHESIS</verification-ref>
+      <annotations><fn-defineWssEligibilityHypothesis PURPOSE="Define the first unresolved pre-eligibility layer above preserved accepted WSS handshake on voice." /></annotations>
+    </M-WSS-ELIGIBILITY-HYPOTHESIS>
+    <M-WSS-ELIGIBILITY-RUNTIME-PROFILE NAME="WssEligibilityRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze one exact runtime profile for the pre-eligibility branch while preserving the completed Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 topology and ordinary baseline.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-WSS-ELIGIBILITY-HYPOTHESIS</depends>
+      <verification-ref>V-M-WSS-ELIGIBILITY-RUNTIME-PROFILE</verification-ref>
+      <annotations><fn-freezeWssEligibilityRuntimeProfile PURPOSE="Freeze the exact preserved runtime profile for pre-eligibility evidence." /></annotations>
+    </M-WSS-ELIGIBILITY-RUNTIME-PROFILE>
+    <M-WSS-ELIGIBILITY-INSTRUMENTATION NAME="WssEligibilityInstrumentation" TYPE="UTILITY" STATUS="planned">
+      <purpose>Add only the minimal pre-eligibility anchors needed to classify session bind, datagram-open acceptance, association registration, and explicit pre-eligibility drop above the preserved server-ingress floor.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-WSS-ELIGIBILITY-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-WSS-ELIGIBILITY-INSTRUMENTATION</verification-ref>
+      <annotations><fn-designWssEligibilityInstrumentation PURPOSE="Define the minimal instrumentation delta for pre-eligibility attribution." /></annotations>
+    </M-WSS-ELIGIBILITY-INSTRUMENTATION>
+    <M-WSS-ELIGIBILITY-CORRELATION NAME="WssEligibilityCorrelation" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one bounded workstation plus server correlation packet that separates handshake-only, session bind, datagram-open acceptance, association registration, and explicit pre-eligibility drop on the preserved pre-eligibility branch.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-WSS-ELIGIBILITY-INSTRUMENTATION</depends>
+      <verification-ref>V-M-WSS-ELIGIBILITY-CORRELATION</verification-ref>
+      <annotations><fn-defineWssEligibilityCorrelation PURPOSE="Define the bounded workstation-plus-server evidence packet for pre-eligibility attribution." /></annotations>
+    </M-WSS-ELIGIBILITY-CORRELATION>
+    <M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE NAME="TelegramCallsWssEligibilityVoice" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Run one bounded Telegram Desktop voice packet that attributes the first pre-eligibility blocker above the preserved governed handoff and accepted WSS handshake floors without reopening video.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-WSS-ELIGIBILITY-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE</verification-ref>
+      <annotations><fn-runTelegramCallsWssEligibilityVoice PURPOSE="Run one bounded pre-eligibility voice packet on the preserved Desktop topology." /></annotations>
+    </M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE>
+    <M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON NAME="TelegramCallsWssEligibilityComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the new bounded pre-eligibility voice packet against the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON</verification-ref>
+      <annotations><fn-compareTelegramCallsWssEligibility PURPOSE="Compare the pre-eligibility packet against the preserved boundaries and earlier blockers." /></annotations>
+    </M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON>
+    <M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION NAME="TelegramCallsWssEligibilityDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue one bounded final decision for the pre-eligibility branch above the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set without overstating calls support.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION</verification-ref>
+      <annotations><fn-issueTelegramCallsWssEligibilityDecision PURPOSE="Issue one bounded final decision for the pre-eligibility branch on the preserved topology." /></annotations>
+    </M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -4160,6 +4216,14 @@
     <CrossLink from="M-SERVER-INGRESS-CORRELATION" to="M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE" relation="supplies the bounded server-ingress correlation packet required before the first server-ingress voice packet is interpreted." />
     <CrossLink from="M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE" to="M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON" relation="supplies the bounded server-ingress voice packet for comparison against the preserved boundaries." />
     <CrossLink from="M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON" to="M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION" relation="supplies the bounded server-ingress comparison packet for the final server-ingress decision." />
+    <CrossLink from="M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION" to="M-PHASE49-ELIGIBILITY-BOUNDARY" relation="supplies the preserved server-ingress final decision that the pre-eligibility branch must keep explicit." />
+    <CrossLink from="M-PHASE49-ELIGIBILITY-BOUNDARY" to="M-WSS-ELIGIBILITY-HYPOTHESIS" relation="supplies the preserved eligibility truth-boundary above which the next blocker is defined." />
+    <CrossLink from="M-WSS-ELIGIBILITY-HYPOTHESIS" to="M-WSS-ELIGIBILITY-RUNTIME-PROFILE" relation="supplies the exact pre-eligibility blocker that the preserved runtime profile must study." />
+    <CrossLink from="M-WSS-ELIGIBILITY-RUNTIME-PROFILE" to="M-WSS-ELIGIBILITY-INSTRUMENTATION" relation="supplies the preserved runtime shape that the minimal pre-eligibility anchors must respect." />
+    <CrossLink from="M-WSS-ELIGIBILITY-INSTRUMENTATION" to="M-WSS-ELIGIBILITY-CORRELATION" relation="supplies the minimal anchor delta that the bounded pre-eligibility correlation packet must classify." />
+    <CrossLink from="M-WSS-ELIGIBILITY-CORRELATION" to="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE" relation="supplies the bounded pre-eligibility correlation packet required before the first pre-eligibility voice packet is interpreted." />
+    <CrossLink from="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE" to="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON" relation="supplies the bounded pre-eligibility voice packet for comparison against the preserved boundaries." />
+    <CrossLink from="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON" to="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION" relation="supplies the bounded pre-eligibility comparison packet for the final pre-eligibility decision." />
     <CrossLink from="M-TELEGRAM-DESKTOP-NET-CAPTURE" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the workstation-side attribution evidence surface for voice" />
     <CrossLink from="M-TELEGRAM-SERVER-CORRELATION" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the governed server-side correlation contract for voice attribution" />
     <CrossLink from="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" to="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" relation="keeps the video attribution packet separate but sequenced after voice under the same capture contract" />

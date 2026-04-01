@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.96">
+<VerificationPlan VERSION="0.2.98">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -6415,6 +6415,52 @@
       <module-checks><check-1>rg -n 'server-ingress decision|server-ingress blocker|narrower pre-loop drop|genuine ingress progress' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
       <required-trace-assertions><assertion-1>The final decision must remain above the preserved Phase-45, Phase-46, Phase-47, and Phase-48 packet set and choose one exact verdict: server-ingress blocker, narrower pre-loop drop, or genuine ingress progress.</assertion-1><assertion-2>The final decision must keep the preserved Phase-47 split explicit and the preserved Phase-48 voice verdict explicit.</assertion-2></required-trace-assertions>
     </V-M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION>
+    <V-M-PHASE49-ELIGIBILITY-BOUNDARY MODULE="M-PHASE49-ELIGIBILITY-BOUNDARY" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-50|Phase-49|eligibility truth-boundary|eligibility absence|server-ingress blocker' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The eligibility boundary must keep the preserved Phase-49 voice verdict explicit: the current blocker is `eligibility` absence above preserved tuple recovery, governed handoff, and accepted WSS handshake.</assertion-1></required-trace-assertions>
+    </V-M-PHASE49-ELIGIBILITY-BOUNDARY>
+    <V-M-WSS-ELIGIBILITY-HYPOTHESIS MODULE="M-WSS-ELIGIBILITY-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'session bind|datagram-open|association registration|pre-eligibility drop|Phase-49' docs/development-plan.xml docs/verification-plan.xml README.md</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The hypothesis must name the approved pre-eligibility chain after accepted WSS handshake and split it into session bind, datagram-open acceptance, association registration, or explicit pre-eligibility drop.</assertion-1></required-trace-assertions>
+    </V-M-WSS-ELIGIBILITY-HYPOTHESIS>
+    <V-M-WSS-ELIGIBILITY-RUNTIME-PROFILE MODULE="M-WSS-ELIGIBILITY-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-50|127.0.0.1:1080|Phase-45|Phase-46|Phase-47|Phase-48|Phase-49|accepted WSS handshake|eligibility' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The runtime profile must keep Phase-45 tuple recovery, Phase-46 proof order, Phase-47 split, Phase-48 reply-path blocker, and Phase-49 server-ingress blocker explicit as preserved prerequisites rather than new work items.</assertion-1><assertion-2>The runtime profile must state that Phase-50 opens one bounded voice attempt label at a time and does not reopen video inside the pre-eligibility branch.</assertion-2></required-trace-assertions>
+    </V-M-WSS-ELIGIBILITY-RUNTIME-PROFILE>
+    <V-M-WSS-ELIGIBILITY-INSTRUMENTATION MODULE="M-WSS-ELIGIBILITY-INSTRUMENTATION" PRIORITY="high">
+      <test-files><file>src/wss_gateway/mod.rs</file><file>src/wss_gateway/mod.test.rs</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'session bind|datagram-open|association registration|pre-eligibility drop|minimal runtime-anchor delta' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1><check-2>rg -n 'BLOCK_CALL_WSS_ELIGIBILITY_SESSION_BIND|BLOCK_CALL_WSS_ELIGIBILITY_DATAGRAM_OPEN|BLOCK_CALL_WSS_ELIGIBILITY_ASSOC_REGISTER|BLOCK_CALL_WSS_ELIGIBILITY_DROP' docs/verification-plan.xml src/wss_gateway/mod.rs src/wss_gateway/mod.test.rs</check-2><check-3>rg -n 'BLOCK_CALL_WSS_ELIGIBILITY_(SESSION_BIND|DATAGRAM_OPEN|ASSOC_REGISTER|DROP)' src/wss_gateway/mod.test.rs</check-3></module-checks>
+      <success-scenarios><scenario-1>The branch adds only the minimal anchors needed to classify session bind, datagram-open acceptance, association registration, and explicit pre-eligibility drop above accepted WSS handshake.</scenario-1><scenario-2>The machine-checkable test surface stays inside `src/wss_gateway/mod.test.rs` and does not depend on a live Telegram packet.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The instrumentation widens into generic transport redesign or mixes pre-eligibility drop with later server-ingress behavior.</scenario-1><scenario-2>The new markers exist only in prose artifacts and not in source-adjacent tests.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The instrumentation packet must preserve the current eligibility-absence boundary below any new pre-eligibility markers instead of replacing it.</assertion-1><assertion-2>The new anchors must let a later test say whether the first unresolved pre-eligibility layer is session bind absence, datagram-open acceptance absence, association registration absence, or explicit pre-eligibility drop.</assertion-2><assertion-3>The pre-eligibility anchors must remain distinct from existing `BLOCK_CALL_SERVER_INGRESS_ELIGIBLE`, `BLOCK_CALL_SERVER_INGRESS_DECODE`, `BLOCK_CALL_SERVER_INGRESS_LOOP_ENTRY`, and `BLOCK_CALL_SERVER_INGRESS_DROP` markers so another agent can still separate old server-ingress evidence from the new pre-eligibility classifier.</assertion-3><assertion-4>The source-adjacent tests must directly assert each new `BLOCK_CALL_WSS_ELIGIBILITY_*` anchor rather than only asserting broader downstream markers or free-form wording.</assertion-4></required-trace-assertions>
+      <phase-follow-up>The Phase-50 gate should reject any live execution packet if the new pre-eligibility anchors exist only in prose artifacts and not yet in source-adjacent tests.</phase-follow-up>
+    </V-M-WSS-ELIGIBILITY-INSTRUMENTATION>
+    <V-M-WSS-ELIGIBILITY-CORRELATION MODULE="M-WSS-ELIGIBILITY-CORRELATION" PRIORITY="high">
+      <test-files><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'phase50-wss-eligibility-voice|session bind|datagram-open|association registration|pre-eligibility drop' docs/verification-plan.xml docs/OPERATORS.md docs/development-plan.xml</check-1><check-2>rg -n 'accepted WSS handshake|BLOCK_CALL_SERVER_INGRESS_ELIGIBLE|BLOCK_CALL_WSS_ELIGIBILITY_' docs/verification-plan.xml docs/OPERATORS.md</check-2></module-checks>
+      <required-trace-assertions><assertion-1>The bounded packet must keep preserved tuple recovery, governed handoff, accepted WSS handshake, and the Phase-49 eligibility-absence boundary explicit before naming the first pre-eligibility marker or bounded absence after them.</assertion-1><assertion-2>The packet must end with exactly one first-divergent pre-eligibility layer: `session bind`, `datagram-open`, `association registration`, or `pre-eligibility drop`.</assertion-2><assertion-3>Bounded absence is valid evidence only when the same attempt label shows accepted WSS handshake but no new `BLOCK_CALL_WSS_ELIGIBILITY_*` marker in the same window.</assertion-3><assertion-4>The packet must not collapse `accepted WSS handshake`, `BLOCK_CALL_SERVER_INGRESS_ELIGIBLE`, and the new `BLOCK_CALL_WSS_ELIGIBILITY_*` surfaces into one blended classifier; the first missing layer must stay explicit.</assertion-4></required-trace-assertions>
+      <wave-follow-up>The pre-eligibility correlation packet must use one stable attempt label `phase50-wss-eligibility-voice-&lt;timestamp&gt;` and keep workstation tuple-recovery floor, governed handoff floor, accepted WSS handshake, the current eligibility-gap boundary, and the first pre-eligibility marker or bounded absence in one exact evidence window.</wave-follow-up>
+    </V-M-WSS-ELIGIBILITY-CORRELATION>
+    <V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE MODULE="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'wss-eligibility voice|Phase-50|already logged-in|preserved topology|127.0.0.1:1080|accepted WSS handshake' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'session bind|datagram-open|association registration|pre-eligibility drop' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-2></module-checks>
+      <failure-scenarios><scenario-1>The packet reopens generic transport, reply-path, server-ingress, or video diagnosis, or reports only handshake presence without separating the first missing pre-eligibility layer.</scenario-1><scenario-2>The packet blends older Phase-49 eligibility absence with the new Phase-50 pre-eligibility classifier.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The packet must keep tuple recovery, governed handoff, accepted WSS handshake, and the preserved Phase-49 eligibility-absence verdict explicit as already-proven earlier evidence while naming the first unresolved pre-eligibility layer after them.</assertion-1><assertion-2>The packet must say whether the first missing layer was session bind, datagram-open acceptance, association registration, or an explicit pre-eligibility drop marker in the same bounded window.</assertion-2><assertion-3>The packet is invalid if it spends a new Telegram voice attempt before `src/wss_gateway/mod.test.rs` directly asserts every new `BLOCK_CALL_WSS_ELIGIBILITY_*` anchor.</assertion-3><assertion-4>The packet is also invalid if it reports pre-eligibility progress without explicitly stating whether `BLOCK_CALL_SERVER_INGRESS_ELIGIBLE` stayed absent or became present in the same bounded window.</assertion-4></required-trace-assertions>
+      <wave-follow-up>The first pre-eligibility voice packet should be treated as the primary execution packet for Phase-50; if it still closes on bounded absence, the next wave must deepen server-side instrumentation around that exact missing layer before spending another blind Telegram packet.</wave-follow-up>
+    </V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE>
+    <V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON MODULE="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-45|Phase-46|Phase-47|Phase-48|Phase-49|Phase-50|eligibility' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The comparison packet must say whether the first unresolved layer stayed at handshake-only eligibility-gap behavior, moved to narrower association-or-drop behavior, or showed genuine eligibility progress.</assertion-1></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON>
+    <V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION MODULE="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'wss-eligibility decision|pre-eligibility blocker|narrower association|genuine eligibility progress' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The final decision must remain above the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set and choose one exact verdict: pre-eligibility blocker, narrower association-or-drop blocker, or genuine eligibility progress.</assertion-1><assertion-2>The final decision must keep the preserved Phase-47 split explicit and the preserved Phase-49 voice verdict explicit.</assertion-2></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -7239,6 +7285,32 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsServerIngressWave; expected-evidence=preserved Phase-45, Phase-46, Phase-47, and Phase-48 boundaries, preserved ordinary baseline, one exact server-ingress hypothesis, minimal anchor delta, bounded workstation/server correlation, and one bounded server-ingress voice packet; observed-evidence=phase artifacts, instrumentation packet, correlation packet, and server-ingress voice packet; first-divergent-block=first missing server-ingress-boundary, hypothesis, runtime-profile, instrumentation, correlation, voice, or comparison marker; next-action=repair that exact server-ingress layer before spending more call attempts</failure-packet-template>
     </LV-040>
+    <LV-041 NAME="TelegramCallsWssEligibilityWave" PRIORITY="high">
+      <scope>Phase-50 pre-eligibility branch above the completed Phase-49 packet on the preserved Phase-45 topology and preserved Phase-46, Phase-47, Phase-48, and Phase-49 truth-boundary set.</scope>
+      <commands>
+        <command-1>keep the preserved ordinary Telegram baseline at `127.0.0.1:1080` untouched</command-1>
+        <command-2>keep the completed Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set explicit as preserved boundaries</command-2>
+        <command-3>freeze one exact pre-eligibility hypothesis above accepted WSS handshake on the preserved topology</command-3>
+        <command-4>define only the minimal runtime-anchor delta needed for session bind, datagram-open acceptance, association registration, and explicit pre-eligibility drop classification</command-4>
+        <command-5>define one bounded workstation plus server correlation packet for pre-eligibility behavior</command-5>
+        <command-6>directly assert any new `BLOCK_CALL_WSS_ELIGIBILITY_*` anchors in `src/wss_gateway/mod.test.rs` before live execution</command-6>
+        <command-7>use one stable attempt label `phase50-wss-eligibility-voice-&lt;timestamp&gt;` per live packet and do not reuse it across attempts</command-7>
+        <command-8>`cargo test wss_gateway -- --nocapture` must pass before a live packet is spent</command-8>
+        <command-9>run one pre-eligibility voice packet</command-9>
+        <command-10>compare the pre-eligibility packet against the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 boundaries</command-10>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave does not reopen generic transport, interception-topology, reply-path, server-ingress, or earlier video-launch diagnosis.</evidence-1>
+        <evidence-2>The wave keeps the preserved ordinary baseline and no-second-auth rule explicit.</evidence-2>
+        <evidence-3>The wave adds only the minimal anchor delta required above accepted WSS handshake and below the current eligibility surface.</evidence-3>
+        <evidence-4>The wave keeps the preserved Phase-49 voice verdict explicit while studying only the pre-eligibility layer above it.</evidence-4>
+        <evidence-5>The final comparison says whether the first unresolved layer stayed at handshake-only eligibility-gap behavior, moved to narrower association-or-drop behavior, or showed genuine eligibility progress.</evidence-5>
+        <evidence-6>No live pre-eligibility voice packet is valid until module-local tests directly assert any new `BLOCK_CALL_WSS_ELIGIBILITY_*` anchors.</evidence-6>
+        <evidence-7>The same bounded packet must keep accepted WSS handshake and either one first `BLOCK_CALL_WSS_ELIGIBILITY_*` marker or one explicit bounded absence statement in the same attempt window.</evidence-7>
+        <evidence-8>The packet must state whether the current `BLOCK_CALL_SERVER_INGRESS_ELIGIBLE` boundary stayed absent or became present before any new pre-eligibility marker is interpreted.</evidence-8>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsWssEligibilityWave; expected-evidence=preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 boundaries, preserved ordinary baseline, one exact pre-eligibility hypothesis, minimal anchor delta, bounded workstation/server correlation, and one bounded pre-eligibility voice packet; observed-evidence=phase artifacts, instrumentation packet, correlation packet, and pre-eligibility voice packet; first-divergent-block=first missing eligibility-boundary, hypothesis, runtime-profile, instrumentation, correlation, voice, or comparison marker; next-action=repair that exact pre-eligibility layer before spending more call attempts</failure-packet-template>
+    </LV-041>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -8206,6 +8278,35 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-49; expected-evidence=execution-ready server-ingress wave with preserved ordinary baseline, explicit Phase-45, Phase-46, Phase-47, and Phase-48 boundaries, one exact server-ingress hypothesis and runtime profile, minimal anchor delta, bounded workstation/server correlation, one bounded server-ingress voice packet, and bounded decision; observed-evidence=phase artifacts, server-ingress packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-49 gate requirement; next-action=repair the missing Phase-49 artifact before executing the bounded server-ingress voice wave</failure-packet-template>
     </Gate-Phase-49>
+    <Gate-Phase-50 PHASE="Phase-50">
+      <goal>The project has an execution-ready pre-eligibility branch above the completed Phase-49 packet without reopening the preserved Phase-45 transport, Phase-46 post-recovery, Phase-47 downstream truth, Phase-48 reply-path truth, or Phase-49 server-ingress truth.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-50|M-PHASE49-ELIGIBILITY-BOUNDARY|M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-041|127.0.0.1:1080|Phase-45|Phase-46|Phase-47|Phase-48|Phase-49|accepted WSS handshake|session bind|datagram-open|association registration|eligibility' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>rg -n 'BLOCK_CALL_WSS_ELIGIBILITY_SESSION_BIND|BLOCK_CALL_WSS_ELIGIBILITY_DATAGRAM_OPEN|BLOCK_CALL_WSS_ELIGIBILITY_ASSOC_REGISTER|BLOCK_CALL_WSS_ELIGIBILITY_DROP' docs/verification-plan.xml src/wss_gateway/mod.test.rs src/wss_gateway/mod.rs</command-3>
+        <command-4>rg -n 'BLOCK_CALL_WSS_ELIGIBILITY_(SESSION_BIND|DATAGRAM_OPEN|ASSOC_REGISTER|DROP)' src/wss_gateway/mod.test.rs</command-4>
+        <command-5>cargo test wss_gateway -- --nocapture</command-5>
+        <command-6>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-6>
+        <command-7>git diff --check</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the preserved ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the completed Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set explicit as preserved boundaries.</evidence-2>
+        <evidence-3>The gate requires one exact pre-eligibility hypothesis and preserved runtime profile.</evidence-3>
+        <evidence-4>The gate requires only the minimal runtime-anchor delta needed above accepted WSS handshake and below the current eligibility surface.</evidence-4>
+        <evidence-5>The gate requires one bounded workstation plus server correlation packet before a new pre-eligibility voice packet is interpreted.</evidence-5>
+        <evidence-6>The gate requires a bounded final decision that does not relabel preserved tuple recovery, governed handoff, accepted WSS handshake, the Phase-49 eligibility blocker, or the earlier video blocker as green call establishment.</evidence-6>
+        <evidence-7>The gate requires direct test-level assertions for any new `BLOCK_CALL_WSS_ELIGIBILITY_*` anchors before live execution can begin.</evidence-7>
+        <evidence-8>The gate requires `wss_gateway` tests to pass with direct assertions on every new pre-eligibility anchor before any bounded Telegram voice packet is spent.</evidence-8>
+        <evidence-9>The gate requires the verification contract to keep the current `accepted WSS handshake -> eligibility absence` boundary explicit so Phase-50 cannot silently skip over it.</evidence-9>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-50; expected-evidence=execution-ready pre-eligibility wave with preserved ordinary baseline, explicit Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 boundaries, one exact pre-eligibility hypothesis and runtime profile, minimal anchor delta, bounded workstation/server correlation, one bounded pre-eligibility voice packet, and bounded decision; observed-evidence=phase artifacts, pre-eligibility packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-50 gate requirement; next-action=repair the missing Phase-50 artifact before executing the bounded pre-eligibility voice wave</failure-packet-template>
+    </Gate-Phase-50>
   </PhaseGates>
 
   <FailurePackets>

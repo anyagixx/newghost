@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.3.3] - 2026-04-02
+
+Patch release for the deeper Telegram Desktop calls diagnosis after the published `v0.3.2` baseline.
+
+Included in this release:
+
+- Completed bounded Phase-47, Phase-48, and Phase-49 diagnosis for Telegram Desktop voice and video attempts on the preserved `SOCKS5 127.0.0.1:1080` path
+- Narrowed the voice-call blocker from a generic post-handoff gap to `reply-path blocker`, then to `server-ingress blocker`, and finally to `eligibility absence`
+- Added governed downstream, reply-path, and server-ingress trace anchors plus direct source-adjacent assertions in `cli`, `session`, `proxy_bridge`, and `wss_gateway` tests
+- Synchronized GRACE shared artifacts with the completed calls-diagnosis waves and the planned `Phase-50` pre-eligibility branch
+
+Verification baseline:
+
+- `cargo test`
+- `cargo test cli -- --nocapture`
+- `cargo test datagram_manager -- --nocapture`
+- `cargo test udp_relay -- --nocapture`
+- `cargo test wss_gateway -- --nocapture`
+- targeted `grace-refresh` after the Phase-50 planning and verification packet
+
+Notes:
+
+- This release does not claim green Telegram voice or video call support.
+- The current honest calls verdict remains bounded: real media tuples and governed handoff are proven, but the first unresolved voice layer is still `eligibility absence` above accepted WSS handshake evidence.
+
 ## [0.3.2] - 2026-03-29
 
 Baseline publication release for the rebuilt-host Telegram Desktop acceptance wave after `v0.3.1`.

@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.72">
+<DevelopmentPlan VERSION="0.2.73">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -9015,6 +9015,94 @@
       <observability><log-prefix>[TelegramCallsServerIngressDecision]</log-prefix><critical-block>BLOCK_TELEGRAM_CALLS_SERVER_INGRESS_DECISION</critical-block></observability>
       <verification-ref>V-M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION>
+    <M-PHASE49-ELIGIBILITY-BOUNDARY NAME="Phase49EligibilityBoundary" TYPE="CORE_LOGIC" LAYER="53" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze Phase-49 as the new eligibility truth-boundary above preserved tuple recovery, governed handoff, accepted WSS handshake, and the narrowed server-ingress verdict.</purpose>
+        <inputs><input-1>The completed Phase-49 server-ingress final decision packet.</input-1></inputs>
+        <outputs><output-1>One preserved eligibility boundary packet.</output-1></outputs>
+      </contract>
+      <target-files><file-1>docs/development-plan.xml</file-1><file-2>docs/verification-plan.xml</file-2><file-3>README.md</file-3></target-files>
+      <depends>M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION</depends>
+      <observability><log-prefix>[Phase49EligibilityBoundary]</log-prefix><critical-block>BLOCK_PHASE49_ELIGIBILITY_BOUNDARY</critical-block></observability>
+      <verification-ref>V-M-PHASE49-ELIGIBILITY-BOUNDARY</verification-ref>
+    </M-PHASE49-ELIGIBILITY-BOUNDARY>
+    <M-WSS-ELIGIBILITY-HYPOTHESIS NAME="WssEligibilityHypothesis" TYPE="CORE_LOGIC" LAYER="53" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define one exact pre-eligibility blocker hypothesis between accepted WSS handshake and the current server-ingress eligibility transition.</purpose>
+        <inputs><input-1>The preserved Phase-49 eligibility boundary packet.</input-1></inputs>
+        <outputs><output-1>One exact pre-eligibility blocker hypothesis.</output-1></outputs>
+      </contract>
+      <target-files><file-1>docs/development-plan.xml</file-1><file-2>README.md</file-2></target-files>
+      <depends>M-PHASE49-ELIGIBILITY-BOUNDARY</depends>
+      <observability><log-prefix>[WssEligibilityHypothesis]</log-prefix><critical-block>BLOCK_WSS_ELIGIBILITY_HYPOTHESIS</critical-block></observability>
+      <verification-ref>V-M-WSS-ELIGIBILITY-HYPOTHESIS</verification-ref>
+    </M-WSS-ELIGIBILITY-HYPOTHESIS>
+    <M-WSS-ELIGIBILITY-RUNTIME-PROFILE NAME="WssEligibilityRuntimeProfile" TYPE="INTEGRATION" LAYER="53" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Freeze one exact runtime profile for the pre-eligibility branch while preserving the completed Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 topology and ordinary baseline.</purpose>
+        <inputs><input-1>The exact pre-eligibility blocker hypothesis.</input-1></inputs>
+        <outputs><output-1>One preserved pre-eligibility runtime profile.</output-1></outputs>
+      </contract>
+      <target-files><file-1>docs/development-plan.xml</file-1><file-2>docs/OPERATORS.md</file-2></target-files>
+      <depends>M-WSS-ELIGIBILITY-HYPOTHESIS</depends>
+      <observability><log-prefix>[WssEligibilityRuntimeProfile]</log-prefix><critical-block>BLOCK_WSS_ELIGIBILITY_RUNTIME_PROFILE</critical-block></observability>
+      <verification-ref>V-M-WSS-ELIGIBILITY-RUNTIME-PROFILE</verification-ref>
+    </M-WSS-ELIGIBILITY-RUNTIME-PROFILE>
+    <M-WSS-ELIGIBILITY-INSTRUMENTATION NAME="WssEligibilityInstrumentation" TYPE="UTILITY" LAYER="53" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Add only the minimal server-side anchors needed to classify session bind, datagram-open acceptance, association registration, and explicit pre-eligibility drop above the preserved handshake floor.</purpose>
+        <inputs><input-1>The preserved pre-eligibility runtime profile.</input-1></inputs>
+        <outputs><output-1>One minimal pre-eligibility instrumentation packet.</output-1></outputs>
+      </contract>
+      <target-files><file-1>src/wss_gateway/mod.rs</file-1><file-2>src/wss_gateway/mod.test.rs</file-2></target-files>
+      <depends>M-WSS-ELIGIBILITY-RUNTIME-PROFILE</depends>
+      <observability><log-prefix>[WssEligibilityInstrumentation]</log-prefix><critical-block>BLOCK_WSS_ELIGIBILITY_INSTRUMENTATION</critical-block></observability>
+      <verification-ref>V-M-WSS-ELIGIBILITY-INSTRUMENTATION</verification-ref>
+    </M-WSS-ELIGIBILITY-INSTRUMENTATION>
+    <M-WSS-ELIGIBILITY-CORRELATION NAME="WssEligibilityCorrelation" TYPE="CORE_LOGIC" LAYER="53" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Define one bounded workstation plus server correlation packet that separates handshake-only, session bind, datagram-open acceptance, association registration, and explicit pre-eligibility drop on the preserved pre-eligibility branch.</purpose>
+        <inputs><input-1>The preserved pre-eligibility runtime profile and minimal instrumentation packet.</input-1></inputs>
+        <outputs><output-1>One bounded pre-eligibility workstation plus server correlation packet.</output-1></outputs>
+      </contract>
+      <target-files><file-1>docs/verification-plan.xml</file-1><file-2>docs/OPERATORS.md</file-2></target-files>
+      <depends>M-WSS-ELIGIBILITY-INSTRUMENTATION</depends>
+      <observability><log-prefix>[WssEligibilityCorrelation]</log-prefix><critical-block>BLOCK_WSS_ELIGIBILITY_CORRELATION</critical-block></observability>
+      <verification-ref>V-M-WSS-ELIGIBILITY-CORRELATION</verification-ref>
+    </M-WSS-ELIGIBILITY-CORRELATION>
+    <M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE NAME="TelegramCallsWssEligibilityVoice" TYPE="ENTRY_POINT" LAYER="53" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded Telegram Desktop voice packet that attributes the first pre-eligibility blocker above preserved governed handoff and accepted WSS handshake without reopening video.</purpose>
+        <inputs><input-1>The bounded pre-eligibility workstation plus server correlation packet.</input-1></inputs>
+        <outputs><output-1>One bounded pre-eligibility voice packet.</output-1></outputs>
+      </contract>
+      <target-files><file-1>docs/development-plan.xml</file-1><file-2>docs/verification-plan.xml</file-2><file-3>docs/OPERATORS.md</file-3></target-files>
+      <depends>M-WSS-ELIGIBILITY-CORRELATION</depends>
+      <observability><log-prefix>[TelegramCallsWssEligibilityVoice]</log-prefix><critical-block>BLOCK_TELEGRAM_CALLS_WSS_ELIGIBILITY_VOICE</critical-block></observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE</verification-ref>
+    </M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE>
+    <M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON NAME="TelegramCallsWssEligibilityComparison" TYPE="CORE_LOGIC" LAYER="53" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Compare the new bounded pre-eligibility voice packet against the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set.</purpose>
+        <inputs><input-1>The bounded pre-eligibility voice packet and the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set.</input-1></inputs>
+        <outputs><output-1>One bounded pre-eligibility comparison packet.</output-1></outputs>
+      </contract>
+      <target-files><file-1>README.md</file-1><file-2>docs/development-plan.xml</file-2><file-3>docs/verification-plan.xml</file-3></target-files>
+      <depends>M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE</depends>
+      <observability><log-prefix>[TelegramCallsWssEligibilityComparison]</log-prefix><critical-block>BLOCK_TELEGRAM_CALLS_WSS_ELIGIBILITY_COMPARISON</critical-block></observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON>
+    <M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION NAME="TelegramCallsWssEligibilityDecision" TYPE="ENTRY_POINT" LAYER="53" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Issue one bounded final decision for the pre-eligibility branch above the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 packet set without overstating calls support.</purpose>
+        <inputs><input-1>The bounded pre-eligibility comparison packet.</input-1></inputs>
+        <outputs><output-1>One bounded pre-eligibility final decision packet.</output-1></outputs>
+      </contract>
+      <target-files><file-1>README.md</file-1><file-2>docs/development-plan.xml</file-2><file-3>docs/verification-plan.xml</file-3></target-files>
+      <depends>M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON</depends>
+      <observability><log-prefix>[TelegramCallsWssEligibilityDecision]</log-prefix><critical-block>BLOCK_TELEGRAM_CALLS_WSS_ELIGIBILITY_DECISION</critical-block></observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION>
   </Modules>
 
   <DataFlow>
@@ -10472,6 +10560,23 @@
       <note-13>On 2026-04-02 step-7 fixed the bounded Phase-49 comparison packet: relative to the preserved Phase-48 reply-path verdict, the unresolved voice layer moved deeper again from generic `server ingress` absence to narrower ingress `eligibility` absence above preserved accepted-WSS-handshake evidence, while the preserved Phase-47 earlier video blocker remained separate and unchanged.</note-13>
       <note-14>On 2026-04-02 step-8 issued the bounded Phase-49 final decision: for the preserved Telegram Desktop setup the branch closes as a `server-ingress blocker`, more narrowly ingress `eligibility` absence above preserved tuple recovery, governed handoff, and accepted-WSS-handshake evidence, so the project sharpened server-side diagnosis again without gaining a green Telegram calls-support claim.</note-14>
     </Phase-49>
+    <Phase-50 name="Wss-Eligibility Isolation Above Server-Ingress Boundary" status="planned">
+      <goal>Plan the next bounded Telegram calls branch above Phase-49 so the project can isolate the first pre-eligibility blocker between accepted WSS handshake and the current server-ingress eligibility transition without reopening transport, tuple-recovery, reply-path, server-ingress, or video diagnosis.</goal>
+      <step-1 module="M-PHASE49-ELIGIBILITY-BOUNDARY" status="planned" verification="V-M-PHASE49-ELIGIBILITY-BOUNDARY">Freeze Phase-49 as the preserved eligibility truth-boundary above the completed server-ingress blocker packet</step-1>
+      <step-2 module="M-WSS-ELIGIBILITY-HYPOTHESIS" status="planned" verification="V-M-WSS-ELIGIBILITY-HYPOTHESIS">Define one exact pre-eligibility blocker hypothesis above the completed Phase-49 packet</step-2>
+      <step-3 module="M-WSS-ELIGIBILITY-RUNTIME-PROFILE" status="planned" verification="V-M-WSS-ELIGIBILITY-RUNTIME-PROFILE">Freeze one exact runtime profile for pre-eligibility evidence without changing the preserved Phase-45, Phase-46, Phase-47, Phase-48, or Phase-49 topology</step-3>
+      <step-4 module="M-WSS-ELIGIBILITY-INSTRUMENTATION" status="planned" verification="V-M-WSS-ELIGIBILITY-INSTRUMENTATION">Define only the minimal runtime-anchor delta needed to separate session bind, datagram-open acceptance, association registration, and explicit pre-eligibility drop evidence above accepted WSS handshake</step-4>
+      <step-5 module="M-WSS-ELIGIBILITY-CORRELATION" status="planned" verification="V-M-WSS-ELIGIBILITY-CORRELATION">Define one bounded workstation plus server correlation packet for pre-eligibility behavior on the preserved topology</step-5>
+      <step-6 module="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-VOICE">Run one bounded pre-eligibility voice packet on the preserved ordinary Telegram Desktop window without reopening video</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-COMPARISON">Compare the pre-eligibility voice packet against the preserved Phase-45, Phase-46, Phase-47, Phase-48, and Phase-49 boundaries</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-WSS-ELIGIBILITY-DECISION">Issue the bounded pre-eligibility final decision above the preserved packet set</step-8>
+      <note-1>Phase-50 starts only after the preserved ordinary Telegram baseline, the completed Phase-45 real-media-tuple packet, the completed Phase-46 post-recovery decision, the completed Phase-47 downstream-blocker decision, the completed Phase-48 reply-path decision, and the completed Phase-49 server-ingress decision are all visible together.</note-1>
+      <note-2>The next branch must not reopen generic transport diagnosis, tuple-recovery diagnosis, reply-path diagnosis, server-ingress diagnosis, interception-topology diagnosis, or the already-classified earlier video blocker unless the preserved Phase-45, Phase-46, Phase-47, Phase-48, or Phase-49 packet is explicitly disproved in the same bounded window.</note-2>
+      <note-3>The only approved new variable is pre-eligibility evidence between accepted WSS handshake and the current server-ingress eligibility transition on voice; the Phase-45 topology, the preserved `127.0.0.1:1080` baseline, helper launch shape, and no-second-auth rule stay fixed.</note-3>
+      <note-4>The branch must add only the minimal runtime-anchor delta needed to say whether the first unresolved layer is session bind absence, datagram-open acceptance absence, association registration absence, or explicit pre-eligibility drop after accepted WSS handshake.</note-4>
+      <note-5>Video is not reopened inside this branch because Phase-47 already proved that video diverges earlier than the preserved voice packet and therefore does not sharpen the pre-eligibility classifier.</note-5>
+      <note-6>The final decision may classify the branch only as pre-eligibility blocker, narrower association-or-drop blocker, or genuine eligibility progress on the preserved topology; it may not widen that verdict into a general Telegram calls-support claim.</note-6>
+    </Phase-50>
   </ImplementationOrder>
 
   <ExecutionPolicy>
