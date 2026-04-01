@@ -8635,7 +8635,7 @@
       </observability>
       <verification-ref>V-M-CALL-DOWNSTREAM-INSTRUMENTATION</verification-ref>
     </M-CALL-DOWNSTREAM-INSTRUMENTATION>
-    <M-CALL-DOWNSTREAM-SERVER-CORRELATION NAME="CallDownstreamServerCorrelation" TYPE="CORE_LOGIC" LAYER="50" ORDER="5" STATUS="planned">
+    <M-CALL-DOWNSTREAM-SERVER-CORRELATION NAME="CallDownstreamServerCorrelation" TYPE="CORE_LOGIC" LAYER="50" ORDER="5" STATUS="done">
       <contract>
         <purpose>Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology.</purpose>
         <inputs>
@@ -10128,7 +10128,7 @@
       <step-2 module="M-CALL-DOWNSTREAM-HYPOTHESIS" status="done" verification="V-M-CALL-DOWNSTREAM-HYPOTHESIS">Define one exact downstream-establishment blocker hypothesis above the completed Phase-46 packet</step-2>
       <step-3 module="M-CALL-DOWNSTREAM-RUNTIME-PROFILE" status="done" verification="V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE">Freeze one exact runtime profile for downstream-establishment evidence without changing the preserved Phase-45 or Phase-46 topology</step-3>
       <step-4 module="M-CALL-DOWNSTREAM-INSTRUMENTATION" status="done" verification="V-M-CALL-DOWNSTREAM-INSTRUMENTATION">Define the minimal runtime-anchor delta required to separate downstream continuation, reply, timeout, and abort evidence above governed handoff</step-4>
-      <step-5 module="M-CALL-DOWNSTREAM-SERVER-CORRELATION" status="planned" verification="V-M-CALL-DOWNSTREAM-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology</step-5>
+      <step-5 module="M-CALL-DOWNSTREAM-SERVER-CORRELATION" status="done" verification="V-M-CALL-DOWNSTREAM-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology</step-5>
       <step-6 module="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE">Run one bounded downstream-establishment voice packet on the preserved ordinary Telegram Desktop window</step-6>
       <step-7 module="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO">Run one separate downstream-establishment video packet on the same preserved branch without inheriting voice</step-7>
       <step-8 module="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON">Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries</step-8>
@@ -10143,6 +10143,7 @@
       <note-8>On 2026-04-01 step-2 fixed the downstream hypothesis: the first unresolved layer now stays explicitly above governed handoff on the preserved topology and must be classified as continuation, inbound reply, timeout, or abort rather than as generic key-exchange failure.</note-8>
       <note-9>On 2026-04-01 step-3 froze the exact downstream runtime profile: Phase-47 now reuses the preserved Phase-45 namespace `TPROXY` topology and Phase-46 helper shape unchanged, keeps the ordinary `127.0.0.1:1080` baseline and no-second-auth rule fixed, and allows new evidence only after the preserved governed-handoff floor.</note-9>
       <note-10>On 2026-04-01 step-4 added the minimal downstream anchor delta in code and tests: continuation now anchors after manager-owned outbound dispatch, reply anchors at client-side inbound delivery, and timeout plus abort anchor inside the governed WSS datagram loop without reopening transport design.</note-10>
+      <note-11>On 2026-04-01 step-5 fixed the bounded correlation packet: each downstream voice or video attempt must now keep one stable attempt label and one bounded workstation plus server evidence window that preserves tuple-recovery and governed-handoff floor separately from the first downstream-class marker.</note-11>
     </Phase-47>
   </ImplementationOrder>
 

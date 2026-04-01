@@ -2065,3 +2065,30 @@ Exact preserved runtime profile for the first downstream-establishment wave:
    `abort` if the call tears down before a reply-class marker appears
 6. Keep voice and video packets independent even if they run on the same preserved topology.
 7. After the bounded packet window, remove the temporary namespace and host steering state, stop the helper, and prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy.
+
+Bounded workstation plus server correlation packet for Phase-47:
+
+1. Open one exact bounded window per call attempt and give it one stable attempt label:
+   `phase47-downstream-voice-<timestamp>` for voice
+   `phase47-downstream-video-<timestamp>` for video
+   do not reuse the same packet label across two Telegram attempts
+2. Keep workstation evidence inside the same bounded window:
+   Telegram Desktop UI progression for the already logged-in ordinary window
+   local loopback proof for the preserved `SOCKS5 127.0.0.1:1080` path
+   helper log lines proving preserved tuple-recovery and governed handoff floor
+   new downstream markers for continuation, reply, timeout, or abort
+3. Keep server evidence inside the same bounded window:
+   governed WSS handshake and datagram markers on the remote server
+   `SERVER_DATAGRAM_RECEIVED`, `SERVER_DATAGRAM_INBOUND_RECEIVED`, and `SERVER_DATAGRAM_RETURN_EMITTED` when present
+   explicit bounded absence statement when those markers do not appear in the same window
+4. Keep proof classes separate inside the packet:
+   preserved tuple-recovery floor
+   preserved governed-handoff floor
+   first downstream-class marker observed after that floor
+   user-visible Telegram call outcome for the same attempt
+5. The packet is valid only if it ends with one exact classifier for the first unresolved downstream layer:
+   `continuation`
+   `reply`
+   `timeout`
+   `abort`
+6. The packet is invalid if it blends workstation symptoms and server logs into one vague conclusion or if it reopens generic transport or topology diagnosis without disproving the preserved Phase-45 or Phase-46 packet in the same bounded window.
