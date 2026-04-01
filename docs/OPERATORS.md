@@ -2184,3 +2184,46 @@ Observed bounded reply-path voice packet on 2026-04-02:
 3. In the same bounded server window, the remote server again showed only fresh `accepted WSS handshake` lines for the attempt and no fresh governed datagram-return markers.
 4. No reply-path markers `BLOCK_CALL_REPLY_SERVER_INGRESS`, `BLOCK_CALL_REPLY_RELAY_MAPPING`, `BLOCK_CALL_REPLY_CLIENT_DELIVERY`, or `BLOCK_CALL_REPLY_CLIENT_DROP` appeared in the same bounded window.
 5. This packet is therefore a valid blocked Phase-48 voice packet: it preserves the governed tuple-recovery and handoff floor from the earlier phases, but the first unresolved reply-path layer is now classified more narrowly as `server ingress` absence rather than a generic downstream gap.
+
+### Phase-49 Server-Ingress Runtime Profile
+
+Phase-49 starts only after the completed Phase-48 packet is frozen as the preserved server-ingress truth-boundary on the same ordinary Telegram Desktop setup. The helper topology, the ordinary SOCKS5 path, the accepted WSS handshake surface, and the attached already logged-in window stay fixed; the only approved new variable is server-ingress evidence between accepted handshake and the first governed datagram-ingress marker on preserved voice attempts.
+
+Bounded operator rules for the server-ingress branch:
+
+1. Keep the preserved topology fixed:
+   keep the same privileged non-`OUTPUT` namespace `TPROXY` topology from Phase-45
+   keep the same root-run repo-local `origdst-live` helper shape from Phase-46, Phase-47, and Phase-48
+   do not introduce a second helper stack, alternate listener, auth relay, or different interception class
+2. Keep the ordinary Telegram baseline fixed:
+   keep the ordinary logged-in Telegram Desktop window on `SOCKS5 127.0.0.1:1080`
+   do not repoint the ordinary baseline away from `127.0.0.1:1080`
+   do not open a second auth or bootstrap window
+3. Keep proof order fixed:
+   treat tuple recovery, governed handoff, accepted WSS handshake, and the preserved Phase-48 `server ingress absence` verdict as prerequisites, not as new success claims
+   begin new evidence only after the preserved tuple-recovery floor, governed-handoff floor, and accepted WSS handshake are explicit for the same bounded voice attempt
+   classify the first unresolved server-ingress layer only as `eligibility`, `decode`, `loop entry`, or `pre-loop drop`
+4. Keep capture scope bounded:
+   collect one bounded workstation and server correlation window per voice attempt
+   use one stable voice-only attempt label: `phase49-server-ingress-voice-<timestamp>`
+   do not reopen video inside the server-ingress branch
+   do not spend a new live packet until the required server-ingress anchors and governed test assertions exist
+5. Cleanup stays mandatory:
+   remove temporary namespace and host steering state immediately after the bounded packet window
+   stop the root-run helper
+   prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy after cleanup
+
+Exact preserved runtime profile for the first server-ingress wave:
+
+1. Reuse the exact Phase-45 non-`OUTPUT` namespace `TPROXY` topology and the exact Phase-46, Phase-47, or Phase-48 root-run `origdst-live` helper command:
+   `sudo --preserve-env=RUST_LOG n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080 --transparent-socket-mode required`
+2. Before the bounded call attempt, prove the preserved ordinary Telegram Desktop path is still `SOCKS5 127.0.0.1:1080`, the window is already logged in, and no second auth/bootstrap surface exists.
+3. Keep the same host owner-mark, policy-route, isolated `veth/netns` ingress, namespace `PREROUTING TPROXY`, `route_localnet=1`, and `rp_filter=0` surfaces already proven for Phase-45 and preserved by Phase-46, Phase-47, or Phase-48.
+4. Start the bounded correlation window only after the preserved helper launch, tuple-recovery floor, governed-handoff floor, and accepted WSS handshake are explicit in the same packet.
+5. Inside that bounded window, classify only the first server-ingress layer after accepted WSS handshake:
+   `eligibility` if the packet still stops before any new governed server-ingress eligibility evidence
+   `decode` if eligibility appears but datagram decode does not
+   `loop entry` if decode appears but the runtime still does not enter the governed datagram loop surface
+   `pre-loop drop` if the runtime reaches a bounded explicit drop before the first later reply-path marker
+6. Keep the packet voice-only even if Telegram also offers video UI in the same contact window.
+7. After the bounded packet window, remove the temporary namespace and host steering state, stop the helper, and prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy.
