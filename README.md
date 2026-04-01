@@ -356,6 +356,8 @@ Current calls-profile status:
   on preserved voice attempts the first unresolved layer is the governed reply-path chain after handoff, where the next bounded packet must classify server ingress absence, relay-state mapping absence, client delivery absence, or explicit client drop instead of treating the whole post-handoff gap as one blended blocker
 - the first bounded Phase-48 voice packet has now landed:
   on the preserved Desktop setup a new live voice attempt again reached real Telegram media tuples and governed handoff, but no reply-path markers appeared and the remote server again showed only fresh `accepted WSS handshake` lines, so the first unresolved layer is now narrowed to `server ingress` absence
+- the bounded Phase-48 comparison is now explicit:
+  relative to Phase-47, the unresolved layer did move deeper, because voice is no longer only a generic post-handoff evidence gap and is now classified specifically as `server ingress` absence, while the preserved earlier video-launch blocker remains separate and unchanged
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

@@ -6360,7 +6360,7 @@
       <module-checks><check-1>rg -n 'Phase-45|Phase-46|Phase-47|Phase-48|reply-path' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
       <success-scenarios><scenario-1>The comparison packet keeps Phase-45, Phase-46, and Phase-47 explicit while evaluating whether the first unresolved layer moved deeper into the reply path.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The comparison packet loses the preserved boundaries or silently erases the earlier video blocker and voice post-handoff gap.</scenario-1></failure-scenarios>
-      <required-trace-assertions><assertion-1>The comparison packet must say whether the first unresolved layer stayed at reply-path ingress, moved to narrower client-delivery behavior, or showed genuine reply progress.</assertion-1></required-trace-assertions>
+      <required-trace-assertions><assertion-1>The comparison packet must say whether the first unresolved layer stayed at reply-path ingress, moved to narrower client-delivery behavior, or showed genuine reply progress.</assertion-1><assertion-2>The comparison packet must keep the preserved Phase-47 split explicit by showing that voice moved from a generic post-handoff evidence gap to narrower `server ingress` absence while the earlier video-launch blocker stayed unchanged.</assertion-2></required-trace-assertions>
     </V-M-TELEGRAM-CALLS-REPLY-COMPARISON>
     <V-M-TELEGRAM-CALLS-REPLY-DECISION MODULE="M-TELEGRAM-CALLS-REPLY-DECISION" PRIORITY="high">
       <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
