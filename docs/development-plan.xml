@@ -8725,7 +8725,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON>
-    <M-TELEGRAM-CALLS-DOWNSTREAM-DECISION NAME="TelegramCallsDownstreamDecision" TYPE="ENTRY_POINT" LAYER="50" ORDER="9" STATUS="planned">
+    <M-TELEGRAM-CALLS-DOWNSTREAM-DECISION NAME="TelegramCallsDownstreamDecision" TYPE="ENTRY_POINT" LAYER="50" ORDER="9" STATUS="done">
       <contract>
         <purpose>Issue one bounded downstream-establishment decision above the preserved Phase-45 and Phase-46 packet set without overstating calls support.</purpose>
         <inputs>
@@ -10122,7 +10122,7 @@
       <note-10>The final decision packet must stay bounded to the preserved post-recovery branch: it may classify the setup only as key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology, and it may not generalize that verdict beyond the bounded evidence packet.</note-10>
       <note-11>On 2026-04-01 the Phase-46 final decision surface was fixed: this branch now closes with preserved voice, video, comparison, and bounded final decision packets while keeping Phase-45 explicit as the first real-media-tuple-success boundary on the preserved topology.</note-11>
     </Phase-46>
-    <Phase-47 name="Downstream Establishment Isolation Above Post-Recovery" status="in_progress">
+    <Phase-47 name="Downstream Establishment Isolation Above Post-Recovery" status="done">
       <goal>Plan the next bounded Telegram calls branch above Phase-46 so the project can isolate the first establishment-stage blocker after real tuple recovery and governed handoff on the preserved topology.</goal>
       <step-1 module="M-PHASE46-DOWNSTREAM-BOUNDARY" status="done" verification="V-M-PHASE46-DOWNSTREAM-BOUNDARY">Freeze Phase-46 as the preserved truth-boundary above transport-green and tuple-recovery-green evidence</step-1>
       <step-2 module="M-CALL-DOWNSTREAM-HYPOTHESIS" status="done" verification="V-M-CALL-DOWNSTREAM-HYPOTHESIS">Define one exact downstream-establishment blocker hypothesis above the completed Phase-46 packet</step-2>
@@ -10132,7 +10132,7 @@
       <step-6 module="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE">Run one bounded downstream-establishment voice packet on the preserved ordinary Telegram Desktop window</step-6>
       <step-7 module="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO">Run one separate downstream-establishment video packet on the same preserved branch without inheriting voice</step-7>
       <step-8 module="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON">Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION">Issue the bounded downstream-establishment decision above the preserved post-recovery packet set</step-9>
+      <step-9 module="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION">Issue the bounded downstream-establishment decision above the preserved post-recovery packet set</step-9>
       <note-1>Phase-47 starts only after the preserved ordinary Telegram baseline, the completed Phase-45 real-media-tuple packet, and the completed Phase-46 post-recovery decision are all visible together.</note-1>
       <note-2>The next branch must not reopen generic transport diagnosis, tuple-recovery diagnosis, or interception-topology diagnosis unless the preserved Phase-45 or Phase-46 evidence is explicitly disproved in the same bounded window.</note-2>
       <note-3>The only approved new variable is downstream establishment evidence above already-proven tuple recovery and governed handoff; the Phase-45 interception topology, the preserved `127.0.0.1:1080` baseline, helper launch shape, and no-second-auth rule stay fixed.</note-3>
@@ -10150,6 +10150,8 @@
       <note-11>On 2026-04-01 step-5 fixed the bounded correlation packet: each downstream voice or video attempt must now keep one stable attempt label and one bounded workstation plus server evidence window that preserves tuple-recovery and governed-handoff floor separately from the first downstream-class marker.</note-11>
       <note-12>On 2026-04-01 step-8 fixed the bounded comparison packet: the preserved voice packet stays above governed handoff and closes as a narrower post-handoff evidence gap, while the preserved video packet closes earlier as a video-launch blocker before helper-visible media-path evidence on the same preserved topology.</note-12>
       <note-13>The comparison therefore keeps `Phase-45` explicit as the first real-media-tuple-success boundary and keeps `Phase-46` explicit as the preserved downstream truth-boundary, while proving that `Phase-47` no longer contains one blended generic calls-failure layer.</note-13>
+      <note-14>On 2026-04-01 step-9 issued the bounded downstream-establishment decision: the preserved `Phase-45/46/47` packet set now closes as a narrower downstream-establishment blocker on the tested Desktop setup rather than as preserved key-exchange no-go or genuine establishment progress.</note-14>
+      <note-15>That final decision stays explicitly split by observed layer: the preserved voice packet reached real Telegram media tuples and governed handoff before closing as a post-handoff evidence gap, while the preserved video packet closed earlier as a video-launch blocker before helper-visible media-path evidence, so the branch remains non-green and does not justify a general Telegram calls-support claim.</note-15>
     </Phase-47>
   </ImplementationOrder>
 

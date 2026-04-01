@@ -3647,7 +3647,7 @@
         <fn-compareTelegramCallsDownstream PURPOSE="Compare the downstream-establishment packet set against the preserved Phase-45 and Phase-46 boundaries." />
       </annotations>
     </M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON>
-    <M-TELEGRAM-CALLS-DOWNSTREAM-DECISION NAME="TelegramCallsDownstreamDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-DOWNSTREAM-DECISION NAME="TelegramCallsDownstreamDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue one bounded downstream-establishment decision above the preserved Phase-45 and Phase-46 packet set without overstating calls support.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON</depends>
