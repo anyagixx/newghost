@@ -3602,7 +3602,7 @@
         <fn-freezeCallDownstreamRuntimeProfile PURPOSE="Freeze the preserved topology and ordinary baseline for downstream-establishment work." />
       </annotations>
     </M-CALL-DOWNSTREAM-RUNTIME-PROFILE>
-    <M-CALL-DOWNSTREAM-INSTRUMENTATION NAME="CallDownstreamInstrumentation" TYPE="UTILITY" STATUS="planned">
+    <M-CALL-DOWNSTREAM-INSTRUMENTATION NAME="CallDownstreamInstrumentation" TYPE="UTILITY" STATUS="done">
       <purpose>Define the minimal runtime-anchor delta needed to separate post-handoff continuation, inbound reply, timeout, and abort above governed handoff.</purpose>
       <path>docs/knowledge-graph.xml</path>
       <depends>M-CALL-DOWNSTREAM-RUNTIME-PROFILE, M-CLI, M-WSS-GATEWAY, M-DATAGRAM-SESSION-MANAGER, M-UDP-EGRESS-RELAY</depends>
