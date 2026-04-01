@@ -3683,7 +3683,7 @@
         <fn-freezeCallReplyRuntimeProfile PURPOSE="Freeze the exact preserved runtime profile for reply-path evidence." />
       </annotations>
     </M-CALL-REPLY-RUNTIME-PROFILE>
-    <M-CALL-REPLY-INSTRUMENTATION NAME="CallReplyInstrumentation" TYPE="UTILITY" STATUS="planned">
+    <M-CALL-REPLY-INSTRUMENTATION NAME="CallReplyInstrumentation" TYPE="UTILITY" STATUS="done">
       <purpose>Add only the minimal reply-path anchors needed to classify server ingress, relay mapping, client delivery, and client drop above the preserved governed handoff floor.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CALL-REPLY-RUNTIME-PROFILE, M-WSS-GATEWAY, M-UDP-EGRESS-RELAY, M-CLI, M-CALL-DOWNSTREAM-INSTRUMENTATION</depends>
