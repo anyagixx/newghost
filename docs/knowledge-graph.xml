@@ -3710,7 +3710,7 @@
         <fn-runTelegramCallsReplyVoice PURPOSE="Run one bounded reply-path voice packet on the preserved Desktop topology." />
       </annotations>
     </M-TELEGRAM-CALLS-REPLY-VOICE>
-    <M-TELEGRAM-CALLS-REPLY-COMPARISON NAME="TelegramCallsReplyComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-REPLY-COMPARISON NAME="TelegramCallsReplyComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare the new bounded reply-path voice packet against the preserved Phase-45, Phase-46, and Phase-47 packet set.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-REPLY-VOICE</depends>
