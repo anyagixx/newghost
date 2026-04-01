@@ -3735,7 +3735,7 @@
       <verification-ref>V-M-PHASE48-SERVER-INGRESS-BOUNDARY</verification-ref>
       <annotations><fn-freezePhase48ServerIngressBoundary PURPOSE="Freeze the completed Phase-48 packet as the preserved boundary for the server-ingress branch." /></annotations>
     </M-PHASE48-SERVER-INGRESS-BOUNDARY>
-    <M-SERVER-INGRESS-HYPOTHESIS NAME="ServerIngressHypothesis" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-SERVER-INGRESS-HYPOTHESIS NAME="ServerIngressHypothesis" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define one exact server-ingress blocker hypothesis above the preserved Phase-48 packet set without reopening generic transport or reply-path diagnosis.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-PHASE48-SERVER-INGRESS-BOUNDARY</depends>
