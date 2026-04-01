@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.6
+// VERSION: 0.1.7
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, server-side inbound return emission, client-side inbound callback delivery, cancellation handling, and adapter cleanup guarantees.
 //   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, bounded server-side inbound return, client-side inbound callback delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
@@ -21,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.6 - Added direct downstream timeout and abort anchor assertions so Phase-47 can machine-check bounded post-handoff stall classification.
+//   LAST_CHANGE: v0.1.7 - Added a direct reply-path server-ingress anchor assertion so Phase-48 can machine-check the first bounded reply layer at the server edge.
 // END_CHANGE_SUMMARY
 
 use std::sync::{Arc, Mutex};
@@ -531,6 +531,8 @@ async fn server_runtime_logs_downstream_abort_when_runtime_closes_before_reply()
 
 #[tokio::test]
 async fn runtime_datagram_reply_reaches_client_inbound_handler() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let (_dir, tls) = write_tls_fixture();
     let listener = TcpListener::bind("127.0.0.1:0")
         .await
@@ -580,6 +582,9 @@ async fn runtime_datagram_reply_reaches_client_inbound_handler() {
     assert_eq!(recorded[0].relay_client_addr, envelope.relay_client_addr);
     assert_eq!(recorded[0].target, envelope.target);
     assert_eq!(recorded[0].payload, b"phase27-runtime-reply".to_vec());
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallReply][serverIngress][BLOCK_CALL_REPLY_SERVER_INGRESS]"
+    )));
 
     client_gateway.stop_accept();
     server_gateway.stop_accept();

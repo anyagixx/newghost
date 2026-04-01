@@ -1,5 +1,5 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.9
+// VERSION: 0.1.10
 // START_MODULE_CONTRACT
 //   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery, WSS return-handler wiring, and one governed live origdst-helper launch surface with an explicit transparent-socket requirement boundary.
 //   SCOPE: Startup bootstrap, client or server mode selection, live origdst-helper entrypoint and launcher wiring, transparent-socket requirement logging, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, WSS inbound-handler registration, and local shutdown-state coordination.
@@ -23,7 +23,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.9 - Added a downstream-reply anchor at client-side inbound delivery so Phase-47 can assert bounded reply-class evidence without manual log reading.
+//   LAST_CHANGE: v0.1.10 - Added reply-path client-delivery and client-drop anchors so Phase-48 can separate successful local inbound delivery from bounded drop reasons.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -296,31 +296,81 @@ impl DatagramDispatchTarget for ClientDatagramInboundTarget {
         &self,
         envelope: &crate::transport::datagram_contract::DatagramEnvelope,
     ) -> Result<(), Self::Error> {
-        let association = self
-            .registry
-            .get(envelope.association_id)
-            .ok_or(ClientDatagramInboundTargetError::AssociationNotFound(
-                envelope.association_id,
-            ))?;
+        let association = match self.registry.get(envelope.association_id) {
+            Some(association) => association,
+            None => {
+                info!(
+                    association_id = envelope.association_id,
+                    relay_client_addr = %envelope.relay_client_addr,
+                    target = ?envelope.target,
+                    payload_len = envelope.payload.len(),
+                    "[CallReply][clientDrop][BLOCK_CALL_REPLY_CLIENT_DROP] dropped inbound reply because the owning UDP association no longer exists"
+                );
+                return Err(ClientDatagramInboundTargetError::AssociationNotFound(
+                    envelope.association_id,
+                ));
+            }
+        };
         if association.expected_client_addr != envelope.relay_client_addr {
+            info!(
+                association_id = envelope.association_id,
+                relay_addr = %association.relay_addr,
+                expected = %association.expected_client_addr,
+                actual = %envelope.relay_client_addr,
+                target = ?envelope.target,
+                payload_len = envelope.payload.len(),
+                "[CallReply][clientDrop][BLOCK_CALL_REPLY_CLIENT_DROP] dropped inbound reply because relay-client ownership no longer matches the preserved association"
+            );
             return Err(ClientDatagramInboundTargetError::RelayClientMismatch {
                 association_id: envelope.association_id,
                 expected: association.expected_client_addr,
                 actual: envelope.relay_client_addr,
             });
         }
-        let relay_socket = self
-            .relay_sockets
-            .socket_for(association.relay_addr)
-            .ok_or(ClientDatagramInboundTargetError::MissingRelaySocket(
-                association.relay_addr,
-            ))?;
-        let packet = encode_udp_datagram(envelope)
-            .map_err(|err| ClientDatagramInboundTargetError::Encode(err.to_string()))?;
+        let relay_socket = match self.relay_sockets.socket_for(association.relay_addr) {
+            Some(relay_socket) => relay_socket,
+            None => {
+                info!(
+                    association_id = envelope.association_id,
+                    relay_addr = %association.relay_addr,
+                    relay_client_addr = %association.expected_client_addr,
+                    target = ?envelope.target,
+                    payload_len = envelope.payload.len(),
+                    "[CallReply][clientDrop][BLOCK_CALL_REPLY_CLIENT_DROP] dropped inbound reply because the owning local relay socket no longer exists"
+                );
+                return Err(ClientDatagramInboundTargetError::MissingRelaySocket(
+                    association.relay_addr,
+                ));
+            }
+        };
+        let packet = match encode_udp_datagram(envelope) {
+            Ok(packet) => packet,
+            Err(err) => {
+                info!(
+                    association_id = envelope.association_id,
+                    relay_addr = %association.relay_addr,
+                    relay_client_addr = %association.expected_client_addr,
+                    target = ?envelope.target,
+                    payload_len = envelope.payload.len(),
+                    "[CallReply][clientDrop][BLOCK_CALL_REPLY_CLIENT_DROP] dropped inbound reply because the relay packet could not be encoded for client delivery"
+                );
+                return Err(ClientDatagramInboundTargetError::Encode(err.to_string()));
+            }
+        };
         relay_socket
             .send_to(&packet, association.expected_client_addr)
             .await
-            .map_err(|err| ClientDatagramInboundTargetError::Send(err.to_string()))?;
+            .map_err(|err| {
+                info!(
+                    association_id = envelope.association_id,
+                    relay_addr = %association.relay_addr,
+                    relay_client_addr = %association.expected_client_addr,
+                    target = ?envelope.target,
+                    payload_len = envelope.payload.len(),
+                    "[CallReply][clientDrop][BLOCK_CALL_REPLY_CLIENT_DROP] dropped inbound reply because the owning local relay socket rejected delivery"
+                );
+                ClientDatagramInboundTargetError::Send(err.to_string())
+            })?;
         info!(
             association_id = envelope.association_id,
             relay_addr = %association.relay_addr,
@@ -336,6 +386,14 @@ impl DatagramDispatchTarget for ClientDatagramInboundTarget {
             target = ?envelope.target,
             payload_len = envelope.payload.len(),
             "[CallDownstream][reply][BLOCK_CALL_DOWNSTREAM_REPLY] delivered downstream inbound reply into the owning local UDP relay socket"
+        );
+        info!(
+            association_id = envelope.association_id,
+            relay_addr = %association.relay_addr,
+            relay_client_addr = %association.expected_client_addr,
+            target = ?envelope.target,
+            payload_len = envelope.payload.len(),
+            "[CallReply][clientDelivery][BLOCK_CALL_REPLY_CLIENT_DELIVERY] delivered reply-path inbound datagram into the owning local UDP relay socket"
         );
         Ok(())
     }

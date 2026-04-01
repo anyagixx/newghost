@@ -1,5 +1,5 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.13
+// VERSION: 0.1.14
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, live-launch smoke, non-OUTPUT live-smoke launch shape, post-recovery topology-lock proof, and shutdown sequencing for governed startup paths.
 //   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, live tuple-recovery smoke, non-OUTPUT launch-shape proof, post-recovery launch-shape proof, and shutdown ordering.
@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.13 - Added a direct downstream-reply anchor assertion so Phase-47 can machine-check reply-class evidence at client-side inbound delivery.
+//   LAST_CHANGE: v0.1.14 - Added direct reply-path client-delivery and client-drop anchor assertions so Phase-48 can machine-check local inbound delivery outcomes.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -804,6 +804,37 @@ async fn client_inbound_target_delivers_reply_into_owned_udp_socket() {
     )));
     assert!(capture.lines().iter().any(|line| line.contains(
         "[CallDownstream][reply][BLOCK_CALL_DOWNSTREAM_REPLY]"
+    )));
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallReply][clientDelivery][BLOCK_CALL_REPLY_CLIENT_DELIVERY]"
+    )));
+}
+
+#[tokio::test]
+async fn client_inbound_target_logs_reply_path_drop_when_association_is_missing() {
+    let registry = Arc::new(UdpAssociationRegistry::new(8));
+    let relay_sockets = UdpRelaySocketRegistry::default();
+    let target = ClientDatagramInboundTarget::new(registry, relay_sockets);
+    let envelope = DatagramEnvelope {
+        association_id: 404,
+        relay_client_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 49000),
+        target: DatagramTarget::Ip(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 9002)),
+        payload: b"phase48-missing-association".to_vec(),
+    };
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
+
+    let err = target
+        .dispatch(&envelope)
+        .await
+        .expect_err("missing association must fail");
+
+    assert!(matches!(
+        err,
+        super::ClientDatagramInboundTargetError::AssociationNotFound(404)
+    ));
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallReply][clientDrop][BLOCK_CALL_REPLY_CLIENT_DROP]"
     )));
 }
 

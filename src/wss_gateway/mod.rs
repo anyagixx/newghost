@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.10 - Added downstream timeout and abort anchors around the governed datagram loop so Phase-47 can classify post-handoff stalls without widening transport scope.
+//   LAST_CHANGE: v0.1.11 - Added a reply-path server-ingress anchor so Phase-48 can separate inbound reply ingress from later relay-mapping and client-delivery layers.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -354,6 +354,12 @@ impl WssGateway {
                         target = ?envelope.target,
                         payload_len = envelope.payload.len(),
                         "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_RECEIVED] received governed WSS datagram frame"
+                    );
+                    info!(
+                        association_id,
+                        target = ?envelope.target,
+                        payload_len = envelope.payload.len(),
+                        "[CallReply][serverIngress][BLOCK_CALL_REPLY_SERVER_INGRESS] observed governed server-side datagram ingress for the reply-path branch"
                     );
                     let relay = relay_outbound_datagram(&envelope)
                         .await

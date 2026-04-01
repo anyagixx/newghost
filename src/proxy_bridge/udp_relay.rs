@@ -1,5 +1,5 @@
 // FILE: src/proxy_bridge/udp_relay.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Open real UDP sockets on the server side, retain bounded association return state, relay outbound datagrams to remote targets, and return inbound packets to the owning association.
 //   SCOPE: Outbound target resolution, UDP socket binding, association-scoped relay-state retention, outbound relay, inbound receive, and foreign-source rejection.
@@ -15,7 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added bounded relay-state return metadata so inbound-reply work can map replies back to the owning client association deterministically.
+//   LAST_CHANGE: v0.1.3 - Added a reply-path relay-mapping anchor so Phase-48 can prove inbound UDP replies are still mapped back to the owning association before client delivery.
 // END_CHANGE_SUMMARY
 
 use std::net::SocketAddr;
@@ -136,6 +136,13 @@ pub async fn relay_inbound_datagram(
         remote_peer = %source,
         payload_len = bytes_read,
         "[UdpEgressRelay][relayInbound][BLOCK_RELAY_UDP_INBOUND] relayed inbound UDP datagram"
+    );
+    info!(
+        association_id = relay.association_id,
+        relay_local_addr = %relay.relay_local_addr,
+        remote_peer = %source,
+        payload_len = bytes_read,
+        "[CallReply][relayMapping][BLOCK_CALL_REPLY_RELAY_MAPPING] mapped inbound UDP reply back to the owning relay association"
     );
 
     Ok(DatagramEnvelope {

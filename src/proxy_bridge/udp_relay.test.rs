@@ -1,5 +1,5 @@
 // FILE: src/proxy_bridge/udp_relay.test.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify server-side UDP relay outbound delivery, retained return-state metadata, inbound association mapping, and foreign-source rejection.
 //   SCOPE: Outbound datagram relay, relay-state retention, inbound datagram receive, and unexpected-source failure behavior.
@@ -15,7 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Added relay-state assertions so inbound-reply work can preserve return metadata for the owning client association.
+//   LAST_CHANGE: v0.1.3 - Added a direct reply-path relay-mapping anchor assertion so Phase-48 can machine-check inbound association mapping before client delivery.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -23,6 +23,7 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use tokio::net::UdpSocket;
 
 use super::{relay_inbound_datagram, relay_outbound_datagram, UdpRelayError};
+use crate::obs::test_tracing_dispatch;
 use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
 
 fn sample_envelope(target: SocketAddr) -> DatagramEnvelope {
@@ -75,6 +76,8 @@ async fn outbound_relay_record_preserves_bounded_receipt_metadata() {
 
 #[tokio::test]
 async fn inbound_datagram_returns_to_owning_association() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let remote = UdpSocket::bind("127.0.0.1:0").await.expect("remote bind");
     let target = remote.local_addr().expect("remote addr");
     let envelope = sample_envelope(target);
@@ -94,6 +97,9 @@ async fn inbound_datagram_returns_to_owning_association() {
     assert_eq!(inbound.relay_client_addr, envelope.relay_client_addr);
     assert_eq!(inbound.target, envelope.target);
     assert_eq!(inbound.payload, b"world-udp".to_vec());
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallReply][relayMapping][BLOCK_CALL_REPLY_RELAY_MAPPING]"
+    )));
 }
 
 #[tokio::test]
