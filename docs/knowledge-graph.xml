@@ -3575,7 +3575,7 @@
         <fn-issueTelegramCallsPostRecoveryDecision PURPOSE="Issue one bounded final decision for the preserved post-recovery branch without collapsing earlier boundaries." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
-    <M-PHASE46-DOWNSTREAM-BOUNDARY NAME="Phase46DownstreamBoundary" TYPE="UTILITY" STATUS="planned">
+    <M-PHASE46-DOWNSTREAM-BOUNDARY NAME="Phase46DownstreamBoundary" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the completed Phase-46 packet as the preserved downstream truth-boundary above transport-green, tuple-recovery-green, and governed-handoff-green evidence.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</depends>
