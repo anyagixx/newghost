@@ -8702,7 +8702,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO</verification-ref>
     </M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO>
-    <M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON NAME="TelegramCallsDownstreamComparison" TYPE="CORE_LOGIC" LAYER="50" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON NAME="TelegramCallsDownstreamComparison" TYPE="CORE_LOGIC" LAYER="50" ORDER="8" STATUS="done">
       <contract>
         <purpose>Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries without collapsing earlier proof order.</purpose>
         <inputs>
@@ -10131,7 +10131,7 @@
       <step-5 module="M-CALL-DOWNSTREAM-SERVER-CORRELATION" status="done" verification="V-M-CALL-DOWNSTREAM-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology</step-5>
       <step-6 module="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE">Run one bounded downstream-establishment voice packet on the preserved ordinary Telegram Desktop window</step-6>
       <step-7 module="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO">Run one separate downstream-establishment video packet on the same preserved branch without inheriting voice</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON">Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries</step-8>
+      <step-8 module="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON">Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries</step-8>
       <step-9 module="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION">Issue the bounded downstream-establishment decision above the preserved post-recovery packet set</step-9>
       <note-1>Phase-47 starts only after the preserved ordinary Telegram baseline, the completed Phase-45 real-media-tuple packet, and the completed Phase-46 post-recovery decision are all visible together.</note-1>
       <note-2>The next branch must not reopen generic transport diagnosis, tuple-recovery diagnosis, or interception-topology diagnosis unless the preserved Phase-45 or Phase-46 evidence is explicitly disproved in the same bounded window.</note-2>
@@ -10148,6 +10148,8 @@
       <note-9>On 2026-04-01 step-3 froze the exact downstream runtime profile: Phase-47 now reuses the preserved Phase-45 namespace `TPROXY` topology and Phase-46 helper shape unchanged, keeps the ordinary `127.0.0.1:1080` baseline and no-second-auth rule fixed, and allows new evidence only after the preserved governed-handoff floor.</note-9>
       <note-10>On 2026-04-01 step-4 added the minimal downstream anchor delta in code and tests: continuation now anchors after manager-owned outbound dispatch, reply anchors at client-side inbound delivery, and timeout plus abort anchor inside the governed WSS datagram loop without reopening transport design.</note-10>
       <note-11>On 2026-04-01 step-5 fixed the bounded correlation packet: each downstream voice or video attempt must now keep one stable attempt label and one bounded workstation plus server evidence window that preserves tuple-recovery and governed-handoff floor separately from the first downstream-class marker.</note-11>
+      <note-12>On 2026-04-01 step-8 fixed the bounded comparison packet: the preserved voice packet stays above governed handoff and closes as a narrower post-handoff evidence gap, while the preserved video packet closes earlier as a video-launch blocker before helper-visible media-path evidence on the same preserved topology.</note-12>
+      <note-13>The comparison therefore keeps `Phase-45` explicit as the first real-media-tuple-success boundary and keeps `Phase-46` explicit as the preserved downstream truth-boundary, while proving that `Phase-47` no longer contains one blended generic calls-failure layer.</note-13>
     </Phase-47>
   </ImplementationOrder>
 

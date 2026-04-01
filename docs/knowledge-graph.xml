@@ -3638,7 +3638,7 @@
         <fn-runTelegramCallsDownstreamVideo PURPOSE="Run one bounded downstream video packet only after the preserved downstream voice packet exists." />
       </annotations>
     </M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO>
-    <M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON NAME="TelegramCallsDownstreamComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON NAME="TelegramCallsDownstreamComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries without collapsing earlier proof order.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-DOWNSTREAM-VOICE, M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO</depends>
