@@ -3763,7 +3763,7 @@
       <verification-ref>V-M-SERVER-INGRESS-CORRELATION</verification-ref>
       <annotations><fn-defineServerIngressCorrelation PURPOSE="Define the bounded workstation-plus-server evidence packet for server-ingress attribution." /></annotations>
     </M-SERVER-INGRESS-CORRELATION>
-    <M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE NAME="TelegramCallsServerIngressVoice" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE NAME="TelegramCallsServerIngressVoice" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Run one bounded Telegram Desktop voice packet that attributes the first server-ingress blocker above the preserved governed handoff floor without reopening video.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-SERVER-INGRESS-CORRELATION</depends>
