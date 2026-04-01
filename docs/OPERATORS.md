@@ -2176,3 +2176,11 @@ Bounded workstation plus server correlation packet for Phase-48:
    `client delivery`
    `client drop`
 6. The packet is invalid if it blends workstation symptoms and server logs into one vague conclusion, if it reopens video, or if it reopens generic transport or topology diagnosis without disproving the preserved Phase-45, Phase-46, or Phase-47 packet in the same bounded window.
+
+Observed bounded reply-path voice packet on 2026-04-02:
+
+1. The preserved ordinary Telegram Desktop baseline stayed on `SOCKS5 127.0.0.1:1080`, and the operator triggered one bounded voice attempt in the already logged-in ordinary window for the preserved contact.
+2. In the same bounded workstation window, the helper again preserved the tuple-recovery and governed-handoff floor for real Telegram media tuples including `91.108.9.99:597`, `91.108.13.52:598`, and `91.108.17.4:597`.
+3. In the same bounded server window, the remote server again showed only fresh `accepted WSS handshake` lines for the attempt and no fresh governed datagram-return markers.
+4. No reply-path markers `BLOCK_CALL_REPLY_SERVER_INGRESS`, `BLOCK_CALL_REPLY_RELAY_MAPPING`, `BLOCK_CALL_REPLY_CLIENT_DELIVERY`, or `BLOCK_CALL_REPLY_CLIENT_DROP` appeared in the same bounded window.
+5. This packet is therefore a valid blocked Phase-48 voice packet: it preserves the governed tuple-recovery and handoff floor from the earlier phases, but the first unresolved reply-path layer is now classified more narrowly as `server ingress` absence rather than a generic downstream gap.
