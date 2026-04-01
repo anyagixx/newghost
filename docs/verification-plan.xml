@@ -6275,8 +6275,8 @@
       <module-checks><check-1>rg -n 'workstation plus server correlation|downstream-establishment|post-handoff continuation|reply|timeout|abort' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
       <success-scenarios><scenario-1>The branch defines one bounded evidence packet that can correlate workstation and server surfaces above governed handoff on the preserved topology.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The branch asks for another manual call packet without a bounded workstation plus server correlation contract.</scenario-1></failure-scenarios>
-      <required-trace-assertions><assertion-1>The correlation packet must keep workstation evidence, server evidence, and preserved runtime anchors as separate surfaces so the first unresolved downstream layer stays attributable.</assertion-1></required-trace-assertions>
-      <wave-follow-up>The first live downstream packet should capture workstation and server evidence in one bounded correlation window tied to the same Telegram call attempt.</wave-follow-up>
+      <required-trace-assertions><assertion-1>The correlation packet must keep workstation evidence, server evidence, and preserved runtime anchors as separate surfaces so the first unresolved downstream layer stays attributable.</assertion-1><assertion-2>The correlation packet must use one stable attempt label and one bounded workstation plus server evidence window for the same Telegram call attempt instead of blending multiple attempts.</assertion-2></required-trace-assertions>
+      <wave-follow-up>The first live downstream packet should capture workstation and server evidence in one bounded correlation window tied to the same Telegram call attempt and stable attempt label.</wave-follow-up>
     </V-M-CALL-DOWNSTREAM-SERVER-CORRELATION>
     <V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE MODULE="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>

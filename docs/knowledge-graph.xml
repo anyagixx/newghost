@@ -3611,7 +3611,7 @@
         <fn-defineCallDownstreamInstrumentation PURPOSE="Define the minimal anchor set needed to classify the first unresolved downstream establishment layer." />
       </annotations>
     </M-CALL-DOWNSTREAM-INSTRUMENTATION>
-    <M-CALL-DOWNSTREAM-SERVER-CORRELATION NAME="CallDownstreamServerCorrelation" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALL-DOWNSTREAM-SERVER-CORRELATION NAME="CallDownstreamServerCorrelation" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology.</purpose>
       <path>docs/verification-plan.xml</path>
       <depends>M-CALL-DOWNSTREAM-INSTRUMENTATION, M-TELEGRAM-SERVER-CORRELATION</depends>
