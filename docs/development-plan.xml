@@ -8839,7 +8839,7 @@
       </observability>
       <verification-ref>V-M-CALL-REPLY-INSTRUMENTATION</verification-ref>
     </M-CALL-REPLY-INSTRUMENTATION>
-    <M-CALL-REPLY-SERVER-CORRELATION NAME="CallReplyServerCorrelation" TYPE="CORE_LOGIC" LAYER="51" ORDER="5" STATUS="planned">
+    <M-CALL-REPLY-SERVER-CORRELATION NAME="CallReplyServerCorrelation" TYPE="CORE_LOGIC" LAYER="51" ORDER="5" STATUS="done">
       <contract>
         <purpose>Define one bounded workstation plus server correlation packet that separates server ingress, relay mapping, client delivery, and explicit drop on the preserved reply-path branch.</purpose>
         <inputs>
@@ -10339,7 +10339,7 @@
       <step-2 module="M-CALL-REPLY-HYPOTHESIS" status="done" verification="V-M-CALL-REPLY-HYPOTHESIS">Define one exact reply-path blocker hypothesis above the completed Phase-47 packet</step-2>
       <step-3 module="M-CALL-REPLY-RUNTIME-PROFILE" status="done" verification="V-M-CALL-REPLY-RUNTIME-PROFILE">Freeze one exact runtime profile for reply-path evidence without changing the preserved Phase-45, Phase-46, or Phase-47 topology</step-3>
       <step-4 module="M-CALL-REPLY-INSTRUMENTATION" status="done" verification="V-M-CALL-REPLY-INSTRUMENTATION">Define only the minimal runtime-anchor delta needed to separate server ingress, relay mapping, client delivery, and client drop evidence above governed handoff</step-4>
-      <step-5 module="M-CALL-REPLY-SERVER-CORRELATION" status="planned" verification="V-M-CALL-REPLY-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for reply-path behavior on the preserved topology</step-5>
+      <step-5 module="M-CALL-REPLY-SERVER-CORRELATION" status="done" verification="V-M-CALL-REPLY-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for reply-path behavior on the preserved topology</step-5>
       <step-6 module="M-TELEGRAM-CALLS-REPLY-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-REPLY-VOICE">Run one bounded reply-path voice packet on the preserved ordinary Telegram Desktop window without reopening video</step-6>
       <step-7 module="M-TELEGRAM-CALLS-REPLY-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-REPLY-COMPARISON">Compare the reply-path voice packet against the preserved Phase-45, Phase-46, and Phase-47 boundaries</step-7>
       <step-8 module="M-TELEGRAM-CALLS-REPLY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-REPLY-DECISION">Issue the bounded reply-path final decision above the preserved packet set</step-8>
@@ -10354,6 +10354,7 @@
       <note-9>On 2026-04-02 step-2 fixed the reply-path hypothesis: the first unresolved layer now stays inside the governed reply chain after handoff on preserved voice attempts and must be classified as server ingress absence, relay-state mapping absence, client delivery absence, or explicit client drop.</note-9>
       <note-10>On 2026-04-02 step-3 froze the exact reply-path runtime profile: Phase-48 reuses the preserved Phase-45 namespace `TPROXY` topology and Phase-46 helper shape unchanged, keeps the ordinary `127.0.0.1:1080` baseline and no-second-auth rule fixed, and allows new evidence only inside one bounded voice attempt label above the preserved governed-handoff floor.</note-10>
       <note-11>On 2026-04-02 step-4 added the minimal reply-path anchor delta in code and tests: server ingress now anchors at the server datagram loop, relay mapping anchors at inbound UDP association remap, client delivery anchors at local reply delivery, and client drop anchors on bounded local inbound-drop reasons without reopening transport design.</note-11>
+      <note-12>On 2026-04-02 step-5 fixed the bounded reply-path correlation packet: each voice attempt now requires one stable `phase48-reply-voice-&lt;timestamp&gt;` label and one bounded workstation plus server evidence window that keeps preserved tuple-recovery and governed-handoff floor separate from server ingress, relay mapping, client delivery, and explicit client-drop markers.</note-12>
     </Phase-48>
   </ImplementationOrder>
 

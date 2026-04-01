@@ -2150,3 +2150,29 @@ Exact preserved runtime profile for the first reply-path wave:
    `client drop` if the reply reaches client-side handling and is then dropped explicitly
 6. Keep the packet voice-only even if Telegram also offers video UI in the same contact window.
 7. After the bounded packet window, remove the temporary namespace and host steering state, stop the helper, and prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy.
+
+Bounded workstation plus server correlation packet for Phase-48:
+
+1. Open one exact bounded window per reply-path voice attempt and give it one stable attempt label:
+   `phase48-reply-voice-<timestamp>`
+   do not reuse the same packet label across two Telegram attempts
+2. Keep workstation evidence inside the same bounded window:
+   Telegram Desktop UI progression for the already logged-in ordinary window
+   local loopback proof for the preserved `SOCKS5 127.0.0.1:1080` path
+   helper log lines proving the preserved tuple-recovery and governed-handoff floor
+   any new reply-path markers for `server ingress`, `relay mapping`, `client delivery`, or `client drop`
+3. Keep server evidence inside the same bounded window:
+   governed WSS handshake and datagram markers on the remote server
+   explicit `SERVER_DATAGRAM_INBOUND_RECEIVED` and `SERVER_DATAGRAM_RETURN_EMITTED` markers when present
+   explicit bounded absence statement when those markers do not appear in the same window
+4. Keep proof classes separate inside the packet:
+   preserved tuple-recovery floor
+   preserved governed-handoff floor
+   first reply-path marker observed after that floor
+   user-visible Telegram call outcome for the same attempt
+5. The packet is valid only if it ends with one exact classifier for the first unresolved reply-path layer:
+   `server ingress`
+   `relay mapping`
+   `client delivery`
+   `client drop`
+6. The packet is invalid if it blends workstation symptoms and server logs into one vague conclusion, if it reopens video, or if it reopens generic transport or topology diagnosis without disproving the preserved Phase-45, Phase-46, or Phase-47 packet in the same bounded window.
