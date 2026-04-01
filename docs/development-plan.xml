@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.69">
+<DevelopmentPlan VERSION="0.2.70">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -9671,22 +9671,23 @@
       <note-4>The normal Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched outside the isolated forced-topology runbook.</note-4>
       <note-5>On 2026-03-30 the first forced-topology execution blocker was narrowed to the snap Telegram Desktop launcher boundary: `ip netns exec` broke the snap tracking-cgroup/runtime surface, while `systemd-run` with `NetworkNamespacePath` preserved the host mount and cgroup context and still placed the tested Telegram process inside the dedicated network namespace.</note-5>
     </Phase-35>
-    <Phase-36 name="Telegram Transparent Forced Routing" status="pending">
+    <Phase-36 name="Telegram Transparent Forced Routing" status="superseded">
       <goal>Test one exact transparent-routing topology that preserves the normal Desktop baseline while proving interception, governed handoff, and changed Telegram media attribution if any.</goal>
       <step-1 module="M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-TRANSPARENT-TOPOLOGY-HYPOTHESIS">Freeze the transparent-routing-only branch above the Phase-34 verdict and the superseded Phase-35 packet</step-1>
       <step-2 module="M-PHASE35-SUPERSEDE" status="done" verification="V-M-PHASE35-SUPERSEDE">Explicitly supersede the old Phase-35 tail as a contract mismatch</step-2>
       <step-3 module="M-TELEGRAM-TPROXY-PROFILE" status="done" verification="V-M-TELEGRAM-TPROXY-PROFILE">Freeze one exact transparent-routing profile without changing the normal Desktop baseline</step-3>
       <step-4 module="M-TELEGRAM-TPROXY-RUNBOOK" status="done" verification="V-M-TELEGRAM-TPROXY-RUNBOOK">Define the transparent-routing operator runbook</step-4>
       <step-5 module="M-TELEGRAM-TPROXY-CAPTURE" status="done" verification="V-M-TELEGRAM-TPROXY-CAPTURE">Prepare the bounded transparent-routing capture packet</step-5>
-      <step-6 module="M-TELEGRAM-TPROXY-VOICE-WAVE" status="pending" verification="V-M-TELEGRAM-TPROXY-VOICE-WAVE">Run one bounded transparent-routing Desktop voice wave</step-6>
-      <step-7 module="M-TELEGRAM-TPROXY-VIDEO-WAVE" status="pending" verification="V-M-TELEGRAM-TPROXY-VIDEO-WAVE">Run one bounded transparent-routing Desktop video wave without inheriting voice</step-7>
-      <step-8 module="M-TELEGRAM-TPROXY-COMPARISON" status="pending" verification="V-M-TELEGRAM-TPROXY-COMPARISON">Compare transparent-routing packets against the Phase-34 baseline and the superseded Phase-35 packet</step-8>
-      <step-9 module="M-TELEGRAM-TPROXY-DECISION" status="pending" verification="V-M-TELEGRAM-TPROXY-DECISION">Issue the bounded transparent-routing decision</step-9>
+      <step-6 module="M-TELEGRAM-TPROXY-VOICE-WAVE" status="superseded" verification="V-M-TELEGRAM-TPROXY-VOICE-WAVE">Run one bounded transparent-routing Desktop voice wave</step-6>
+      <step-7 module="M-TELEGRAM-TPROXY-VIDEO-WAVE" status="superseded" verification="V-M-TELEGRAM-TPROXY-VIDEO-WAVE">Run one bounded transparent-routing Desktop video wave without inheriting voice</step-7>
+      <step-8 module="M-TELEGRAM-TPROXY-COMPARISON" status="superseded" verification="V-M-TELEGRAM-TPROXY-COMPARISON">Compare transparent-routing packets against the Phase-34 baseline and the superseded Phase-35 packet</step-8>
+      <step-9 module="M-TELEGRAM-TPROXY-DECISION" status="superseded" verification="V-M-TELEGRAM-TPROXY-DECISION">Issue the bounded transparent-routing decision</step-9>
       <note-1>Phase-36 starts only after the preserved working Desktop baseline, the Phase-34 `direct-media outside SOCKS` verdict, and the superseded Phase-35 contract-mismatch packet are all visible together.</note-1>
       <note-2>The phase must not reopen generic transport diagnosis and must not reuse the old Phase-35 SOCKS-only containment packet as if it had already proven transparent interception.</note-2>
       <note-3>The only approved new variable is routing class: whether transparent interception can force Telegram media into a governed local handoff surface before it escapes directly.</note-3>
       <note-4>The normal Desktop path for text messages, media files, and large files at `127.0.0.1:1080` must remain untouched outside the isolated transparent-routing runbook.</note-4>
       <note-5>Transparent-routing evidence is valid only if namespace proof, interception proof, governed handoff proof, workstation captures, and server correlation are all recorded inside the same bounded packet window.</note-5>
+      <note-6>Later on 2026-03-30 this branch was frozen as a blocked transparent-routing helper-gap packet and superseded by Phase-37, so its voice, video, comparison, and decision tail no longer remained an executable queue target.</note-6>
     </Phase-36>
     <Phase-37 name="Telegram Transparent Interception Helper" status="superseded">
       <goal>Introduce one explicit helper-backed transparent interception branch so Phase-36 can become runnable without changing the preserved normal Desktop baseline.</goal>
@@ -9739,17 +9740,17 @@
       <note-10>Later on the same date the provider-blocking boundary remained visible even on the safe launcher: the fresh isolated window still needed a temporary MTProto proxy to reach QR or first auth bootstrap, so the safe auth contract is now narrowed further to allow temporary MTProto only for that bootstrap step and to require removing it again before readiness-gate evaluation or any voice or video packet.</note-10>
       <note-11>Later on the same date the next safe-bootstrap mismatch was narrowed to inherited host proxy policy rather than direct session mutation: the workstation had global proxy env vars and GNOME system proxy mode pinned to `127.0.0.1:12334`, so the fresh safe window could still open in `use system proxy` mode; the approved launcher now has to scrub proxy env vars and force `GSETTINGS_BACKEND=memory` so the safe branch no longer silently inherits that host proxy state.</note-11>
     </Phase-38>
-    <Phase-39 name="Telegram Calls Baseline-Attached Direct Media Interception" status="planned">
+    <Phase-39 name="Telegram Calls Baseline-Attached Direct Media Interception" status="superseded">
       <goal>Continue Telegram calls work on the already logged-in ordinary Desktop baseline and target only direct-media escape, without any second-window auth/bootstrap branch.</goal>
       <step-1 module="M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS" status="done" verification="V-M-TELEGRAM-CALLS-ATTACHED-HYPOTHESIS">Freeze the new calls branch above the working logged-in baseline and the exhausted second-window auth branches</step-1>
       <step-2 module="M-PHASE38-SUPERSEDE" status="done" verification="V-M-PHASE38-SUPERSEDE">Explicitly supersede the blocked fresh safe-window auth branch from Phase-38</step-2>
       <step-3 module="M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-BASELINE-ATTACH-PROFILE">Freeze one exact experiment profile that reuses the already logged-in normal Telegram Desktop window</step-3>
       <step-4 module="M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE" status="done" verification="V-M-TELEGRAM-CALLS-SELECTIVE-INTERCEPT-PROFILE">Define one exact selective interception surface for direct-media escape traffic only</step-4>
       <step-5 module="M-TELEGRAM-CALLS-INTERCEPT-SMOKE" status="done" verification="V-M-TELEGRAM-CALLS-INTERCEPT-SMOKE">Prove selective interception outside Telegram UI before any new call packet is spent</step-5>
-      <step-6 module="M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE">Run one bounded voice attempt in the ordinary logged-in Telegram window while selective interception is active</step-6>
-      <step-7 module="M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE">Run one bounded video attempt on the same attached branch without inheriting voice</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-ATTACHED-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-COMPARISON">Compare attached-branch packets against Phase-34 and the blocked auth branches from Phase-37 and Phase-38</step-8>
-      <step-9 module="M-TELEGRAM-CALLS-ATTACHED-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-ATTACHED-DECISION">Issue the bounded decision after the baseline-attached direct-media branch</step-9>
+      <step-6 module="M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-ATTACHED-VOICE-WAVE">Run one bounded voice attempt in the ordinary logged-in Telegram window while selective interception is active</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE" status="superseded" verification="V-M-TELEGRAM-CALLS-ATTACHED-VIDEO-WAVE">Run one bounded video attempt on the same attached branch without inheriting voice</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-ATTACHED-COMPARISON" status="superseded" verification="V-M-TELEGRAM-CALLS-ATTACHED-COMPARISON">Compare attached-branch packets against Phase-34 and the blocked auth branches from Phase-37 and Phase-38</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-ATTACHED-DECISION" status="superseded" verification="V-M-TELEGRAM-CALLS-ATTACHED-DECISION">Issue the bounded decision after the baseline-attached direct-media branch</step-9>
       <note-1>Phase-39 starts only after the already-working ordinary Telegram Desktop baseline and the blocked second-window auth/bootstrap branches are both visible together.</note-1>
       <note-2>The phase must not weaken the working `127.0.0.1:1080` message and file path while it targets only the direct-media escape branch identified in Phase-34.</note-2>
       <note-3>No second Telegram auth/bootstrap window is allowed anywhere in this branch; the experiment attaches only to the already logged-in ordinary Desktop window.</note-3>
@@ -9757,6 +9758,7 @@
       <note-5>Voice and video claims remain split unless the attached comparison packet proves both changed class.</note-5>
       <note-6>On 2026-03-30 the first Phase-39 selective interception smoke turned green on the ordinary workstation without touching Telegram UI: one host-side `iptables -t nat OUTPUT` redirect for user `1000` and the deterministic UDP tuple `91.99.128.146:55123` fed `redudp`, `redudp` logged `via 127.0.0.1:1080` and `Starting UDP relay`, the synthetic payload `phase39-selective-smoke` returned from `91.99.128.146:55123`, and at the same time `curl --proxy socks5h://127.0.0.1:1080 -I https://example.com` still returned `HTTP/2 200`.</note-6>
       <note-7>The same smoke packet also narrowed the next blocker honestly: the current `redudp` helper remains fixed-destination-only, so green interception on one deterministic tuple does not yet justify spending a real Telegram voice or video packet that may target arbitrary Telegram media tuples.</note-7>
+      <note-8>Later on 2026-03-30 the attached voice, video, comparison, and decision tail was superseded before execution because Phase-40 froze the Phase-39 smoke packet as valid but insufficient for real calls and promoted arbitrary-destination UDP interception as the next exact blocker.</note-8>
     </Phase-39>
     <Phase-40 name="Telegram Arbitrary UDP Interception Surface" status="superseded">
       <goal>Continue Telegram calls work only after arbitrary-destination UDP interception and destination recovery become explicit and verifiable above the preserved ordinary Desktop baseline.</goal>
@@ -9778,7 +9780,7 @@
       <note-6>On 2026-03-30 the first Phase-40 execution packet froze the Phase-39 smoke packet as a visible boundary: host-side selective interception plus `redudp` proved only one deterministic UDP tuple `91.99.128.146:55123`, so the old packet remains valid-but-insufficient for real Telegram calls.</note-6>
       <note-7>On the same date the host technology decision also became explicit: `redsocks/redudp` remains installed only as a historical fixed-destination helper, while the workstation already exposes `nft`, `iptables`, `nft_tproxy`, `xt_TPROXY`, `xt_socket`, `nf_tproxy_ipv4`, and `nf_tproxy_ipv6`, so the approved next class is kernel-assisted interception with original-destination recovery plus one repo-local helper runtime.</note-7>
     </Phase-40>
-    <Phase-41 name="Repo-Local Arbitrary UDP Recovery Helper" status="in_progress">
+    <Phase-41 name="Repo-Local Arbitrary UDP Recovery Helper" status="done">
       <goal>Implement one repo-local helper runtime that can recover original UDP destinations for arbitrary tuples and feed them into the governed datagram path before any new Telegram calls packet is spent.</goal>
       <step-1 module="M-ARBITRARY-UDP-HELPER-HYPOTHESIS" status="done" verification="V-M-ARBITRARY-UDP-HELPER-HYPOTHESIS">Freeze the missing repo-local helper runtime as the next exact blocker above the arbitrary-UDP branch</step-1>
       <step-2 module="M-PHASE40-SUPERSEDE" status="done" verification="V-M-PHASE40-SUPERSEDE">Explicitly freeze the old Phase-40 tail as blocked by the missing repo-local helper runtime</step-2>
