@@ -2100,3 +2100,10 @@ Observed bounded downstream voice packet on 2026-04-01:
 3. In the same bounded server window, the remote server showed fresh `accepted WSS handshake` lines, but no fresh `SERVER_DATAGRAM_RECEIVED`, `SERVER_DATAGRAM_INBOUND_RECEIVED`, or `SERVER_DATAGRAM_RETURN_EMITTED` markers appeared.
 4. No downstream markers `BLOCK_CALL_DOWNSTREAM_CONTINUATION`, `BLOCK_CALL_DOWNSTREAM_REPLY`, `BLOCK_CALL_DOWNSTREAM_TIMEOUT`, or `BLOCK_CALL_DOWNSTREAM_ABORT` appeared in the same bounded window.
 5. This packet is therefore a valid blocked Phase-47 voice packet: it proves real Telegram media tuple recovery above governed handoff on the preserved topology, but it closes as a narrower post-handoff evidence gap rather than a transport regression, topology regression, or green call-establishment packet.
+
+Observed bounded downstream video packet on 2026-04-01:
+
+1. The preserved ordinary Telegram Desktop baseline stayed on `SOCKS5 127.0.0.1:1080`, and the already logged-in UI produced a separate `Отменённый видеозвонок` result for the same contact.
+2. In the same bounded server window, the remote server again showed fresh `accepted WSS handshake` lines for the attempt.
+3. In the same bounded workstation window, the helper produced no fresh tuple-recovery or governed-handoff lines, so no helper-visible media path was proven for that bounded video attempt.
+4. This packet is therefore valid as a separate blocked Phase-47 video packet only when it is classified explicitly as an earlier video-launch blocker that ended before helper-visible media-path evidence, not as inherited voice evidence and not as a generic transport regression.

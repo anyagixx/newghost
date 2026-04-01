@@ -8680,7 +8680,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE</verification-ref>
     </M-TELEGRAM-CALLS-DOWNSTREAM-VOICE>
-    <M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO NAME="TelegramCallsDownstreamVideo" TYPE="ENTRY_POINT" LAYER="50" ORDER="7" STATUS="planned">
+    <M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO NAME="TelegramCallsDownstreamVideo" TYPE="ENTRY_POINT" LAYER="50" ORDER="7" STATUS="done">
       <contract>
         <purpose>Run one separate downstream-establishment video packet on the same preserved branch without inheriting the voice result.</purpose>
         <inputs>
@@ -10130,7 +10130,7 @@
       <step-4 module="M-CALL-DOWNSTREAM-INSTRUMENTATION" status="done" verification="V-M-CALL-DOWNSTREAM-INSTRUMENTATION">Define the minimal runtime-anchor delta required to separate downstream continuation, reply, timeout, and abort evidence above governed handoff</step-4>
       <step-5 module="M-CALL-DOWNSTREAM-SERVER-CORRELATION" status="done" verification="V-M-CALL-DOWNSTREAM-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology</step-5>
       <step-6 module="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE">Run one bounded downstream-establishment voice packet on the preserved ordinary Telegram Desktop window</step-6>
-      <step-7 module="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO">Run one separate downstream-establishment video packet on the same preserved branch without inheriting voice</step-7>
+      <step-7 module="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" status="done" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO">Run one separate downstream-establishment video packet on the same preserved branch without inheriting voice</step-7>
       <step-8 module="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON">Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries</step-8>
       <step-9 module="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION">Issue the bounded downstream-establishment decision above the preserved post-recovery packet set</step-9>
       <note-1>Phase-47 starts only after the preserved ordinary Telegram baseline, the completed Phase-45 real-media-tuple packet, and the completed Phase-46 post-recovery decision are all visible together.</note-1>
@@ -10138,6 +10138,8 @@
       <note-3>The only approved new variable is downstream establishment evidence above already-proven tuple recovery and governed handoff; the Phase-45 interception topology, the preserved `127.0.0.1:1080` baseline, helper launch shape, and no-second-auth rule stay fixed.</note-3>
       <note-4>On 2026-04-01 the first bounded Phase-47 voice packet became valid blocked evidence: Telegram Desktop reached `Исходящий звонок (20 секунд)`, the helper recovered real Telegram media tuples including `91.108.9.10:596`, `91.108.13.10:598`, and `91.108.17.39:597` above governed handoff, but no downstream continuation/reply/timeout/abort markers and no server datagram-return markers appeared in the same bounded window.</note-4>
       <note-5>That first preserved voice packet therefore closes as a narrower post-handoff evidence gap instead of a transport regression, topology regression, or green downstream-establishment packet.</note-5>
+      <note-6>On 2026-04-01 the separate preserved video packet remained independent from voice: Telegram Desktop produced `Отменённый видеозвонок`, the bounded server window again showed fresh accepted WSS handshakes, but the helper produced no fresh tuple-recovery or governed-handoff evidence in the same bounded window.</note-6>
+      <note-7>That preserved video packet therefore closes earlier than the preserved voice packet: it is a bounded video-launch blocker before helper-visible media-path evidence, not inherited voice evidence and not a generic transport regression.</note-7>
       <note-4>The branch must add only the minimal runtime-anchor delta needed to say whether post-handoff continuation, inbound reply, timeout, or abort becomes the first unresolved establishment layer.</note-4>
       <note-5>Voice and video remain separate packets unless the comparison packet proves both changed class on the same preserved topology.</note-5>
       <note-6>The final decision may classify the branch only as preserved key-exchange no-go, narrower downstream-establishment blocker, or genuine establishment progress on the preserved topology; it may not widen that verdict into a general Telegram calls support claim.</note-6>

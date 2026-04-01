@@ -3629,7 +3629,7 @@
         <fn-runTelegramCallsDownstreamVoice PURPOSE="Run one bounded downstream voice packet on the preserved ordinary Telegram Desktop window." />
       </annotations>
     </M-TELEGRAM-CALLS-DOWNSTREAM-VOICE>
-    <M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO NAME="TelegramCallsDownstreamVideo" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO NAME="TelegramCallsDownstreamVideo" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Run one separate downstream-establishment video packet on the same preserved branch without inheriting the voice result.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-DOWNSTREAM-VOICE</depends>
