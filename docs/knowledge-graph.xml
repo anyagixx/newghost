@@ -3584,7 +3584,7 @@
         <fn-freezePhase46DownstreamBoundary PURPOSE="Keep the completed Phase-46 packet explicit before the next downstream-establishment branch begins." />
       </annotations>
     </M-PHASE46-DOWNSTREAM-BOUNDARY>
-    <M-CALL-DOWNSTREAM-HYPOTHESIS NAME="CallDownstreamHypothesis" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALL-DOWNSTREAM-HYPOTHESIS NAME="CallDownstreamHypothesis" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define one exact establishment-stage blocker hypothesis above governed handoff on the preserved Phase-45 and Phase-46 topology.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-PHASE46-DOWNSTREAM-BOUNDARY</depends>
