@@ -3665,7 +3665,7 @@
         <fn-freezePhase47ReplyBoundary PURPOSE="Freeze the completed Phase-47 packet as the preserved boundary for the reply-path branch." />
       </annotations>
     </M-PHASE47-REPLY-BOUNDARY>
-    <M-CALL-REPLY-HYPOTHESIS NAME="CallReplyHypothesis" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALL-REPLY-HYPOTHESIS NAME="CallReplyHypothesis" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define one exact reply-path blocker hypothesis above the preserved Phase-47 packet set without reopening generic transport or topology diagnosis.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-PHASE47-REPLY-BOUNDARY</depends>
