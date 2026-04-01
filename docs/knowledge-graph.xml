@@ -3728,7 +3728,7 @@
         <fn-issueTelegramCallsReplyDecision PURPOSE="Issue one bounded final decision for the reply-path branch on the preserved topology." />
       </annotations>
     </M-TELEGRAM-CALLS-REPLY-DECISION>
-    <M-PHASE48-SERVER-INGRESS-BOUNDARY NAME="Phase48ServerIngressBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-PHASE48-SERVER-INGRESS-BOUNDARY NAME="Phase48ServerIngressBoundary" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Freeze Phase-48 as the new server-ingress truth-boundary above preserved tuple recovery, governed handoff, and the narrowed reply-path verdict.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-REPLY-DECISION</depends>

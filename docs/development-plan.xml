@@ -8927,7 +8927,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-REPLY-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-REPLY-DECISION>
-    <M-PHASE48-SERVER-INGRESS-BOUNDARY NAME="Phase48ServerIngressBoundary" TYPE="CORE_LOGIC" LAYER="52" ORDER="1" STATUS="planned">
+    <M-PHASE48-SERVER-INGRESS-BOUNDARY NAME="Phase48ServerIngressBoundary" TYPE="CORE_LOGIC" LAYER="52" ORDER="1" STATUS="done">
       <contract>
         <purpose>Freeze Phase-48 as the new server-ingress truth-boundary above preserved tuple recovery, governed handoff, and the narrowed reply-path verdict.</purpose>
         <inputs><input-1>The completed Phase-48 reply-path final decision packet.</input-1></inputs>
@@ -10449,7 +10449,7 @@
     </Phase-48>
     <Phase-49 name="Server-Ingress Isolation Above Reply-Path Boundary" status="planned">
       <goal>Plan the next bounded Telegram calls branch above Phase-48 so the project can isolate the first server-ingress blocker after accepted WSS handshake without reopening transport, tuple-recovery, reply-path, or video diagnosis.</goal>
-      <step-1 module="M-PHASE48-SERVER-INGRESS-BOUNDARY" status="planned" verification="V-M-PHASE48-SERVER-INGRESS-BOUNDARY">Freeze Phase-48 as the preserved server-ingress truth-boundary above the completed reply-path blocker packet</step-1>
+      <step-1 module="M-PHASE48-SERVER-INGRESS-BOUNDARY" status="done" verification="V-M-PHASE48-SERVER-INGRESS-BOUNDARY">Freeze Phase-48 as the preserved server-ingress truth-boundary above the completed reply-path blocker packet</step-1>
       <step-2 module="M-SERVER-INGRESS-HYPOTHESIS" status="planned" verification="V-M-SERVER-INGRESS-HYPOTHESIS">Define one exact server-ingress blocker hypothesis above the completed Phase-48 packet</step-2>
       <step-3 module="M-SERVER-INGRESS-RUNTIME-PROFILE" status="planned" verification="V-M-SERVER-INGRESS-RUNTIME-PROFILE">Freeze one exact runtime profile for server-ingress evidence without changing the preserved Phase-45, Phase-46, Phase-47, or Phase-48 topology</step-3>
       <step-4 module="M-SERVER-INGRESS-INSTRUMENTATION" status="planned" verification="V-M-SERVER-INGRESS-INSTRUMENTATION">Define only the minimal runtime-anchor delta needed to separate ingress eligibility, decode, loop entry, and pre-loop drop evidence above accepted WSS handshake</step-4>
@@ -10463,6 +10463,7 @@
       <note-4>The branch must add only the minimal runtime-anchor delta needed to say whether the first unresolved layer is ingress eligibility absence, decode absence, loop-entry absence, or explicit pre-loop drop after accepted WSS handshake.</note-4>
       <note-5>Video is not reopened inside this branch because Phase-47 already proved that video diverges earlier than the preserved voice packet and therefore does not sharpen the server-ingress classifier.</note-5>
       <note-6>The final decision may classify the branch only as server-ingress blocker, narrower pre-loop drop, or genuine ingress progress on the preserved topology; it may not widen that verdict into a general Telegram calls-support claim.</note-6>
+      <note-7>On 2026-04-02 step-1 froze Phase-48 as the preserved server-ingress truth-boundary: the branch now starts only above the completed `server ingress absence` verdict and keeps preserved tuple recovery, governed handoff, the earlier video blocker, and the reply-path classifier explicit as separate earlier boundaries.</note-7>
     </Phase-49>
   </ImplementationOrder>
 
