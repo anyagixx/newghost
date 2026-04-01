@@ -348,6 +348,10 @@ Current calls-profile status:
   voice reached real Telegram media tuples and governed handoff before closing as a post-handoff evidence gap, while video closed earlier as a video-launch blocker before any helper-visible media-path evidence
 - the bounded downstream-establishment decision therefore stays non-green:
   the project preserves transport-green baseline, real tuple recovery, and governed handoff beside the ordinary `127.0.0.1:1080` baseline, but Phase-47 still does not justify a general Telegram Desktop calls-support claim
+- the completed Phase-47 packet is now the preserved reply-path truth-boundary:
+  on the tested Desktop setup the project already has one exact split above governed handoff, where voice remains the only valid reply-path diagnosis surface and video remains a preserved earlier blocker rather than a reusable reply classifier
+- the next bounded branch is therefore narrower still:
+  honest next work starts only above the completed `Phase-47` packet set and must classify reply-path behavior on preserved voice attempts as server ingress, relay mapping, client delivery, or explicit client drop instead of reopening generic downstream failure
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

@@ -8747,7 +8747,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-DOWNSTREAM-DECISION>
-    <M-PHASE47-REPLY-BOUNDARY NAME="Phase47ReplyBoundary" TYPE="CORE_LOGIC" LAYER="51" ORDER="1" STATUS="planned">
+    <M-PHASE47-REPLY-BOUNDARY NAME="Phase47ReplyBoundary" TYPE="CORE_LOGIC" LAYER="51" ORDER="1" STATUS="done">
       <contract>
         <purpose>Freeze Phase-47 as the new reply-path truth-boundary above preserved tuple recovery, governed handoff, and the split voice or video blocker packet set.</purpose>
         <inputs>
@@ -10333,9 +10333,9 @@
       <note-14>On 2026-04-01 step-9 issued the bounded downstream-establishment decision: the preserved `Phase-45/46/47` packet set now closes as a narrower downstream-establishment blocker on the tested Desktop setup rather than as preserved key-exchange no-go or genuine establishment progress.</note-14>
       <note-15>That final decision stays explicitly split by observed layer: the preserved voice packet reached real Telegram media tuples and governed handoff before closing as a post-handoff evidence gap, while the preserved video packet closed earlier as a video-launch blocker before helper-visible media-path evidence, so the branch remains non-green and does not justify a general Telegram calls-support claim.</note-15>
     </Phase-47>
-    <Phase-48 name="Reply-Path Isolation Above Downstream Boundary" status="planned">
+    <Phase-48 name="Reply-Path Isolation Above Downstream Boundary" status="in_progress">
       <goal>Plan the next bounded Telegram calls branch above Phase-47 so the project can isolate the first reply-path blocker after preserved governed handoff without reopening transport, tuple-recovery, or topology diagnosis.</goal>
-      <step-1 module="M-PHASE47-REPLY-BOUNDARY" status="planned" verification="V-M-PHASE47-REPLY-BOUNDARY">Freeze Phase-47 as the preserved reply-path truth-boundary above the completed downstream blocker packet set</step-1>
+      <step-1 module="M-PHASE47-REPLY-BOUNDARY" status="done" verification="V-M-PHASE47-REPLY-BOUNDARY">Freeze Phase-47 as the preserved reply-path truth-boundary above the completed downstream blocker packet set</step-1>
       <step-2 module="M-CALL-REPLY-HYPOTHESIS" status="planned" verification="V-M-CALL-REPLY-HYPOTHESIS">Define one exact reply-path blocker hypothesis above the completed Phase-47 packet</step-2>
       <step-3 module="M-CALL-REPLY-RUNTIME-PROFILE" status="planned" verification="V-M-CALL-REPLY-RUNTIME-PROFILE">Freeze one exact runtime profile for reply-path evidence without changing the preserved Phase-45, Phase-46, or Phase-47 topology</step-3>
       <step-4 module="M-CALL-REPLY-INSTRUMENTATION" status="planned" verification="V-M-CALL-REPLY-INSTRUMENTATION">Define only the minimal runtime-anchor delta needed to separate server ingress, relay mapping, client delivery, and client drop evidence above governed handoff</step-4>
@@ -10349,6 +10349,8 @@
       <note-4>The branch must add only the minimal runtime-anchor delta needed to say whether the first unresolved layer is server ingress absence, relay mapping absence, client delivery absence, or explicit client drop after preserved governed handoff.</note-4>
       <note-5>Video is not reopened inside this branch because Phase-47 already proved that video diverges earlier than the preserved voice packet and therefore does not sharpen the voice reply-path classifier.</note-5>
       <note-6>The final decision may classify the branch only as reply-path blocker, narrower client-delivery blocker, or genuine reply progress on the preserved topology; it may not widen that verdict into a general Telegram calls-support claim.</note-6>
+      <note-7>On 2026-04-02 step-1 froze Phase-47 as the preserved reply-path truth-boundary: the branch now starts only above the completed downstream-blocker packet and keeps the preserved voice post-handoff gap separate from the earlier video-launch blocker.</note-7>
+      <note-8>That preserved boundary means Phase-48 may study only the reply-path on voice attempts; it may not reuse video as a reply classifier and may not reopen generic downstream or topology diagnosis by default.</note-8>
     </Phase-48>
   </ImplementationOrder>
 

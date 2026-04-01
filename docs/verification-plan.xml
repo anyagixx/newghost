@@ -6311,8 +6311,9 @@
     <V-M-PHASE47-REPLY-BOUNDARY MODULE="M-PHASE47-REPLY-BOUNDARY" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>README.md</file><file>docs/knowledge-graph.xml</file></test-files>
       <module-checks><check-1>rg -n 'Phase-48|Phase-47|reply-path truth-boundary|post-handoff evidence gap|video-launch blocker' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
-      <success-scenarios><scenario-1>The new branch explicitly starts above the completed Phase-47 packet instead of reopening earlier downstream, tuple-recovery, or topology work.</scenario-1></success-scenarios>
-      <failure-scenarios><scenario-1>The reply-path branch starts from a generic calls failure statement and loses the preserved Phase-47 split between voice and video.</scenario-1></failure-scenarios>
+      <success-scenarios><scenario-1>The new branch explicitly starts above the completed Phase-47 packet instead of reopening earlier downstream, tuple-recovery, or topology work.</scenario-1><scenario-2>The preserved Phase-47 split remains explicit: voice stays the only reply-path diagnosis surface while video remains a separate earlier blocker.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The reply-path branch starts from a generic calls failure statement and loses the preserved Phase-47 split between voice and video.</scenario-1><scenario-2>The boundary silently treats the earlier video blocker as if it were interchangeable with the preserved voice post-handoff gap.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The reply-path boundary must keep the preserved voice post-handoff gap and the earlier video-launch blocker explicit as different layers on the same topology.</assertion-1></required-trace-assertions>
     </V-M-PHASE47-REPLY-BOUNDARY>
     <V-M-CALL-REPLY-HYPOTHESIS MODULE="M-CALL-REPLY-HYPOTHESIS" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>README.md</file></test-files>
