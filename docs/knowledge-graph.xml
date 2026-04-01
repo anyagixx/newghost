@@ -3692,7 +3692,7 @@
         <fn-designCallReplyInstrumentation PURPOSE="Define the minimal instrumentation delta for reply-path attribution." />
       </annotations>
     </M-CALL-REPLY-INSTRUMENTATION>
-    <M-CALL-REPLY-SERVER-CORRELATION NAME="CallReplyServerCorrelation" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-CALL-REPLY-SERVER-CORRELATION NAME="CallReplyServerCorrelation" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define one bounded workstation plus server correlation packet that separates server ingress, relay mapping, client delivery, and explicit drop on the preserved reply-path branch.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CALL-REPLY-RUNTIME-PROFILE, M-CALL-REPLY-INSTRUMENTATION</depends>
