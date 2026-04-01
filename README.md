@@ -338,6 +338,10 @@ Current calls-profile status:
   on the tested Desktop setup the project already has transport-green baseline, real Telegram media-tuple recovery, and governed handoff on the preserved `127.0.0.1:1080` topology, so honest next work starts only above that packet rather than inside generic transport, tuple-recovery, or topology repair
 - the current Phase-47 hypothesis is now exact and narrow:
   the first unresolved layer is downstream establishment after governed handoff on the preserved topology, where the next bounded packet must classify continuation, inbound reply, timeout, or abort instead of treating `Обмен ключами шифрования` alone as sufficient diagnosis
+- the completed Phase-47 comparison packet now proves that voice and video diverge on different layers of the same preserved branch:
+  the bounded voice packet stayed above governed handoff and closed as a narrower post-handoff evidence gap, while the bounded video packet ended earlier as a video-launch blocker before any helper-visible media-path evidence
+- the comparison result stays narrow and non-green:
+  `Phase-45` remains the first real-media-tuple-success boundary, `Phase-46` remains the preserved downstream truth-boundary above it, and `Phase-47` now rules out one blended generic calls-failure layer for the tested Desktop setup
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
