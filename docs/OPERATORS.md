@@ -2023,3 +2023,45 @@ Exact bounded operator packet for the first privileged non-`OUTPUT` smoke wave:
 10. Remove the host steering mark and policy-route state.
 11. Stop the root-run `origdst-live` helper process.
 12. Prove the preserved ordinary Telegram baseline at `127.0.0.1:1080` is still healthy after cleanup.
+
+### Phase-47 Downstream Establishment Runtime Profile
+
+Phase-47 starts only after the completed Phase-45 tuple-recovery packet and the completed Phase-46 post-recovery decision are both frozen as preserved boundaries on the same ordinary Telegram Desktop setup. The helper topology, the ordinary SOCKS5 path, and the attached already logged-in window stay fixed; the only approved new variable is evidence above governed handoff.
+
+Bounded operator rules for the downstream-establishment branch:
+
+1. Keep the preserved topology fixed:
+   keep the same privileged non-`OUTPUT` namespace `TPROXY` topology from Phase-45
+   keep the same root-run repo-local `origdst-live` helper shape from Phase-46
+   do not introduce a second helper stack, alternate listener, auth relay, or different interception class
+2. Keep the ordinary Telegram baseline fixed:
+   keep the ordinary logged-in Telegram Desktop window on `SOCKS5 127.0.0.1:1080`
+   do not repoint the ordinary baseline away from `127.0.0.1:1080`
+   do not open a second auth or bootstrap window
+3. Keep proof order fixed:
+   treat tuple recovery and governed handoff as preserved prerequisites, not as new success claims
+   begin new evidence only after the preserved tuple-recovery and governed-handoff anchors
+   classify the first unresolved downstream layer only as continuation, inbound reply, timeout, or abort
+4. Keep capture scope bounded:
+   collect one bounded workstation and server correlation window per calls attempt
+   keep voice and video as separate bounded packets
+   do not spend a new live packet until the required downstream anchors and governed test assertions exist
+5. Cleanup stays mandatory:
+   remove temporary namespace and host steering state immediately after the bounded packet window
+   stop the root-run helper
+   prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy after cleanup
+
+Exact preserved runtime profile for the first downstream-establishment wave:
+
+1. Reuse the exact Phase-45 non-`OUTPUT` namespace `TPROXY` topology and the exact Phase-46 root-run `origdst-live` helper command:
+   `sudo --preserve-env=RUST_LOG n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080 --transparent-socket-mode required`
+2. Before the bounded call attempt, prove the preserved ordinary Telegram Desktop path is still `SOCKS5 127.0.0.1:1080`, the window is already logged in, and no second auth/bootstrap surface exists.
+3. Keep the same host owner-mark, policy-route, isolated `veth/netns` ingress, namespace `PREROUTING TPROXY`, `route_localnet=1`, and `rp_filter=0` surfaces that were already proven for Phase-45 and preserved by Phase-46.
+4. Start the bounded correlation window only after the preserved helper launch, tuple-recovery floor, and governed-handoff floor are explicit in the same packet.
+5. Inside that bounded window, classify only the first downstream layer after governed handoff:
+   `continuation` if outbound establishment plainly continues
+   `reply` if inbound establishment reply appears
+   `timeout` if the bounded window expires without downstream reply
+   `abort` if the call tears down before a reply-class marker appears
+6. Keep voice and video packets independent even if they run on the same preserved topology.
+7. After the bounded packet window, remove the temporary namespace and host steering state, stop the helper, and prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy.
