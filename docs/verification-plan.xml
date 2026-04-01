@@ -6324,10 +6324,10 @@
     </V-M-CALL-REPLY-HYPOTHESIS>
     <V-M-CALL-REPLY-RUNTIME-PROFILE MODULE="M-CALL-REPLY-RUNTIME-PROFILE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
-      <module-checks><check-1>rg -n 'Phase-45|Phase-46|Phase-47|127.0.0.1:1080|no-second-auth|reply-path evidence' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
+      <module-checks><check-1>rg -n 'Phase-45|Phase-46|Phase-47|127.0.0.1:1080|no-second-auth|reply-path evidence' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'voice-only|phase48-reply-voice-|bounded voice attempt label|do not reopen video' docs/verification-plan.xml docs/OPERATORS.md</check-2></module-checks>
       <success-scenarios><scenario-1>The runtime profile freezes the preserved topology and ordinary baseline while moving only the reply-path evidence layer above governed handoff.</scenario-1></success-scenarios>
       <failure-scenarios><scenario-1>The runtime profile silently changes interception topology, helper launch shape, or Telegram window shape under the reply-path branch label.</scenario-1></failure-scenarios>
-      <required-trace-assertions><assertion-1>The runtime profile must keep Phase-45 tuple recovery, Phase-46 proof order, and Phase-47 downstream blocker explicit as preserved prerequisites rather than new work items.</assertion-1></required-trace-assertions>
+      <required-trace-assertions><assertion-1>The runtime profile must keep Phase-45 tuple recovery, Phase-46 proof order, and Phase-47 downstream blocker explicit as preserved prerequisites rather than new work items.</assertion-1><assertion-2>The runtime profile must state that Phase-48 opens one bounded voice attempt label at a time and does not reopen video inside the reply-path branch.</assertion-2></required-trace-assertions>
     </V-M-CALL-REPLY-RUNTIME-PROFILE>
     <V-M-CALL-REPLY-INSTRUMENTATION MODULE="M-CALL-REPLY-INSTRUMENTATION" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file><file>src/wss_gateway/mod.test.rs</file><file>src/cli/mod.test.rs</file><file>src/proxy_bridge/udp_relay.test.rs</file></test-files>

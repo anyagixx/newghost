@@ -2107,3 +2107,46 @@ Observed bounded downstream video packet on 2026-04-01:
 2. In the same bounded server window, the remote server again showed fresh `accepted WSS handshake` lines for the attempt.
 3. In the same bounded workstation window, the helper produced no fresh tuple-recovery or governed-handoff lines, so no helper-visible media path was proven for that bounded video attempt.
 4. This packet is therefore valid as a separate blocked Phase-47 video packet only when it is classified explicitly as an earlier video-launch blocker that ended before helper-visible media-path evidence, not as inherited voice evidence and not as a generic transport regression.
+
+### Phase-48 Reply-Path Runtime Profile
+
+Phase-48 starts only after the completed Phase-47 packet is frozen as the preserved reply-path truth-boundary on the same ordinary Telegram Desktop setup. The helper topology, the ordinary SOCKS5 path, and the attached already logged-in window stay fixed; the only approved new variable is reply-path evidence on preserved voice attempts above governed handoff.
+
+Bounded operator rules for the reply-path branch:
+
+1. Keep the preserved topology fixed:
+   keep the same privileged non-`OUTPUT` namespace `TPROXY` topology from Phase-45
+   keep the same root-run repo-local `origdst-live` helper shape from Phase-46 and Phase-47
+   do not introduce a second helper stack, alternate listener, auth relay, or different interception class
+2. Keep the ordinary Telegram baseline fixed:
+   keep the ordinary logged-in Telegram Desktop window on `SOCKS5 127.0.0.1:1080`
+   do not repoint the ordinary baseline away from `127.0.0.1:1080`
+   do not open a second auth or bootstrap window
+3. Keep proof order fixed:
+   treat tuple recovery, governed handoff, and the preserved Phase-47 split as prerequisites, not as new success claims
+   begin new evidence only after the preserved tuple-recovery and governed-handoff floor is explicit for the same bounded voice attempt
+   classify the first unresolved reply layer only as `server ingress`, `relay mapping`, `client delivery`, or `client drop`
+4. Keep capture scope bounded:
+   collect one bounded workstation and server correlation window per voice attempt
+   use one stable voice-only attempt label: `phase48-reply-voice-<timestamp>`
+   do not reopen video inside the reply-path branch
+   do not spend a new live packet until the required reply-path anchors and governed test assertions exist
+5. Cleanup stays mandatory:
+   remove temporary namespace and host steering state immediately after the bounded packet window
+   stop the root-run helper
+   prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy after cleanup
+
+Exact preserved runtime profile for the first reply-path wave:
+
+1. Reuse the exact Phase-45 non-`OUTPUT` namespace `TPROXY` topology and the exact Phase-46 or Phase-47 root-run `origdst-live` helper command:
+   `sudo --preserve-env=RUST_LOG n0wss --auth-token <token> origdst-live --listener-addr 127.0.0.1:10073 --payload-capacity-bytes 65507 --operator-uid 1000 --preserve-baseline-proxy-addr 127.0.0.1:1080 --transparent-socket-mode required`
+2. Before the bounded call attempt, prove the preserved ordinary Telegram Desktop path is still `SOCKS5 127.0.0.1:1080`, the window is already logged in, and no second auth/bootstrap surface exists.
+3. Keep the same host owner-mark, policy-route, isolated `veth/netns` ingress, namespace `PREROUTING TPROXY`, `route_localnet=1`, and `rp_filter=0` surfaces already proven for Phase-45 and preserved by Phase-46 or Phase-47.
+4. Start the bounded correlation window only after the preserved helper launch, tuple-recovery floor, and governed-handoff floor are explicit in the same packet.
+5. Inside that bounded window, classify only the first reply-path layer after governed handoff:
+   `server ingress` if the packet still stops before any governed inbound-return ingress evidence
+   `relay mapping` if ingress appears but the owning relay mapping does not
+   `client delivery` if relay mapping exists but no client delivery marker appears
+   `client drop` if the reply reaches client-side handling and is then dropped explicitly
+6. Keep the packet voice-only even if Telegram also offers video UI in the same contact window.
+7. After the bounded packet window, remove the temporary namespace and host steering state, stop the helper, and prove the preserved ordinary baseline at `127.0.0.1:1080` is still healthy.
