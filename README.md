@@ -368,6 +368,8 @@ Current calls-profile status:
   on the preserved Desktop setup an operator-confirmed voice attempt again reached fresh real Telegram media tuples and governed handoff, while the server showed only fresh `accepted WSS handshake` lines and no `BLOCK_CALL_SERVER_INGRESS_*`, `BLOCK_CALL_REPLY_*`, or `SERVER_DATAGRAM_*` markers in the same bounded window, so the first unresolved server-side layer is now narrowed to `eligibility` absence
 - the bounded Phase-49 comparison is now explicit:
   relative to Phase-48, the unresolved layer did move deeper again, because voice is no longer only a bounded `server ingress absence` on the reply-path branch and is now classified more narrowly as `eligibility` absence above preserved accepted-WSS-handshake evidence, while the preserved Phase-47 video blocker remains a separate earlier branch and unchanged
+- the bounded Phase-49 final decision is now fixed:
+  for the tested Telegram Desktop setup the honest verdict is `server-ingress blocker`, more narrowly `eligibility` absence above preserved tuple recovery, governed handoff, and accepted-WSS-handshake evidence; this sharpens the server-side diagnosis again but still does not justify a general Telegram calls-support claim
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
