@@ -1,5 +1,5 @@
 // FILE: src/cli/mod.rs
-// VERSION: 0.1.8
+// VERSION: 0.1.9
 // START_MODULE_CONTRACT
 //   PURPOSE: Select runtime mode, load configuration, initialize observability, launch the selected runtime surface, and coordinate graceful shutdown sequencing plus client-side inbound datagram delivery, WSS return-handler wiring, and one governed live origdst-helper launch surface with an explicit transparent-socket requirement boundary.
 //   SCOPE: Startup bootstrap, client or server mode selection, live origdst-helper entrypoint and launcher wiring, transparent-socket requirement logging, foundation dependency assembly, runtime listener launch, session-manager timing bootstrap, client-side inbound datagram delivery wiring, WSS inbound-handler registration, and local shutdown-state coordination.
@@ -23,7 +23,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.8 - Added an explicit transparent-socket requirement surface to origdst-live so Phase-44 can separate privileged launch proof from ordinary helper startup.
+//   LAST_CHANGE: v0.1.9 - Added a downstream-reply anchor at client-side inbound delivery so Phase-47 can assert bounded reply-class evidence without manual log reading.
 // END_CHANGE_SUMMARY
 
 use std::ffi::OsString;
@@ -328,6 +328,14 @@ impl DatagramDispatchTarget for ClientDatagramInboundTarget {
             target = ?envelope.target,
             payload_len = envelope.payload.len(),
             "[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM] delivered governed inbound datagram into the owning local UDP relay socket"
+        );
+        info!(
+            association_id = envelope.association_id,
+            relay_addr = %association.relay_addr,
+            relay_client_addr = %association.expected_client_addr,
+            target = ?envelope.target,
+            payload_len = envelope.payload.len(),
+            "[CallDownstream][reply][BLOCK_CALL_DOWNSTREAM_REPLY] delivered downstream inbound reply into the owning local UDP relay socket"
         );
         Ok(())
     }

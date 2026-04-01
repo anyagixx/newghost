@@ -1,5 +1,5 @@
 // FILE: src/session/datagram_manager.test.rs
-// VERSION: 0.1.4
+// VERSION: 0.1.5
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify datagram association open, outbound dispatch, runtime bridge dispatch, inbound dispatch, and cleanup trajectories over the governed UDP registry.
 //   SCOPE: Open success, explicit close, outbound dispatch, selector-backed runtime-bridge dispatch, inbound dispatch, explicit dispatch failure, and missing-association failure behavior.
@@ -21,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.4 - Added direct manager log-anchor assertions so association-open, outbound-dispatch, inbound-dispatch, and local handoff trajectory evidence no longer depends on manual log review.
+//   LAST_CHANGE: v0.1.5 - Added a direct downstream-continuation anchor assertion so Phase-47 can machine-check progress above governed handoff.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -181,6 +181,9 @@ async fn outbound_dispatch_refreshes_activity_and_hits_outbound_target() {
     )));
     assert!(lines.iter().any(|line| line.contains(
         "[DatagramSessionManager][forwardOutboundDatagram][BLOCK_FORWARD_OUTBOUND_DATAGRAM] outbound datagram reached manager dispatch target"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[CallDownstream][continuation][BLOCK_CALL_DOWNSTREAM_CONTINUATION]"
     )));
 }
 

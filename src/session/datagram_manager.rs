@@ -1,5 +1,5 @@
 // FILE: src/session/datagram_manager.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
 //   PURPOSE: Coordinate UDP association lifecycle, outbound or inbound datagram dispatch, runtime handoff bridging, and session-side cleanup rules.
 //   SCOPE: Association open, outbound dispatch, inbound dispatch, activity refresh, explicit association close, selector-backed outbound dispatch, and SOCKS5 runtime handoff bridging over the governed UDP registry.
@@ -23,7 +23,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added a runtime bridge from SOCKS5 UDP relay ingress into manager-owned selector emission so Phase-25 can prove the live dispatch trajectory.
+//   LAST_CHANGE: v0.1.4 - Added a downstream-continuation anchor after manager-owned outbound dispatch so Phase-47 can classify progress above governed handoff without reopening transport diagnosis.
 // END_CHANGE_SUMMARY
 
 use std::net::SocketAddr;
@@ -265,6 +265,12 @@ where
             target = ?envelope.target,
             payload_len = envelope.payload.len(),
             "[DatagramSessionManager][forwardOutboundDatagram][BLOCK_FORWARD_OUTBOUND_DATAGRAM] outbound datagram reached manager dispatch target"
+        );
+        info!(
+            association_id = envelope.association_id,
+            target = ?envelope.target,
+            payload_len = envelope.payload.len(),
+            "[CallDownstream][continuation][BLOCK_CALL_DOWNSTREAM_CONTINUATION] observed downstream outbound continuation beyond governed handoff"
         );
         Ok(())
         // END_BLOCK_FORWARD_OUTBOUND_DATAGRAM

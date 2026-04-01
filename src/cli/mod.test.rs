@@ -1,5 +1,5 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.12
+// VERSION: 0.1.13
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, live-launch smoke, non-OUTPUT live-smoke launch shape, post-recovery topology-lock proof, and shutdown sequencing for governed startup paths.
 //   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, live tuple-recovery smoke, non-OUTPUT launch-shape proof, post-recovery launch-shape proof, and shutdown ordering.
@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.12 - Added direct origdst-live launch-anchor assertions so Phase-42 through Phase-46 smoke evidence stays machine-verifiable for autonomous agents.
+//   LAST_CHANGE: v0.1.13 - Added a direct downstream-reply anchor assertion so Phase-47 can machine-check reply-class evidence at client-side inbound delivery.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -801,6 +801,9 @@ async fn client_inbound_target_delivers_reply_into_owned_udp_socket() {
     );
     assert!(capture.lines().iter().any(|line| line.contains(
         "[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]"
+    )));
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallDownstream][reply][BLOCK_CALL_DOWNSTREAM_REPLY]"
     )));
 }
 

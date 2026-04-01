@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.5
+// VERSION: 0.1.6
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, server-side inbound return emission, client-side inbound callback delivery, cancellation handling, and adapter cleanup guarantees.
 //   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, bounded server-side inbound return, client-side inbound callback delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
@@ -21,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.5 - Added a runtime end-to-end datagram reply test so Phase-27 can prove server-side inbound return reaches the configured client-side inbound handler.
+//   LAST_CHANGE: v0.1.6 - Added direct downstream timeout and abort anchor assertions so Phase-47 can machine-check bounded post-handoff stall classification.
 // END_CHANGE_SUMMARY
 
 use std::sync::{Arc, Mutex};
@@ -41,7 +41,7 @@ use tokio_tungstenite::tungstenite::Message;
 use tokio_util::sync::CancellationToken;
 
 use crate::auth::{AuthPolicy, AuthPolicyConfig};
-use crate::obs::{init_observability, ObservabilityConfig};
+use crate::obs::{init_observability, test_tracing_dispatch, ObservabilityConfig};
 use crate::proxy_bridge::udp_relay::relay_outbound_datagram;
 use crate::session::WssDatagramPath;
 use crate::tls::{TlsConfig, TlsContextHandle};
@@ -339,6 +339,55 @@ async fn server_runtime_relays_datagram_to_udp_target() {
 }
 
 #[tokio::test]
+async fn server_runtime_logs_downstream_timeout_when_no_inbound_reply_arrives() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    let server_gateway = build_gateway(server_addr, tls.clone(), "token-12345");
+    let server_task = tokio::spawn({
+        let gateway = server_gateway.clone();
+        async move { gateway.run_server(listener).await }
+    });
+
+    let remote = UdpSocket::bind("127.0.0.1:0")
+        .await
+        .expect("remote udp target should bind");
+    let remote_addr = remote.local_addr().expect("remote addr should resolve");
+
+    let client_gateway = build_gateway(server_addr, tls, "token-12345");
+    let envelope = DatagramEnvelope {
+        association_id: 78,
+        relay_client_addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 19101),
+        target: DatagramTarget::Ip(remote_addr),
+        payload: b"phase47-timeout".to_vec(),
+    };
+
+    client_gateway
+        .emit_datagram(&envelope, CancellationToken::new())
+        .await
+        .expect("emit_datagram should succeed");
+
+    let mut buffer = [0_u8; 128];
+    let (bytes_read, _source) = remote
+        .recv_from(&mut buffer)
+        .await
+        .expect("remote should observe outbound datagram");
+    assert_eq!(&buffer[..bytes_read], envelope.payload.as_slice());
+    sleep(Duration::from_millis(100)).await;
+
+    client_gateway.stop_accept();
+    server_gateway.stop_accept();
+    assert!(server_task.await.expect("server task should join").is_ok());
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallDownstream][timeout][BLOCK_CALL_DOWNSTREAM_TIMEOUT]"
+    )));
+}
+
+#[tokio::test]
 async fn server_runtime_receives_inbound_udp_reply() {
     let (_dir, tls) = write_tls_fixture();
     let listener = TcpListener::bind("127.0.0.1:0")
@@ -447,6 +496,37 @@ async fn server_runtime_emits_inbound_datagram_reply() {
     assert_eq!(decoded, outbound);
     websocket.close(None).await.expect("close websocket");
     server_task.await.expect("server task should join");
+}
+
+#[tokio::test]
+async fn server_runtime_logs_downstream_abort_when_runtime_closes_before_reply() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
+    let (_dir, tls) = write_tls_fixture();
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .expect("listener should bind");
+    let server_addr = listener.local_addr().expect("listener addr should resolve");
+    let server_gateway = build_gateway(server_addr, tls.clone(), "token-12345");
+    let server_task = tokio::spawn({
+        let gateway = server_gateway.clone();
+        async move { gateway.run_server(listener).await }
+    });
+
+    let client_gateway = build_gateway(server_addr, tls, "token-12345");
+    let mut websocket = client_gateway
+        .open_datagram_path(94, CancellationToken::new())
+        .await
+        .expect("client datagram path should open");
+    websocket.close(None).await.expect("close websocket");
+    sleep(Duration::from_millis(25)).await;
+
+    client_gateway.stop_accept();
+    server_gateway.stop_accept();
+    assert!(server_task.await.expect("server task should join").is_ok());
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallDownstream][abort][BLOCK_CALL_DOWNSTREAM_ABORT]"
+    )));
 }
 
 #[tokio::test]

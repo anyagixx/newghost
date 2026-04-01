@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.9
+// VERSION: 0.1.10
 // START_MODULE_CONTRACT
 //   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, governed datagram framing, and client-side inbound datagram callback wiring under the shared adapter contract without owning transport selection logic.
 //   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, server-side inbound return emission, client-side inbound datagram callback wiring, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.9 - Renamed the open-stream semantic block and stable log anchors to a module-unique WSS marker so GRACE block names stay globally unique.
+//   LAST_CHANGE: v0.1.10 - Added downstream timeout and abort anchors around the governed datagram loop so Phase-47 can classify post-handoff stalls without widening transport scope.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -63,7 +63,10 @@ mod tests;
 
 pub mod datagram;
 
+#[cfg(not(test))]
 const DATAGRAM_RETURN_TIMEOUT: Duration = Duration::from_secs(2);
+#[cfg(test)]
+const DATAGRAM_RETURN_TIMEOUT: Duration = Duration::from_millis(50);
 
 #[async_trait]
 pub trait DatagramInboundHandler: Send + Sync + 'static {
@@ -371,10 +374,21 @@ impl WssGateway {
                                 timeout_ms = DATAGRAM_RETURN_TIMEOUT.as_millis(),
                                 "[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_INBOUND_RECEIVED] timed out waiting for governed inbound UDP reply"
                             );
+                            warn!(
+                                association_id,
+                                timeout_ms = DATAGRAM_RETURN_TIMEOUT.as_millis(),
+                                "[CallDownstream][timeout][BLOCK_CALL_DOWNSTREAM_TIMEOUT] bounded downstream reply window expired without an inbound reply-class marker"
+                            );
                         }
                     }
                 }
-                Message::Close(_) => break,
+                Message::Close(_) => {
+                    warn!(
+                        association_id,
+                        "[CallDownstream][abort][BLOCK_CALL_DOWNSTREAM_ABORT] datagram runtime closed before a downstream reply-class marker appeared"
+                    );
+                    break;
+                }
                 Message::Ping(_) | Message::Pong(_) => {}
                 Message::Text(text) => {
                     return Err(WssError::DatagramPathFailed(format!(
