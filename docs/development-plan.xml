@@ -8905,7 +8905,7 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-REPLY-COMPARISON</verification-ref>
     </M-TELEGRAM-CALLS-REPLY-COMPARISON>
-    <M-TELEGRAM-CALLS-REPLY-DECISION NAME="TelegramCallsReplyDecision" TYPE="ENTRY_POINT" LAYER="51" ORDER="8" STATUS="planned">
+    <M-TELEGRAM-CALLS-REPLY-DECISION NAME="TelegramCallsReplyDecision" TYPE="ENTRY_POINT" LAYER="51" ORDER="8" STATUS="done">
       <contract>
         <purpose>Issue one bounded final decision for the reply-path branch above the preserved Phase-45, Phase-46, and Phase-47 packet set without overstating calls support.</purpose>
         <inputs>
@@ -10333,7 +10333,7 @@
       <note-14>On 2026-04-01 step-9 issued the bounded downstream-establishment decision: the preserved `Phase-45/46/47` packet set now closes as a narrower downstream-establishment blocker on the tested Desktop setup rather than as preserved key-exchange no-go or genuine establishment progress.</note-14>
       <note-15>That final decision stays explicitly split by observed layer: the preserved voice packet reached real Telegram media tuples and governed handoff before closing as a post-handoff evidence gap, while the preserved video packet closed earlier as a video-launch blocker before helper-visible media-path evidence, so the branch remains non-green and does not justify a general Telegram calls-support claim.</note-15>
     </Phase-47>
-    <Phase-48 name="Reply-Path Isolation Above Downstream Boundary" status="in_progress">
+    <Phase-48 name="Reply-Path Isolation Above Downstream Boundary" status="done">
       <goal>Plan the next bounded Telegram calls branch above Phase-47 so the project can isolate the first reply-path blocker after preserved governed handoff without reopening transport, tuple-recovery, or topology diagnosis.</goal>
       <step-1 module="M-PHASE47-REPLY-BOUNDARY" status="done" verification="V-M-PHASE47-REPLY-BOUNDARY">Freeze Phase-47 as the preserved reply-path truth-boundary above the completed downstream blocker packet set</step-1>
       <step-2 module="M-CALL-REPLY-HYPOTHESIS" status="done" verification="V-M-CALL-REPLY-HYPOTHESIS">Define one exact reply-path blocker hypothesis above the completed Phase-47 packet</step-2>
@@ -10342,7 +10342,7 @@
       <step-5 module="M-CALL-REPLY-SERVER-CORRELATION" status="done" verification="V-M-CALL-REPLY-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for reply-path behavior on the preserved topology</step-5>
       <step-6 module="M-TELEGRAM-CALLS-REPLY-VOICE" status="done" verification="V-M-TELEGRAM-CALLS-REPLY-VOICE">Run one bounded reply-path voice packet on the preserved ordinary Telegram Desktop window without reopening video</step-6>
       <step-7 module="M-TELEGRAM-CALLS-REPLY-COMPARISON" status="done" verification="V-M-TELEGRAM-CALLS-REPLY-COMPARISON">Compare the reply-path voice packet against the preserved Phase-45, Phase-46, and Phase-47 boundaries</step-7>
-      <step-8 module="M-TELEGRAM-CALLS-REPLY-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-REPLY-DECISION">Issue the bounded reply-path final decision above the preserved packet set</step-8>
+      <step-8 module="M-TELEGRAM-CALLS-REPLY-DECISION" status="done" verification="V-M-TELEGRAM-CALLS-REPLY-DECISION">Issue the bounded reply-path final decision above the preserved packet set</step-8>
       <note-1>Phase-48 starts only after the preserved ordinary Telegram baseline, the completed Phase-45 real-media-tuple packet, the completed Phase-46 post-recovery decision, and the completed Phase-47 downstream-blocker decision are all visible together.</note-1>
       <note-2>The next branch must not reopen generic transport diagnosis, tuple-recovery diagnosis, interception-topology diagnosis, or the already-classified earlier video blocker unless the preserved Phase-45, Phase-46, or Phase-47 packet is explicitly disproved in the same bounded window.</note-2>
       <note-3>The only approved new variable is reply-path evidence above the already-proven tuple-recovery and governed-handoff floor on voice; the Phase-45 topology, the preserved `127.0.0.1:1080` baseline, helper launch shape, and no-second-auth rule stay fixed.</note-3>
@@ -10357,6 +10357,7 @@
       <note-12>On 2026-04-02 step-5 fixed the bounded reply-path correlation packet: each voice attempt now requires one stable `phase48-reply-voice-&lt;timestamp&gt;` label and one bounded workstation plus server evidence window that keeps preserved tuple-recovery and governed-handoff floor separate from server ingress, relay mapping, client delivery, and explicit client-drop markers.</note-12>
       <note-13>On 2026-04-02 step-6 recorded the first valid Phase-48 reply-path voice packet: the preserved ordinary Telegram Desktop window triggered one bounded voice attempt, the helper again proved real Telegram media tuple recovery and governed handoff for tuples including `91.108.9.99:597`, `91.108.13.52:598`, and `91.108.17.4:597`, the remote server again showed only fresh accepted WSS handshakes, and no `BLOCK_CALL_REPLY_*` markers appeared in the same bounded window, so the first unresolved reply-path layer is now classified as `server ingress` absence.</note-13>
       <note-14>On 2026-04-02 step-7 compared the new Phase-48 packet against the preserved Phase-45, Phase-46, and Phase-47 set: Phase-45 still remains the real tuple-recovery boundary, Phase-46 still remains the preserved post-recovery truth-boundary, Phase-47 still preserves the split between the voice post-handoff gap and the earlier video-launch blocker, and Phase-48 moves the unresolved voice layer deeper by reclassifying that preserved voice gap more narrowly as `server ingress` absence without changing the separate earlier video verdict.</note-14>
+      <note-15>On 2026-04-02 step-8 issued the bounded Phase-48 final decision: for the preserved Telegram Desktop setup the branch closes as a `reply-path blocker`, more narrowly a `server ingress` absence above preserved tuple recovery and governed handoff, so the project gained a sharper reply-path diagnosis but still does not justify a general Telegram calls-support claim.</note-15>
     </Phase-48>
   </ImplementationOrder>
 

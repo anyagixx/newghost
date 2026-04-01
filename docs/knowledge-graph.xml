@@ -3719,7 +3719,7 @@
         <fn-compareTelegramCallsReply PURPOSE="Compare the reply-path packet against the preserved boundaries and earlier blockers." />
       </annotations>
     </M-TELEGRAM-CALLS-REPLY-COMPARISON>
-    <M-TELEGRAM-CALLS-REPLY-DECISION NAME="TelegramCallsReplyDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-REPLY-DECISION NAME="TelegramCallsReplyDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue one bounded final decision for the reply-path branch above the preserved Phase-45, Phase-46, and Phase-47 packet set without overstating calls support.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-REPLY-COMPARISON</depends>
