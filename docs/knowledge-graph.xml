@@ -3770,7 +3770,7 @@
       <verification-ref>V-M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE</verification-ref>
       <annotations><fn-runTelegramCallsServerIngressVoice PURPOSE="Run one bounded server-ingress voice packet on the preserved Desktop topology." /></annotations>
     </M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE>
-    <M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON NAME="TelegramCallsServerIngressComparison" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON NAME="TelegramCallsServerIngressComparison" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Compare the new bounded server-ingress voice packet against the preserved Phase-45, Phase-46, Phase-47, and Phase-48 packet set.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE</depends>
