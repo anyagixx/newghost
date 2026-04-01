@@ -3656,7 +3656,7 @@
         <fn-issueTelegramCallsDownstreamDecision PURPOSE="Issue one bounded final decision for the downstream-establishment branch on the preserved topology." />
       </annotations>
     </M-TELEGRAM-CALLS-DOWNSTREAM-DECISION>
-    <M-PHASE47-REPLY-BOUNDARY NAME="Phase47ReplyBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-PHASE47-REPLY-BOUNDARY NAME="Phase47ReplyBoundary" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Freeze Phase-47 as the new reply-path truth-boundary above preserved tuple recovery, governed handoff, and the split voice or video blocker packet set.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-DOWNSTREAM-DECISION</depends>
