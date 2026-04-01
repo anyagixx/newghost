@@ -3593,7 +3593,7 @@
         <fn-defineCallDownstreamHypothesis PURPOSE="Define the next exact downstream-establishment blocker above the completed Phase-46 packet." />
       </annotations>
     </M-CALL-DOWNSTREAM-HYPOTHESIS>
-    <M-CALL-DOWNSTREAM-RUNTIME-PROFILE NAME="CallDownstreamRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-CALL-DOWNSTREAM-RUNTIME-PROFILE NAME="CallDownstreamRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze one exact runtime profile for downstream-establishment evidence without changing the preserved Phase-45 or Phase-46 topology.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CALL-DOWNSTREAM-HYPOTHESIS, M-POSTRECOVERY-RUNTIME-PROFILE</depends>
