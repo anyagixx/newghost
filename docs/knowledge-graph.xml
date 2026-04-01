@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.59">
+  <Project NAME="n0wss" VERSION="0.2.60">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3656,6 +3656,78 @@
         <fn-issueTelegramCallsDownstreamDecision PURPOSE="Issue one bounded final decision for the downstream-establishment branch on the preserved topology." />
       </annotations>
     </M-TELEGRAM-CALLS-DOWNSTREAM-DECISION>
+    <M-PHASE47-REPLY-BOUNDARY NAME="Phase47ReplyBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Freeze Phase-47 as the new reply-path truth-boundary above preserved tuple recovery, governed handoff, and the split voice or video blocker packet set.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-DOWNSTREAM-DECISION</depends>
+      <verification-ref>V-M-PHASE47-REPLY-BOUNDARY</verification-ref>
+      <annotations>
+        <fn-freezePhase47ReplyBoundary PURPOSE="Freeze the completed Phase-47 packet as the preserved boundary for the reply-path branch." />
+      </annotations>
+    </M-PHASE47-REPLY-BOUNDARY>
+    <M-CALL-REPLY-HYPOTHESIS NAME="CallReplyHypothesis" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one exact reply-path blocker hypothesis above the preserved Phase-47 packet set without reopening generic transport or topology diagnosis.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-PHASE47-REPLY-BOUNDARY</depends>
+      <verification-ref>V-M-CALL-REPLY-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-defineCallReplyHypothesis PURPOSE="Define the first unresolved reply-path layer above preserved governed handoff on voice." />
+      </annotations>
+    </M-CALL-REPLY-HYPOTHESIS>
+    <M-CALL-REPLY-RUNTIME-PROFILE NAME="CallReplyRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze one exact runtime profile for the reply-path branch while preserving the completed Phase-45, Phase-46, and Phase-47 topology and ordinary baseline.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALL-REPLY-HYPOTHESIS, M-CALL-DOWNSTREAM-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-CALL-REPLY-RUNTIME-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeCallReplyRuntimeProfile PURPOSE="Freeze the exact preserved runtime profile for reply-path evidence." />
+      </annotations>
+    </M-CALL-REPLY-RUNTIME-PROFILE>
+    <M-CALL-REPLY-INSTRUMENTATION NAME="CallReplyInstrumentation" TYPE="UTILITY" STATUS="planned">
+      <purpose>Add only the minimal reply-path anchors needed to classify server ingress, relay mapping, client delivery, and client drop above the preserved governed handoff floor.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALL-REPLY-RUNTIME-PROFILE, M-WSS-GATEWAY, M-UDP-EGRESS-RELAY, M-CLI, M-CALL-DOWNSTREAM-INSTRUMENTATION</depends>
+      <verification-ref>V-M-CALL-REPLY-INSTRUMENTATION</verification-ref>
+      <annotations>
+        <fn-designCallReplyInstrumentation PURPOSE="Define the minimal instrumentation delta for reply-path attribution." />
+      </annotations>
+    </M-CALL-REPLY-INSTRUMENTATION>
+    <M-CALL-REPLY-SERVER-CORRELATION NAME="CallReplyServerCorrelation" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one bounded workstation plus server correlation packet that separates server ingress, relay mapping, client delivery, and explicit drop on the preserved reply-path branch.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALL-REPLY-RUNTIME-PROFILE, M-CALL-REPLY-INSTRUMENTATION</depends>
+      <verification-ref>V-M-CALL-REPLY-SERVER-CORRELATION</verification-ref>
+      <annotations>
+        <fn-defineCallReplyServerCorrelation PURPOSE="Define the bounded workstation-plus-server evidence packet for reply-path attribution." />
+      </annotations>
+    </M-CALL-REPLY-SERVER-CORRELATION>
+    <M-TELEGRAM-CALLS-REPLY-VOICE NAME="TelegramCallsReplyVoice" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Run one bounded Telegram Desktop voice packet that attributes the first reply-path blocker above the preserved governed handoff floor without reopening video.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALL-REPLY-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-REPLY-VOICE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsReplyVoice PURPOSE="Run one bounded reply-path voice packet on the preserved Desktop topology." />
+      </annotations>
+    </M-TELEGRAM-CALLS-REPLY-VOICE>
+    <M-TELEGRAM-CALLS-REPLY-COMPARISON NAME="TelegramCallsReplyComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the new bounded reply-path voice packet against the preserved Phase-45, Phase-46, and Phase-47 packet set.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-REPLY-VOICE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-REPLY-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramCallsReply PURPOSE="Compare the reply-path packet against the preserved boundaries and earlier blockers." />
+      </annotations>
+    </M-TELEGRAM-CALLS-REPLY-COMPARISON>
+    <M-TELEGRAM-CALLS-REPLY-DECISION NAME="TelegramCallsReplyDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue one bounded final decision for the reply-path branch above the preserved Phase-45, Phase-46, and Phase-47 packet set without overstating calls support.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-REPLY-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-REPLY-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsReplyDecision PURPOSE="Issue one bounded final decision for the reply-path branch on the preserved topology." />
+      </annotations>
+    </M-TELEGRAM-CALLS-REPLY-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -4016,6 +4088,14 @@
     <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" to="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" relation="supplies the bounded downstream voice packet for comparison against the preserved boundaries." />
     <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" to="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" relation="supplies the bounded downstream video packet for comparison against the preserved boundaries." />
     <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" to="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" relation="supplies the bounded downstream comparison packet for the final downstream-establishment decision." />
+    <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" to="M-PHASE47-REPLY-BOUNDARY" relation="supplies the preserved downstream final decision that the reply-path branch must keep explicit." />
+    <CrossLink from="M-PHASE47-REPLY-BOUNDARY" to="M-CALL-REPLY-HYPOTHESIS" relation="supplies the preserved reply-path truth-boundary above which the next blocker is defined." />
+    <CrossLink from="M-CALL-REPLY-HYPOTHESIS" to="M-CALL-REPLY-RUNTIME-PROFILE" relation="supplies the exact reply-path blocker that the preserved runtime profile must study." />
+    <CrossLink from="M-CALL-REPLY-RUNTIME-PROFILE" to="M-CALL-REPLY-INSTRUMENTATION" relation="supplies the preserved topology and evidence boundaries that constrain the minimal reply-path anchor delta." />
+    <CrossLink from="M-CALL-REPLY-INSTRUMENTATION" to="M-CALL-REPLY-SERVER-CORRELATION" relation="supplies the anchor vocabulary that bounded workstation and server reply-path correlation must preserve." />
+    <CrossLink from="M-CALL-REPLY-SERVER-CORRELATION" to="M-TELEGRAM-CALLS-REPLY-VOICE" relation="supplies the bounded reply-path correlation packet required before the first reply-path voice packet is interpreted." />
+    <CrossLink from="M-TELEGRAM-CALLS-REPLY-VOICE" to="M-TELEGRAM-CALLS-REPLY-COMPARISON" relation="supplies the bounded reply-path voice packet for comparison against the preserved boundaries." />
+    <CrossLink from="M-TELEGRAM-CALLS-REPLY-COMPARISON" to="M-TELEGRAM-CALLS-REPLY-DECISION" relation="supplies the bounded reply-path comparison packet for the final reply-path decision." />
     <CrossLink from="M-TELEGRAM-DESKTOP-NET-CAPTURE" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the workstation-side attribution evidence surface for voice" />
     <CrossLink from="M-TELEGRAM-SERVER-CORRELATION" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the governed server-side correlation contract for voice attribution" />
     <CrossLink from="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" to="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" relation="keeps the video attribution packet separate but sequenced after voice under the same capture contract" />

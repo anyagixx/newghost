@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.94">
+<VerificationPlan VERSION="0.2.96">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -6308,6 +6308,65 @@
       <failure-scenarios><scenario-1>The final decision overclaims calls support or silently reclassifies preserved tuple recovery as green call establishment.</scenario-1><scenario-2>The final decision collapses the preserved voice and video packets into one generic verdict and loses the fact that they failed on different layers of the same preserved topology.</scenario-2></failure-scenarios>
       <required-trace-assertions><assertion-1>The final decision must remain above the preserved Phase-45 and Phase-46 packet set and choose one exact verdict: preserved key-exchange no-go, narrower downstream-establishment blocker, or genuine establishment progress.</assertion-1><assertion-2>When the chosen verdict is narrower downstream-establishment blocker, the decision must keep the preserved voice post-handoff gap and the earlier video-launch blocker explicit instead of widening them into generic Telegram calls failure.</assertion-2></required-trace-assertions>
     </V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION>
+    <V-M-PHASE47-REPLY-BOUNDARY MODULE="M-PHASE47-REPLY-BOUNDARY" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>README.md</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-48|Phase-47|reply-path truth-boundary|post-handoff evidence gap|video-launch blocker' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The new branch explicitly starts above the completed Phase-47 packet instead of reopening earlier downstream, tuple-recovery, or topology work.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The reply-path branch starts from a generic calls failure statement and loses the preserved Phase-47 split between voice and video.</scenario-1></failure-scenarios>
+    </V-M-PHASE47-REPLY-BOUNDARY>
+    <V-M-CALL-REPLY-HYPOTHESIS MODULE="M-CALL-REPLY-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>README.md</file></test-files>
+      <module-checks><check-1>rg -n 'reply-path blocker|server ingress|relay mapping|client delivery|client drop|Phase-47' docs/development-plan.xml docs/verification-plan.xml README.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The branch names one exact reply-path blocker above preserved governed handoff on voice without reopening video or generic transport diagnosis.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The branch rephrases the old downstream blocker without narrowing the first unresolved layer into reply-path surfaces.</scenario-1></failure-scenarios>
+    </V-M-CALL-REPLY-HYPOTHESIS>
+    <V-M-CALL-REPLY-RUNTIME-PROFILE MODULE="M-CALL-REPLY-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-45|Phase-46|Phase-47|127.0.0.1:1080|no-second-auth|reply-path evidence' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The runtime profile freezes the preserved topology and ordinary baseline while moving only the reply-path evidence layer above governed handoff.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The runtime profile silently changes interception topology, helper launch shape, or Telegram window shape under the reply-path branch label.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The runtime profile must keep Phase-45 tuple recovery, Phase-46 proof order, and Phase-47 downstream blocker explicit as preserved prerequisites rather than new work items.</assertion-1></required-trace-assertions>
+    </V-M-CALL-REPLY-RUNTIME-PROFILE>
+    <V-M-CALL-REPLY-INSTRUMENTATION MODULE="M-CALL-REPLY-INSTRUMENTATION" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file><file>src/wss_gateway/mod.test.rs</file><file>src/cli/mod.test.rs</file><file>src/proxy_bridge/udp_relay.test.rs</file></test-files>
+      <module-checks><check-1>rg -n 'server ingress|relay mapping|client delivery|client drop|minimal runtime-anchor delta' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1><check-2>rg -n 'BLOCK_CALL_REPLY_SERVER_INGRESS|BLOCK_CALL_REPLY_RELAY_MAPPING|BLOCK_CALL_REPLY_CLIENT_DELIVERY|BLOCK_CALL_REPLY_CLIENT_DROP' docs/verification-plan.xml src/wss_gateway/mod.test.rs src/cli/mod.test.rs src/proxy_bridge/udp_relay.test.rs</check-2><check-3>rg -n 'SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_CALL_DOWNSTREAM_REPLY|BLOCK_DELIVER_INBOUND_DATAGRAM' src/wss_gateway/mod.test.rs src/cli/mod.test.rs docs/verification-plan.xml</check-3></module-checks>
+      <success-scenarios><scenario-1>The branch adds only the minimal anchors needed to classify server ingress, relay mapping, client delivery, and client drop above preserved governed handoff.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The instrumentation proposal silently widens into a transport redesign or loses the ability to separate the first unresolved reply-path layer.</scenario-1></failure-scenarios>
+      <required-log-markers><marker-1>[CallReply][serverIngress][BLOCK_CALL_REPLY_SERVER_INGRESS]</marker-1><marker-2>[CallReply][relayMapping][BLOCK_CALL_REPLY_RELAY_MAPPING]</marker-2><marker-3>[CallReply][clientDelivery][BLOCK_CALL_REPLY_CLIENT_DELIVERY]</marker-3><marker-4>[CallReply][clientDrop][BLOCK_CALL_REPLY_CLIENT_DROP]</marker-4></required-log-markers>
+      <required-trace-assertions><assertion-1>The instrumentation packet must preserve the current governed-handoff floor below any new reply-path markers instead of replacing it.</assertion-1><assertion-2>The new anchors must let a later test say whether the first unresolved reply-path layer is server ingress absence, relay mapping absence, client delivery absence, or explicit client drop without rereading free-form manual logs.</assertion-2><assertion-3>The new reply-path anchors must remain distinct from existing `SERVER_DATAGRAM_INBOUND_RECEIVED`, `SERVER_DATAGRAM_RETURN_EMITTED`, and `BLOCK_CALL_DOWNSTREAM_REPLY` markers so another agent can still separate old downstream evidence from the new reply-path classifier.</assertion-3></required-trace-assertions>
+      <wave-follow-up>The first execution wave should add direct assertions in `src/wss_gateway/mod.test.rs`, `src/proxy_bridge/udp_relay.test.rs`, and `src/cli/mod.test.rs` for the new reply-path anchors before a new live Telegram voice packet is interpreted.</wave-follow-up>
+      <phase-follow-up>The Phase-48 gate should reject any live execution packet if the new reply-path anchors exist only in prose artifacts and not yet in source-adjacent tests.</phase-follow-up>
+    </V-M-CALL-REPLY-INSTRUMENTATION>
+    <V-M-CALL-REPLY-SERVER-CORRELATION MODULE="M-CALL-REPLY-SERVER-CORRELATION" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'reply-path|server ingress|relay mapping|client delivery|client drop' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'accepted WSS handshake|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_CALL_REPLY_SERVER_INGRESS' docs/verification-plan.xml docs/OPERATORS.md README.md</check-2><check-3>rg -n 'attempt label|bounded window|same Telegram voice attempt|reply-path' docs/verification-plan.xml docs/OPERATORS.md</check-3></module-checks>
+      <success-scenarios><scenario-1>The branch defines one bounded packet that can distinguish no server ingress, server ingress without relay mapping, relay mapping without client delivery, and explicit client drop on the same preserved voice attempt.</scenario-1><scenario-2>The packet remains valid when server evidence still shows only fresh accepted WSS handshakes, as long as that bounded absence is recorded explicitly as the first divergent reply-path layer instead of generic transport failure.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The branch asks for another manual voice packet without a bounded workstation plus server correlation contract for reply-path evidence.</scenario-1><scenario-2>The packet blends workstation tuple-recovery evidence from one attempt with server ingress or reply evidence from a different attempt label or bounded window.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The correlation packet must use one stable attempt label and one bounded workstation plus server evidence window for the same Telegram voice attempt.</assertion-1><assertion-2>The packet must keep server ingress, relay mapping, client delivery, and client drop as separate layers instead of collapsing them into generic downstream failure.</assertion-2><assertion-3>If no reply-path marker appears but the preserved Phase-47 floor still appears, that bounded absence must be named as the current blocker rather than as a regression in tuple recovery or governed handoff.</assertion-3></required-trace-assertions>
+      <wave-follow-up>The first live reply-path packet should capture workstation evidence, server evidence, and any client-delivery or drop marker in one bounded packet tied to the same attempt label; otherwise the packet is not execution-grade.</wave-follow-up>
+    </V-M-CALL-REPLY-SERVER-CORRELATION>
+    <V-M-TELEGRAM-CALLS-REPLY-VOICE MODULE="M-TELEGRAM-CALLS-REPLY-VOICE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'reply voice|Phase-48|already logged-in|preserved topology|127.0.0.1:1080|governed handoff' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'server ingress|relay mapping|client delivery|client drop' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-2></module-checks>
+      <success-scenarios><scenario-1>The reply-path voice packet runs above the preserved Phase-47 boundary and classifies the first reply-path layer after governed handoff without changing topology.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The packet reopens generic transport or video diagnosis, or claims success or failure without separating server ingress, relay mapping, client delivery, and client drop.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The packet must keep tuple recovery and governed handoff explicit as already-proven earlier evidence while naming the first unresolved reply-path layer after them.</assertion-1><assertion-2>The packet must say whether the first missing layer was server ingress, relay mapping, client delivery, or an explicit client-drop marker in the same bounded window.</assertion-2></required-trace-assertions>
+      <wave-follow-up>The first reply-path voice packet should be treated as the primary execution packet for Phase-48; if it still closes on bounded absence, the next wave must deepen reply-path instrumentation around that exact missing layer before spending another blind Telegram packet.</wave-follow-up>
+    </V-M-TELEGRAM-CALLS-REPLY-VOICE>
+    <V-M-TELEGRAM-CALLS-REPLY-COMPARISON MODULE="M-TELEGRAM-CALLS-REPLY-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-45|Phase-46|Phase-47|Phase-48|reply-path' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The comparison packet keeps Phase-45, Phase-46, and Phase-47 explicit while evaluating whether the first unresolved layer moved deeper into the reply path.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The comparison packet loses the preserved boundaries or silently erases the earlier video blocker and voice post-handoff gap.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The comparison packet must say whether the first unresolved layer stayed at reply-path ingress, moved to narrower client-delivery behavior, or showed genuine reply progress.</assertion-1></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-REPLY-COMPARISON>
+    <V-M-TELEGRAM-CALLS-REPLY-DECISION MODULE="M-TELEGRAM-CALLS-REPLY-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'reply-path decision|reply-path blocker|narrower client-delivery blocker|genuine reply progress' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The final decision stays bounded to the new reply-path branch above the preserved Phase-45, Phase-46, and Phase-47 packet set.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The final decision overclaims calls support or silently reclassifies preserved tuple recovery, governed handoff, or the earlier video blocker as green call establishment.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The final decision must remain above the preserved Phase-45, Phase-46, and Phase-47 packet set and choose one exact verdict: reply-path blocker, narrower client-delivery blocker, or genuine reply progress.</assertion-1><assertion-2>The final decision must keep the preserved Phase-47 split explicit: voice is the reply-path diagnosis surface, while the earlier video-launch blocker remains a preserved separate boundary and may not be silently reopened.</assertion-2></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-REPLY-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -7087,6 +7146,27 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsDownstreamEstablishmentWave; expected-evidence=preserved Phase-45 and Phase-46 boundaries, preserved ordinary baseline, one exact downstream-establishment hypothesis, minimal anchor delta, bounded workstation/server correlation, and separate downstream voice/video packets; observed-evidence=phase artifacts, instrumentation packet, correlation packet, and downstream calls packets; first-divergent-block=first missing downstream-boundary, hypothesis, runtime-profile, instrumentation, correlation, voice, video, or comparison marker; next-action=repair that exact downstream layer before spending more call attempts</failure-packet-template>
     </LV-038>
+    <LV-039 NAME="TelegramCallsReplyPathWave" PRIORITY="high">
+      <scope>Phase-48 reply-path branch above the completed Phase-47 packet on the preserved Phase-45 topology and preserved Phase-46 or Phase-47 truth-boundary set.</scope>
+      <commands>
+        <command-1>keep the preserved ordinary Telegram baseline at `127.0.0.1:1080` untouched</command-1>
+        <command-2>keep the completed Phase-45, Phase-46, and Phase-47 packet set explicit as preserved boundaries</command-2>
+        <command-3>freeze one exact reply-path hypothesis above governed handoff on the preserved topology</command-3>
+        <command-4>define only the minimal runtime-anchor delta needed for server ingress, relay mapping, client delivery, and client drop classification</command-4>
+        <command-5>define one bounded workstation plus server correlation packet for reply-path behavior</command-5>
+        <command-6>run one reply-path voice packet</command-6>
+        <command-7>compare the reply-path packet against the preserved Phase-45, Phase-46, and Phase-47 boundaries</command-7>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave does not reopen generic transport, interception-topology, or earlier video-launch diagnosis.</evidence-1>
+        <evidence-2>The wave keeps the preserved ordinary baseline and no-second-auth rule explicit.</evidence-2>
+        <evidence-3>The wave adds only the minimal anchor delta required above governed handoff.</evidence-3>
+        <evidence-4>The wave keeps Phase-47 voice and video split explicit while studying only the voice reply path.</evidence-4>
+        <evidence-5>The final comparison says whether the first unresolved layer stayed at reply-path ingress, moved to narrower client-delivery behavior, or showed genuine reply progress.</evidence-5>
+        <evidence-6>No live reply-path voice packet is valid until module-local tests directly assert any new `BLOCK_CALL_REPLY_*` anchors.</evidence-6>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsReplyPathWave; expected-evidence=preserved Phase-45, Phase-46, and Phase-47 boundaries, preserved ordinary baseline, one exact reply-path hypothesis, minimal anchor delta, bounded workstation/server correlation, and one bounded reply-path voice packet; observed-evidence=phase artifacts, instrumentation packet, correlation packet, and reply-path voice packet; first-divergent-block=first missing reply-boundary, hypothesis, runtime-profile, instrumentation, correlation, voice, or comparison marker; next-action=repair that exact reply-path layer before spending more call attempts</failure-packet-template>
+    </LV-039>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -8002,6 +8082,31 @@ PY</command-3>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-47; expected-evidence=execution-ready downstream-establishment wave with preserved ordinary baseline, explicit Phase-45 and Phase-46 boundaries, one exact downstream hypothesis and runtime profile, minimal anchor delta, bounded workstation/server correlation, separate downstream voice and video packets, and bounded decision; observed-evidence=phase artifacts, downstream packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-47 gate requirement; next-action=repair the missing Phase-47 artifact before executing the bounded downstream voice wave</failure-packet-template>
     </Gate-Phase-47>
+    <Gate-Phase-48 PHASE="Phase-48">
+      <goal>The project has an execution-ready reply-path branch above the completed Phase-47 packet without reopening the preserved Phase-45 transport, Phase-46 post-recovery, or Phase-47 downstream truth.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-48|M-PHASE47-REPLY-BOUNDARY|M-TELEGRAM-CALLS-REPLY-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-039|127.0.0.1:1080|Phase-45|Phase-46|Phase-47|reply-path|governed handoff|server ingress|client delivery' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>rg -n 'BLOCK_CALL_REPLY_SERVER_INGRESS|BLOCK_CALL_REPLY_RELAY_MAPPING|BLOCK_CALL_REPLY_CLIENT_DELIVERY|BLOCK_CALL_REPLY_CLIENT_DROP' docs/verification-plan.xml src/wss_gateway/mod.test.rs src/cli/mod.test.rs src/proxy_bridge/udp_relay.test.rs</command-3>
+        <command-4>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-4>
+        <command-5>git diff --check</command-5>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the preserved ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the completed Phase-45, Phase-46, and Phase-47 packet set explicit as preserved boundaries.</evidence-2>
+        <evidence-3>The gate requires one exact reply-path hypothesis and preserved runtime profile.</evidence-3>
+        <evidence-4>The gate requires only the minimal runtime-anchor delta needed above governed handoff.</evidence-4>
+        <evidence-5>The gate requires one bounded workstation plus server correlation packet before a new reply-path voice packet is interpreted.</evidence-5>
+        <evidence-6>The gate requires a bounded final decision that does not relabel preserved tuple recovery, governed handoff, or the earlier video blocker as green call establishment.</evidence-6>
+        <evidence-7>The gate requires direct test-level assertions for any new `BLOCK_CALL_REPLY_*` anchors before live execution can begin.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-48; expected-evidence=execution-ready reply-path wave with preserved ordinary baseline, explicit Phase-45, Phase-46, and Phase-47 boundaries, one exact reply-path hypothesis and runtime profile, minimal anchor delta, bounded workstation/server correlation, one bounded reply-path voice packet, and bounded decision; observed-evidence=phase artifacts, reply-path packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-48 gate requirement; next-action=repair the missing Phase-48 artifact before executing the bounded reply-path voice wave</failure-packet-template>
+    </Gate-Phase-48>
   </PhaseGates>
 
   <FailurePackets>
