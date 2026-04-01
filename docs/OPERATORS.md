@@ -2092,3 +2092,11 @@ Bounded workstation plus server correlation packet for Phase-47:
    `timeout`
    `abort`
 6. The packet is invalid if it blends workstation symptoms and server logs into one vague conclusion or if it reopens generic transport or topology diagnosis without disproving the preserved Phase-45 or Phase-46 packet in the same bounded window.
+
+Observed bounded downstream voice packet on 2026-04-01:
+
+1. The preserved ordinary Telegram Desktop baseline stayed on `SOCKS5 127.0.0.1:1080`, the already logged-in window reached a real outgoing call state, and the bounded UI evidence showed `Исходящий звонок (20 секунд)` for the selected contact.
+2. In the same bounded workstation window, the helper preserved the tuple-recovery and governed-handoff floor for real Telegram media tuples including `91.108.9.10:596`, `91.108.13.10:598`, and `91.108.17.39:597`.
+3. In the same bounded server window, the remote server showed fresh `accepted WSS handshake` lines, but no fresh `SERVER_DATAGRAM_RECEIVED`, `SERVER_DATAGRAM_INBOUND_RECEIVED`, or `SERVER_DATAGRAM_RETURN_EMITTED` markers appeared.
+4. No downstream markers `BLOCK_CALL_DOWNSTREAM_CONTINUATION`, `BLOCK_CALL_DOWNSTREAM_REPLY`, `BLOCK_CALL_DOWNSTREAM_TIMEOUT`, or `BLOCK_CALL_DOWNSTREAM_ABORT` appeared in the same bounded window.
+5. This packet is therefore a valid blocked Phase-47 voice packet: it proves real Telegram media tuple recovery above governed handoff on the preserved topology, but it closes as a narrower post-handoff evidence gap rather than a transport regression, topology regression, or green call-establishment packet.
