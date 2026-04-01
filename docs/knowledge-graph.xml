@@ -3674,7 +3674,7 @@
         <fn-defineCallReplyHypothesis PURPOSE="Define the first unresolved reply-path layer above preserved governed handoff on voice." />
       </annotations>
     </M-CALL-REPLY-HYPOTHESIS>
-    <M-CALL-REPLY-RUNTIME-PROFILE NAME="CallReplyRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-CALL-REPLY-RUNTIME-PROFILE NAME="CallReplyRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze one exact runtime profile for the reply-path branch while preserving the completed Phase-45, Phase-46, and Phase-47 topology and ordinary baseline.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CALL-REPLY-HYPOTHESIS, M-CALL-DOWNSTREAM-RUNTIME-PROFILE</depends>
