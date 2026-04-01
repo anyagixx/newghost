@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.test.rs
-// VERSION: 0.1.7
+// VERSION: 0.1.8
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify TLS-backed WSS stream establishment, production datagram-carrier handshake, server-side datagram ingress, server-side inbound return emission, client-side inbound callback delivery, cancellation handling, and adapter cleanup guarantees.
 //   SCOPE: Successful WSS handshake and byte relay, production datagram-path open and emit behavior, server-side relay delivery, bounded server-side inbound return, client-side inbound callback delivery, pre-open cancellation, mid-open cancellation, and failed-open cleanup.
@@ -21,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.7 - Added a direct reply-path server-ingress anchor assertion so Phase-48 can machine-check the first bounded reply layer at the server edge.
+//   LAST_CHANGE: v0.1.8 - Added direct Phase-49 server-ingress eligibility, decode, loop-entry, and pre-loop-drop anchor assertions so the first server-side gap after accepted WSS handshake is machine-checkable.
 // END_CHANGE_SUMMARY
 
 use std::sync::{Arc, Mutex};
@@ -525,6 +525,12 @@ async fn server_runtime_logs_downstream_abort_when_runtime_closes_before_reply()
     server_gateway.stop_accept();
     assert!(server_task.await.expect("server task should join").is_ok());
     assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallServerIngress][preLoopDrop][BLOCK_CALL_SERVER_INGRESS_DROP]"
+    )));
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallServerIngress][loopEntry][BLOCK_CALL_SERVER_INGRESS_LOOP_ENTRY]"
+    )));
+    assert!(capture.lines().iter().any(|line| line.contains(
         "[CallDownstream][abort][BLOCK_CALL_DOWNSTREAM_ABORT]"
     )));
 }
@@ -582,6 +588,15 @@ async fn runtime_datagram_reply_reaches_client_inbound_handler() {
     assert_eq!(recorded[0].relay_client_addr, envelope.relay_client_addr);
     assert_eq!(recorded[0].target, envelope.target);
     assert_eq!(recorded[0].payload, b"phase27-runtime-reply".to_vec());
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallServerIngress][eligibility][BLOCK_CALL_SERVER_INGRESS_ELIGIBLE]"
+    )));
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallServerIngress][loopEntry][BLOCK_CALL_SERVER_INGRESS_LOOP_ENTRY]"
+    )));
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CallServerIngress][decode][BLOCK_CALL_SERVER_INGRESS_DECODE]"
+    )));
     assert!(capture.lines().iter().any(|line| line.contains(
         "[CallReply][serverIngress][BLOCK_CALL_REPLY_SERVER_INGRESS]"
     )));

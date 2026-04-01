@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.10
+// VERSION: 0.1.11
 // START_MODULE_CONTRACT
 //   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, governed datagram framing, and client-side inbound datagram callback wiring under the shared adapter contract without owning transport selection logic.
 //   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, server-side inbound return emission, client-side inbound datagram callback wiring, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.11 - Added a reply-path server-ingress anchor so Phase-48 can separate inbound reply ingress from later relay-mapping and client-delivery layers.
+//   LAST_CHANGE: v0.1.12 - Added bounded server-ingress eligibility, decode, loop-entry, and pre-loop-drop anchors so Phase-49 can classify the first server-side gap after accepted WSS handshake.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -240,6 +240,11 @@ impl WssGateway {
                     .map_err(|err| WssError::UpgradeFailed(err.to_string()))?;
 
                 if let Some(association_id) = parse_datagram_open_request(&target_message) {
+                    info!(
+                        association_id,
+                        peer = %peer_label,
+                        "[CallServerIngress][eligibility][BLOCK_CALL_SERVER_INGRESS_ELIGIBLE] accepted WSS handshake advanced into the governed datagram runtime eligibility surface"
+                    );
                     self.server_datagram_loop(websocket, association_id).await
                 } else {
                     self.server_proxy_loop(websocket, target_message).await
@@ -337,10 +342,16 @@ impl WssGateway {
             .send(Message::Text("datagram-ready".into()))
             .await
             .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
+        info!(
+            association_id,
+            "[CallServerIngress][loopEntry][BLOCK_CALL_SERVER_INGRESS_LOOP_ENTRY] entered the governed server datagram loop after datagram-ready handshake"
+        );
 
+        let mut observed_binary_frame = false;
         while let Some(frame) = websocket.next().await {
             match frame.map_err(|err| WssError::DatagramPathFailed(err.to_string()))? {
                 Message::Binary(bytes) => {
+                    observed_binary_frame = true;
                     let envelope = datagram::decode_message(Message::Binary(bytes))
                         .map_err(|err| WssError::DatagramPathFailed(err.to_string()))?;
                     if envelope.association_id != association_id {
@@ -349,6 +360,12 @@ impl WssGateway {
                             envelope.association_id
                         )));
                     }
+                    info!(
+                        association_id,
+                        target = ?envelope.target,
+                        payload_len = envelope.payload.len(),
+                        "[CallServerIngress][decode][BLOCK_CALL_SERVER_INGRESS_DECODE] decoded a governed datagram frame inside the server-ingress branch"
+                    );
                     info!(
                         association_id,
                         target = ?envelope.target,
@@ -389,6 +406,12 @@ impl WssGateway {
                     }
                 }
                 Message::Close(_) => {
+                    if !observed_binary_frame {
+                        warn!(
+                            association_id,
+                            "[CallServerIngress][preLoopDrop][BLOCK_CALL_SERVER_INGRESS_DROP] datagram runtime closed before the first governed server-ingress datagram frame was observed"
+                        );
+                    }
                     warn!(
                         association_id,
                         "[CallDownstream][abort][BLOCK_CALL_DOWNSTREAM_ABORT] datagram runtime closed before a downstream reply-class marker appeared"
@@ -397,11 +420,24 @@ impl WssGateway {
                 }
                 Message::Ping(_) | Message::Pong(_) => {}
                 Message::Text(text) => {
+                    if !observed_binary_frame {
+                        warn!(
+                            association_id,
+                            text = %text,
+                            "[CallServerIngress][preLoopDrop][BLOCK_CALL_SERVER_INGRESS_DROP] unexpected text frame arrived before the first governed server-ingress datagram frame"
+                        );
+                    }
                     return Err(WssError::DatagramPathFailed(format!(
                         "unexpected datagram runtime text frame: {text}"
                     )));
                 }
                 Message::Frame(_) => {
+                    if !observed_binary_frame {
+                        warn!(
+                            association_id,
+                            "[CallServerIngress][preLoopDrop][BLOCK_CALL_SERVER_INGRESS_DROP] unexpected raw websocket frame arrived before the first governed server-ingress datagram frame"
+                        );
+                    }
                     return Err(WssError::DatagramPathFailed(
                         "unexpected datagram runtime frame".to_string(),
                     ));
