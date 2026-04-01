@@ -362,6 +362,8 @@ Current calls-profile status:
   for the tested Telegram Desktop setup the honest verdict is `reply-path blocker`, more narrowly `server ingress absence` above preserved tuple recovery and governed handoff; this is progress in diagnosis, not a green calls-support claim
 - the completed Phase-48 packet is now the preserved server-ingress truth-boundary:
   on the tested Desktop setup the next honest work starts only above the bounded `server ingress absence` classifier and must not reopen generic reply-path, downstream, tuple-recovery, or video diagnosis unless the preserved `Phase-45/46/47/48` packet set is disproved in the same bounded window
+- the current Phase-49 hypothesis is now exact:
+  on preserved voice attempts the first unresolved layer stays inside the server-side ingress chain after accepted WSS handshake, where the next bounded packet must classify ingress eligibility absence, decode absence, loop-entry absence, or explicit pre-loop drop instead of treating handshake-only evidence as sufficient diagnosis
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support
