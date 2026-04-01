@@ -6369,6 +6369,52 @@
       <failure-scenarios><scenario-1>The final decision overclaims calls support or silently reclassifies preserved tuple recovery, governed handoff, or the earlier video blocker as green call establishment.</scenario-1></failure-scenarios>
       <required-trace-assertions><assertion-1>The final decision must remain above the preserved Phase-45, Phase-46, and Phase-47 packet set and choose one exact verdict: reply-path blocker, narrower client-delivery blocker, or genuine reply progress.</assertion-1><assertion-2>The final decision must keep the preserved Phase-47 split explicit: voice is the reply-path diagnosis surface, while the earlier video-launch blocker remains a preserved separate boundary and may not be silently reopened.</assertion-2><assertion-3>When the branch closes as a reply-path blocker, the decision must preserve the sharper Phase-48 classifier and state whether the blocker stayed at `server ingress`, moved deeper to `client delivery`, or became genuine reply progress.</assertion-3></required-trace-assertions>
     </V-M-TELEGRAM-CALLS-REPLY-DECISION>
+    <V-M-PHASE48-SERVER-INGRESS-BOUNDARY MODULE="M-PHASE48-SERVER-INGRESS-BOUNDARY" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-49|Phase-48|server-ingress truth-boundary|server ingress absence|reply-path blocker' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The server-ingress boundary must keep the preserved Phase-48 voice verdict explicit: the current blocker is `server ingress` absence above preserved tuple recovery and governed handoff.</assertion-1></required-trace-assertions>
+    </V-M-PHASE48-SERVER-INGRESS-BOUNDARY>
+    <V-M-SERVER-INGRESS-HYPOTHESIS MODULE="M-SERVER-INGRESS-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'server ingress|eligibility|decode|loop entry|pre-loop drop|Phase-48' docs/development-plan.xml docs/verification-plan.xml README.md</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The hypothesis must name the approved server-ingress chain after accepted WSS handshake and split it into eligibility, decode, loop entry, or explicit pre-loop drop.</assertion-1></required-trace-assertions>
+    </V-M-SERVER-INGRESS-HYPOTHESIS>
+    <V-M-SERVER-INGRESS-RUNTIME-PROFILE MODULE="M-SERVER-INGRESS-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-49|127.0.0.1:1080|Phase-45|Phase-46|Phase-47|Phase-48|server-ingress|accepted WSS handshake' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The runtime profile must keep Phase-45 tuple recovery, Phase-46 proof order, Phase-47 split, and Phase-48 reply-path blocker explicit as preserved prerequisites rather than new work items.</assertion-1><assertion-2>The runtime profile must state that Phase-49 opens one bounded voice attempt label at a time and does not reopen video inside the server-ingress branch.</assertion-2></required-trace-assertions>
+    </V-M-SERVER-INGRESS-RUNTIME-PROFILE>
+    <V-M-SERVER-INGRESS-INSTRUMENTATION MODULE="M-SERVER-INGRESS-INSTRUMENTATION" PRIORITY="high">
+      <test-files><file>src/wss_gateway/mod.rs</file><file>src/wss_gateway/mod.test.rs</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'eligibility|decode|loop entry|pre-loop drop|minimal runtime-anchor delta' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1><check-2>rg -n 'BLOCK_CALL_SERVER_INGRESS_ELIGIBLE|BLOCK_CALL_SERVER_INGRESS_DECODE|BLOCK_CALL_SERVER_INGRESS_LOOP_ENTRY|BLOCK_CALL_SERVER_INGRESS_DROP' docs/verification-plan.xml src/wss_gateway/mod.rs src/wss_gateway/mod.test.rs</check-2></module-checks>
+      <success-scenarios><scenario-1>The branch adds only the minimal anchors needed to classify server-ingress eligibility, decode, loop entry, and pre-loop drop above accepted WSS handshake.</scenario-1><scenario-2>The machine-checkable test surface stays inside `src/wss_gateway/mod.test.rs` and does not depend on a live Telegram packet.</scenario-2></success-scenarios>
+      <failure-scenarios><scenario-1>The instrumentation widens into generic transport redesign or mixes pre-loop drop with later reply-path behavior.</scenario-1><scenario-2>The new markers exist only in prose artifacts and not in source-adjacent tests.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The instrumentation packet must preserve the current handshake-only boundary below any new server-ingress markers instead of replacing it.</assertion-1><assertion-2>The new anchors must let a later test say whether the first unresolved server-ingress layer is eligibility absence, decode absence, loop-entry absence, or explicit pre-loop drop.</assertion-2><assertion-3>The server-ingress anchors must remain distinct from existing `SERVER_DATAGRAM_RECEIVED`, `SERVER_DATAGRAM_INBOUND_RECEIVED`, `SERVER_DATAGRAM_RETURN_EMITTED`, and `BLOCK_CALL_REPLY_SERVER_INGRESS` markers so another agent can still separate old reply-path evidence from the new server-ingress classifier.</assertion-3></required-trace-assertions>
+      <phase-follow-up>The Phase-49 gate should reject any live execution packet if the new server-ingress anchors exist only in prose artifacts and not yet in source-adjacent tests.</phase-follow-up>
+    </V-M-SERVER-INGRESS-INSTRUMENTATION>
+    <V-M-SERVER-INGRESS-CORRELATION MODULE="M-SERVER-INGRESS-CORRELATION" PRIORITY="high">
+      <test-files><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'phase49-server-ingress-voice|handshake-only|eligibility|decode|loop entry|pre-loop drop' docs/verification-plan.xml docs/OPERATORS.md docs/development-plan.xml</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The bounded packet must keep preserved tuple recovery, governed handoff, and accepted WSS handshake explicit before naming the first server-ingress marker or bounded absence after them.</assertion-1><assertion-2>The packet must end with exactly one first-divergent server-ingress layer: `eligibility`, `decode`, `loop entry`, or `pre-loop drop`.</assertion-2><assertion-3>Bounded absence is valid evidence only when the same attempt label shows accepted WSS handshake but no new `BLOCK_CALL_SERVER_INGRESS_*` marker in the same window.</assertion-3></required-trace-assertions>
+      <wave-follow-up>The server-ingress correlation packet must use one stable attempt label `phase49-server-ingress-voice-&lt;timestamp&gt;` and keep workstation tuple-recovery floor, governed handoff floor, accepted WSS handshake, and the first server-ingress marker or bounded absence in one exact evidence window.</wave-follow-up>
+    </V-M-SERVER-INGRESS-CORRELATION>
+    <V-M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE MODULE="M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'server-ingress voice|Phase-49|already logged-in|preserved topology|127.0.0.1:1080|accepted WSS handshake' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'eligibility|decode|loop entry|pre-loop drop' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-2></module-checks>
+      <failure-scenarios><scenario-1>The packet reopens generic transport or video diagnosis, or reports only handshake presence without separating the first missing server-ingress layer.</scenario-1><scenario-2>The packet blends older Phase-48 reply-path absence with the new Phase-49 server-ingress classifier.</scenario-2></failure-scenarios>
+      <required-trace-assertions><assertion-1>The packet must keep tuple recovery, governed handoff, and accepted WSS handshake explicit as already-proven earlier evidence while naming the first unresolved server-ingress layer after them.</assertion-1><assertion-2>The packet must say whether the first missing layer was eligibility, decode, loop entry, or an explicit pre-loop drop marker in the same bounded window.</assertion-2><assertion-3>The packet is invalid if it spends a new Telegram voice attempt before `src/wss_gateway/mod.test.rs` directly asserts every new `BLOCK_CALL_SERVER_INGRESS_*` anchor.</assertion-3></required-trace-assertions>
+      <wave-follow-up>The first server-ingress voice packet should be treated as the primary execution packet for Phase-49; if it still closes on bounded absence, the next wave must deepen server-side instrumentation around that exact missing layer before spending another blind Telegram packet.</wave-follow-up>
+    </V-M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE>
+    <V-M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON MODULE="M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-45|Phase-46|Phase-47|Phase-48|Phase-49|server-ingress' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The comparison packet must say whether the first unresolved layer stayed at server-ingress handshake-only behavior, moved to narrower pre-loop behavior, or showed genuine ingress progress.</assertion-1></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON>
+    <V-M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION MODULE="M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'server-ingress decision|server-ingress blocker|narrower pre-loop drop|genuine ingress progress' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <required-trace-assertions><assertion-1>The final decision must remain above the preserved Phase-45, Phase-46, Phase-47, and Phase-48 packet set and choose one exact verdict: server-ingress blocker, narrower pre-loop drop, or genuine ingress progress.</assertion-1><assertion-2>The final decision must keep the preserved Phase-47 split explicit and the preserved Phase-48 voice verdict explicit.</assertion-2></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -7169,6 +7215,30 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsReplyPathWave; expected-evidence=preserved Phase-45, Phase-46, and Phase-47 boundaries, preserved ordinary baseline, one exact reply-path hypothesis, minimal anchor delta, bounded workstation/server correlation, and one bounded reply-path voice packet; observed-evidence=phase artifacts, instrumentation packet, correlation packet, and reply-path voice packet; first-divergent-block=first missing reply-boundary, hypothesis, runtime-profile, instrumentation, correlation, voice, or comparison marker; next-action=repair that exact reply-path layer before spending more call attempts</failure-packet-template>
     </LV-039>
+    <LV-040 NAME="TelegramCallsServerIngressWave" PRIORITY="high">
+      <scope>Phase-49 server-ingress branch above the completed Phase-48 packet on the preserved Phase-45 topology and preserved Phase-46, Phase-47, and Phase-48 truth-boundary set.</scope>
+      <commands>
+        <command-1>keep the preserved ordinary Telegram baseline at `127.0.0.1:1080` untouched</command-1>
+        <command-2>keep the completed Phase-45, Phase-46, Phase-47, and Phase-48 packet set explicit as preserved boundaries</command-2>
+        <command-3>freeze one exact server-ingress hypothesis above accepted WSS handshake on the preserved topology</command-3>
+        <command-4>define only the minimal runtime-anchor delta needed for eligibility, decode, loop entry, and pre-loop drop classification</command-4>
+        <command-5>define one bounded workstation plus server correlation packet for server-ingress behavior</command-5>
+        <command-6>directly assert any new `BLOCK_CALL_SERVER_INGRESS_*` anchors in `src/wss_gateway/mod.test.rs` before live execution</command-6>
+        <command-7>`cargo test wss_gateway -- --nocapture` must pass before a live packet is spent</command-7>
+        <command-8>run one server-ingress voice packet</command-8>
+        <command-9>compare the server-ingress packet against the preserved Phase-45, Phase-46, Phase-47, and Phase-48 boundaries</command-9>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave does not reopen generic transport, interception-topology, reply-path, or earlier video-launch diagnosis.</evidence-1>
+        <evidence-2>The wave keeps the preserved ordinary baseline and no-second-auth rule explicit.</evidence-2>
+        <evidence-3>The wave adds only the minimal anchor delta required above accepted WSS handshake.</evidence-3>
+        <evidence-4>The wave keeps the preserved Phase-48 voice verdict explicit while studying only the server-ingress layer above it.</evidence-4>
+        <evidence-5>The final comparison says whether the first unresolved layer stayed at server-ingress handshake-only behavior, moved to narrower pre-loop behavior, or showed genuine ingress progress.</evidence-5>
+        <evidence-6>No live server-ingress voice packet is valid until module-local tests directly assert any new `BLOCK_CALL_SERVER_INGRESS_*` anchors.</evidence-6>
+        <evidence-7>The same bounded packet must keep accepted WSS handshake and either one first `BLOCK_CALL_SERVER_INGRESS_*` marker or one explicit bounded absence statement in the same attempt window.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsServerIngressWave; expected-evidence=preserved Phase-45, Phase-46, Phase-47, and Phase-48 boundaries, preserved ordinary baseline, one exact server-ingress hypothesis, minimal anchor delta, bounded workstation/server correlation, and one bounded server-ingress voice packet; observed-evidence=phase artifacts, instrumentation packet, correlation packet, and server-ingress voice packet; first-divergent-block=first missing server-ingress-boundary, hypothesis, runtime-profile, instrumentation, correlation, voice, or comparison marker; next-action=repair that exact server-ingress layer before spending more call attempts</failure-packet-template>
+    </LV-040>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -8109,6 +8179,33 @@ PY</command-4>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-48; expected-evidence=execution-ready reply-path wave with preserved ordinary baseline, explicit Phase-45, Phase-46, and Phase-47 boundaries, one exact reply-path hypothesis and runtime profile, minimal anchor delta, bounded workstation/server correlation, one bounded reply-path voice packet, and bounded decision; observed-evidence=phase artifacts, reply-path packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-48 gate requirement; next-action=repair the missing Phase-48 artifact before executing the bounded reply-path voice wave</failure-packet-template>
     </Gate-Phase-48>
+    <Gate-Phase-49 PHASE="Phase-49">
+      <goal>The project has an execution-ready server-ingress branch above the completed Phase-48 packet without reopening the preserved Phase-45 transport, Phase-46 post-recovery, Phase-47 downstream truth, or Phase-48 reply-path truth.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-49|M-PHASE48-SERVER-INGRESS-BOUNDARY|M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-040|127.0.0.1:1080|Phase-45|Phase-46|Phase-47|Phase-48|server-ingress|accepted WSS handshake|eligibility|loop entry' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>rg -n 'BLOCK_CALL_SERVER_INGRESS_ELIGIBLE|BLOCK_CALL_SERVER_INGRESS_DECODE|BLOCK_CALL_SERVER_INGRESS_LOOP_ENTRY|BLOCK_CALL_SERVER_INGRESS_DROP' docs/verification-plan.xml src/wss_gateway/mod.test.rs src/wss_gateway/mod.rs</command-3>
+        <command-4>cargo test wss_gateway -- --nocapture</command-4>
+        <command-5>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-5>
+        <command-6>git diff --check</command-6>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the preserved ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the completed Phase-45, Phase-46, Phase-47, and Phase-48 packet set explicit as preserved boundaries.</evidence-2>
+        <evidence-3>The gate requires one exact server-ingress hypothesis and preserved runtime profile.</evidence-3>
+        <evidence-4>The gate requires only the minimal runtime-anchor delta needed above accepted WSS handshake.</evidence-4>
+        <evidence-5>The gate requires one bounded workstation plus server correlation packet before a new server-ingress voice packet is interpreted.</evidence-5>
+        <evidence-6>The gate requires a bounded final decision that does not relabel preserved tuple recovery, governed handoff, reply-path blocker, or the earlier video blocker as green call establishment.</evidence-6>
+        <evidence-7>The gate requires direct test-level assertions for any new `BLOCK_CALL_SERVER_INGRESS_*` anchors before live execution can begin.</evidence-7>
+        <evidence-8>The gate requires `wss_gateway` tests to pass with direct assertions on every new server-ingress anchor before any bounded Telegram voice packet is spent.</evidence-8>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-49; expected-evidence=execution-ready server-ingress wave with preserved ordinary baseline, explicit Phase-45, Phase-46, Phase-47, and Phase-48 boundaries, one exact server-ingress hypothesis and runtime profile, minimal anchor delta, bounded workstation/server correlation, one bounded server-ingress voice packet, and bounded decision; observed-evidence=phase artifacts, server-ingress packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-49 gate requirement; next-action=repair the missing Phase-49 artifact before executing the bounded server-ingress voice wave</failure-packet-template>
+    </Gate-Phase-49>
   </PhaseGates>
 
   <FailurePackets>

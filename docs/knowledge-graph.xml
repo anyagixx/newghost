@@ -3728,6 +3728,62 @@
         <fn-issueTelegramCallsReplyDecision PURPOSE="Issue one bounded final decision for the reply-path branch on the preserved topology." />
       </annotations>
     </M-TELEGRAM-CALLS-REPLY-DECISION>
+    <M-PHASE48-SERVER-INGRESS-BOUNDARY NAME="Phase48ServerIngressBoundary" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Freeze Phase-48 as the new server-ingress truth-boundary above preserved tuple recovery, governed handoff, and the narrowed reply-path verdict.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-REPLY-DECISION</depends>
+      <verification-ref>V-M-PHASE48-SERVER-INGRESS-BOUNDARY</verification-ref>
+      <annotations><fn-freezePhase48ServerIngressBoundary PURPOSE="Freeze the completed Phase-48 packet as the preserved boundary for the server-ingress branch." /></annotations>
+    </M-PHASE48-SERVER-INGRESS-BOUNDARY>
+    <M-SERVER-INGRESS-HYPOTHESIS NAME="ServerIngressHypothesis" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one exact server-ingress blocker hypothesis above the preserved Phase-48 packet set without reopening generic transport or reply-path diagnosis.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-PHASE48-SERVER-INGRESS-BOUNDARY</depends>
+      <verification-ref>V-M-SERVER-INGRESS-HYPOTHESIS</verification-ref>
+      <annotations><fn-defineServerIngressHypothesis PURPOSE="Define the first unresolved server-ingress layer above preserved accepted WSS handshake on voice." /></annotations>
+    </M-SERVER-INGRESS-HYPOTHESIS>
+    <M-SERVER-INGRESS-RUNTIME-PROFILE NAME="ServerIngressRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze one exact runtime profile for the server-ingress branch while preserving the completed Phase-45, Phase-46, Phase-47, and Phase-48 topology and ordinary baseline.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-SERVER-INGRESS-HYPOTHESIS</depends>
+      <verification-ref>V-M-SERVER-INGRESS-RUNTIME-PROFILE</verification-ref>
+      <annotations><fn-freezeServerIngressRuntimeProfile PURPOSE="Freeze the exact preserved runtime profile for server-ingress evidence." /></annotations>
+    </M-SERVER-INGRESS-RUNTIME-PROFILE>
+    <M-SERVER-INGRESS-INSTRUMENTATION NAME="ServerIngressInstrumentation" TYPE="UTILITY" STATUS="planned">
+      <purpose>Add only the minimal server-ingress anchors needed to classify eligibility, decode, loop entry, and pre-loop drop above the preserved reply-path floor.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-SERVER-INGRESS-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-SERVER-INGRESS-INSTRUMENTATION</verification-ref>
+      <annotations><fn-designServerIngressInstrumentation PURPOSE="Define the minimal instrumentation delta for server-ingress attribution." /></annotations>
+    </M-SERVER-INGRESS-INSTRUMENTATION>
+    <M-SERVER-INGRESS-CORRELATION NAME="ServerIngressCorrelation" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one bounded workstation plus server correlation packet that separates handshake-only, eligibility, decode, loop entry, and explicit pre-loop drop on the preserved server-ingress branch.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-SERVER-INGRESS-INSTRUMENTATION</depends>
+      <verification-ref>V-M-SERVER-INGRESS-CORRELATION</verification-ref>
+      <annotations><fn-defineServerIngressCorrelation PURPOSE="Define the bounded workstation-plus-server evidence packet for server-ingress attribution." /></annotations>
+    </M-SERVER-INGRESS-CORRELATION>
+    <M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE NAME="TelegramCallsServerIngressVoice" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Run one bounded Telegram Desktop voice packet that attributes the first server-ingress blocker above the preserved governed handoff floor without reopening video.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-SERVER-INGRESS-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE</verification-ref>
+      <annotations><fn-runTelegramCallsServerIngressVoice PURPOSE="Run one bounded server-ingress voice packet on the preserved Desktop topology." /></annotations>
+    </M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE>
+    <M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON NAME="TelegramCallsServerIngressComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the new bounded server-ingress voice packet against the preserved Phase-45, Phase-46, Phase-47, and Phase-48 packet set.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON</verification-ref>
+      <annotations><fn-compareTelegramCallsServerIngress PURPOSE="Compare the server-ingress packet against the preserved boundaries and earlier blockers." /></annotations>
+    </M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON>
+    <M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION NAME="TelegramCallsServerIngressDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue one bounded final decision for the server-ingress branch above the preserved Phase-45, Phase-46, Phase-47, and Phase-48 packet set without overstating calls support.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION</verification-ref>
+      <annotations><fn-issueTelegramCallsServerIngressDecision PURPOSE="Issue one bounded final decision for the server-ingress branch on the preserved topology." /></annotations>
+    </M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -4096,6 +4152,14 @@
     <CrossLink from="M-CALL-REPLY-SERVER-CORRELATION" to="M-TELEGRAM-CALLS-REPLY-VOICE" relation="supplies the bounded reply-path correlation packet required before the first reply-path voice packet is interpreted." />
     <CrossLink from="M-TELEGRAM-CALLS-REPLY-VOICE" to="M-TELEGRAM-CALLS-REPLY-COMPARISON" relation="supplies the bounded reply-path voice packet for comparison against the preserved boundaries." />
     <CrossLink from="M-TELEGRAM-CALLS-REPLY-COMPARISON" to="M-TELEGRAM-CALLS-REPLY-DECISION" relation="supplies the bounded reply-path comparison packet for the final reply-path decision." />
+    <CrossLink from="M-TELEGRAM-CALLS-REPLY-DECISION" to="M-PHASE48-SERVER-INGRESS-BOUNDARY" relation="supplies the preserved reply-path final decision that the server-ingress branch must keep explicit." />
+    <CrossLink from="M-PHASE48-SERVER-INGRESS-BOUNDARY" to="M-SERVER-INGRESS-HYPOTHESIS" relation="supplies the preserved server-ingress truth-boundary above which the next blocker is defined." />
+    <CrossLink from="M-SERVER-INGRESS-HYPOTHESIS" to="M-SERVER-INGRESS-RUNTIME-PROFILE" relation="supplies the exact server-ingress blocker that the preserved runtime profile must study." />
+    <CrossLink from="M-SERVER-INGRESS-RUNTIME-PROFILE" to="M-SERVER-INGRESS-INSTRUMENTATION" relation="supplies the preserved topology and evidence boundaries that constrain the minimal server-ingress anchor delta." />
+    <CrossLink from="M-SERVER-INGRESS-INSTRUMENTATION" to="M-SERVER-INGRESS-CORRELATION" relation="supplies the anchor vocabulary that bounded workstation and server server-ingress correlation must preserve." />
+    <CrossLink from="M-SERVER-INGRESS-CORRELATION" to="M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE" relation="supplies the bounded server-ingress correlation packet required before the first server-ingress voice packet is interpreted." />
+    <CrossLink from="M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE" to="M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON" relation="supplies the bounded server-ingress voice packet for comparison against the preserved boundaries." />
+    <CrossLink from="M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON" to="M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION" relation="supplies the bounded server-ingress comparison packet for the final server-ingress decision." />
     <CrossLink from="M-TELEGRAM-DESKTOP-NET-CAPTURE" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the workstation-side attribution evidence surface for voice" />
     <CrossLink from="M-TELEGRAM-SERVER-CORRELATION" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the governed server-side correlation contract for voice attribution" />
     <CrossLink from="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" to="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" relation="keeps the video attribution packet separate but sequenced after voice under the same capture contract" />
