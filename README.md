@@ -334,6 +334,10 @@ Current calls-profile status:
   the non-`OUTPUT` privileged topology preserved the ordinary `127.0.0.1:1080` baseline, emitted governed handoff anchors, and recovered real Telegram media tuples such as `91.108.13.25:596`, `91.108.9.103:597`, `91.108.13.23:599`, and `91.108.17.35:599`, but both bounded calls waves still stalled at `Обмен ключами шифрования`
 - the bounded Phase-45 final decision therefore stays narrow and non-green:
   this host now has evidence for supported non-`OUTPUT` interception, real Telegram media-destination recovery, and governed handoff beside the preserved Desktop baseline, but that evidence still does not produce a green voice or video call, so the tested Desktop calls envelope remains no-go rather than transport-blind or helper-blind
+- the completed Phase-46 packet is now the preserved downstream truth-boundary:
+  on the tested Desktop setup the project already has transport-green baseline, real Telegram media-tuple recovery, and governed handoff on the preserved `127.0.0.1:1080` topology, so honest next work starts only above that packet rather than inside generic transport, tuple-recovery, or topology repair
+- the current Phase-47 hypothesis is now exact and narrow:
+  the first unresolved layer is downstream establishment after governed handoff on the preserved topology, where the next bounded packet must classify continuation, inbound reply, timeout, or abort instead of treating `Обмен ключами шифрования` alone as sufficient diagnosis
 - the old Phase-24 tail is now explicitly superseded:
   helper-level repair rerun, repair evidence, and repair decision no longer define the next execution queue because the first unresolved layer has already moved deeper into inbound return
 - the claim surface is still limited to the tested Desktop setup and must not be widened into universal unblock or all-network call support

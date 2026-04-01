@@ -8558,7 +8558,7 @@
       </observability>
       <verification-ref>V-M-PHASE46-DOWNSTREAM-BOUNDARY</verification-ref>
     </M-PHASE46-DOWNSTREAM-BOUNDARY>
-    <M-CALL-DOWNSTREAM-HYPOTHESIS NAME="CallDownstreamHypothesis" TYPE="CORE_LOGIC" LAYER="50" ORDER="2" STATUS="planned">
+    <M-CALL-DOWNSTREAM-HYPOTHESIS NAME="CallDownstreamHypothesis" TYPE="CORE_LOGIC" LAYER="50" ORDER="2" STATUS="done">
       <contract>
         <purpose>Define one exact establishment-stage blocker hypothesis above governed handoff on the preserved Phase-45 and Phase-46 topology.</purpose>
         <inputs>
@@ -10125,7 +10125,7 @@
     <Phase-47 name="Downstream Establishment Isolation Above Post-Recovery" status="in_progress">
       <goal>Plan the next bounded Telegram calls branch above Phase-46 so the project can isolate the first establishment-stage blocker after real tuple recovery and governed handoff on the preserved topology.</goal>
       <step-1 module="M-PHASE46-DOWNSTREAM-BOUNDARY" status="done" verification="V-M-PHASE46-DOWNSTREAM-BOUNDARY">Freeze Phase-46 as the preserved truth-boundary above transport-green and tuple-recovery-green evidence</step-1>
-      <step-2 module="M-CALL-DOWNSTREAM-HYPOTHESIS" status="planned" verification="V-M-CALL-DOWNSTREAM-HYPOTHESIS">Define one exact downstream-establishment blocker hypothesis above the completed Phase-46 packet</step-2>
+      <step-2 module="M-CALL-DOWNSTREAM-HYPOTHESIS" status="done" verification="V-M-CALL-DOWNSTREAM-HYPOTHESIS">Define one exact downstream-establishment blocker hypothesis above the completed Phase-46 packet</step-2>
       <step-3 module="M-CALL-DOWNSTREAM-RUNTIME-PROFILE" status="planned" verification="V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE">Freeze one exact runtime profile for downstream-establishment evidence without changing the preserved Phase-45 or Phase-46 topology</step-3>
       <step-4 module="M-CALL-DOWNSTREAM-INSTRUMENTATION" status="planned" verification="V-M-CALL-DOWNSTREAM-INSTRUMENTATION">Define the minimal runtime-anchor delta required to separate downstream continuation, reply, timeout, and abort evidence above governed handoff</step-4>
       <step-5 module="M-CALL-DOWNSTREAM-SERVER-CORRELATION" status="planned" verification="V-M-CALL-DOWNSTREAM-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology</step-5>
@@ -10140,6 +10140,7 @@
       <note-5>Voice and video remain separate packets unless the comparison packet proves both changed class on the same preserved topology.</note-5>
       <note-6>The final decision may classify the branch only as preserved key-exchange no-go, narrower downstream-establishment blocker, or genuine establishment progress on the preserved topology; it may not widen that verdict into a general Telegram calls support claim.</note-6>
       <note-7>On 2026-04-01 step-1 froze Phase-46 as the preserved downstream truth-boundary: Phase-47 now executes only above the completed post-recovery packet and does not reopen transport, tuple-recovery, or topology diagnosis by default.</note-7>
+      <note-8>On 2026-04-01 step-2 fixed the downstream hypothesis: the first unresolved layer now stays explicitly above governed handoff on the preserved topology and must be classified as continuation, inbound reply, timeout, or abort rather than as generic key-exchange failure.</note-8>
     </Phase-47>
   </ImplementationOrder>
 
