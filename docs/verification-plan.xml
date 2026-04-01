@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.93">
+<VerificationPlan VERSION="0.2.94">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -157,6 +157,12 @@
     <telegram-postrecovery-proof-separation-rule>Phase-46 is invalid if it blends tuple recovery, governed handoff, downstream establishment behavior, and user-visible key-exchange outcome into one vague success claim.</telegram-postrecovery-proof-separation-rule>
     <telegram-postrecovery-phase45-positive-evidence-rule>Phase-46 must preserve the statement that Phase-45 was the first branch with real Telegram media-tuple recovery and governed handoff during bounded calls packets; that first-positive-evidence boundary may not move earlier or later without new bounded proof.</telegram-postrecovery-phase45-positive-evidence-rule>
     <telegram-postrecovery-proof-order-rule>Phase-46 evidence is invalid unless tuple recovery proof, governed-handoff proof, downstream-establishment proof, and key-exchange outcome proof appear in that order as separate evidence classes.</telegram-postrecovery-proof-order-rule>
+    <telegram-downstream-phase46-boundary-rule>Phase-47 must keep the completed Phase-46 packet explicit as the preserved downstream truth-boundary above transport-green, tuple-recovery-green, and governed-handoff-green evidence.</telegram-downstream-phase46-boundary-rule>
+    <telegram-downstream-no-transport-reopen-rule>Phase-47 may not reopen generic transport, tuple-recovery, or interception-topology diagnosis unless the same bounded wave explicitly disproves the preserved Phase-45 or Phase-46 packet first.</telegram-downstream-no-transport-reopen-rule>
+    <telegram-downstream-topology-lock-rule>Phase-47 must keep the exact Phase-45 interception topology, helper launch shape, preserved ordinary Telegram baseline at `127.0.0.1:1080`, and no-second-auth rule fixed while it studies establishment behavior above governed handoff.</telegram-downstream-topology-lock-rule>
+    <telegram-downstream-instrumentation-minimality-rule>Phase-47 may add only the minimal runtime-anchor delta required to classify post-handoff continuation, inbound establishment reply, timeout, or abort; it may not silently widen into a fresh transport redesign.</telegram-downstream-instrumentation-minimality-rule>
+    <telegram-downstream-voice-video-split-rule>Phase-47 must keep downstream voice and downstream video packets separate unless the bounded comparison packet proves that both changed class on the same preserved topology.</telegram-downstream-voice-video-split-rule>
+    <telegram-downstream-decision-bounds-rule>Phase-47 final decision may classify the branch only as preserved key-exchange no-go, narrower downstream-establishment blocker, or genuine establishment progress on the preserved topology; it may not widen that verdict into a general Telegram calls support claim.</telegram-downstream-decision-bounds-rule>
     <live-required-fields>hostRole, hostIp, processId, logPath, socketAddress, correlationId</live-required-fields>
     <foundation-rule>Before Phase-2 execution, every Phase-1 module must have one deterministic success check, one deterministic failure check, and at least one stable log marker anchored to a semantic block.</foundation-rule>
     <failure-packet-required-fields>scenario, expected-evidence, observed-evidence, first-divergent-block, next-action</failure-packet-required-fields>
@@ -6236,6 +6242,72 @@
       <failure-scenarios><scenario-1>The final decision overclaims green call establishment or erases the preserved Phase-45 establishment boundary.</scenario-1></failure-scenarios>
       <required-trace-assertions><assertion-1>The final decision must preserve Phase-45 as the first real-media-tuple-success boundary and may not relabel tuple recovery itself as green call establishment.</assertion-1><assertion-2>The final decision must stay bounded to the preserved post-recovery branch and choose one exact verdict: key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology.</assertion-2></required-trace-assertions>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
+    <V-M-PHASE46-DOWNSTREAM-BOUNDARY MODULE="M-PHASE46-DOWNSTREAM-BOUNDARY" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-47|Phase-46|downstream truth-boundary|transport-green|tuple-recovery-green|governed-handoff-green' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The new branch explicitly starts above the completed Phase-46 packet instead of reopening earlier transport or topology work.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The downstream branch starts from a vague calls failure statement and loses the preserved Phase-45 or Phase-46 evidence boundary.</scenario-1></failure-scenarios>
+    </V-M-PHASE46-DOWNSTREAM-BOUNDARY>
+    <V-M-CALL-DOWNSTREAM-HYPOTHESIS MODULE="M-CALL-DOWNSTREAM-HYPOTHESIS" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>README.md</file></test-files>
+      <module-checks><check-1>rg -n 'downstream-establishment blocker|key exchange|preserved topology|Phase-46|Phase-45' docs/development-plan.xml docs/verification-plan.xml README.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The branch names one exact establishment-stage blocker above governed handoff on the preserved topology.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The branch rephrases the old key-exchange symptom without narrowing the first unresolved layer above governed handoff.</scenario-1></failure-scenarios>
+    </V-M-CALL-DOWNSTREAM-HYPOTHESIS>
+    <V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE MODULE="M-CALL-DOWNSTREAM-RUNTIME-PROFILE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-45 topology|Phase-46|127.0.0.1:1080|no second auth|downstream-establishment evidence' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The runtime profile freezes the preserved topology and ordinary baseline while moving only the downstream evidence layer.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The runtime profile silently changes interception topology, helper launch shape, or Telegram window shape under the downstream branch label.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The runtime profile must keep Phase-45 tuple-recovery and Phase-46 proof-order evidence explicit as preserved prerequisites rather than new work items.</assertion-1><assertion-2>The runtime profile must state that downstream-establishment evidence begins only after the preserved tuple-recovery and governed-handoff anchors, not in place of them.</assertion-2></required-trace-assertions>
+    </V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE>
+    <V-M-CALL-DOWNSTREAM-INSTRUMENTATION MODULE="M-CALL-DOWNSTREAM-INSTRUMENTATION" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file><file>src/cli/mod.test.rs</file><file>src/session/datagram_manager.test.rs</file><file>src/udp_origdst/udp_origdst.test.rs</file></test-files>
+      <module-checks><check-1>rg -n 'minimal runtime-anchor delta|post-handoff continuation|inbound establishment reply|timeout|abort' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1><check-2>rg -n 'BLOCK_UDP_ORIGDST_RUNTIME|BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF|BLOCK_DELIVER_INBOUND_DATAGRAM|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED' src/cli/mod.test.rs src/session/datagram_manager.test.rs src/udp_origdst/udp_origdst.test.rs docs/verification-plan.xml</check-2></module-checks>
+      <success-scenarios><scenario-1>The branch adds only the minimal anchors needed to classify downstream continuation, reply, timeout, and abort above governed handoff.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The instrumentation proposal silently widens into a transport redesign or loses the ability to separate the first unresolved downstream layer.</scenario-1></failure-scenarios>
+      <required-log-markers><marker-1>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME]</marker-1><marker-2>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]</marker-2><marker-3>[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_INBOUND_RECEIVED]</marker-3><marker-4>[WssGateway][serverDatagramLoop][SERVER_DATAGRAM_RETURN_EMITTED]</marker-4><marker-5>[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]</marker-5><marker-6>[CallDownstream][continuation][BLOCK_CALL_DOWNSTREAM_CONTINUATION]</marker-6><marker-7>[CallDownstream][reply][BLOCK_CALL_DOWNSTREAM_REPLY]</marker-7><marker-8>[CallDownstream][timeout][BLOCK_CALL_DOWNSTREAM_TIMEOUT]</marker-8><marker-9>[CallDownstream][abort][BLOCK_CALL_DOWNSTREAM_ABORT]</marker-9></required-log-markers>
+      <required-trace-assertions><assertion-1>The instrumentation packet must preserve the current recovery and reply anchors as the already-proven floor below any new downstream continuation marker.</assertion-1><assertion-2>The new anchors must let a later test say whether the first unresolved downstream layer is continuation, reply, timeout, or abort without rereading free-form manual logs.</assertion-2></required-trace-assertions>
+      <phase-follow-up>The first execution wave should strengthen `src/cli/mod.test.rs` or adjacent governed tests with direct assertions on any new downstream continuation, reply, timeout, and abort anchors before a new live Telegram packet is interpreted.</phase-follow-up>
+    </V-M-CALL-DOWNSTREAM-INSTRUMENTATION>
+    <V-M-CALL-DOWNSTREAM-SERVER-CORRELATION MODULE="M-CALL-DOWNSTREAM-SERVER-CORRELATION" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'workstation plus server correlation|downstream-establishment|post-handoff continuation|reply|timeout|abort' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The branch defines one bounded evidence packet that can correlate workstation and server surfaces above governed handoff on the preserved topology.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The branch asks for another manual call packet without a bounded workstation plus server correlation contract.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The correlation packet must keep workstation evidence, server evidence, and preserved runtime anchors as separate surfaces so the first unresolved downstream layer stays attributable.</assertion-1></required-trace-assertions>
+      <wave-follow-up>The first live downstream packet should capture workstation and server evidence in one bounded correlation window tied to the same Telegram call attempt.</wave-follow-up>
+    </V-M-CALL-DOWNSTREAM-SERVER-CORRELATION>
+    <V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE MODULE="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'downstream voice|Phase-47|already logged-in|preserved topology|127.0.0.1:1080|governed handoff' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'post-handoff continuation|inbound establishment reply|timeout|abort' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-2></module-checks>
+      <success-scenarios><scenario-1>The downstream voice packet runs above the preserved Phase-46 boundary and classifies the first establishment-stage layer after governed handoff without changing topology.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The downstream voice packet reopens generic transport diagnosis or treats key exchange alone as sufficient classifier evidence.</scenario-1></failure-scenarios>
+      <required-log-markers><marker-1>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME]</marker-1><marker-2>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]</marker-2><marker-3>[CallDownstream][continuation][BLOCK_CALL_DOWNSTREAM_CONTINUATION]</marker-3><marker-4>[CallDownstream][reply][BLOCK_CALL_DOWNSTREAM_REPLY]</marker-4><marker-5>[CallDownstream][timeout][BLOCK_CALL_DOWNSTREAM_TIMEOUT]</marker-5><marker-6>[CallDownstream][abort][BLOCK_CALL_DOWNSTREAM_ABORT]</marker-6></required-log-markers>
+      <required-trace-assertions><assertion-1>The downstream voice packet must keep tuple recovery and governed handoff explicit as already-proven earlier evidence while naming the first unresolved downstream layer after them.</assertion-1><assertion-2>The packet must state which of continuation, reply, timeout, or abort anchors appeared or stayed absent in the same bounded window.</assertion-2></required-trace-assertions>
+      <wave-follow-up>The first downstream voice packet should be treated as the primary execution packet for the branch; video, comparison, and decision remain downstream until voice evidence exists.</wave-follow-up>
+    </V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE>
+    <V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO MODULE="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" PRIORITY="high">
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'downstream video|Phase-47|already logged-in|preserved topology|without inheriting voice' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1></module-checks>
+      <success-scenarios><scenario-1>The downstream video packet stays separate from voice and classifies only the video establishment layer on the same preserved topology.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The downstream video packet silently inherits the voice verdict or changes topology under the same branch label.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The downstream video packet must preserve the exact same recovery and governed-handoff floor while classifying only the video establishment layer.</assertion-1></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO>
+    <V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON MODULE="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/knowledge-graph.xml</file></test-files>
+      <module-checks><check-1>rg -n 'Phase-45|Phase-46|downstream voice|downstream video|downstream-establishment' README.md docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The comparison packet keeps Phase-45 and Phase-46 explicit while evaluating whether the first unresolved layer moved above governed handoff.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The comparison packet loses the preserved tuple-recovery and post-recovery boundaries or collapses voice and video into one blended verdict.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The comparison packet must say whether the first unresolved layer stayed at preserved key exchange, moved to a narrower downstream blocker, or showed genuine establishment progress.</assertion-1></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON>
+    <V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION MODULE="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" PRIORITY="high">
+      <test-files><file>README.md</file><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
+      <module-checks><check-1>rg -n 'downstream-establishment decision|preserved key-exchange no-go|narrower downstream-establishment blocker|genuine establishment progress' README.md docs/development-plan.xml docs/verification-plan.xml</check-1></module-checks>
+      <success-scenarios><scenario-1>The final decision stays bounded to the new downstream branch above the preserved Phase-45 and Phase-46 packet set.</scenario-1></success-scenarios>
+      <failure-scenarios><scenario-1>The final decision overclaims calls support or silently reclassifies preserved tuple recovery as green call establishment.</scenario-1></failure-scenarios>
+      <required-trace-assertions><assertion-1>The final decision must remain above the preserved Phase-45 and Phase-46 packet set and choose one exact verdict: preserved key-exchange no-go, narrower downstream-establishment blocker, or genuine establishment progress.</assertion-1></required-trace-assertions>
+    </V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION>
   </ModuleVerification>
 
   <LiveEnvironmentVerification>
@@ -6994,6 +7066,27 @@ PY</command-5>
       </required-evidence>
       <failure-packet-template>scenario=TelegramCallsPostRecoveryWave; expected-evidence=preserved ordinary baseline, explicit Phase-45 establishment boundary, one exact post-recovery evidence class, green post-recovery smoke proving separate evidence classes above tuple recovery, and separate voice and video packets; observed-evidence=phase artifacts, post-recovery packet, smoke packet, and execution packet; first-divergent-block=first missing post-recovery gate requirement; next-action=repair that exact evidence layer before spending more call attempts</failure-packet-template>
     </LV-037>
+    <LV-038 NAME="TelegramCallsDownstreamEstablishmentWave" PRIORITY="high">
+      <scope>Phase-47 downstream-establishment branch above the completed Phase-46 packet on the preserved Phase-45 topology.</scope>
+      <commands>
+        <command-1>keep the preserved ordinary Telegram baseline at `127.0.0.1:1080` untouched</command-1>
+        <command-2>keep the completed Phase-45 and Phase-46 packet set explicit as preserved boundaries</command-2>
+        <command-3>freeze one exact downstream-establishment hypothesis above governed handoff on the preserved topology</command-3>
+        <command-4>define only the minimal runtime-anchor delta needed for downstream continuation, reply, timeout, and abort classification</command-4>
+        <command-5>define one bounded workstation plus server correlation packet for downstream-establishment behavior</command-5>
+        <command-6>run one downstream voice packet</command-6>
+        <command-7>run one separate downstream video packet</command-7>
+        <command-8>compare the downstream packets against the preserved Phase-45 and Phase-46 boundaries</command-8>
+      </commands>
+      <required-evidence>
+        <evidence-1>The wave does not reopen generic transport or interception-topology diagnosis.</evidence-1>
+        <evidence-2>The wave keeps the preserved ordinary baseline and no-second-auth rule explicit.</evidence-2>
+        <evidence-3>The wave adds only the minimal anchor delta required above governed handoff.</evidence-3>
+        <evidence-4>The wave keeps downstream voice and video packets separate.</evidence-4>
+        <evidence-5>The final comparison says whether the first unresolved layer stayed at key exchange, moved to a narrower downstream blocker, or showed genuine establishment progress.</evidence-5>
+      </required-evidence>
+      <failure-packet-template>scenario=TelegramCallsDownstreamEstablishmentWave; expected-evidence=preserved Phase-45 and Phase-46 boundaries, preserved ordinary baseline, one exact downstream-establishment hypothesis, minimal anchor delta, bounded workstation/server correlation, and separate downstream voice/video packets; observed-evidence=phase artifacts, instrumentation packet, correlation packet, and downstream calls packets; first-divergent-block=first missing downstream-boundary, hypothesis, runtime-profile, instrumentation, correlation, voice, video, or comparison marker; next-action=repair that exact downstream layer before spending more call attempts</failure-packet-template>
+    </LV-038>
   </LiveEnvironmentVerification>
 
   <PhaseGates>
@@ -7885,6 +7978,30 @@ PY</command-3>
       </required-evidence>
       <failure-packet-template>scenario=Gate-Phase-46; expected-evidence=execution-ready post-recovery audio-first wave with preserved ordinary baseline, explicit Phase-45 establishment boundary, one exact post-recovery evidence class and preserved runtime profile, green post-recovery smoke proving separate evidence classes above tuple recovery, one bounded voice packet as the first active calls step, and explicit downstream video/comparison/decision modules; observed-evidence=phase artifacts, post-recovery packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-46 gate requirement; next-action=repair the missing Phase-46 artifact before executing the bounded voice wave</failure-packet-template>
     </Gate-Phase-46>
+    <Gate-Phase-47 PHASE="Phase-47">
+      <goal>The project has an execution-ready downstream-establishment branch above the completed Phase-46 packet without reopening the preserved Phase-45 transport and tuple-recovery truth.</goal>
+      <commands>
+        <command-1>rg -n 'Phase-47|M-PHASE46-DOWNSTREAM-BOUNDARY|M-TELEGRAM-CALLS-DOWNSTREAM-DECISION' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml</command-1>
+        <command-2>rg -n 'LV-038|127.0.0.1:1080|Phase-45|Phase-46|downstream-establishment|governed handoff|key exchange' docs/development-plan.xml docs/verification-plan.xml docs/knowledge-graph.xml docs/OPERATORS.md README.md</command-2>
+        <command-3>python3 - &lt;&lt;'PY'
+import xml.etree.ElementTree as ET
+for p in ['docs/development-plan.xml','docs/knowledge-graph.xml','docs/verification-plan.xml']:
+    ET.parse(p)
+    print(p, 'XML_OK')
+PY</command-3>
+        <command-4>git diff --check</command-4>
+      </commands>
+      <required-evidence>
+        <evidence-1>The gate keeps the preserved ordinary Telegram baseline explicit.</evidence-1>
+        <evidence-2>The gate keeps the completed Phase-45 and Phase-46 packet set explicit as preserved boundaries.</evidence-2>
+        <evidence-3>The gate requires one exact downstream-establishment hypothesis and preserved runtime profile.</evidence-3>
+        <evidence-4>The gate requires only the minimal runtime-anchor delta needed above governed handoff.</evidence-4>
+        <evidence-5>The gate requires one bounded workstation plus server correlation packet before new calls packets are interpreted.</evidence-5>
+        <evidence-6>The gate requires separate downstream voice and video packets plus a bounded final decision.</evidence-6>
+        <evidence-7>The gate rejects any attempt to relabel preserved tuple recovery as green call establishment.</evidence-7>
+      </required-evidence>
+      <failure-packet-template>scenario=Gate-Phase-47; expected-evidence=execution-ready downstream-establishment wave with preserved ordinary baseline, explicit Phase-45 and Phase-46 boundaries, one exact downstream hypothesis and runtime profile, minimal anchor delta, bounded workstation/server correlation, separate downstream voice and video packets, and bounded decision; observed-evidence=phase artifacts, downstream packet, verification coverage, and execution packet; first-divergent-block=first missing Phase-47 gate requirement; next-action=repair the missing Phase-47 artifact before executing the bounded downstream voice wave</failure-packet-template>
+    </Gate-Phase-47>
   </PhaseGates>
 
   <FailurePackets>

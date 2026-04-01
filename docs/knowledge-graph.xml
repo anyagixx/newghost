@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.58">
+  <Project NAME="n0wss" VERSION="0.2.59">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -3575,6 +3575,87 @@
         <fn-issueTelegramCallsPostRecoveryDecision PURPOSE="Issue one bounded final decision for the preserved post-recovery branch without collapsing earlier boundaries." />
       </annotations>
     </M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
+    <M-PHASE46-DOWNSTREAM-BOUNDARY NAME="Phase46DownstreamBoundary" TYPE="UTILITY" STATUS="planned">
+      <purpose>Freeze the completed Phase-46 packet as the preserved downstream truth-boundary above transport-green, tuple-recovery-green, and governed-handoff-green evidence.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</depends>
+      <verification-ref>V-M-PHASE46-DOWNSTREAM-BOUNDARY</verification-ref>
+      <annotations>
+        <fn-freezePhase46DownstreamBoundary PURPOSE="Keep the completed Phase-46 packet explicit before the next downstream-establishment branch begins." />
+      </annotations>
+    </M-PHASE46-DOWNSTREAM-BOUNDARY>
+    <M-CALL-DOWNSTREAM-HYPOTHESIS NAME="CallDownstreamHypothesis" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one exact establishment-stage blocker hypothesis above governed handoff on the preserved Phase-45 and Phase-46 topology.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-PHASE46-DOWNSTREAM-BOUNDARY</depends>
+      <verification-ref>V-M-CALL-DOWNSTREAM-HYPOTHESIS</verification-ref>
+      <annotations>
+        <fn-defineCallDownstreamHypothesis PURPOSE="Define the next exact downstream-establishment blocker above the completed Phase-46 packet." />
+      </annotations>
+    </M-CALL-DOWNSTREAM-HYPOTHESIS>
+    <M-CALL-DOWNSTREAM-RUNTIME-PROFILE NAME="CallDownstreamRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+      <purpose>Freeze one exact runtime profile for downstream-establishment evidence without changing the preserved Phase-45 or Phase-46 topology.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALL-DOWNSTREAM-HYPOTHESIS, M-POSTRECOVERY-RUNTIME-PROFILE</depends>
+      <verification-ref>V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE</verification-ref>
+      <annotations>
+        <fn-freezeCallDownstreamRuntimeProfile PURPOSE="Freeze the preserved topology and ordinary baseline for downstream-establishment work." />
+      </annotations>
+    </M-CALL-DOWNSTREAM-RUNTIME-PROFILE>
+    <M-CALL-DOWNSTREAM-INSTRUMENTATION NAME="CallDownstreamInstrumentation" TYPE="UTILITY" STATUS="planned">
+      <purpose>Define the minimal runtime-anchor delta needed to separate post-handoff continuation, inbound reply, timeout, and abort above governed handoff.</purpose>
+      <path>docs/knowledge-graph.xml</path>
+      <depends>M-CALL-DOWNSTREAM-RUNTIME-PROFILE, M-CLI, M-WSS-GATEWAY, M-DATAGRAM-SESSION-MANAGER, M-UDP-EGRESS-RELAY</depends>
+      <verification-ref>V-M-CALL-DOWNSTREAM-INSTRUMENTATION</verification-ref>
+      <annotations>
+        <fn-defineCallDownstreamInstrumentation PURPOSE="Define the minimal anchor set needed to classify the first unresolved downstream establishment layer." />
+      </annotations>
+    </M-CALL-DOWNSTREAM-INSTRUMENTATION>
+    <M-CALL-DOWNSTREAM-SERVER-CORRELATION NAME="CallDownstreamServerCorrelation" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology.</purpose>
+      <path>docs/verification-plan.xml</path>
+      <depends>M-CALL-DOWNSTREAM-INSTRUMENTATION, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-CALL-DOWNSTREAM-SERVER-CORRELATION</verification-ref>
+      <annotations>
+        <fn-defineCallDownstreamServerCorrelation PURPOSE="Define the bounded workstation and server evidence packet for downstream-establishment work." />
+      </annotations>
+    </M-CALL-DOWNSTREAM-SERVER-CORRELATION>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-VOICE NAME="TelegramCallsDownstreamVoice" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Run one bounded downstream-establishment voice packet above the preserved Phase-46 boundary without reopening generic transport diagnosis.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-CALL-DOWNSTREAM-SERVER-CORRELATION</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsDownstreamVoice PURPOSE="Run one bounded downstream voice packet on the preserved ordinary Telegram Desktop window." />
+      </annotations>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-VOICE>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO NAME="TelegramCallsDownstreamVideo" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Run one separate downstream-establishment video packet on the same preserved branch without inheriting the voice result.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-DOWNSTREAM-VOICE</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO</verification-ref>
+      <annotations>
+        <fn-runTelegramCallsDownstreamVideo PURPOSE="Run one bounded downstream video packet only after the preserved downstream voice packet exists." />
+      </annotations>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON NAME="TelegramCallsDownstreamComparison" TYPE="CORE_LOGIC" STATUS="planned">
+      <purpose>Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries without collapsing earlier proof order.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-DOWNSTREAM-VOICE, M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON</verification-ref>
+      <annotations>
+        <fn-compareTelegramCallsDownstream PURPOSE="Compare the downstream-establishment packet set against the preserved Phase-45 and Phase-46 boundaries." />
+      </annotations>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-DECISION NAME="TelegramCallsDownstreamDecision" TYPE="ENTRY_POINT" STATUS="planned">
+      <purpose>Issue one bounded downstream-establishment decision above the preserved Phase-45 and Phase-46 packet set without overstating calls support.</purpose>
+      <path>docs/development-plan.xml</path>
+      <depends>M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON</depends>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION</verification-ref>
+      <annotations>
+        <fn-issueTelegramCallsDownstreamDecision PURPOSE="Issue one bounded final decision for the downstream-establishment branch on the preserved topology." />
+      </annotations>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-DECISION>
 
     <CrossLink from="M-CLI-BIN" to="M-CLI" relation="forwards process argv into the governed runtime surface" />
     <CrossLink from="M-CLI" to="M-CONFIG" relation="loads configuration at startup" />
@@ -3925,6 +4006,16 @@
     <CrossLink from="M-TELEGRAM-MEDIA-CAPTURE" to="M-TELEGRAM-DESKTOP-NET-CAPTURE" relation="supplies the earlier Telegram capture packet that the attribution capture extends" />
     <CrossLink from="M-TELEGRAM-FINAL-EVIDENCE" to="M-TELEGRAM-SERVER-CORRELATION" relation="supplies the completed Telegram evidence packet that server-side attribution must preserve" />
     <CrossLink from="M-CALLS-LIVE-PACKET-CAPTURE" to="M-TELEGRAM-SERVER-CORRELATION" relation="supplies the earlier live packet-capture surfaces reused for governed server-side correlation" />
+    <CrossLink from="M-TELEGRAM-CALLS-POSTRECOVERY-DECISION" to="M-PHASE46-DOWNSTREAM-BOUNDARY" relation="supplies the preserved post-recovery final decision that the downstream-establishment branch must keep explicit." />
+    <CrossLink from="M-PHASE46-DOWNSTREAM-BOUNDARY" to="M-CALL-DOWNSTREAM-HYPOTHESIS" relation="supplies the preserved truth-boundary above which the next downstream-establishment blocker is defined." />
+    <CrossLink from="M-CALL-DOWNSTREAM-HYPOTHESIS" to="M-CALL-DOWNSTREAM-RUNTIME-PROFILE" relation="supplies the exact downstream-establishment blocker that the preserved runtime profile must study." />
+    <CrossLink from="M-CALL-DOWNSTREAM-RUNTIME-PROFILE" to="M-CALL-DOWNSTREAM-INSTRUMENTATION" relation="supplies the preserved topology and evidence boundaries that constrain the minimal anchor delta." />
+    <CrossLink from="M-CALL-DOWNSTREAM-INSTRUMENTATION" to="M-CALL-DOWNSTREAM-SERVER-CORRELATION" relation="supplies the anchor vocabulary that bounded workstation and server correlation must preserve." />
+    <CrossLink from="M-CALL-DOWNSTREAM-SERVER-CORRELATION" to="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" relation="supplies the bounded downstream-establishment correlation packet required before the first downstream voice packet is interpreted." />
+    <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" to="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" relation="supplies the first downstream voice packet that the downstream video packet must remain separate from." />
+    <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" to="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" relation="supplies the bounded downstream voice packet for comparison against the preserved boundaries." />
+    <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" to="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" relation="supplies the bounded downstream video packet for comparison against the preserved boundaries." />
+    <CrossLink from="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" to="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" relation="supplies the bounded downstream comparison packet for the final downstream-establishment decision." />
     <CrossLink from="M-TELEGRAM-DESKTOP-NET-CAPTURE" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the workstation-side attribution evidence surface for voice" />
     <CrossLink from="M-TELEGRAM-SERVER-CORRELATION" to="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" relation="supplies the governed server-side correlation contract for voice attribution" />
     <CrossLink from="M-TELEGRAM-VOICE-ATTRIBUTION-WAVE" to="M-TELEGRAM-VIDEO-ATTRIBUTION-WAVE" relation="keeps the video attribution packet separate but sequenced after voice under the same capture contract" />

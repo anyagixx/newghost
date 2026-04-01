@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.70">
+<DevelopmentPlan VERSION="0.2.71">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -8536,6 +8536,217 @@
       </observability>
       <verification-ref>V-M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</verification-ref>
     </M-TELEGRAM-CALLS-POSTRECOVERY-DECISION>
+    <M-PHASE46-DOWNSTREAM-BOUNDARY NAME="Phase46DownstreamBoundary" TYPE="UTILITY" LAYER="50" ORDER="1" STATUS="planned">
+      <contract>
+        <purpose>Freeze the completed Phase-46 packet as the preserved downstream truth-boundary above transport-green, tuple-recovery-green, and governed-handoff-green evidence.</purpose>
+        <inputs>
+          <input-1>The bounded Phase-46 final decision packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded downstream truth-boundary packet that keeps the completed Phase-46 packet explicit before the next branch begins.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/knowledge-graph.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-POSTRECOVERY-DECISION</depends>
+      <observability>
+        <log-prefix>[Phase46DownstreamBoundary]</log-prefix>
+        <critical-block>BLOCK_PHASE46_DOWNSTREAM_BOUNDARY</critical-block>
+      </observability>
+      <verification-ref>V-M-PHASE46-DOWNSTREAM-BOUNDARY</verification-ref>
+    </M-PHASE46-DOWNSTREAM-BOUNDARY>
+    <M-CALL-DOWNSTREAM-HYPOTHESIS NAME="CallDownstreamHypothesis" TYPE="CORE_LOGIC" LAYER="50" ORDER="2" STATUS="planned">
+      <contract>
+        <purpose>Define one exact establishment-stage blocker hypothesis above governed handoff on the preserved Phase-45 and Phase-46 topology.</purpose>
+        <inputs>
+          <input-1>The bounded downstream truth-boundary packet.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded downstream-establishment hypothesis packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>README.md</file-3>
+      </target-files>
+      <depends>M-PHASE46-DOWNSTREAM-BOUNDARY</depends>
+      <observability>
+        <log-prefix>[CallDownstreamHypothesis]</log-prefix>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_HYPOTHESIS</critical-block>
+      </observability>
+      <verification-ref>V-M-CALL-DOWNSTREAM-HYPOTHESIS</verification-ref>
+    </M-CALL-DOWNSTREAM-HYPOTHESIS>
+    <M-CALL-DOWNSTREAM-RUNTIME-PROFILE NAME="CallDownstreamRuntimeProfile" TYPE="INTEGRATION" LAYER="50" ORDER="3" STATUS="planned">
+      <contract>
+        <purpose>Freeze one exact runtime profile for downstream-establishment evidence without changing the preserved Phase-45 or Phase-46 topology.</purpose>
+        <inputs>
+          <input-1>The bounded downstream-establishment hypothesis packet and the preserved post-recovery runtime profile.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded downstream-establishment runtime-profile packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/OPERATORS.md</file-3>
+      </target-files>
+      <depends>M-CALL-DOWNSTREAM-HYPOTHESIS, M-POSTRECOVERY-RUNTIME-PROFILE</depends>
+      <observability>
+        <log-prefix>[CallDownstreamRuntimeProfile]</log-prefix>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_RUNTIME_PROFILE</critical-block>
+      </observability>
+      <verification-ref>V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE</verification-ref>
+    </M-CALL-DOWNSTREAM-RUNTIME-PROFILE>
+    <M-CALL-DOWNSTREAM-INSTRUMENTATION NAME="CallDownstreamInstrumentation" TYPE="UTILITY" LAYER="50" ORDER="4" STATUS="planned">
+      <contract>
+        <purpose>Define the minimal runtime-anchor delta needed to separate post-handoff continuation, inbound reply, timeout, and abort above governed handoff.</purpose>
+        <inputs>
+          <input-1>The bounded downstream-establishment runtime-profile packet and the preserved baseline runtime anchors.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded instrumentation packet that names the exact new downstream anchors and governed tests required before the first live packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/knowledge-graph.xml</file-3>
+        <file-4>src/cli/mod.rs</file-4>
+        <file-5>src/cli/mod.test.rs</file-5>
+        <file-6>src/session/datagram_manager.rs</file-6>
+        <file-7>src/session/datagram_manager.test.rs</file-7>
+        <file-8>src/wss_gateway/mod.rs</file-8>
+        <file-9>src/proxy_bridge/udp_relay.rs</file-9>
+        <file-10>src/udp_origdst/udp_origdst.test.rs</file-10>
+      </target-files>
+      <depends>M-CALL-DOWNSTREAM-RUNTIME-PROFILE, M-CLI, M-WSS-GATEWAY, M-DATAGRAM-SESSION-MANAGER, M-UDP-EGRESS-RELAY</depends>
+      <observability>
+        <log-prefix>[CallDownstreamInstrumentation]</log-prefix>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_INSTRUMENTATION</critical-block>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_CONTINUATION</critical-block>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_REPLY</critical-block>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_TIMEOUT</critical-block>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_ABORT</critical-block>
+      </observability>
+      <verification-ref>V-M-CALL-DOWNSTREAM-INSTRUMENTATION</verification-ref>
+    </M-CALL-DOWNSTREAM-INSTRUMENTATION>
+    <M-CALL-DOWNSTREAM-SERVER-CORRELATION NAME="CallDownstreamServerCorrelation" TYPE="CORE_LOGIC" LAYER="50" ORDER="5" STATUS="planned">
+      <contract>
+        <purpose>Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology.</purpose>
+        <inputs>
+          <input-1>The bounded instrumentation packet and the preserved Telegram server-correlation surface.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded workstation plus server downstream-establishment correlation packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/OPERATORS.md</file-3>
+      </target-files>
+      <depends>M-CALL-DOWNSTREAM-INSTRUMENTATION, M-TELEGRAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[CallDownstreamServerCorrelation]</log-prefix>
+        <critical-block>BLOCK_CALL_DOWNSTREAM_SERVER_CORRELATION</critical-block>
+      </observability>
+      <verification-ref>V-M-CALL-DOWNSTREAM-SERVER-CORRELATION</verification-ref>
+    </M-CALL-DOWNSTREAM-SERVER-CORRELATION>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-VOICE NAME="TelegramCallsDownstreamVoice" TYPE="ENTRY_POINT" LAYER="50" ORDER="6" STATUS="planned">
+      <contract>
+        <purpose>Run one bounded downstream-establishment voice packet above the preserved Phase-46 boundary without reopening generic transport diagnosis.</purpose>
+        <inputs>
+          <input-1>The bounded workstation plus server downstream-establishment correlation packet.</input-1>
+          <input-2>The preserved ordinary Telegram Desktop window on the unchanged Phase-45 and Phase-46 topology.</input-2>
+        </inputs>
+        <outputs>
+          <output-1>A bounded downstream voice packet that names the first unresolved establishment-stage layer after governed handoff.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/OPERATORS.md</file-3>
+      </target-files>
+      <depends>M-CALL-DOWNSTREAM-SERVER-CORRELATION</depends>
+      <observability>
+        <log-prefix>[TelegramCallsDownstreamVoice]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_DOWNSTREAM_VOICE</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE</verification-ref>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-VOICE>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO NAME="TelegramCallsDownstreamVideo" TYPE="ENTRY_POINT" LAYER="50" ORDER="7" STATUS="planned">
+      <contract>
+        <purpose>Run one separate downstream-establishment video packet on the same preserved branch without inheriting the voice result.</purpose>
+        <inputs>
+          <input-1>The bounded downstream voice packet and the preserved topology contract.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded downstream video packet classified independently from the voice packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>docs/development-plan.xml</file-1>
+        <file-2>docs/verification-plan.xml</file-2>
+        <file-3>docs/OPERATORS.md</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-DOWNSTREAM-VOICE</depends>
+      <observability>
+        <log-prefix>[TelegramCallsDownstreamVideo]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_DOWNSTREAM_VIDEO</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO</verification-ref>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON NAME="TelegramCallsDownstreamComparison" TYPE="CORE_LOGIC" LAYER="50" ORDER="8" STATUS="planned">
+      <contract>
+        <purpose>Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries without collapsing earlier proof order.</purpose>
+        <inputs>
+          <input-1>The bounded downstream voice and video packets plus the preserved earlier boundary packets.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded downstream comparison packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+        <file-4>docs/knowledge-graph.xml</file-4>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-DOWNSTREAM-VOICE, M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO</depends>
+      <observability>
+        <log-prefix>[TelegramCallsDownstreamComparison]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_DOWNSTREAM_COMPARISON</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON</verification-ref>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON>
+    <M-TELEGRAM-CALLS-DOWNSTREAM-DECISION NAME="TelegramCallsDownstreamDecision" TYPE="ENTRY_POINT" LAYER="50" ORDER="9" STATUS="planned">
+      <contract>
+        <purpose>Issue one bounded downstream-establishment decision above the preserved Phase-45 and Phase-46 packet set without overstating calls support.</purpose>
+        <inputs>
+          <input-1>The bounded downstream comparison packet with the preserved Phase-45 and Phase-46 packet set.</input-1>
+        </inputs>
+        <outputs>
+          <output-1>A bounded downstream final decision packet.</output-1>
+        </outputs>
+      </contract>
+      <target-files>
+        <file-1>README.md</file-1>
+        <file-2>docs/development-plan.xml</file-2>
+        <file-3>docs/verification-plan.xml</file-3>
+      </target-files>
+      <depends>M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON</depends>
+      <observability>
+        <log-prefix>[TelegramCallsDownstreamDecision]</log-prefix>
+        <critical-block>BLOCK_TELEGRAM_CALLS_DOWNSTREAM_DECISION</critical-block>
+      </observability>
+      <verification-ref>V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION</verification-ref>
+    </M-TELEGRAM-CALLS-DOWNSTREAM-DECISION>
   </Modules>
 
   <DataFlow>
@@ -9911,6 +10122,24 @@
       <note-10>The final decision packet must stay bounded to the preserved post-recovery branch: it may classify the setup only as key-exchange no-go, narrower downstream blocker, or green establishment on the preserved topology, and it may not generalize that verdict beyond the bounded evidence packet.</note-10>
       <note-11>On 2026-04-01 the Phase-46 final decision surface was fixed: this branch now closes with preserved voice, video, comparison, and bounded final decision packets while keeping Phase-45 explicit as the first real-media-tuple-success boundary on the preserved topology.</note-11>
     </Phase-46>
+    <Phase-47 name="Downstream Establishment Isolation Above Post-Recovery" status="planned">
+      <goal>Plan the next bounded Telegram calls branch above Phase-46 so the project can isolate the first establishment-stage blocker after real tuple recovery and governed handoff on the preserved topology.</goal>
+      <step-1 module="M-PHASE46-DOWNSTREAM-BOUNDARY" status="planned" verification="V-M-PHASE46-DOWNSTREAM-BOUNDARY">Freeze Phase-46 as the preserved truth-boundary above transport-green and tuple-recovery-green evidence</step-1>
+      <step-2 module="M-CALL-DOWNSTREAM-HYPOTHESIS" status="planned" verification="V-M-CALL-DOWNSTREAM-HYPOTHESIS">Define one exact downstream-establishment blocker hypothesis above the completed Phase-46 packet</step-2>
+      <step-3 module="M-CALL-DOWNSTREAM-RUNTIME-PROFILE" status="planned" verification="V-M-CALL-DOWNSTREAM-RUNTIME-PROFILE">Freeze one exact runtime profile for downstream-establishment evidence without changing the preserved Phase-45 or Phase-46 topology</step-3>
+      <step-4 module="M-CALL-DOWNSTREAM-INSTRUMENTATION" status="planned" verification="V-M-CALL-DOWNSTREAM-INSTRUMENTATION">Define the minimal runtime-anchor delta required to separate downstream continuation, reply, timeout, and abort evidence above governed handoff</step-4>
+      <step-5 module="M-CALL-DOWNSTREAM-SERVER-CORRELATION" status="planned" verification="V-M-CALL-DOWNSTREAM-SERVER-CORRELATION">Define one bounded workstation plus server correlation packet for downstream-establishment behavior on the preserved topology</step-5>
+      <step-6 module="M-TELEGRAM-CALLS-DOWNSTREAM-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VOICE">Run one bounded downstream-establishment voice packet on the preserved ordinary Telegram Desktop window</step-6>
+      <step-7 module="M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-VIDEO">Run one separate downstream-establishment video packet on the same preserved branch without inheriting voice</step-7>
+      <step-8 module="M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-COMPARISON">Compare the downstream-establishment packets against the preserved Phase-45 and Phase-46 boundaries</step-8>
+      <step-9 module="M-TELEGRAM-CALLS-DOWNSTREAM-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-DOWNSTREAM-DECISION">Issue the bounded downstream-establishment decision above the preserved post-recovery packet set</step-9>
+      <note-1>Phase-47 starts only after the preserved ordinary Telegram baseline, the completed Phase-45 real-media-tuple packet, and the completed Phase-46 post-recovery decision are all visible together.</note-1>
+      <note-2>The next branch must not reopen generic transport diagnosis, tuple-recovery diagnosis, or interception-topology diagnosis unless the preserved Phase-45 or Phase-46 evidence is explicitly disproved in the same bounded window.</note-2>
+      <note-3>The only approved new variable is downstream establishment evidence above already-proven tuple recovery and governed handoff; the Phase-45 interception topology, the preserved `127.0.0.1:1080` baseline, helper launch shape, and no-second-auth rule stay fixed.</note-3>
+      <note-4>The branch must add only the minimal runtime-anchor delta needed to say whether post-handoff continuation, inbound reply, timeout, or abort becomes the first unresolved establishment layer.</note-4>
+      <note-5>Voice and video remain separate packets unless the comparison packet proves both changed class on the same preserved topology.</note-5>
+      <note-6>The final decision may classify the branch only as preserved key-exchange no-go, narrower downstream-establishment blocker, or genuine establishment progress on the preserved topology; it may not widen that verdict into a general Telegram calls support claim.</note-6>
+    </Phase-47>
   </ImplementationOrder>
 
   <ExecutionPolicy>
