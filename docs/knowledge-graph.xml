@@ -3742,21 +3742,21 @@
       <verification-ref>V-M-SERVER-INGRESS-HYPOTHESIS</verification-ref>
       <annotations><fn-defineServerIngressHypothesis PURPOSE="Define the first unresolved server-ingress layer above preserved accepted WSS handshake on voice." /></annotations>
     </M-SERVER-INGRESS-HYPOTHESIS>
-    <M-SERVER-INGRESS-RUNTIME-PROFILE NAME="ServerIngressRuntimeProfile" TYPE="INTEGRATION" STATUS="planned">
+    <M-SERVER-INGRESS-RUNTIME-PROFILE NAME="ServerIngressRuntimeProfile" TYPE="INTEGRATION" STATUS="done">
       <purpose>Freeze one exact runtime profile for the server-ingress branch while preserving the completed Phase-45, Phase-46, Phase-47, and Phase-48 topology and ordinary baseline.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-SERVER-INGRESS-HYPOTHESIS</depends>
       <verification-ref>V-M-SERVER-INGRESS-RUNTIME-PROFILE</verification-ref>
       <annotations><fn-freezeServerIngressRuntimeProfile PURPOSE="Freeze the exact preserved runtime profile for server-ingress evidence." /></annotations>
     </M-SERVER-INGRESS-RUNTIME-PROFILE>
-    <M-SERVER-INGRESS-INSTRUMENTATION NAME="ServerIngressInstrumentation" TYPE="UTILITY" STATUS="planned">
+    <M-SERVER-INGRESS-INSTRUMENTATION NAME="ServerIngressInstrumentation" TYPE="UTILITY" STATUS="done">
       <purpose>Add only the minimal server-ingress anchors needed to classify eligibility, decode, loop entry, and pre-loop drop above the preserved reply-path floor.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-SERVER-INGRESS-RUNTIME-PROFILE</depends>
       <verification-ref>V-M-SERVER-INGRESS-INSTRUMENTATION</verification-ref>
       <annotations><fn-designServerIngressInstrumentation PURPOSE="Define the minimal instrumentation delta for server-ingress attribution." /></annotations>
     </M-SERVER-INGRESS-INSTRUMENTATION>
-    <M-SERVER-INGRESS-CORRELATION NAME="ServerIngressCorrelation" TYPE="CORE_LOGIC" STATUS="planned">
+    <M-SERVER-INGRESS-CORRELATION NAME="ServerIngressCorrelation" TYPE="CORE_LOGIC" STATUS="done">
       <purpose>Define one bounded workstation plus server correlation packet that separates handshake-only, eligibility, decode, loop entry, and explicit pre-loop drop on the preserved server-ingress branch.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-SERVER-INGRESS-INSTRUMENTATION</depends>

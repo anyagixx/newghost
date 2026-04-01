@@ -8949,7 +8949,7 @@
       <observability><log-prefix>[ServerIngressHypothesis]</log-prefix><critical-block>BLOCK_SERVER_INGRESS_HYPOTHESIS</critical-block></observability>
       <verification-ref>V-M-SERVER-INGRESS-HYPOTHESIS</verification-ref>
     </M-SERVER-INGRESS-HYPOTHESIS>
-    <M-SERVER-INGRESS-RUNTIME-PROFILE NAME="ServerIngressRuntimeProfile" TYPE="INTEGRATION" LAYER="52" ORDER="3" STATUS="planned">
+    <M-SERVER-INGRESS-RUNTIME-PROFILE NAME="ServerIngressRuntimeProfile" TYPE="INTEGRATION" LAYER="52" ORDER="3" STATUS="done">
       <contract>
         <purpose>Freeze one exact runtime profile for the server-ingress branch while preserving the completed Phase-45, Phase-46, Phase-47, and Phase-48 topology and ordinary baseline.</purpose>
         <inputs><input-1>The exact server-ingress blocker hypothesis.</input-1></inputs>
@@ -8960,7 +8960,7 @@
       <observability><log-prefix>[ServerIngressRuntimeProfile]</log-prefix><critical-block>BLOCK_SERVER_INGRESS_RUNTIME_PROFILE</critical-block></observability>
       <verification-ref>V-M-SERVER-INGRESS-RUNTIME-PROFILE</verification-ref>
     </M-SERVER-INGRESS-RUNTIME-PROFILE>
-    <M-SERVER-INGRESS-INSTRUMENTATION NAME="ServerIngressInstrumentation" TYPE="UTILITY" LAYER="52" ORDER="4" STATUS="planned">
+    <M-SERVER-INGRESS-INSTRUMENTATION NAME="ServerIngressInstrumentation" TYPE="UTILITY" LAYER="52" ORDER="4" STATUS="done">
       <contract>
         <purpose>Add only the minimal server-side anchors needed to classify server-ingress eligibility, decode, loop entry, and pre-loop drop above the preserved reply-path floor.</purpose>
         <inputs><input-1>The preserved server-ingress runtime profile.</input-1></inputs>
@@ -8971,7 +8971,7 @@
       <observability><log-prefix>[ServerIngressInstrumentation]</log-prefix><critical-block>BLOCK_SERVER_INGRESS_INSTRUMENTATION</critical-block></observability>
       <verification-ref>V-M-SERVER-INGRESS-INSTRUMENTATION</verification-ref>
     </M-SERVER-INGRESS-INSTRUMENTATION>
-    <M-SERVER-INGRESS-CORRELATION NAME="ServerIngressCorrelation" TYPE="CORE_LOGIC" LAYER="52" ORDER="5" STATUS="planned">
+    <M-SERVER-INGRESS-CORRELATION NAME="ServerIngressCorrelation" TYPE="CORE_LOGIC" LAYER="52" ORDER="5" STATUS="done">
       <contract>
         <purpose>Define one bounded workstation plus server correlation packet that separates handshake-only, ingress eligibility, decode, loop entry, and explicit pre-loop drop on the preserved server-ingress branch.</purpose>
         <inputs><input-1>The preserved server-ingress runtime profile and minimal instrumentation packet.</input-1></inputs>
@@ -10451,9 +10451,9 @@
       <goal>Plan the next bounded Telegram calls branch above Phase-48 so the project can isolate the first server-ingress blocker after accepted WSS handshake without reopening transport, tuple-recovery, reply-path, or video diagnosis.</goal>
       <step-1 module="M-PHASE48-SERVER-INGRESS-BOUNDARY" status="done" verification="V-M-PHASE48-SERVER-INGRESS-BOUNDARY">Freeze Phase-48 as the preserved server-ingress truth-boundary above the completed reply-path blocker packet</step-1>
       <step-2 module="M-SERVER-INGRESS-HYPOTHESIS" status="done" verification="V-M-SERVER-INGRESS-HYPOTHESIS">Define one exact server-ingress blocker hypothesis above the completed Phase-48 packet</step-2>
-      <step-3 module="M-SERVER-INGRESS-RUNTIME-PROFILE" status="planned" verification="V-M-SERVER-INGRESS-RUNTIME-PROFILE">Freeze one exact runtime profile for server-ingress evidence without changing the preserved Phase-45, Phase-46, Phase-47, or Phase-48 topology</step-3>
-      <step-4 module="M-SERVER-INGRESS-INSTRUMENTATION" status="planned" verification="V-M-SERVER-INGRESS-INSTRUMENTATION">Define only the minimal runtime-anchor delta needed to separate ingress eligibility, decode, loop entry, and pre-loop drop evidence above accepted WSS handshake</step-4>
-      <step-5 module="M-SERVER-INGRESS-CORRELATION" status="planned" verification="V-M-SERVER-INGRESS-CORRELATION">Define one bounded workstation plus server correlation packet for server-ingress behavior on the preserved topology</step-5>
+      <step-3 module="M-SERVER-INGRESS-RUNTIME-PROFILE" status="done" verification="V-M-SERVER-INGRESS-RUNTIME-PROFILE">Freeze one exact runtime profile for server-ingress evidence without changing the preserved Phase-45, Phase-46, Phase-47, or Phase-48 topology</step-3>
+      <step-4 module="M-SERVER-INGRESS-INSTRUMENTATION" status="done" verification="V-M-SERVER-INGRESS-INSTRUMENTATION">Define only the minimal runtime-anchor delta needed to separate ingress eligibility, decode, loop entry, and pre-loop drop evidence above accepted WSS handshake</step-4>
+      <step-5 module="M-SERVER-INGRESS-CORRELATION" status="done" verification="V-M-SERVER-INGRESS-CORRELATION">Define one bounded workstation plus server correlation packet for server-ingress behavior on the preserved topology</step-5>
       <step-6 module="M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE" status="planned" verification="V-M-TELEGRAM-CALLS-SERVER-INGRESS-VOICE">Run one bounded server-ingress voice packet on the preserved ordinary Telegram Desktop window without reopening video</step-6>
       <step-7 module="M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON" status="planned" verification="V-M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON">Compare the server-ingress voice packet against the preserved Phase-45, Phase-46, Phase-47, and Phase-48 boundaries</step-7>
       <step-8 module="M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION" status="planned" verification="V-M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION">Issue the bounded server-ingress final decision above the preserved packet set</step-8>
@@ -10465,6 +10465,9 @@
       <note-6>The final decision may classify the branch only as server-ingress blocker, narrower pre-loop drop, or genuine ingress progress on the preserved topology; it may not widen that verdict into a general Telegram calls-support claim.</note-6>
       <note-7>On 2026-04-02 step-1 froze Phase-48 as the preserved server-ingress truth-boundary: the branch now starts only above the completed `server ingress absence` verdict and keeps preserved tuple recovery, governed handoff, the earlier video blocker, and the reply-path classifier explicit as separate earlier boundaries.</note-7>
       <note-8>On 2026-04-02 step-2 fixed the server-ingress hypothesis: the first unresolved layer now stays inside the server-side ingress chain after accepted WSS handshake on preserved voice attempts and must be classified as ingress eligibility absence, decode absence, loop-entry absence, or explicit pre-loop drop.</note-8>
+      <note-9>On 2026-04-02 step-3 froze the exact server-ingress runtime profile: Phase-49 reuses the preserved Phase-45 namespace `TPROXY` topology and Phase-46, Phase-47, or Phase-48 helper shape unchanged, keeps the ordinary `127.0.0.1:1080` baseline and no-second-auth rule fixed, and allows new evidence only inside one bounded voice attempt label above the preserved accepted-WSS-handshake floor.</note-9>
+      <note-10>On 2026-04-02 step-4 added the minimal server-ingress anchor delta in `wss_gateway`: eligibility now anchors at the accepted-handshake-to-datagram-runtime boundary, loop entry anchors at datagram-ready loop entry, decode anchors at the first governed datagram frame decode, and pre-loop drop anchors on early server-side close or non-binary frame reasons before the first governed datagram frame.</note-10>
+      <note-11>On 2026-04-02 step-5 fixed the bounded server-ingress correlation packet: each voice attempt now requires one stable `phase49-server-ingress-voice-&lt;timestamp&gt;` label and one bounded workstation plus server evidence window that keeps preserved tuple-recovery, governed-handoff, and accepted-WSS-handshake floors separate from server-ingress eligibility, decode, loop-entry, and pre-loop-drop markers.</note-11>
     </Phase-49>
   </ImplementationOrder>
 
