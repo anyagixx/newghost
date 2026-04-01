@@ -3777,7 +3777,7 @@
       <verification-ref>V-M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON</verification-ref>
       <annotations><fn-compareTelegramCallsServerIngress PURPOSE="Compare the server-ingress packet against the preserved boundaries and earlier blockers." /></annotations>
     </M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON>
-    <M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION NAME="TelegramCallsServerIngressDecision" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-SERVER-INGRESS-DECISION NAME="TelegramCallsServerIngressDecision" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Issue one bounded final decision for the server-ingress branch above the preserved Phase-45, Phase-46, Phase-47, and Phase-48 packet set without overstating calls support.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-TELEGRAM-CALLS-SERVER-INGRESS-COMPARISON</depends>
