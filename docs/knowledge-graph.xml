@@ -3701,7 +3701,7 @@
         <fn-defineCallReplyServerCorrelation PURPOSE="Define the bounded workstation-plus-server evidence packet for reply-path attribution." />
       </annotations>
     </M-CALL-REPLY-SERVER-CORRELATION>
-    <M-TELEGRAM-CALLS-REPLY-VOICE NAME="TelegramCallsReplyVoice" TYPE="ENTRY_POINT" STATUS="planned">
+    <M-TELEGRAM-CALLS-REPLY-VOICE NAME="TelegramCallsReplyVoice" TYPE="ENTRY_POINT" STATUS="done">
       <purpose>Run one bounded Telegram Desktop voice packet that attributes the first reply-path blocker above the preserved governed handoff floor without reopening video.</purpose>
       <path>docs/development-plan.xml</path>
       <depends>M-CALL-REPLY-SERVER-CORRELATION</depends>
