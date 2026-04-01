@@ -1,9 +1,9 @@
 // FILE: src/cli/mod.test.rs
-// VERSION: 0.1.9
+// VERSION: 0.1.12
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify deterministic CLI bootstrap, runtime launch, UDP-capable client bootstrap, client-side inbound reply delivery, origdst-live helper launch, live-launch smoke, non-OUTPUT live-smoke launch shape, post-recovery topology-lock proof, and shutdown sequencing for governed startup paths.
 //   SCOPE: Client startup, server startup, optional client TLS bootstrap, runtime listener binding, raw UDP delivery through the live client bootstrap, association-owned inbound UDP delivery, origdst-live listener launch, live tuple-recovery smoke, non-OUTPUT launch-shape proof, post-recovery launch-shape proof, and shutdown ordering.
-//   DEPENDS: async-trait, src/cli/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs, src/udp_origdst/mod.rs
+//   DEPENDS: async-trait, src/cli/mod.rs, src/obs/mod.rs, src/tls/mod.rs, src/wss_gateway/mod.rs, src/socks5/mod.rs, src/socks5/udp_associate.rs, src/session/datagram_manager.rs, src/proxy_bridge/udp_relay.rs, src/udp_origdst/mod.rs
 //   LINKS: V-M-CLI, V-M-TLS, V-M-ORIGDST-LIVE-ENTRYPOINT-CONTRACT, V-M-ORIGDST-LIVE-LAUNCHER, V-M-ORIGDST-LIVE-SMOKE, V-M-TPROXY-NONOUTPUT-SMOKE, V-M-POSTRECOVERY-SMOKE
 // END_MODULE_CONTRACT
 //
@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.9 - Added a bounded Phase-46 post-recovery smoke test so launch-shape proof, topology lock, and smoke proof order stay separate above the completed Phase-45 packet.
+//   LAST_CHANGE: v0.1.12 - Added direct origdst-live launch-anchor assertions so Phase-42 through Phase-46 smoke evidence stays machine-verifiable for autonomous agents.
 // END_CHANGE_SUMMARY
 
 use std::fs;
@@ -48,6 +48,7 @@ use super::{
     ApplicationMode,
     ClientDatagramInboundTarget, ShutdownState,
 };
+use crate::obs::test_tracing_dispatch;
 use crate::session::{DatagramDispatchTarget, UdpAssociationRegistry};
 use crate::socks5::udp_associate::{encode_udp_datagram, UdpRelaySocketRegistry};
 use crate::transport::datagram_contract::{DatagramEnvelope, DatagramTarget};
@@ -340,6 +341,8 @@ async fn client_runtime_binds_socks5_listener_until_cancelled() {
 
 #[tokio::test]
 async fn origdst_live_runtime_binds_listener_until_cancelled() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let listen_addr = reserve_local_udp_addr().to_string();
     let cancel = CancellationToken::new();
     let task = tokio::spawn({
@@ -369,6 +372,17 @@ async fn origdst_live_runtime_binds_listener_until_cancelled() {
         .expect("origdst live runtime task should join")
         .expect("origdst live runtime should shut down cleanly");
     assert_eq!(result.mode, ApplicationMode::OrigDstLive);
+
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[OrigDstLiveEntrypoint][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_ENTRYPOINT]"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live listener bound"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live listener stopped after cancellation"
+    )));
 }
 
 #[tokio::test]
@@ -455,7 +469,9 @@ async fn origdst_live_smoke_proves_launch_listener_tuple_handoff_and_preserved_b
 
 #[tokio::test]
 async fn origdst_live_nonoutput_smoke_proves_launch_shape_and_preserved_baseline() {
-    // START_BLOCK_TPROXY_NONOUTPUT_SMOKE
+    // START_BLOCK_CLI_TPROXY_NONOUTPUT_SMOKE
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let startup = run_from([
         "n0wss",
         "--auth-token",
@@ -526,12 +542,21 @@ async fn origdst_live_nonoutput_smoke_proves_launch_shape_and_preserved_baseline
         .expect("non-output origdst live smoke should shut down cleanly");
     assert_eq!(launch.listener_addr, helper_addr);
     assert_eq!(launch.payload_capacity_bytes, 128);
-    // END_BLOCK_TPROXY_NONOUTPUT_SMOKE
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[OrigDstLiveEntrypoint][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_ENTRYPOINT]"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live listener bound"
+    )));
+    // END_BLOCK_CLI_TPROXY_NONOUTPUT_SMOKE
 }
 
 #[tokio::test]
 async fn origdst_live_postrecovery_smoke_proves_topology_lock_and_evidence_order() {
-    // START_BLOCK_POSTRECOVERY_SMOKE
+    // START_BLOCK_CLI_POSTRECOVERY_SMOKE
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let startup = run_from([
         "n0wss",
         "--auth-token",
@@ -614,7 +639,14 @@ async fn origdst_live_postrecovery_smoke_proves_topology_lock_and_evidence_order
     assert_eq!(launch.payload_capacity_bytes, 128);
     assert_eq!(nonoutput_plan.listener_addr, helper_addr);
     assert!(nonoutput_plan.requires_transparent_socket);
-    // END_BLOCK_POSTRECOVERY_SMOKE
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[OrigDstLiveEntrypoint][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_ENTRYPOINT]"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER] origdst live listener bound"
+    )));
+    // END_BLOCK_CLI_POSTRECOVERY_SMOKE
 }
 
 #[tokio::test]
@@ -750,6 +782,8 @@ async fn client_inbound_target_delivers_reply_into_owned_udp_socket() {
         target: DatagramTarget::Ip(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 9001)),
         payload: b"phase26-inbound".to_vec(),
     };
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
 
     target
         .dispatch(&envelope)
@@ -765,10 +799,15 @@ async fn client_inbound_target_delivers_reply_into_owned_udp_socket() {
             .expect("packet should encode")
             .as_slice()
     );
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[CliApp][deliverInboundDatagram][BLOCK_DELIVER_INBOUND_DATAGRAM]"
+    )));
 }
 
 #[test]
 fn shutdown_stops_accepts_before_drain_and_release() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let run_result = run_from([
         "n0wss",
         "--auth-token",
@@ -788,4 +827,11 @@ fn shutdown_stops_accepts_before_drain_and_release() {
     assert!(snapshot.drains_requested);
     assert!(snapshot.transports_released);
     assert!(!run_result.shutdown.can_accept_new_work());
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[CliApp][run][BLOCK_START_APPLICATION]"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[CliApp][coordinateShutdown][BLOCK_COORDINATE_SHUTDOWN]"
+    )));
 }

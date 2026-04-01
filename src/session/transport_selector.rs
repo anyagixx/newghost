@@ -1,5 +1,5 @@
 // FILE: src/session/transport_selector.rs
-// VERSION: 0.1.1
+// VERSION: 0.1.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Choose iroh first and fall back to WSS sequentially under bounded timeouts and explicit cancellation.
 //   SCOPE: Transport selector configuration, sequential adapter attempts, safety timeout, and combined failure diagnostics.
@@ -15,7 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.1 - Exposed iroh and WSS component failures in the combined selector error so live evidence can identify the first divergent transport layer.
+//   LAST_CHANGE: v0.1.2 - Renamed the selector-internal transport block to a helper-specific marker so SessionManager retains the public BLOCK_SELECT_TRANSPORT anchor uniquely.
 // END_CHANGE_SUMMARY
 
 use std::time::Duration;
@@ -99,7 +99,7 @@ where
         request: &TransportRequest,
         cancel: CancellationToken,
     ) -> Result<ResolvedStream, TransportSelectError> {
-        // START_BLOCK_SELECT_TRANSPORT
+        // START_BLOCK_SELECT_TRANSPORT_FALLBACK
         if cancel.is_cancelled() {
             return Err(TransportSelectError::Cancelled);
         }
@@ -138,7 +138,7 @@ where
                 }
             }
         }
-        // END_BLOCK_SELECT_TRANSPORT
+        // END_BLOCK_SELECT_TRANSPORT_FALLBACK
     }
 
     async fn attempt_with_timeout<A>(

@@ -1,5 +1,5 @@
 // FILE: src/wss_gateway/mod.rs
-// VERSION: 0.1.8
+// VERSION: 0.1.9
 // START_MODULE_CONTRACT
 //   PURPOSE: Create WSS-backed transport streams and a production WSS-backed datagram carrier by composing TCP, TLS, websocket upgrade, auth validation, target relay, governed datagram framing, and client-side inbound datagram callback wiring under the shared adapter contract without owning transport selection logic.
 //   SCOPE: Outbound WSS open-stream behavior, inbound WSS server loop, target-connect relay, production datagram-path handshake, server-side inbound return emission, client-side inbound datagram callback wiring, adapter-scoped task tracking, cleanup-sensitive shutdown paths, and datagram-frame helper export.
@@ -24,7 +24,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.8 - Wired server-side inbound receive and return emit into the real datagram runtime and added a client-side inbound callback so controlled replies can reach the owning local relay socket.
+//   LAST_CHANGE: v0.1.9 - Renamed the open-stream semantic block and stable log anchors to a module-unique WSS marker so GRACE block names stay globally unique.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -226,7 +226,7 @@ impl WssGateway {
                     .map_err(|err| WssError::HandshakeFailed(err.to_string()))?;
                 info!(
                     peer = %peer_label,
-                    "[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT] accepted WSS handshake"
+                    "[WssGateway][openStream][BLOCK_OPEN_WSS_STREAM] accepted WSS handshake"
                 );
                 let target_message = websocket
                     .next()
@@ -621,11 +621,11 @@ impl TransportAdapter for WssGateway {
         request: &TransportRequest,
         cancel: CancellationToken,
     ) -> Result<ResolvedStream, Self::Error> {
-        // START_BLOCK_ADAPTER_CLEANUP_CONTRACT
+        // START_BLOCK_OPEN_WSS_STREAM
         if cancel.is_cancelled() {
             warn!(
                 peer = %request.peer_label,
-                "[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT] cancelled before connect"
+                "[WssGateway][openStream][BLOCK_OPEN_WSS_STREAM] cancelled before connect"
             );
             return Err(WssError::Cancelled);
         }
@@ -684,7 +684,7 @@ impl TransportAdapter for WssGateway {
 
         info!(
             peer = %request.peer_label,
-            "[WssGateway][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT] established WSS transport stream"
+            "[WssGateway][openStream][BLOCK_OPEN_WSS_STREAM] established WSS transport stream"
         );
 
         Ok(ResolvedStream {
@@ -696,7 +696,7 @@ impl TransportAdapter for WssGateway {
             }),
             transport_kind: TransportKind::Wss,
         })
-        // END_BLOCK_ADAPTER_CLEANUP_CONTRACT
+        // END_BLOCK_OPEN_WSS_STREAM
     }
 
     fn task_tracker(&self) -> &AdapterTaskTracker {

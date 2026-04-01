@@ -1,5 +1,5 @@
 // FILE: tests/udp_origdst_smoke.rs
-// VERSION: 0.2.1
+// VERSION: 0.2.2
 // START_MODULE_CONTRACT
 //   PURPOSE: Prove the repo-local original-destination helper smoke packets recover bounded tuples for the Phase-41 recovery branch, the Phase-45 non-OUTPUT branch, and the Phase-46 post-recovery evidence-order branch while preserving a separate baseline probe.
 //   SCOPE: Two-tuple Linux original-destination recovery, non-helper tuple recovery under the bounded non-OUTPUT plan markers, governed-handoff recording, tuple-evidence labeling, post-recovery proof-order recording, and a separate loopback baseline-preserve probe.
@@ -14,7 +14,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.2.1 - Added a bounded Phase-46 post-recovery smoke packet for ordered evidence classes above the completed Phase-45 tuple-recovery boundary.
+//   LAST_CHANGE: v0.2.2 - Renamed the udp_origdst smoke semantic blocks to file-unique names so GRACE smoke evidence stays globally unambiguous.
 // END_CHANGE_SUMMARY
 
 use std::io::Write;
@@ -148,7 +148,7 @@ async fn udp_origdst_smoke_recovers_two_distinct_tuples_and_preserves_baseline_p
 
 #[tokio::test]
 async fn udp_origdst_nonoutput_smoke_recovers_non_helper_tuple_and_preserves_baseline_probe() {
-    // START_BLOCK_TPROXY_NONOUTPUT_SMOKE
+    // START_BLOCK_UDP_ORIGDST_TPROXY_NONOUTPUT_SMOKE
     let baseline_listener = TcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
         .expect("bind non-output baseline listener");
     baseline_listener
@@ -233,12 +233,12 @@ async fn udp_origdst_nonoutput_smoke_recovers_non_helper_tuple_and_preserves_bas
         .expect("set non-output baseline probe read timeout");
     drop(baseline_probe);
     baseline_thread.join().expect("non-output baseline thread join");
-    // END_BLOCK_TPROXY_NONOUTPUT_SMOKE
+    // END_BLOCK_UDP_ORIGDST_TPROXY_NONOUTPUT_SMOKE
 }
 
 #[tokio::test]
 async fn udp_origdst_postrecovery_smoke_keeps_ordered_evidence_above_tuple_recovery() {
-    // START_BLOCK_POSTRECOVERY_SMOKE
+    // START_BLOCK_UDP_ORIGDST_POSTRECOVERY_SMOKE
     let baseline_listener = TcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
         .expect("bind post-recovery baseline listener");
     baseline_listener
@@ -327,5 +327,5 @@ async fn udp_origdst_postrecovery_smoke_keeps_ordered_evidence_above_tuple_recov
     baseline_thread
         .join()
         .expect("post-recovery baseline thread join");
-    // END_BLOCK_POSTRECOVERY_SMOKE
+    // END_BLOCK_UDP_ORIGDST_POSTRECOVERY_SMOKE
 }

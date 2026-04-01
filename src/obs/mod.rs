@@ -1,5 +1,5 @@
 // FILE: src/obs/mod.rs
-// VERSION: 0.1.2
+// VERSION: 0.1.3
 // START_MODULE_CONTRACT
 //   PURPOSE: Initialize tracing, stable field propagation, metrics collection, sliding-window burst detection, peak-rate gauges, and redaction-aware logging behavior.
 //   SCOPE: Observability bootstrap, in-memory metrics updates, burst detection, peak resets, and secret redaction helpers.
@@ -12,14 +12,17 @@
 //   ObservabilityHandles - tracing, metrics, and burst detector outputs
 //   ProxyMetricsHandle - thread-safe counters, gauges, and histogram sink
 //   BurstDetectorHandle - sliding-window burst detector with rate-limited alerts
+//   TestTracingCapture - test-only in-memory sink for governed trace assertions
+//   TestTracingWriter - test-only writer that clones log bytes into shared capture state
 //   init_observability - create handles and emit initialization marker
 //   record_burst - record queue saturation into metrics and burst detector
 //   reset_peak - clear the peak-rate gauge on maintenance cadence
 //   redact_secret - redact sensitive strings before logs
+//   test_tracing_dispatch - build a test-only tracing dispatch and capture pair for direct anchor assertions
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.2 - Installed the tracing subscriber as a process-wide default so startup and runtime anchors from other modules reach the same log sink.
+//   LAST_CHANGE: v0.1.3 - Added a test-only tracing capture helper so governed tests can assert stable log anchors directly instead of inferring trajectory from outcomes alone.
 // END_CHANGE_SUMMARY
 
 use std::collections::{BTreeMap, VecDeque};
@@ -30,6 +33,8 @@ use std::sync::OnceLock;
 use thiserror::Error;
 use tracing::{info, warn, Dispatch};
 use tracing_subscriber::FmtSubscriber;
+#[cfg(test)]
+use tracing_subscriber::fmt::MakeWriter;
 
 use crate::config::{AppConfig, BurstDetectionConfig, RuntimeMode};
 
@@ -241,6 +246,69 @@ impl Default for ProxyMetricsHandle {
     fn default() -> Self {
         Self::new()
     }
+}
+
+#[cfg(test)]
+#[derive(Clone, Default)]
+pub struct TestTracingCapture {
+    buffer: Arc<Mutex<Vec<u8>>>,
+}
+
+#[cfg(test)]
+pub struct TestTracingWriter {
+    buffer: Arc<Mutex<Vec<u8>>>,
+}
+
+#[cfg(test)]
+impl std::io::Write for TestTracingWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.buffer
+            .lock()
+            .expect("test tracing buffer mutex poisoned")
+            .extend_from_slice(buf);
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+impl<'a> MakeWriter<'a> for TestTracingCapture {
+    type Writer = TestTracingWriter;
+
+    fn make_writer(&'a self) -> Self::Writer {
+        TestTracingWriter {
+            buffer: self.buffer.clone(),
+        }
+    }
+}
+
+#[cfg(test)]
+impl TestTracingCapture {
+    pub fn lines(&self) -> Vec<String> {
+        String::from_utf8_lossy(
+            &self
+                .buffer
+                .lock()
+                .expect("test tracing buffer mutex poisoned"),
+        )
+        .lines()
+        .map(|line| line.to_string())
+        .collect()
+    }
+}
+
+#[cfg(test)]
+pub fn test_tracing_dispatch() -> (Dispatch, TestTracingCapture) {
+    let capture = TestTracingCapture::default();
+    let subscriber = FmtSubscriber::builder()
+        .with_target(false)
+        .with_ansi(false)
+        .with_writer(capture.clone())
+        .finish();
+    (Dispatch::new(subscriber), capture)
 }
 
 impl BurstDetectorHandle {

@@ -1,4 +1,4 @@
-<VerificationPlan VERSION="0.2.92">
+<VerificationPlan VERSION="0.2.93">
   <GlobalPolicy>
     <log-format>[Module][function][BLOCK_NAME] message</log-format>
     <deterministic-first>true</deterministic-first>
@@ -5776,7 +5776,7 @@
       <test-files><file>src/udp_origdst/mod.rs</file><file>src/udp_origdst/udp_origdst.test.rs</file></test-files>
       <module-checks>
         <check-1>cargo test udp_origdst</check-1>
-        <check-2>rg -n 'BLOCK_UDP_ORIGDST_RUNTIME|BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF|tuple|association_id' src/udp_origdst/mod.rs src/udp_origdst.test.rs</check-2>
+        <check-2>rg -n 'BLOCK_UDP_ORIGDST_RUNTIME|BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF|BLOCK_UDP_ORIGDST_TRANSPARENT_SOCKET|tuple|association_id' src/udp_origdst/mod.rs src/udp_origdst/udp_origdst.test.rs</check-2>
       </module-checks>
       <success-scenarios>
         <scenario-1>The helper runtime forwards recovered tuples into the governed datagram path without weakening the ordinary baseline contract.</scenario-1>
@@ -5786,6 +5786,15 @@
         <scenario-1>The helper runtime bypasses governed handoff or leaves tuple ownership ambiguous.</scenario-1>
         <scenario-2>The helper runtime proves only outcome success but not trajectory success from recovered tuple to governed dispatch target.</scenario-2>
       </failure-scenarios>
+      <required-log-markers>
+        <marker-1>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME]</marker-1>
+        <marker-2>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]</marker-2>
+        <marker-3>[UdpOrigDstRuntime][runLinuxIpv4ListenerUntilCancelled][BLOCK_UDP_ORIGDST_TRANSPARENT_SOCKET]</marker-3>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The runtime tests must assert the exact runtime and governed-handoff anchors directly instead of inferring tuple-forward success only from stored handoff state.</assertion-1>
+        <assertion-2>The cancellable listener-loop test must prove transparent-socket enablement, tuple acceptance, and governed handoff as separate trace surfaces.</assertion-2>
+      </required-trace-assertions>
     </V-M-UDP-ORIGDST-RUNTIME>
     <V-M-UDP-ORIGDST-RUNBOOK MODULE="M-UDP-ORIGDST-RUNBOOK" PRIORITY="high">
       <test-files><file>docs/OPERATORS.md</file><file>docs/verification-plan.xml</file></test-files>
@@ -5802,6 +5811,7 @@
       <module-checks>
         <check-1>rg -n 'two distinct tuples|original-destination recovery|governed handoff|ordinary baseline' docs/development-plan.xml docs/verification-plan.xml</check-1>
         <check-2>cargo test udp_origdst_smoke</check-2>
+        <check-3>rg -n 'BLOCK_UDP_ORIGDST_RUNTIME|BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF|tuple_evidence_label|route-localnet|policy-routing-fwmark' tests/udp_origdst_smoke.rs src/udp_origdst/mod.rs src/udp_origdst/linux.rs</check-3>
       </module-checks>
       <success-scenarios>
         <scenario-1>The smoke packet proves recovered original destinations and governed handoff for at least two distinct tuples.</scenario-1>
@@ -5813,6 +5823,15 @@
         <scenario-2>The smoke packet is green only because the ordinary baseline regressed.</scenario-2>
         <scenario-3>The smoke packet names two tuples but proves recovery or governed handoff for only one of them.</scenario-3>
       </failure-scenarios>
+      <required-log-markers>
+        <marker-1>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME]</marker-1>
+        <marker-2>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]</marker-2>
+      </required-log-markers>
+      <required-trace-assertions>
+        <assertion-1>The smoke packet must preserve tuple-level evidence labels and prove that each recovered tuple reaches its own governed handoff surface; one combined success assertion is insufficient.</assertion-1>
+        <assertion-2>The smoke packet must keep baseline-preserve proof separate from tuple-recovery proof so a healthy ordinary Telegram baseline cannot mask a recovery defect.</assertion-2>
+        <assertion-3>The non-OUTPUT variant must preserve route-mark proof and local-delivery proof as named evidence classes alongside governed handoff.</assertion-3>
+      </required-trace-assertions>
     </V-M-UDP-ORIGDST-SMOKE>
     <V-M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE MODULE="M-TELEGRAM-CALLS-ORIGDST-VOICE-WAVE" PRIORITY="high">
       <test-files><file>docs/verification-plan.xml</file><file>docs/development-plan.xml</file></test-files>
@@ -6095,6 +6114,8 @@
       <module-checks><check-1>rg -n 'Phase-45|non-OUTPUT|supported rule install|real target|non-helper|127.0.0.1:1080|route_localnet|rp_filter' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'Phase-44|OUTPUT TPROXY|Operation not supported|Invalid argument' docs/development-plan.xml docs/verification-plan.xml README.md</check-2><check-3>rg -n 'route proof|mark proof|local-delivery proof|governed handoff|baseline preserve' docs/verification-plan.xml docs/development-plan.xml docs/OPERATORS.md</check-3></module-checks>
       <success-scenarios><scenario-1>The non-OUTPUT smoke packet proves supported rule install, namespace local-delivery proof, real non-helper destination recovery, governed handoff, and preserved baseline.</scenario-1><scenario-2>The smoke packet keeps helper launch proof, supported rule-install proof, route-mark proof, namespace local-delivery proof, and tuple-recovery proof separate enough to isolate the first failing layer.</scenario-2><scenario-3>The bounded test packet stays split across CLI launch-shape coverage in `src/cli/mod.test.rs` and non-helper tuple recovery coverage in `tests/udp_origdst_smoke.rs`, so launch evidence is not blended with tuple-recovery evidence.</scenario-3></success-scenarios>
       <failure-scenarios><scenario-1>The smoke packet still fails at unsupported rule install, missing namespace local delivery, still recovers only the helper listener, or looks green only because the ordinary baseline regressed.</scenario-1><scenario-2>The smoke packet installs rules but leaves routing, local-delivery policy, or mark application implicit, so tuple-recovery success cannot be trusted.</scenario-2></failure-scenarios>
+      <required-log-markers><marker-1>[OrigDstLiveEntrypoint][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_ENTRYPOINT]</marker-1><marker-2>[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER]</marker-2><marker-3>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]</marker-3></required-log-markers>
+      <required-trace-assertions><assertion-1>The CLI launch-shape test must assert the exact origdst-live entrypoint and listener-bind anchors directly so Phase-45 launch proof is machine-verifiable.</assertion-1><assertion-2>The non-helper tuple recovery test must stay separate from launch-shape proof and must continue to name `policy-routing-fwmark` and `route-localnet` explicitly.</assertion-2></required-trace-assertions>
     </V-M-TPROXY-NONOUTPUT-SMOKE>
     <V-M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE MODULE="M-TELEGRAM-CALLS-TPROXY-NONOUTPUT-VOICE" PRIORITY="high">
       <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
@@ -6179,10 +6200,12 @@
       <module-checks><check-1>rg -n 'post-recovery smoke|tuple recovery|governed handoff|establishment behavior|key-exchange outcome|127.0.0.1:1080' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'proof order|separate evidence classes|Phase-45|topology unchanged' docs/development-plan.xml docs/verification-plan.xml</check-2></module-checks>
       <success-scenarios><scenario-1>The post-recovery smoke packet proves the new evidence surface without spending a Telegram UI packet.</scenario-1><scenario-2>The smoke packet keeps recovery, downstream behavior, and baseline-preserve proof separate enough to isolate the first failing layer.</scenario-2><scenario-3>The smoke packet proves the required proof order above the unchanged Phase-45 topology.</scenario-3></success-scenarios>
       <failure-scenarios><scenario-1>The smoke packet still blends recovery with establishment claims or weakens the preserved baseline.</scenario-1><scenario-2>The smoke packet lets downstream-establishment claims appear before tuple-recovery or governed-handoff proof.</scenario-2></failure-scenarios>
+      <required-log-markers><marker-1>[OrigDstLiveEntrypoint][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_ENTRYPOINT]</marker-1><marker-2>[OrigDstLiveLauncher][runOrigDstLiveUntilCancelled][BLOCK_ORIGDST_LIVE_LAUNCHER]</marker-2><marker-3>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME]</marker-3><marker-4>[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]</marker-4></required-log-markers>
+      <required-trace-assertions><assertion-1>The bounded post-recovery smoke packet must assert launch-entry, listener-bind, tuple-acceptance, and governed-handoff anchors directly so proof order is machine-checkable before any Telegram UI packet.</assertion-1><assertion-2>The smoke packet must preserve the explicit proof order `tuple recovery -&gt; governed handoff -&gt; downstream establishment behavior -&gt; key-exchange outcome` even when later operator evidence remains manual.</assertion-2></required-trace-assertions>
     </V-M-POSTRECOVERY-SMOKE>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-VOICE" PRIORITY="high">
-      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery voice|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged|127.0.0.1:1080|no second auth' docs/development-plan.xml docs/verification-plan.xml</check-2><check-3>rg -n 'audio-first|bounded voice packet first|video, comparison, and final decision remain downstream' docs/verification-plan.xml</check-3><check-4>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_RELAY_UDP_OUTBOUND|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_DELIVER_INBOUND_DATAGRAM' docs/verification-plan.xml</check-4></module-checks>
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'post-recovery voice|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged|127.0.0.1:1080|no second auth' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-2><check-3>rg -n 'audio-first|bounded voice packet first|video, comparison, and final decision remain downstream' docs/verification-plan.xml</check-3><check-4>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_RELAY_UDP_OUTBOUND|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_DELIVER_INBOUND_DATAGRAM' docs/verification-plan.xml docs/OPERATORS.md</check-4></module-checks>
       <success-scenarios><scenario-1>The post-recovery voice packet is the first bounded execution packet downstream of green post-recovery smoke and preserves the ordinary logged-in baseline.</scenario-1><scenario-2>The voice packet records tuple recovery, governed handoff, downstream establishment behavior, and user-visible key-exchange outcome in the required order without changing topology.</scenario-2><scenario-3>The voice packet states whether audio establishment became green, remained signaling-only, or failed at a narrower downstream layer instead of collapsing all evidence into one vague outcome.</scenario-3></success-scenarios>
       <failure-scenarios><scenario-1>The post-recovery voice packet is spent before green smoke, or video/comparison work is treated as a prerequisite for the first bounded voice packet.</scenario-1><scenario-2>The voice packet silently changes topology, skips one proof class, or treats ringing or key exchange alone as proof of green audio establishment.</scenario-2></failure-scenarios>
       <required-trace-assertions><assertion-1>The preserved voice packet must keep Phase-45 explicit as the first real-media-tuple-success boundary instead of reclassifying transport green as call-establishment green.</assertion-1><assertion-2>The preserved voice packet must state which governed datagram markers were observed or absent in the same bounded window, using the existing UDP ASSOCIATE, datagram transport, outbound relay, server inbound, server return, and client inbound-delivery anchors.</assertion-2><assertion-3>The preserved voice packet must classify key-exchange progress as user-visible outcome evidence only; it may not treat key exchange alone as proof of successful audio establishment.</assertion-3></required-trace-assertions>
@@ -6190,8 +6213,8 @@
       <phase-follow-up>Do not mark Phase-46 done until video, comparison, and bounded final decision remain explicitly classified against the preserved voice packet.</phase-follow-up>
     </V-M-TELEGRAM-CALLS-POSTRECOVERY-VOICE>
     <V-M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO MODULE="M-TELEGRAM-CALLS-POSTRECOVERY-VIDEO" PRIORITY="high">
-      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file></test-files>
-      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged|topology, helper launch shape, or ordinary Telegram baseline' docs/development-plan.xml docs/verification-plan.xml</check-2><check-3>rg -n 'voice packet first|video packet stays downstream|without inheriting the voice result|without inheriting the voice result and keeps comparison/decision downstream' docs/development-plan.xml docs/verification-plan.xml</check-3><check-4>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_RELAY_UDP_OUTBOUND|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_DELIVER_INBOUND_DATAGRAM' docs/verification-plan.xml</check-4></module-checks>
+      <test-files><file>docs/development-plan.xml</file><file>docs/verification-plan.xml</file><file>docs/OPERATORS.md</file></test-files>
+      <module-checks><check-1>rg -n 'post-recovery video|already logged-in|tuple recovery|governed handoff|establishment behavior|Обмен ключами шифрования' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-1><check-2>rg -n 'Phase-45|proof order|topology unchanged|topology, helper launch shape, or ordinary Telegram baseline' docs/development-plan.xml docs/verification-plan.xml docs/OPERATORS.md</check-2><check-3>rg -n 'voice packet first|video packet stays downstream|without inheriting the voice result|without inheriting the voice result and keeps comparison/decision downstream' docs/development-plan.xml docs/verification-plan.xml</check-3><check-4>rg -n 'BLOCK_HANDLE_UDP_ASSOCIATE|BLOCK_SELECT_DATAGRAM_TRANSPORT|BLOCK_RELAY_UDP_OUTBOUND|SERVER_DATAGRAM_INBOUND_RECEIVED|SERVER_DATAGRAM_RETURN_EMITTED|BLOCK_DELIVER_INBOUND_DATAGRAM' docs/verification-plan.xml docs/OPERATORS.md</check-4></module-checks>
       <success-scenarios><scenario-1>The post-recovery video packet stays separate from voice and remains downstream of the same green smoke proof.</scenario-1><scenario-2>The video packet records the same ordered proof classes without inheriting the voice evidence.</scenario-2></success-scenarios>
       <failure-scenarios><scenario-1>The post-recovery video packet silently inherits voice or bypasses smoke-first policy.</scenario-1><scenario-2>The video packet collapses proof classes or changes topology under the same branch label.</scenario-2></failure-scenarios>
       <required-trace-assertions><assertion-1>The preserved video packet must keep the preserved voice packet explicit as the first active Phase-46 calls step instead of inheriting voice success or failure as video evidence.</assertion-1><assertion-2>The preserved video packet must state which governed datagram markers were observed or absent in the same bounded window, using the existing UDP ASSOCIATE, datagram transport, outbound relay, server inbound, server return, and client inbound-delivery anchors.</assertion-2><assertion-3>The preserved video packet must classify key-exchange progress as user-visible outcome evidence only; it may not treat key exchange alone as proof of successful video establishment.</assertion-3></required-trace-assertions>

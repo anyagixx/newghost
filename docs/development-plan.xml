@@ -1,4 +1,4 @@
-<DevelopmentPlan VERSION="0.2.68">
+<DevelopmentPlan VERSION="0.2.69">
   <ArchitectureNotes>
     <objective>Deliver a minimal but verifiable SOCKS5-over-secure-tunnel proxy path where local proxy-aware applications route traffic through a transport-agnostic stream abstraction backed by WSS primary transport and iroh fallback transport.</objective>
     <non-goal>Do not attempt a full VPN, browser control plane, or multi-tenant public relay in the first execution waves.</non-goal>
@@ -349,7 +349,7 @@
         <log-prefix>[SessionEffectHandler]</log-prefix>
         <critical-block>BLOCK_EFFECT_HANDLER_ROUTING</critical-block>
       </observability>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-EFFECT-HANDLER</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
       </notes>
@@ -383,7 +383,7 @@
         <log-prefix>[SessionEffects]</log-prefix>
         <critical-block>BLOCK_SESSION_EFFECT_SURFACE</critical-block>
       </observability>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-EFFECTS</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
       </notes>
@@ -418,7 +418,7 @@
         <log-prefix>[SessionRegistry]</log-prefix>
         <critical-block>BLOCK_REGISTRY_CAPACITY</critical-block>
       </observability>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-REGISTRY</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
       </notes>
@@ -452,7 +452,7 @@
         <log-prefix>[SessionStateMachine]</log-prefix>
         <critical-block>BLOCK_STATE_TRANSITION</critical-block>
       </observability>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-STATE</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
       </notes>
@@ -484,7 +484,7 @@
         <log-prefix>[SessionTransportSelector]</log-prefix>
         <critical-block>BLOCK_SELECT_TRANSPORT_FALLBACK</critical-block>
       </observability>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-TRANSPORT-SELECTOR</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under M-SESSION and inherits Session verification rather than creating a separate execution wave.</note-1>
       </notes>
@@ -597,7 +597,7 @@
         <log-prefix>[TransportAdapterContract]</log-prefix>
         <critical-block>BLOCK_TRANSPORT_ADAPTER_CONTRACT</critical-block>
       </observability>
-      <verification-ref>V-M-WSS-GATEWAY</verification-ref>
+      <verification-ref>V-M-TRANSPORT-ADAPTER-CONTRACT</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under the transport-boundary modules and inherits their verification surfaces.</note-1>
       </notes>
@@ -630,7 +630,7 @@
         <log-prefix>[TransportStreamContract]</log-prefix>
         <critical-block>BLOCK_TRANSPORT_STREAM_CONTRACT</critical-block>
       </observability>
-      <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
+      <verification-ref>V-M-TRANSPORT-STREAM</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under bridge and transport-boundary modules and inherits their verification surfaces.</note-1>
       </notes>
@@ -662,7 +662,7 @@
         <log-prefix>[TransportTaskTracker]</log-prefix>
         <critical-block>BLOCK_ADAPTER_TASK_TRACKER</critical-block>
       </observability>
-      <verification-ref>V-M-IROH-ADAPTER</verification-ref>
+      <verification-ref>V-M-TRANSPORT-TASK-TRACKER</verification-ref>
       <notes>
         <note-1>This helper stays execution-scoped under the transport-boundary modules and inherits their verification surfaces.</note-1>
       </notes>

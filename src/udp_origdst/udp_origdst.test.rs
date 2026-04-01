@@ -1,5 +1,5 @@
 // FILE: src/udp_origdst/udp_origdst.test.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify the repo-local original-destination helper contract and runtime surfaces leave stable tuple-level evidence, deterministic forwarding behavior, and one cancellable live listener loop.
 //   SCOPE: Helper contract tuple-evidence labeling, runtime forwarding, and Linux-listener loop checks.
@@ -15,7 +15,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Kept the live-listener runtime check while making transparent-socket enablement an explicit opt-in surface for the privileged TPROXY branch.
+//   LAST_CHANGE: v0.1.4 - Added direct runtime log-anchor assertions so tuple recovery and governed handoff remain machine-verifiable for later Telegram calls waves.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
@@ -26,6 +26,7 @@ use async_trait::async_trait;
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
+use crate::obs::test_tracing_dispatch;
 use crate::transport::datagram_contract::DatagramTarget;
 
 use super::{
@@ -75,6 +76,8 @@ impl UdpOrigDstGovernedHandoff for RecordingHandoff {
 
 #[tokio::test]
 async fn runtime_forwards_recovered_tuple_into_governed_handoff() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let handoff = RecordingHandoff::default();
     let runtime = UdpOrigDstRuntime::new(handoff.clone());
     let tuple = RecoveredUdpTuple {
@@ -96,6 +99,15 @@ async fn runtime_forwards_recovered_tuple_into_governed_handoff() {
     assert_eq!(calls.len(), 1);
     assert_eq!(calls[0].0, tuple);
     assert_eq!(calls[0].1, b"ping".to_vec());
+    drop(calls);
+
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME]"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]"
+    )));
 }
 
 #[tokio::test]
@@ -127,6 +139,8 @@ async fn runtime_rejects_payload_length_mismatch() {
 
 #[tokio::test]
 async fn runtime_runs_linux_ipv4_listener_until_cancelled() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let handoff = RecordingHandoff::default();
     let runtime = UdpOrigDstRuntime::new(handoff.clone());
     let helper_socket = UdpSocket::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))
@@ -176,4 +190,12 @@ async fn runtime_runs_linux_ipv4_listener_until_cancelled() {
     task.await
         .expect("listener task join")
         .expect("listener loop should stop cleanly");
+
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_RUNTIME]"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[UdpOrigDstRuntime][forwardRecoveredDatagram][BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF]"
+    )));
 }

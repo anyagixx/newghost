@@ -1,5 +1,5 @@
 // FILE: src/iroh_adapter/mod.rs
-// VERSION: 0.1.0
+// VERSION: 0.1.1
 // START_MODULE_CONTRACT
 //   PURPOSE: Open iroh direct or relay-backed transport streams under the shared adapter contract and clean up partial state on cancel or error.
 //   SCOPE: Endpoint lifecycle, outbound iroh stream establishment, tracked bridge tasks, and deterministic release behavior.
@@ -17,7 +17,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.0 - Created Phase 2 iroh adapter with tracked stream bridging, release handling, and tests.
+//   LAST_CHANGE: v0.1.1 - Renamed the open-stream semantic block and stable log anchor to a module-unique Iroh marker so GRACE block names stay globally unique.
 // END_CHANGE_SUMMARY
 
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -209,11 +209,11 @@ impl TransportAdapter for IrohAdapter {
         request: &TransportRequest,
         cancel: CancellationToken,
     ) -> Result<ResolvedStream, Self::Error> {
-        // START_BLOCK_ADAPTER_CLEANUP_CONTRACT
+        // START_BLOCK_OPEN_IROH_STREAM
         if cancel.is_cancelled() {
             warn!(
                 peer = %request.peer_label,
-                "[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT] cancelled before connect"
+                "[IrohAdapter][openStream][BLOCK_OPEN_IROH_STREAM] cancelled before connect"
             );
             return Err(IrohError::Cancelled);
         }
@@ -254,7 +254,7 @@ impl TransportAdapter for IrohAdapter {
         self.config.metrics.increment_intents_enqueued();
         info!(
             peer = %request.peer_label,
-            "[IrohAdapter][openStream][BLOCK_ADAPTER_CLEANUP_CONTRACT] established iroh transport stream"
+            "[IrohAdapter][openStream][BLOCK_OPEN_IROH_STREAM] established iroh transport stream"
         );
 
         Ok(ResolvedStream {
@@ -266,7 +266,7 @@ impl TransportAdapter for IrohAdapter {
             }),
             transport_kind: TransportKind::IrohDirect,
         })
-        // END_BLOCK_ADAPTER_CLEANUP_CONTRACT
+        // END_BLOCK_OPEN_IROH_STREAM
     }
 
     fn task_tracker(&self) -> &AdapterTaskTracker {

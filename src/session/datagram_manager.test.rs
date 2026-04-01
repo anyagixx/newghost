@@ -1,9 +1,9 @@
 // FILE: src/session/datagram_manager.test.rs
-// VERSION: 0.1.3
+// VERSION: 0.1.4
 // START_MODULE_CONTRACT
 //   PURPOSE: Verify datagram association open, outbound dispatch, runtime bridge dispatch, inbound dispatch, and cleanup trajectories over the governed UDP registry.
 //   SCOPE: Open success, explicit close, outbound dispatch, selector-backed runtime-bridge dispatch, inbound dispatch, explicit dispatch failure, and missing-association failure behavior.
-//   DEPENDS: src/session/datagram_manager.rs, src/session/udp_registry.rs, src/transport/datagram_contract.rs
+//   DEPENDS: src/session/datagram_manager.rs, src/session/udp_registry.rs, src/obs/mod.rs, src/transport/datagram_contract.rs
 //   LINKS: V-M-DATAGRAM-SESSION-MANAGER
 // END_MODULE_CONTRACT
 //
@@ -21,7 +21,7 @@
 // END_MODULE_MAP
 //
 // START_CHANGE_SUMMARY
-//   LAST_CHANGE: v0.1.3 - Added selector-backed runtime-bridge coverage so Phase-25 can prove live UDP ingress reaches bounded WSS emission.
+//   LAST_CHANGE: v0.1.4 - Added direct manager log-anchor assertions so association-open, outbound-dispatch, inbound-dispatch, and local handoff trajectory evidence no longer depends on manual log review.
 // END_CHANGE_SUMMARY
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -35,6 +35,7 @@ use tokio_util::sync::CancellationToken;
 use super::{
     DatagramDispatchTarget, DatagramRuntimeBridge, DatagramSessionError, DatagramSessionManager,
 };
+use crate::obs::test_tracing_dispatch;
 use crate::session::UdpAssociationRegistry;
 use crate::session::{
     DatagramTransportSelector, DatagramTransportSelectorConfig, WssDatagramPath,
@@ -126,6 +127,8 @@ fn sample_envelope(association_id: u64) -> DatagramEnvelope {
 
 #[test]
 fn open_association_records_owned_udp_state() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let registry = Arc::new(UdpAssociationRegistry::new(1));
     let manager = DatagramSessionManager::new(
         registry.clone(),
@@ -140,10 +143,15 @@ fn open_association_records_owned_udp_state() {
     assert_eq!(association_id, 1);
     assert_eq!(record.relay_addr, target_addr(40000));
     assert_eq!(registry.association_count(), 1);
+    assert!(capture.lines().iter().any(|line| line.contains(
+        "[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]"
+    )));
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "current_thread")]
 async fn outbound_dispatch_refreshes_activity_and_hits_outbound_target() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let registry = Arc::new(UdpAssociationRegistry::new(1));
     let outbound = Arc::new(RecordingTarget::default());
     let manager = DatagramSessionManager::new(
@@ -167,10 +175,19 @@ async fn outbound_dispatch_refreshes_activity_and_hits_outbound_target() {
         registry.get(association_id).expect("registry record").last_activity,
         later
     );
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[DatagramSessionManager][forwardOutboundDatagram][BLOCK_FORWARD_OUTBOUND_DATAGRAM] dispatching outbound datagram"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[DatagramSessionManager][forwardOutboundDatagram][BLOCK_FORWARD_OUTBOUND_DATAGRAM] outbound datagram reached manager dispatch target"
+    )));
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "current_thread")]
 async fn inbound_dispatch_refreshes_activity_and_hits_inbound_target() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let registry = Arc::new(UdpAssociationRegistry::new(1));
     let inbound = Arc::new(RecordingTarget::default());
     let manager = DatagramSessionManager::new(
@@ -194,10 +211,19 @@ async fn inbound_dispatch_refreshes_activity_and_hits_inbound_target() {
         registry.get(association_id).expect("registry record").last_activity,
         later
     );
+    let lines = capture.lines();
+    assert!(lines.iter().any(|line| line.contains(
+        "[DatagramSessionManager][forwardInboundDatagram][BLOCK_FORWARD_INBOUND_DATAGRAM] dispatching inbound datagram"
+    )));
+    assert!(lines.iter().any(|line| line.contains(
+        "[DatagramSessionManager][forwardInboundDatagram][BLOCK_FORWARD_INBOUND_DATAGRAM] inbound datagram reached manager dispatch target"
+    )));
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "current_thread")]
 async fn accept_outbound_datagram_opens_and_dispatches_owned_association() {
+    let (dispatch, capture) = test_tracing_dispatch();
+    let _guard = tracing::dispatcher::set_default(&dispatch);
     let registry = Arc::new(UdpAssociationRegistry::new(1));
     let outbound = Arc::new(RecordingTarget::default());
     let manager = DatagramSessionManager::new(
@@ -221,6 +247,31 @@ async fn accept_outbound_datagram_opens_and_dispatches_owned_association() {
     assert_eq!(envelope.association_id, 1);
     assert_eq!(registry.association_count(), 1);
     assert_eq!(outbound.seen.lock().expect("seen").len(), 1);
+    let lines = capture.lines();
+    let open_idx = lines
+        .iter()
+        .position(|line| {
+            line.contains("[DatagramSessionManager][openAssociation][BLOCK_OPEN_DATAGRAM_ASSOCIATION]")
+        })
+        .expect("open association marker should be present");
+    let accept_idx = lines
+        .iter()
+        .position(|line| {
+            line.contains(
+                "[DatagramSessionManager][acceptOutboundDatagram][BLOCK_ACCEPT_OUTBOUND_DATAGRAM]",
+            )
+        })
+        .expect("accept outbound marker should be present");
+    let dispatch_idx = lines
+        .iter()
+        .position(|line| {
+            line.contains(
+                "[DatagramSessionManager][forwardOutboundDatagram][BLOCK_FORWARD_OUTBOUND_DATAGRAM] dispatching outbound datagram",
+            )
+        })
+        .expect("outbound dispatch marker should be present");
+    assert!(open_idx < accept_idx);
+    assert!(accept_idx < dispatch_idx);
 }
 
 #[tokio::test]

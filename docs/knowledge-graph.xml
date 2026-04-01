@@ -1,5 +1,5 @@
 <KnowledgeGraph>
-  <Project NAME="n0wss" VERSION="0.2.57">
+  <Project NAME="n0wss" VERSION="0.2.58">
     <keywords>wss, websocket, secure-websocket, proxy, socks5, internet-access, iroh, sendme, nat-traversal, backpressure, graceful-shutdown, fast-fail, metrics, adapter-contract, task-tracker, burst-detection</keywords>
     <annotation>n0wss is a secure proxy service based on the sendme/iroh ecosystem. The approved v1 architecture exposes a local SOCKS5 endpoint, normalizes requests into ProxyIntent work items, resolves either iroh or WSS transport behind minimal stream and adapter contracts, and treats fallback, shutdown, timing, accurate reply mapping, task-scoped cleanup, and burst observability as first-class design concerns.</annotation>
 
@@ -138,7 +138,7 @@
       <purpose>Route top-level SessionEffect values to exactly one target component without embedding business logic.</purpose>
       <path>src/session/effect_handler.rs</path>
       <depends>M-SESSION</depends>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-EFFECT-HANDLER</verification-ref>
       <annotations>
         <fn-apply PURPOSE="Route one SessionEffect to its owning target." />
         <fn-applyAll PURPOSE="Preserve effect order across a batch." />
@@ -149,7 +149,7 @@
       <purpose>Represent top-level typed session effects and component-scoped command enums consumed by the session orchestrator.</purpose>
       <path>src/session/effects.rs</path>
       <depends>M-SESSION</depends>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-EFFECTS</verification-ref>
       <annotations>
         <type-SessionEffect PURPOSE="Represent one top-level typed effect routed by target component." />
         <type-RegistryCommand PURPOSE="Represent registry-specific commands emitted by pure transitions." />
@@ -162,7 +162,7 @@
       <purpose>Store session handles, enforce max-session capacity, and execute registry-targeted session effects.</purpose>
       <path>src/session/registry.rs</path>
       <depends>M-SESSION</depends>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-REGISTRY</verification-ref>
       <annotations>
         <fn-tryReserve PURPOSE="Reserve one session slot without waiting." />
         <fn-insert PURPOSE="Register one session handle and consume the reservation." />
@@ -175,7 +175,7 @@
       <purpose>Provide the pure per-session state machine used by the higher session orchestration layers.</purpose>
       <path>src/session/state.rs</path>
       <depends>M-SESSION</depends>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-STATE</verification-ref>
       <annotations>
         <fn-transition PURPOSE="Apply one pure transition and emit ordered typed effects." />
         <type-SessionState PURPOSE="Represent Active, Closing, and Closed lifecycle states." />
@@ -187,7 +187,7 @@
       <purpose>Choose iroh first and fall back to WSS sequentially under bounded timeouts and explicit cancellation.</purpose>
       <path>src/session/transport_selector.rs</path>
       <depends>M-SESSION, M-IROH-ADAPTER, M-WSS-GATEWAY</depends>
-      <verification-ref>V-M-SESSION</verification-ref>
+      <verification-ref>V-M-SESSION-TRANSPORT-SELECTOR</verification-ref>
       <annotations>
         <fn-openStream PURPOSE="Resolve one transport stream with explicit iroh then WSS fallback behavior." />
         <type-TransportSelector PURPOSE="Sequential iroh then WSS selection strategy." />
@@ -229,7 +229,7 @@
       <purpose>Define the shared adapter contract and typed transport request used by WSS and iroh transport implementations.</purpose>
       <path>src/transport/adapter_contract.rs</path>
       <depends>M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
-      <verification-ref>V-M-WSS-GATEWAY</verification-ref>
+      <verification-ref>V-M-TRANSPORT-ADAPTER-CONTRACT</verification-ref>
       <annotations>
         <type-TransportRequest PURPOSE="Carry peer label plus outbound target host and port for adapter resolution." />
         <type-TransportAdapter PURPOSE="Expose the shared open_stream contract for transport implementations." />
@@ -240,7 +240,7 @@
       <purpose>Define the transport-agnostic stream contract and resolved stream metadata shared by adapters and ProxyBridge.</purpose>
       <path>src/transport/stream.rs</path>
       <depends>M-PROXY-BRIDGE, M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
-      <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
+      <verification-ref>V-M-TRANSPORT-STREAM</verification-ref>
       <annotations>
         <type-TransportStream PURPOSE="Expose the minimal transport-agnostic stream trait used by adapter outputs." />
         <type-ResolvedStream PURPOSE="Carry one transport stream plus transport kind metadata." />
@@ -252,7 +252,7 @@
       <purpose>Provide adapter-scoped task tracking for cleanup-sensitive tests and shutdown coordination.</purpose>
       <path>src/transport/task_tracker.rs</path>
       <depends>M-WSS-GATEWAY, M-IROH-ADAPTER</depends>
-      <verification-ref>V-M-IROH-ADAPTER</verification-ref>
+      <verification-ref>V-M-TRANSPORT-TASK-TRACKER</verification-ref>
       <annotations>
         <type-AdapterTaskTracker PURPOSE="Wrap task tracking with adapter-scoped diagnostics." />
         <type-TrackerTimeout PURPOSE="Represent bounded close-and-wait timeout failures." />
@@ -312,6 +312,246 @@
         <fn-runSmoke PURPOSE="Exercise startup, one proxy request, and shutdown over the implemented tunnel path." />
       </annotations>
     </M-SMOKE-E2E>
+
+    <M-CONFIG-TESTS NAME="ConfigTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for configuration parsing, validation, and origdst-live option coverage.</purpose>
+      <path>src/config/mod.test.rs</path>
+      <depends>M-CONFIG</depends>
+      <verification-ref>V-M-CONFIG</verification-ref>
+      <annotations>
+        <fn-runConfigTests PURPOSE="Verify deterministic configuration parsing and validation outcomes." />
+      </annotations>
+    </M-CONFIG-TESTS>
+
+    <M-OBS-TESTS NAME="ObservabilityTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for observability initialization and tracing capture behavior.</purpose>
+      <path>src/obs/mod.test.rs</path>
+      <depends>M-OBS</depends>
+      <verification-ref>V-M-OBS</verification-ref>
+      <annotations>
+        <fn-runObservabilityTests PURPOSE="Verify stable observability setup and governed test-capture helpers." />
+      </annotations>
+    </M-OBS-TESTS>
+
+    <M-BURST-DETECTOR-TESTS NAME="BurstDetectorTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for burst-detection thresholds, counters, and alert behavior.</purpose>
+      <path>src/obs/burst_detector.test.rs</path>
+      <depends>M-OBS</depends>
+      <verification-ref>V-M-OBS</verification-ref>
+      <annotations>
+        <fn-runBurstDetectorTests PURPOSE="Verify burst-detection evidence and bounded alert behavior." />
+      </annotations>
+    </M-BURST-DETECTOR-TESTS>
+
+    <M-IROH-ADAPTER-TESTS NAME="IrohAdapterTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for the iroh adapter contract and cleanup-sensitive behavior.</purpose>
+      <path>src/iroh_adapter/mod.test.rs</path>
+      <depends>M-IROH-ADAPTER, M-TRANSPORT-TASK-TRACKER</depends>
+      <verification-ref>V-M-IROH-ADAPTER</verification-ref>
+      <annotations>
+        <fn-runIrohAdapterTests PURPOSE="Verify iroh adapter contract expectations and cleanup guarantees." />
+      </annotations>
+    </M-IROH-ADAPTER-TESTS>
+
+    <M-PROXY-BRIDGE-TESTS NAME="ProxyBridgeTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for bridge orchestration and transport-agnostic stream handling.</purpose>
+      <path>src/proxy_bridge/mod.test.rs</path>
+      <depends>M-PROXY-BRIDGE, M-TRANSPORT-STREAM</depends>
+      <verification-ref>V-M-PROXY-BRIDGE</verification-ref>
+      <annotations>
+        <fn-runProxyBridgeTests PURPOSE="Verify bridge request handling and stream-lifecycle behavior." />
+      </annotations>
+    </M-PROXY-BRIDGE-TESTS>
+
+    <M-UDP-EGRESS-RELAY-TESTS NAME="UdpEgressRelayTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for UDP relay outbound, inbound, and reply-state behavior.</purpose>
+      <path>src/proxy_bridge/udp_relay.test.rs</path>
+      <depends>M-UDP-EGRESS-RELAY</depends>
+      <verification-ref>V-M-UDP-EGRESS-RELAY</verification-ref>
+      <annotations>
+        <fn-runUdpRelayTests PURPOSE="Verify governed UDP relay forwarding and return-state preservation." />
+      </annotations>
+    </M-UDP-EGRESS-RELAY-TESTS>
+
+    <M-SESSION-TESTS NAME="SessionManagerTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for top-level session orchestration behavior.</purpose>
+      <path>src/session/mod.test.rs</path>
+      <depends>M-SESSION</depends>
+      <verification-ref>V-M-SESSION</verification-ref>
+      <annotations>
+        <fn-runSessionTests PURPOSE="Verify session orchestration, capacity, and lifecycle outcomes." />
+      </annotations>
+    </M-SESSION-TESTS>
+
+    <M-SESSION-EFFECT-HANDLER-TESTS NAME="SessionEffectHandlerTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for effect-handler routing invariants.</purpose>
+      <path>src/session/effect_handler.test.rs</path>
+      <depends>M-SESSION-EFFECT-HANDLER</depends>
+      <verification-ref>V-M-SESSION-EFFECT-HANDLER</verification-ref>
+      <annotations>
+        <fn-runEffectHandlerTests PURPOSE="Verify one-target routing and ordered batch application behavior." />
+      </annotations>
+    </M-SESSION-EFFECT-HANDLER-TESTS>
+
+    <M-SESSION-EFFECTS-TESTS NAME="SessionEffectsTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for typed session-effect and command-enum boundaries.</purpose>
+      <path>src/session/effects.test.rs</path>
+      <depends>M-SESSION-EFFECTS</depends>
+      <verification-ref>V-M-SESSION-EFFECTS</verification-ref>
+      <annotations>
+        <fn-runSessionEffectsTests PURPOSE="Verify typed effect-surface invariants and bounded command enums." />
+      </annotations>
+    </M-SESSION-EFFECTS-TESTS>
+
+    <M-SESSION-REGISTRY-TESTS NAME="SessionRegistryTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for session-registry capacity and removal behavior.</purpose>
+      <path>src/session/registry.test.rs</path>
+      <depends>M-SESSION-REGISTRY</depends>
+      <verification-ref>V-M-SESSION-REGISTRY</verification-ref>
+      <annotations>
+        <fn-runSessionRegistryTests PURPOSE="Verify reservation, insert, remove, and drain registry behavior." />
+      </annotations>
+    </M-SESSION-REGISTRY-TESTS>
+
+    <M-SESSION-STATE-TESTS NAME="SessionStateTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for pure session-state transitions and emitted effects.</purpose>
+      <path>src/session/state.test.rs</path>
+      <depends>M-SESSION-STATE</depends>
+      <verification-ref>V-M-SESSION-STATE</verification-ref>
+      <annotations>
+        <fn-runSessionStateTests PURPOSE="Verify deterministic transition outcomes and ordered effect emission." />
+      </annotations>
+    </M-SESSION-STATE-TESTS>
+
+    <M-SESSION-TRANSPORT-SELECTOR-TESTS NAME="SessionTransportSelectorTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for sequential iroh-then-WSS transport fallback behavior.</purpose>
+      <path>src/session/transport_selector.test.rs</path>
+      <depends>M-SESSION-TRANSPORT-SELECTOR</depends>
+      <verification-ref>V-M-SESSION-TRANSPORT-SELECTOR</verification-ref>
+      <annotations>
+        <fn-runSessionTransportSelectorTests PURPOSE="Verify bounded transport selection, cancellation, and fallback outcomes." />
+      </annotations>
+    </M-SESSION-TRANSPORT-SELECTOR-TESTS>
+
+    <M-SOCKS5-TESTS NAME="Socks5Tests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for SOCKS5 handshake, request parsing, and reply behavior.</purpose>
+      <path>src/socks5/mod.test.rs</path>
+      <depends>M-SOCKS5</depends>
+      <verification-ref>V-M-SOCKS5</verification-ref>
+      <annotations>
+        <fn-runSocks5Tests PURPOSE="Verify SOCKS5 request handling and exact reply semantics." />
+      </annotations>
+    </M-SOCKS5-TESTS>
+
+    <M-SOCKS5-REPLY-MAPPING-TESTS NAME="Socks5ReplyMappingTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for exhaustive SOCKS5 reply mapping behavior.</purpose>
+      <path>src/socks5/reply_mapping.test.rs</path>
+      <depends>M-SOCKS5</depends>
+      <verification-ref>V-M-SOCKS5</verification-ref>
+      <annotations>
+        <fn-runReplyMappingTests PURPOSE="Verify exact policy, target, and infrastructure reply-code mapping." />
+      </annotations>
+    </M-SOCKS5-REPLY-MAPPING-TESTS>
+
+    <M-SOCKS5-UDP-ASSOCIATE-TESTS NAME="Socks5UdpAssociateTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for UDP ASSOCIATE bind, relay, and packet-normalization behavior.</purpose>
+      <path>src/socks5/udp_associate.test.rs</path>
+      <depends>M-SOCKS5-UDP-ASSOCIATE</depends>
+      <verification-ref>V-M-SOCKS5-UDP-ASSOCIATE</verification-ref>
+      <annotations>
+        <fn-runSocks5UdpAssociateTests PURPOSE="Verify UDP ASSOCIATE relay binding and datagram handling behavior." />
+      </annotations>
+    </M-SOCKS5-UDP-ASSOCIATE-TESTS>
+
+    <M-TLS-TESTS NAME="TlsTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for TLS material loading and client-trust behavior.</purpose>
+      <path>src/tls/mod.test.rs</path>
+      <depends>M-TLS</depends>
+      <verification-ref>V-M-TLS</verification-ref>
+      <annotations>
+        <fn-runTlsTests PURPOSE="Verify deterministic TLS loading and trust-anchor behavior." />
+      </annotations>
+    </M-TLS-TESTS>
+
+    <M-DATAGRAM-CONTRACT-TESTS NAME="DatagramContractTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for the shared datagram envelope and validation rules.</purpose>
+      <path>src/transport/datagram_contract.test.rs</path>
+      <depends>M-DATAGRAM-CONTRACT</depends>
+      <verification-ref>V-M-DATAGRAM-CONTRACT</verification-ref>
+      <annotations>
+        <fn-runDatagramContractTests PURPOSE="Verify datagram envelope validation and contract invariants." />
+      </annotations>
+    </M-DATAGRAM-CONTRACT-TESTS>
+
+    <M-UDP-ASSOCIATION-REGISTRY-TESTS NAME="UdpAssociationRegistryTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for UDP association ownership and lookup behavior.</purpose>
+      <path>src/session/udp_registry.test.rs</path>
+      <depends>M-UDP-ASSOCIATION-REGISTRY</depends>
+      <verification-ref>V-M-UDP-ASSOCIATION-REGISTRY</verification-ref>
+      <annotations>
+        <fn-runUdpAssociationRegistryTests PURPOSE="Verify association registration, lookup, and lifecycle behavior." />
+      </annotations>
+    </M-UDP-ASSOCIATION-REGISTRY-TESTS>
+
+    <M-DATAGRAM-SESSION-MANAGER-TESTS NAME="DatagramSessionManagerTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for datagram association setup and dispatch trajectory behavior.</purpose>
+      <path>src/session/datagram_manager.test.rs</path>
+      <depends>M-DATAGRAM-SESSION-MANAGER</depends>
+      <verification-ref>V-M-DATAGRAM-SESSION-MANAGER</verification-ref>
+      <annotations>
+        <fn-runDatagramSessionManagerTests PURPOSE="Verify datagram manager association-open and dispatch-path behavior." />
+      </annotations>
+    </M-DATAGRAM-SESSION-MANAGER-TESTS>
+
+    <M-WSS-DATAGRAM-TESTS NAME="WssDatagramGatewayTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for WSS datagram framing and runtime reply behavior.</purpose>
+      <path>src/wss_gateway/datagram.test.rs</path>
+      <depends>M-WSS-DATAGRAM-GATEWAY</depends>
+      <verification-ref>V-M-WSS-DATAGRAM-GATEWAY</verification-ref>
+      <annotations>
+        <fn-runWssDatagramTests PURPOSE="Verify WSS datagram framing and reply-path behavior." />
+      </annotations>
+    </M-WSS-DATAGRAM-TESTS>
+
+    <M-DATAGRAM-TRANSPORT-SELECTOR-TESTS NAME="DatagramTransportSelectorTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for datagram-transport selection and outbound emission behavior.</purpose>
+      <path>src/session/datagram_transport_selector.test.rs</path>
+      <depends>M-DATAGRAM-TRANSPORT-SELECTOR</depends>
+      <verification-ref>V-M-DATAGRAM-TRANSPORT-SELECTOR</verification-ref>
+      <annotations>
+        <fn-runDatagramTransportSelectorTests PURPOSE="Verify datagram transport selection, timeout, and emission behavior." />
+      </annotations>
+    </M-DATAGRAM-TRANSPORT-SELECTOR-TESTS>
+
+    <M-WSS-GATEWAY-TESTS NAME="WssGatewayTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for WSS gateway stream, runtime, and transport-boundary behavior.</purpose>
+      <path>src/wss_gateway/mod.test.rs</path>
+      <depends>M-WSS-GATEWAY, M-TRANSPORT-ADAPTER-CONTRACT</depends>
+      <verification-ref>V-M-WSS-GATEWAY</verification-ref>
+      <annotations>
+        <fn-runWssGatewayTests PURPOSE="Verify WSS gateway contract, stream, and runtime datagram behavior." />
+      </annotations>
+    </M-WSS-GATEWAY-TESTS>
+
+    <M-UDP-ORIGDST-LINUX-TESTS NAME="UdpOrigDstLinuxTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for Linux original-destination adapter behavior.</purpose>
+      <path>src/udp_origdst/linux.test.rs</path>
+      <depends>M-UDP-ORIGDST-LINUX-ADAPTER</depends>
+      <verification-ref>V-M-UDP-ORIGDST-LINUX-ADAPTER</verification-ref>
+      <annotations>
+        <fn-runUdpOrigDstLinuxTests PURPOSE="Verify Linux original-destination recovery adapter behavior." />
+      </annotations>
+    </M-UDP-ORIGDST-LINUX-TESTS>
+
+    <M-UDP-ORIGDST-RUNTIME-TESTS NAME="UdpOrigDstRuntimeTests" TYPE="UTILITY" STATUS="implemented">
+      <purpose>Provide the governed module-local verification surface for repo-local original-destination runtime behavior.</purpose>
+      <path>src/udp_origdst/udp_origdst.test.rs</path>
+      <depends>M-UDP-ORIGDST-RUNTIME, M-UDP-ORIGDST-CONTRACT</depends>
+      <verification-ref>V-M-UDP-ORIGDST-RUNTIME</verification-ref>
+      <annotations>
+        <fn-runUdpOrigDstRuntimeTests PURPOSE="Verify original-destination runtime delivery and live-listener behavior." />
+      </annotations>
+    </M-UDP-ORIGDST-RUNTIME-TESTS>
 
     <M-LIVE-HOST-INVENTORY NAME="LiveHostInventory" TYPE="UTILITY" STATUS="done">
       <purpose>Freeze the two-host live-wave inventory including roles, paths, ports, and operator-only access assumptions.</purpose>
