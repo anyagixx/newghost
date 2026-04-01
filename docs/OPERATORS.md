@@ -2254,3 +2254,32 @@ Bounded workstation plus server correlation packet for Phase-49:
    `loop entry`
    `pre-loop drop`
 6. The packet is invalid if it blends workstation symptoms and server logs into one vague conclusion, if it reopens video, or if it reopens generic transport, reply-path, or topology diagnosis without disproving the preserved Phase-45, Phase-46, Phase-47, or Phase-48 packet in the same bounded window.
+
+Observed bounded packet for Phase-49 step-6:
+
+1. Stable attempt label:
+   `phase49-server-ingress-voice-20260401-214456z`
+2. Workstation evidence inside one bounded window:
+   operator-confirmed voice attempt on the already logged-in ordinary Telegram Desktop window
+   preserved helper floor at `2026-04-01T21:44:56Z` through `2026-04-01T21:44:58Z`
+   fresh real Telegram media tuples:
+   `91.108.17.4:598`
+   `91.108.13.38:598`
+   `91.108.9.97:599`
+   preserved markers:
+   `BLOCK_UDP_ORIGDST_RUNTIME`
+   `BLOCK_UDP_ORIGDST_GOVERNED_HANDOFF`
+3. Server evidence inside the same bounded window:
+   fresh accepted WSS handshake lines at `2026-04-01T21:45:02Z` through `2026-04-01T21:45:03Z`
+   no `BLOCK_CALL_SERVER_INGRESS_ELIGIBLE`
+   no `BLOCK_CALL_SERVER_INGRESS_DECODE`
+   no `BLOCK_CALL_SERVER_INGRESS_LOOP_ENTRY`
+   no `BLOCK_CALL_SERVER_INGRESS_DROP`
+   no `BLOCK_CALL_REPLY_*`
+   no `SERVER_DATAGRAM_RECEIVED`
+   no `SERVER_DATAGRAM_INBOUND_RECEIVED`
+   no `SERVER_DATAGRAM_RETURN_EMITTED`
+4. Packet classifier:
+   `eligibility`
+5. Honest interpretation:
+   this Phase-49 packet keeps preserved tuple recovery, governed handoff, and accepted-WSS-handshake floors intact, but the first missing server-ingress layer is still the eligibility boundary above handshake.
